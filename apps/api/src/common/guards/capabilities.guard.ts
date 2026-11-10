@@ -180,6 +180,12 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/ai/propose': [
     'strategy.edit',
   ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/ai/propose/accept': [
+    'strategy.edit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/ai/propose/reject': [
+    'strategy.edit',
+  ],
   'GET /api/v1/brands/:brandId/current-strategy': ['strategy.read'],
   'POST /api/v1/brands/:brandId/current-strategy': ['strategy.set_current'],
 
@@ -190,6 +196,12 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/campaigns/:campaignId/archive': ['campaign.archive'],
   'GET /api/v1/brands/:brandId/content': ['content.read'],
   'POST /api/v1/brands/:brandId/content': ['content.create'],
+  'POST /api/v1/brands/:brandId/ai/generate': ['content.create'],
+  'POST /api/v1/brands/:brandId/ai/captions': ['content.create'],
+  'POST /api/v1/brands/:brandId/ai/captions/rewrite': ['content.create'],
+  'POST /api/v1/brands/:brandId/ai/alt-text': ['content.create'],
+  'POST /api/v1/brands/:brandId/ai/ideas': ['content.create'],
+  'POST /api/v1/brands/:brandId/ai/hashtags': ['content.create'],
   'GET /api/v1/content/:contentId': ['content.read'],
   'GET /api/v1/content/:contentId/channel-analytics': ['content.read'],
   'PATCH /api/v1/content/:contentId': ['content.update'],
@@ -266,6 +278,7 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/inbox/conversations': ['content.read'],
   'GET /api/v1/inbox/conversations/:id': ['content.read'],
   'POST /api/v1/inbox/conversations/:id/reply': ['content.update'],
+  'POST /api/v1/inbox/conversations/:id/ai/draft': ['content.update'],
   'POST /api/v1/inbox/conversations/:id/assign': ['content.update'],
   'POST /api/v1/inbox/conversations/:id/notes': ['content.update'],
   'POST /api/v1/inbox/conversations/:id/status': ['content.update'],
@@ -468,6 +481,10 @@ export function matchRequirements(method: string, path: string): string[] | null
       '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/clone',
     )
     .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/ai\/propose\/(accept|reject)/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/ai/propose/$1',
+    )
+    .replace(
       /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/ai\/propose/,
       '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/ai/propose',
     )
@@ -530,6 +547,10 @@ export function matchRequirements(method: string, path: string): string[] | null
       '/api/v1/brands/:brandId/evidence/:evidenceId',
     )
     .replace(
+      /\/api\/v1\/inbox\/conversations\/[^/]+\/ai\/draft/,
+      '/api/v1/inbox/conversations/:id/ai/draft',
+    )
+    .replace(
       /\/api\/v1\/inbox\/conversations\/[^/]+\/(reply|assign|notes|status)/,
       '/api/v1/inbox/conversations/:id/$1',
     )
@@ -542,6 +563,15 @@ export function matchRequirements(method: string, path: string): string[] | null
     .replace(/\/api\/v1\/listening\/hits\/[^/]+/, '/api/v1/listening/hits/:id')
     .replace(/\/api\/v1\/listening\/alerts\/[^/]+/, '/api/v1/listening/alerts/:id')
 
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/ai\/captions\/rewrite/,
+      '/api/v1/brands/:brandId/ai/captions/rewrite',
+    )
+    .replace(/\/api\/v1\/brands\/[^/]+\/ai\/captions/, '/api/v1/brands/:brandId/ai/captions')
+    .replace(/\/api\/v1\/brands\/[^/]+\/ai\/alt-text/, '/api/v1/brands/:brandId/ai/alt-text')
+    .replace(/\/api\/v1\/brands\/[^/]+\/ai\/ideas/, '/api/v1/brands/:brandId/ai/ideas')
+    .replace(/\/api\/v1\/brands\/[^/]+\/ai\/hashtags/, '/api/v1/brands/:brandId/ai/hashtags')
+    .replace(/\/api\/v1\/brands\/[^/]+\/ai\/generate/, '/api/v1/brands/:brandId/ai/generate')
     .replace(/\/api\/v1\/brands\/[^/]+/, '/api/v1/brands/:brandId');
   const key = `${method.toUpperCase()} ${normalized}`;
   for (const [k, v] of Object.entries(routeRequirements)) {

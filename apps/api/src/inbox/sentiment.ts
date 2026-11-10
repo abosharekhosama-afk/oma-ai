@@ -5,7 +5,8 @@ const NEG =
 const POS =
   /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
 
-/** Fast local classifier; replace with LLM call when AI budget allows. */
+/** Fast local classifier. Live AI sentiment is intentionally not wired (cost + quality);
+ * set AI_SENTIMENT_ENABLED later if a cheap model path is added. Regex remains the default. */
 export function classifySentiment(text: string): SentimentLabel {
   const t = (text || '').trim();
   if (!t) return 'NEUTRAL';
