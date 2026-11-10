@@ -9,6 +9,8 @@ export const DEFAULT_MODEL_PRICES: Record<string, ModelPrice> = {
   'gpt-4.1': { inputPerMillion: 2.0, outputPerMillion: 8.0 },
   'gpt-4o-mini': { inputPerMillion: 0.15, outputPerMillion: 0.6 },
   'gpt-4o': { inputPerMillion: 2.5, outputPerMillion: 10.0 },
+  'openai/gpt-oss-20b': { inputPerMillion: 0.075, outputPerMillion: 0.3 },
+  'openai/gpt-oss-120b': { inputPerMillion: 0.15, outputPerMillion: 0.6 },
 };
 
 const UNKNOWN_MODEL_PRICE: ModelPrice = { inputPerMillion: 5, outputPerMillion: 15 };

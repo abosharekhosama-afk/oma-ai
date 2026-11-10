@@ -65,16 +65,21 @@ export const envSchema = z
       .optional()
       .transform((v) => v === '1' || v === 'true'),
     /** Text intelligence only. Production stays offline unless explicitly enabled. */
-    AI_PROVIDER: z.enum(['openai', 'grok', 'gemini']).default('openai'),
+    AI_PROVIDER: z.enum(['openai', 'grok', 'groq', 'gemini']).default('openai'),
     AI_LIVE_ENABLED: z
       .enum(['true', 'false'])
       .optional()
       .transform((v) => v === 'true'),
     OPENAI_API_KEY: z.string().optional().default(''),
     XAI_API_KEY: z.string().optional().default(''),
+    GROQ_API_KEY: z.string().optional().default(''),
     GEMINI_API_KEY: z.string().optional().default(''),
     OPENAI_PROJECT_ID: z.string().optional().default(''),
     OPENAI_BASE_URL: z.preprocess(
+      (v) => (v === '' || v == null ? undefined : v),
+      z.string().url().optional(),
+    ),
+    GROQ_BASE_URL: z.preprocess(
       (v) => (v === '' || v == null ? undefined : v),
       z.string().url().optional(),
     ),
@@ -100,16 +105,20 @@ export const envSchema = z
     const requiredKey =
       env.AI_PROVIDER === 'grok'
         ? env.XAI_API_KEY
-        : env.AI_PROVIDER === 'gemini'
-          ? env.GEMINI_API_KEY
-          : env.OPENAI_API_KEY;
+        : env.AI_PROVIDER === 'groq'
+          ? env.GROQ_API_KEY
+          : env.AI_PROVIDER === 'gemini'
+            ? env.GEMINI_API_KEY
+            : env.OPENAI_API_KEY;
     if (!requiredKey?.trim()) {
       const keyName =
         env.AI_PROVIDER === 'grok'
           ? 'XAI_API_KEY'
-          : env.AI_PROVIDER === 'gemini'
-            ? 'GEMINI_API_KEY'
-            : 'OPENAI_API_KEY';
+          : env.AI_PROVIDER === 'groq'
+            ? 'GROQ_API_KEY'
+            : env.AI_PROVIDER === 'gemini'
+              ? 'GEMINI_API_KEY'
+              : 'OPENAI_API_KEY';
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `AI_LIVE_ENABLED=true with AI_PROVIDER=${env.AI_PROVIDER} requires ${keyName}`,

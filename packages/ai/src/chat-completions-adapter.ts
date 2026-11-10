@@ -32,7 +32,7 @@ export type ChatCompletionsClient = {
 };
 
 export type ChatCompletionsAdapterOptions = AiModelConfig & {
-  provider: 'grok' | 'gemini';
+  provider: 'grok' | 'groq' | 'gemini';
   liveEnabled: boolean;
   apiKey?: string;
   baseUrl: string;

@@ -26,7 +26,7 @@ function validProposal() {
 }
 
 describe('Chat Completions AI provider adapter', () => {
-  it.each(['grok', 'gemini'] as const)(
+  it.each(['grok', 'groq', 'gemini'] as const)(
     'accepts schema-conforming %s output and records token usage',
     async (provider) => {
       const create = vi.fn().mockResolvedValue({
@@ -43,7 +43,9 @@ describe('Chat Completions AI provider adapter', () => {
         baseUrl:
           provider === 'grok'
             ? 'https://api.x.ai/v1'
-            : 'https://generativelanguage.googleapis.com/v1beta/openai/',
+            : provider === 'groq'
+              ? 'https://api.groq.com/openai/v1'
+              : 'https://generativelanguage.googleapis.com/v1beta/openai/',
       });
       const result = await adapter.completeStructured({
         useCase: 'brand_profile_synthesis',
@@ -104,17 +106,24 @@ describe('Chat Completions AI provider adapter', () => {
       AI_LIVE_ENABLED: 'true',
       XAI_API_KEY: 'xai-secret',
     });
+    const groq = createAiAdapterFromEnv({
+      AI_PROVIDER: 'groq',
+      AI_LIVE_ENABLED: 'true',
+      GROQ_API_KEY: 'groq-secret',
+    });
     const gemini = createAiAdapterFromEnv({
       AI_PROVIDER: 'gemini',
       AI_LIVE_ENABLED: 'true',
       GEMINI_API_KEY: 'google-secret',
     });
     expect(grok).toBeInstanceOf(ChatCompletionsProviderAdapter);
+    expect(groq).toBeInstanceOf(ChatCompletionsProviderAdapter);
     expect(gemini).toBeInstanceOf(ChatCompletionsProviderAdapter);
   });
 
   it.each([
     ['grok', 'XAI_API_KEY'],
+    ['groq', 'GROQ_API_KEY'],
     ['gemini', 'GEMINI_API_KEY'],
   ])('requires the matching %s key for live configuration', (provider, keyName) => {
     const common = {

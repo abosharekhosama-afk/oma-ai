@@ -63,8 +63,9 @@ Same live gate as brand analysis, plus:
 ```
 STRATEGY_AI_MODE=live
 AI_LIVE_ENABLED=true
-AI_PROVIDER=openai           # openai | grok | gemini
-OPENAI_API_KEY=...           # or XAI_API_KEY / GEMINI_API_KEY for selected provider
+AI_PROVIDER=openai           # openai | grok | groq | gemini
+OPENAI_API_KEY=...           # or XAI_API_KEY / GROQ_API_KEY / GEMINI_API_KEY for selected provider
+GROQ_BASE_URL=https://api.groq.com/openai/v1  # when AI_PROVIDER=groq
 AI_DEFAULT_MODEL=             # optional, defaults follow AI_PROVIDER
 AI_REASONING_MODEL=           # optional, defaults follow AI_PROVIDER
 AI_MONTHLY_BUDGET_USD=25
