@@ -638,8 +638,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </div>
             )}
           </header>
+          <OfflineBanner />
           <main id="main" className="oma-container">
-            <OfflineBanner />
             {children}
           </main>
         </div>

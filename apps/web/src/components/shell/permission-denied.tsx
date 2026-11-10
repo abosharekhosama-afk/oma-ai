@@ -1,13 +1,16 @@
 'use client';
 
 import { useT } from '../../lib/use-locale';
+import { ErrorState } from '../ui/error-state';
 
 export function PermissionDenied({ message }: { message?: string }) {
   const t = useT();
   return (
-    <div className="oma-card" role="alert" data-testid="permission-denied">
-      <h2>{t('errors.permissionTitle')}</h2>
-      <p>{message ?? t('errors.permission')}</p>
-    </div>
+    <ErrorState
+      kind="forbidden"
+      code="403"
+      title={t('errors.permissionTitle')}
+      body={message ?? t('errors.permission')}
+    />
   );
 }

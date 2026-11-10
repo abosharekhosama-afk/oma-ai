@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { invalidateApiCache } from '../../lib/api';
 import { useT } from '../../lib/use-locale';
 
@@ -18,30 +18,48 @@ export function emitNetworkRecovered() {
 }
 
 /**
- * Centralized, app-wide Network Connectivity Indicator.
- * Single source of truth for browser offline state and transient API network drops.
+ * The single app-wide network connectivity indicator: a bar under the header.
+ * Other online/offline widgets should defer to this banner.
  */
 export function OfflineBanner() {
   const t = useT();
   const [offline, setOffline] = useState(false);
+  const [backOnline, setBackOnline] = useState(false);
+  const wasOffline = useRef(false);
 
   useEffect(() => {
+    let hideTimer: number | undefined;
+    const showBackOnline = () => {
+      if (!wasOffline.current) return;
+      wasOffline.current = false;
+      setBackOnline(true);
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => setBackOnline(false), 3200);
+    };
+
     const sync = () => {
       const isOff = typeof navigator !== 'undefined' && !navigator.onLine;
       setOffline(isOff);
-      if (!isOff) {
-        invalidateApiCache('/api/v1/');
-        emitNetworkRecovered();
+      if (isOff) {
+        wasOffline.current = true;
+        setBackOnline(false);
+        return;
       }
+      invalidateApiCache('/api/v1/');
+      emitNetworkRecovered();
+      showBackOnline();
     };
     const onNetFail = () => {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        wasOffline.current = true;
         setOffline(true);
+        setBackOnline(false);
       }
     };
     const onNetOk = () => {
       if (typeof navigator === 'undefined' || navigator.onLine) {
         setOffline(false);
+        showBackOnline();
       }
     };
 
@@ -51,6 +69,7 @@ export function OfflineBanner() {
     window.addEventListener(NETWORK_FAILURE_EVENT, onNetFail);
     window.addEventListener(NETWORK_RECOVERED_EVENT, onNetOk);
     return () => {
+      window.clearTimeout(hideTimer);
       window.removeEventListener('online', sync);
       window.removeEventListener('offline', sync);
       window.removeEventListener(NETWORK_FAILURE_EVENT, onNetFail);
@@ -58,36 +77,41 @@ export function OfflineBanner() {
     };
   }, []);
 
-  if (!offline) return null;
+  if (!offline && !backOnline) return null;
 
   return (
     <div
-      className="oma-offline-banner"
+      className={`oma-offline-banner${offline ? '' : ' oma-offline-banner--online'}`}
       role="status"
       aria-live="polite"
       data-testid="offline-banner"
+      data-state={offline ? 'offline' : 'online'}
     >
       <span className="oma-offline-banner__dot" aria-hidden="true" />
-      <span>{t('errors.offlineBanner')}</span>
-      <button
-        type="button"
-        className="oma-offline-banner__retry"
-        onClick={() => {
-          invalidateApiCache('/api/v1/');
-          if (typeof navigator === 'undefined' || navigator.onLine) {
-            setOffline(false);
-            emitNetworkRecovered();
-          } else {
-            window.location.reload();
-          }
-        }}
-        data-testid="offline-banner-retry"
-      >
-        {t('errors.retry')}
-      </button>
+      <span>{offline ? t('errors.offlineBanner') : t('errors.onlineBanner')}</span>
+      {offline ? (
+        <button
+          type="button"
+          className="oma-offline-banner__retry"
+          onClick={() => {
+            invalidateApiCache('/api/v1/');
+            if (typeof navigator === 'undefined' || navigator.onLine) {
+              setOffline(false);
+              wasOffline.current = true;
+              setBackOnline(true);
+              emitNetworkRecovered();
+            } else {
+              window.location.reload();
+            }
+          }}
+          data-testid="offline-banner-retry"
+        >
+          {t('errors.retry')}
+        </button>
+      ) : null}
     </div>
   );
 }
 
-/** Alias for semantic imports across the app. */
+/** @deprecated Use OfflineBanner — kept as an alias so older imports stay the same component. */
 export const NetworkConnectivityBanner = OfflineBanner;
