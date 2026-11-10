@@ -37,6 +37,46 @@ const ACCEPT: Record<MediaKind, string> = {
 };
 
 const CANVA_HIDE_KEY = 'oma-ml-hide-canva';
+const SOURCE_KEY = 'oma-ml-source';
+
+function readStoredSource(): 'oma' | 'workdrive' | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const q = new URL(window.location.href).searchParams.get('media_source');
+    if (q === 'oma' || q === 'workdrive') return q;
+    const stored = sessionStorage.getItem(SOURCE_KEY);
+    if (stored === 'oma' || stored === 'workdrive') return stored;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function persistSource(next: 'oma' | 'workdrive') {
+  try {
+    sessionStorage.setItem(SOURCE_KEY, next);
+  } catch {
+    /* ignore */
+  }
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('media_source') === next) return;
+    url.searchParams.set('media_source', next);
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+function assetSource(asset: MediaAsset): 'oma' | 'workdrive' | null {
+  if (asset.storage_provider === 'OMA_INTERNAL') return 'oma';
+  if (asset.storage_provider === 'USER_WORKDRIVE') return 'workdrive';
+  return null;
+}
 
 type GridItem = {
   key: string;
@@ -114,6 +154,8 @@ function fileToItem(
         status: file.missing ? 'MISSING' : 'READY',
         missing: Boolean(file.missing),
         source: 'workdrive',
+        storage_provider:
+          source === 'oma' ? 'OMA_INTERNAL' : source === 'workdrive' ? 'USER_WORKDRIVE' : null,
         view_url: file.view_url || `/api/v1/media/${file.asset_id}/view`,
         stream_url: file.stream_url ?? null,
         created_at: file.created_at || file.updated_at || new Date().toISOString(),
@@ -231,6 +273,7 @@ export function MediaPickerDialog({
   const [brandRoot, setBrandRoot] = useState<WorkDriveBrowse | null>(null);
   const [browse, setBrowse] = useState<WorkDriveBrowse | null>(null);
   const [storageSource, setStorageSource] = useState<'oma' | 'workdrive' | null>(null);
+  const [sourceReady, setSourceReady] = useState(false);
   const [scope, setScope] = useState<Scope>('organization');
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ name: string; value: number } | null>(null);
@@ -260,18 +303,20 @@ export function MediaPickerDialog({
     } catch {
       /* ignore */
     }
+    setStorageSource((cur) => cur ?? readStoredSource());
+    setSourceReady(true);
   }, []);
 
   const loadLibrary = useCallback(async () => {
     if (!brandId) return;
     setError(null);
     try {
-      const r = await mediaApi.list(brandId, kind);
+      const r = await mediaApi.list(brandId, kind, storageSource ?? undefined);
       setLib(r.data);
     } catch (e) {
       setError(getApiError(e).message);
     }
-  }, [brandId, kind]);
+  }, [brandId, kind, storageSource]);
 
   const openFolder = useCallback(
     async (nextScope: Scope, folderId?: string) => {
@@ -287,8 +332,9 @@ export function MediaPickerDialog({
           storageSource ?? undefined,
         );
         setBrowse(r.data);
-        if (r.data.source === 'oma' || r.data.source === 'workdrive') {
+        if (!storageSource && (r.data.source === 'oma' || r.data.source === 'workdrive')) {
           setStorageSource(r.data.source);
+          persistSource(r.data.source);
         }
         setScope(nextScope);
         setSelectedFolderId(folderId || r.data.folder.id);
@@ -325,7 +371,7 @@ export function MediaPickerDialog({
   );
 
   useEffect(() => {
-    if (!open || !brandId) return;
+    if (!open || !brandId || !sourceReady) return;
     void loadLibrary();
     void (async () => {
       setBrowsing(true);
@@ -341,7 +387,10 @@ export function MediaPickerDialog({
             : brand.status === 'fulfilled'
               ? brand.value.data.source
               : null;
-        if (from === 'oma' || from === 'workdrive') setStorageSource(from);
+        if (!storageSource && (from === 'oma' || from === 'workdrive')) {
+          setStorageSource(from);
+          persistSource(from);
+        }
         if (org.status === 'fulfilled') {
           setOrgRoot(org.value.data);
           setBrowse(org.value.data);
@@ -363,7 +412,7 @@ export function MediaPickerDialog({
         setBrowsing(false);
       }
     })();
-  }, [open, brandId, kind, loadLibrary, storageSource]);
+  }, [open, brandId, kind, loadLibrary, storageSource, sourceReady]);
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
@@ -387,6 +436,23 @@ export function MediaPickerDialog({
   const showSourceToggle = Boolean(
     lib?.workdrive.internal_available && (lib.workdrive.byos_connected || lib.workdrive.connected),
   );
+  const omaUsable = Boolean(lib?.workdrive.internal_available);
+  const workdriveUsable = Boolean(lib?.workdrive.byos_connected || lib?.workdrive.connected);
+  const sourceBlocked =
+    storageSource === 'oma' && !omaUsable
+      ? t('errors.storage_oma_unavailable')
+      : storageSource === 'workdrive' && !workdriveUsable
+        ? t('errors.storage_workdrive_unavailable')
+        : null;
+  const selectSource = (next: 'oma' | 'workdrive') => {
+    if (storageSource === next) return;
+    setOrgRoot(null);
+    setBrandRoot(null);
+    setBrowse(null);
+    setError(null);
+    setStorageSource(next);
+    persistSource(next);
+  };
   const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
   const allSelected = scope === 'all' || selectedFolderId === '__all__';
   const brandSelected = Boolean(
@@ -407,6 +473,7 @@ export function MediaPickerDialog({
     if ((allSelected || !brandSelected) && lib?.assets.length) {
       for (const a of lib.assets) {
         if (seen.has(a.id)) continue;
+        if (storageSource && assetSource(a) !== storageSource) continue;
         seen.add(a.id);
         mapped.push(assetToItem(a));
       }
@@ -493,6 +560,7 @@ export function MediaPickerDialog({
         (v) => setProgress({ name: file.name, value: v }),
         abort.current.signal,
         uploadToFolderId,
+        storageSource ?? undefined,
       );
       onPick(a);
       if (variant === 'drawer') onClose();
@@ -607,7 +675,7 @@ export function MediaPickerDialog({
     </div>
   ) : (
     <>
-      {error ? (
+      {error && error !== sourceBlocked ? (
         <p className="oma-bs-notice oma-bs-notice--error" role="alert">
           {error}
         </p>
@@ -631,44 +699,44 @@ export function MediaPickerDialog({
         </div>
       ) : null}
 
-      {showSourceToggle ? (
-        <div
-          className="oma-ml-source"
-          data-testid="media-source-toggle"
-          role="group"
-          aria-label={t('media.sourceLabel')}
+      <div className="oma-ml-source-row">
+        {showSourceToggle ? (
+          <div
+            className="oma-ml-source"
+            data-testid="media-source-toggle"
+            role="group"
+            aria-label={t('media.sourceLabel')}
+          >
+            <button
+              type="button"
+              data-testid="media-source-oma"
+              data-active={storageSource !== 'workdrive' ? 'true' : 'false'}
+              onClick={() => selectSource('oma')}
+            >
+              {t('media.sourceOma')}
+            </button>
+            <button
+              type="button"
+              data-testid="media-source-workdrive"
+              data-active={storageSource === 'workdrive' ? 'true' : 'false'}
+              onClick={() => selectSource('workdrive')}
+            >
+              {t('media.sourceWorkDrive')}
+            </button>
+          </div>
+        ) : null}
+        <p className="oma-ml-source-status" data-testid="media-source-badge">
+          {storageSource === 'workdrive' ? t('media.viewingWorkDrive') : t('media.viewingOma')}
+        </p>
+      </div>
+      {sourceBlocked ? (
+        <p
+          className="oma-bs-notice oma-bs-notice--error"
+          role="alert"
+          data-testid="media-source-blocked"
         >
-          <button
-            type="button"
-            data-testid="media-source-oma"
-            data-active={storageSource !== 'workdrive' ? 'true' : 'false'}
-            onClick={() => {
-              if (storageSource === 'oma') return;
-              setOrgRoot(null);
-              setBrandRoot(null);
-              setBrowse(null);
-              setError(null);
-              setStorageSource('oma');
-            }}
-          >
-            {t('media.sourceOma')}
-          </button>
-          <button
-            type="button"
-            data-testid="media-source-workdrive"
-            data-active={storageSource === 'workdrive' ? 'true' : 'false'}
-            onClick={() => {
-              if (storageSource === 'workdrive') return;
-              setOrgRoot(null);
-              setBrandRoot(null);
-              setBrowse(null);
-              setError(null);
-              setStorageSource('workdrive');
-            }}
-          >
-            {t('media.sourceWorkDrive')}
-          </button>
-        </div>
+          {sourceBlocked}
+        </p>
       ) : null}
 
       <div className="oma-ml-toolbar">
@@ -676,7 +744,7 @@ export function MediaPickerDialog({
           type="button"
           className="oma-ml-btn"
           data-testid="media-dropzone"
-          disabled={Boolean(progress)}
+          disabled={Boolean(progress) || Boolean(sourceBlocked)}
           onClick={() => fileInput.current?.click()}
         >
           <UploadOutlined />

@@ -297,11 +297,30 @@ export class WorkDriveService {
    * `source=workdrive` always uses the BYOS connection; `source=oma` always uses the
    * platform client (scoped child key when minted, otherwise master + path guard).
    */
+  private unavailableOma() {
+    return new DomainError(
+      'STORAGE_OMA_UNAVAILABLE',
+      'OMA storage is not available',
+      409,
+      'errors.storage_oma_unavailable',
+    );
+  }
+
+  private unavailableWorkDrive() {
+    return new DomainError(
+      'STORAGE_WORKDRIVE_UNAVAILABLE',
+      'Your WorkDrive is not connected',
+      409,
+      'errors.storage_workdrive_unavailable',
+    );
+  }
+
   async resolveLibraryClient(tenantId: string, source?: 'oma' | 'workdrive' | null) {
     const mode = await this.effectiveMode(tenantId);
     const want = source ?? (mode === 'USER_WORKDRIVE' ? 'workdrive' : 'oma');
     if (want === 'workdrive') {
-      const user = await this.requireClient(tenantId);
+      const user = await this.clientFor(tenantId);
+      if (!user) throw this.unavailableWorkDrive();
       return {
         ...user,
         provider: 'USER_WORKDRIVE' as const,
@@ -310,22 +329,27 @@ export class WorkDriveService {
       };
     }
     const internal = await this.ensureInternalClient(tenantId);
-    if (!internal) {
-      throw new DomainError(
-        'PROVIDER_NOT_CONFIGURED',
-        'WorkDrive storage is not enabled on this server',
-        409,
-        'errors.workdrive_not_enabled',
-      );
-    }
+    if (!internal) throw this.unavailableOma();
     return { ...internal, source: 'oma' as const };
   }
 
   /**
-   * Client used to write a new file. Prefers the workspace mode: BYOS when explicitly set (or
-   * when a connection exists and no setting row was created), otherwise the platform master.
+   * Client used to write a new file. An explicit library `source` always wins so the media
+   * picker can upload to OMA or the user's WorkDrive independently of the workspace mode.
+   * Otherwise prefers the workspace mode: BYOS when explicitly set (or when a connection
+   * exists and no setting row was created), otherwise the platform master.
    */
-  async resolveWriteTarget(tenantId: string) {
+  async resolveWriteTarget(tenantId: string, source?: 'oma' | 'workdrive' | null) {
+    if (source === 'workdrive') {
+      const user = await this.clientFor(tenantId);
+      if (!user) throw this.unavailableWorkDrive();
+      return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
+    }
+    if (source === 'oma') {
+      const internal = await this.ensureInternalClient(tenantId);
+      if (!internal) throw this.unavailableOma();
+      return internal;
+    }
     const mode = await this.effectiveMode(tenantId);
     const user = await this.clientFor(tenantId);
     if (mode === 'USER_WORKDRIVE' && user) {

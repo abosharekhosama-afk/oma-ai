@@ -596,14 +596,20 @@ export class MediaService {
   async list(
     tenantId: string,
     brandId: string,
-    q: { kind?: string; cursor?: string; limit?: string },
+    q: { kind?: string; cursor?: string; limit?: string; source?: string },
   ) {
     await this.brand(tenantId, brandId);
     const conn = await this.workdrive.status(tenantId);
     const storage = await this.workdrive.storageStatus(tenantId);
     const take = Math.min(Math.max(Number(q.limit) || 40, 1), 100);
+    const source = this.workdrive.parseLibrarySource(q.source);
     const rows = await getPrisma().mediaAsset.findMany({
-      where: tenantWhere(tenantId, { brandId, ...(q.kind ? { kind: parseKind(q.kind) } : {}) }),
+      where: tenantWhere(tenantId, {
+        brandId,
+        ...(q.kind ? { kind: parseKind(q.kind) } : {}),
+        ...(source === 'oma' ? { storageProvider: 'OMA_INTERNAL' } : {}),
+        ...(source === 'workdrive' ? { storageProvider: 'USER_WORKDRIVE' } : {}),
+      }),
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: take + 1,
       ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
@@ -645,11 +651,17 @@ export class MediaService {
       length: number | null;
       body: Readable;
       folder_id?: unknown;
+      source?: unknown;
     },
   ) {
     const kind = parseKind(input.kind);
     this.assertCapability(ctx.capabilities, kind);
-    const target = await this.workdrive.resolveWriteTarget(ctx.tenantId);
+    const target = await this.workdrive.resolveWriteTarget(
+      ctx.tenantId,
+      this.workdrive.parseLibrarySource(
+        typeof input.source === 'string' ? input.source : undefined,
+      ),
+    );
     if (target.provider === 'OMA_INTERNAL') {
       await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: 0 });
     }
@@ -785,7 +797,10 @@ export class MediaService {
     const sha256 = typeof b.sha256 === 'string' ? b.sha256.toLowerCase() : '';
     if (!/^[a-f0-9]{64}$/.test(sha256)) throw bad('sha256 required');
     const name = safeFileName(typeof b.name === 'string' && b.name.trim() ? b.name : 'file');
-    const c = await this.workdrive.resolveWriteTarget(ctx.tenantId);
+    const c = await this.workdrive.resolveWriteTarget(
+      ctx.tenantId,
+      this.workdrive.parseLibrarySource(typeof b.source === 'string' ? b.source : undefined),
+    );
     if (c.provider === 'OMA_INTERNAL') {
       await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: size });
     }

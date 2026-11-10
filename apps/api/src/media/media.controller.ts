@@ -154,6 +154,7 @@ export class MediaController {
       name: q.name ?? req.headers['x-file-name'],
       mime: req.headers['content-type'],
       folder_id: q.folder_id,
+      source: q.source,
       length: len != null && /^\d+$/.test(String(len)) ? Number(len) : null,
       body: req as unknown as Readable,
     });

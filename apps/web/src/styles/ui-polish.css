@@ -348,6 +348,48 @@ html body .oma-plx-content-header-btn--primary svg.oma-lucide {
    Below 1280px (rail + calendar toolbar leave < ~1000px for the header) the
    five labelled buttons overflowed the top bar. Labels collapse to icons; each
    button keeps aria-label + title, and the filter count badge stays visible. */
+/* When the media panel is open the calendar column is narrower; collapse labels
+   sooner so the view toggle and header actions stay inside the top bar. */
+@media (max-width: 1679px) {
+  html body:has(.oma-plx-ml-split[data-open='true']) .oma-plx-content-header-actions {
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+  }
+  html body:has(.oma-plx-ml-split[data-open='true']) .oma-plx-content-header-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    position: relative !important;
+    flex: 0 0 34px !important;
+  }
+  html
+    body:has(.oma-plx-ml-split[data-open='true'])
+    .oma-plx-content-header-btn
+    > .oma-plx-content-header-btn__label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  html
+    body:has(.oma-plx-ml-split[data-open='true'])
+    .oma-plx-content-header-btn
+    .oma-plx-content-header-count {
+    position: absolute !important;
+    top: -4px !important;
+    inset-inline-end: -4px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    line-height: 16px !important;
+    font-size: 10px !important;
+    padding: 0 4px !important;
+  }
+}
 @media (max-width: 1279px) {
   html body .oma-plx-content-header-actions {
     gap: 6px !important;

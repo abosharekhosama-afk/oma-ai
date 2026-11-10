@@ -2960,5 +2960,9 @@
   "analytics.optimal.networks.tiktok": "TikTok",
   "analytics.optimal.networks.x": "X",
   "analytics.optimal.networks.linkedin": "LinkedIn",
-  "analytics.optimal.networks.whatsapp": "WhatsApp"
+  "analytics.optimal.networks.whatsapp": "WhatsApp",
+  "errors.storage_oma_unavailable": "OMA storage isn’t available. Enable it in Settings, or ask an admin to configure platform storage.",
+  "errors.storage_workdrive_unavailable": "Your WorkDrive isn’t connected. Connect it in Settings to browse or upload files there.",
+  "media.viewingOma": "Showing OMA storage",
+  "media.viewingWorkDrive": "Showing your WorkDrive"
 }
