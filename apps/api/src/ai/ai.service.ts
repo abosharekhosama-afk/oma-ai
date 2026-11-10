@@ -24,24 +24,10 @@ import {
   type AiUseCase,
   type LedgerEntry,
 } from '@oma/domain';
-import { OpenAiProviderAdapter, buildBrandAnalysisPrompt } from '@oma/ai';
+import { createAiAdapterFromEnv, configuredAiProvider, buildBrandAnalysisPrompt } from '@oma/ai';
 import { billingService } from '../billing/billing.service';
 
 const TEST_RESERVE_USD = 0.25;
-
-function modelConfig() {
-  const models = defaultAiModels();
-  return {
-    defaultModel: models.defaultModel,
-    reasoningModel: models.reasoningModel,
-    liveEnabled: isAiLiveEnabled(),
-    apiKey: process.env.OPENAI_API_KEY,
-    projectId: process.env.OPENAI_PROJECT_ID,
-    baseUrl: process.env.OPENAI_BASE_URL,
-    timeoutMs: Number(process.env.AI_REQUEST_TIMEOUT_MS || 60_000),
-    maxRetries: Number(process.env.AI_MAX_RETRIES || 2),
-  };
-}
 
 function budgetLimits() {
   return {
@@ -62,7 +48,7 @@ export function aiStatus() {
   const testAdapter = testAdapterAllowed(process.env);
   const models = defaultAiModels();
   return {
-    provider: testAdapter ? 'test-adapter' : 'openai',
+    provider: testAdapter ? 'test-adapter' : configuredAiProvider(),
     live_enabled: live,
     billing: live ? ('ENABLED' as const) : ('NOT_ENABLED' as const),
     models: live ? ('LIVE_READY' as const) : ('CONFIGURED_NOT_LIVE_VERIFIED' as const),
@@ -188,7 +174,7 @@ function throwForStructuredCode(code: string, message?: string): never {
   if (code === 'BILLING_NOT_ENABLED') {
     throw new DomainError(
       'BILLING_NOT_ENABLED',
-      'Live OpenAI is not activated. Continue manually.',
+      'Live AI billing is not activated. Continue manually.',
       503,
       'errors.billing_not_enabled',
       [{ manual_journey: true }],
@@ -224,7 +210,7 @@ export async function createAiRun(input: {
   }
   const useCase = input.useCase as AiUseCase;
   await billingService.assertFeature(input.tenantId, 'ai_assist');
-  const routed = routeModel(useCase, modelConfig());
+  const routed = routeModel(useCase, defaultAiModels());
   const useTest = testAdapterAllowed(process.env);
   const live = isAiLiveEnabled();
   const evidenceRefs = input.evidenceRefs ?? [];
@@ -260,7 +246,7 @@ export async function createAiRun(input: {
   let inputTokens = estimateTokens(prompt.user);
   let outputTokens = 32;
   let model = useTest ? 'test-adapter-v1' : routed.model;
-  const provider = useTest ? 'test-adapter' : 'openai';
+  const provider = useTest ? 'test-adapter' : configuredAiProvider();
   let structuredCode: string | null = live ? null : 'AI_DISABLED';
 
   if (live && !useTest) {
@@ -287,7 +273,7 @@ export async function createAiRun(input: {
         [{ manual_journey: true, scope: budget.scope }],
       );
     }
-    const adapter = new OpenAiProviderAdapter(modelConfig());
+    const adapter = createAiAdapterFromEnv();
     const result = await adapter.completeStructured({
       useCase,
       payload: { refs: evidenceRefs },
@@ -301,7 +287,7 @@ export async function createAiRun(input: {
     model = result.model;
     structuredCode = null;
   } else if (!useTest) {
-    const adapter = new OpenAiProviderAdapter(modelConfig());
+    const adapter = createAiAdapterFromEnv();
     const offline = await adapter.completeStructured({
       useCase,
       payload: { refs: evidenceRefs },
@@ -461,7 +447,8 @@ export async function acceptAiRun(tenantId: string, id: string) {
           ai_proposal: proposal.proposal,
           requires_human_review: true,
         }),
-        aiAvailability: run.provider === 'openai' && isAiLiveEnabled() ? 'USED' : 'NOT_CONFIGURED',
+        aiAvailability:
+          run.provider === configuredAiProvider() && isAiLiveEnabled() ? 'USED' : 'NOT_CONFIGURED',
       },
     });
   }

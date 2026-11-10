@@ -15,6 +15,19 @@ describe('AI availability and cost', () => {
     expect(isAiLiveEnabled({ AI_LIVE_ENABLED: 'true' })).toBe(false);
     expect(isAiLiveEnabled({ AI_LIVE_ENABLED: 'true', OPENAI_API_KEY: 'sk-test' })).toBe(true);
     expect(
+      isAiLiveEnabled({ AI_PROVIDER: 'grok', AI_LIVE_ENABLED: 'true', XAI_API_KEY: 'xai-test' }),
+    ).toBe(true);
+    expect(
+      isAiLiveEnabled({
+        AI_PROVIDER: 'gemini',
+        AI_LIVE_ENABLED: 'true',
+        GEMINI_API_KEY: 'google-test',
+      }),
+    ).toBe(true);
+    expect(
+      isAiLiveEnabled({ AI_PROVIDER: 'grok', AI_LIVE_ENABLED: 'true', OPENAI_API_KEY: 'sk-test' }),
+    ).toBe(false);
+    expect(
       isAiAnalysisAvailable({
         NODE_ENV: 'production',
         AI_TEST_ADAPTER: '1',
@@ -45,6 +58,14 @@ describe('AI availability and cost', () => {
 
   it('computes reserve cost and still enforces budgets before a call', () => {
     expect(defaultAiModels({}).defaultModel).toBe('gpt-4.1-mini');
+    expect(defaultAiModels({ AI_PROVIDER: 'grok' })).toEqual({
+      defaultModel: 'grok-4.7',
+      reasoningModel: 'grok-4.7',
+    });
+    expect(defaultAiModels({ AI_PROVIDER: 'gemini' })).toEqual({
+      defaultModel: 'gemini-3.8-flash',
+      reasoningModel: 'gemini-3.8-flash',
+    });
     expect(computeCostUsd('gpt-4.1-mini', 1_000_000, 1_000_000)).toBeCloseTo(2.0);
     const reserve = estimateReserveUsd({
       model: 'gpt-4.1',

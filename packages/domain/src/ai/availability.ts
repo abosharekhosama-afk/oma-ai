@@ -7,14 +7,20 @@ export type AiRuntimeEnv = {
   AI_LIVE_ENABLED?: string;
   AI_TEST_ADAPTER?: string;
   OPENAI_API_KEY?: string;
+  XAI_API_KEY?: string;
+  GEMINI_API_KEY?: string;
+  AI_PROVIDER?: string;
 };
 
-/** Live path requires an explicit flag and a configured API key. */
+/** Live path requires an explicit flag and the key for the selected provider. */
 export function isAiLiveEnabled(env: AiRuntimeEnv = process.env): boolean {
-  return env.AI_LIVE_ENABLED === 'true' && Boolean(env.OPENAI_API_KEY?.trim());
+  return env.AI_LIVE_ENABLED === 'true' && isAiProviderConfigured(env);
 }
 
 export function isAiProviderConfigured(env: AiRuntimeEnv = process.env): boolean {
+  const provider = env.AI_PROVIDER?.trim().toLowerCase() || 'openai';
+  if (provider === 'grok') return Boolean(env.XAI_API_KEY?.trim());
+  if (provider === 'gemini') return Boolean(env.GEMINI_API_KEY?.trim());
   return Boolean(env.OPENAI_API_KEY?.trim());
 }
 
@@ -40,10 +46,18 @@ export function defaultAiModels(
   env: {
     AI_DEFAULT_MODEL?: string;
     AI_REASONING_MODEL?: string;
+    AI_PROVIDER?: string;
   } = process.env,
 ) {
-  const defaultModel = env.AI_DEFAULT_MODEL?.trim() || 'gpt-4.1-mini';
-  const reasoningModel = env.AI_REASONING_MODEL?.trim() || 'gpt-4.1';
+  const provider = env.AI_PROVIDER?.trim().toLowerCase() || 'openai';
+  const defaults =
+    provider === 'grok'
+      ? { defaultModel: 'grok-4.7', reasoningModel: 'grok-4.7' }
+      : provider === 'gemini'
+        ? { defaultModel: 'gemini-3.8-flash', reasoningModel: 'gemini-3.8-flash' }
+        : { defaultModel: 'gpt-4.1-mini', reasoningModel: 'gpt-4.1' };
+  const defaultModel = env.AI_DEFAULT_MODEL?.trim() || defaults.defaultModel;
+  const reasoningModel = env.AI_REASONING_MODEL?.trim() || defaults.reasoningModel;
   if (!defaultModel || !reasoningModel) {
     throw new Error('AI model configuration is incomplete');
   }

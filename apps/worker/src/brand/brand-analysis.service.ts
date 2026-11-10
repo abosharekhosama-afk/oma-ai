@@ -18,7 +18,7 @@ import {
   visualIdentityFromObservations,
   type LedgerEntry,
 } from '@oma/domain';
-import { OpenAiProviderAdapter, buildBrandAnalysisPrompt } from '@oma/ai';
+import { createAiAdapterFromEnv, configuredAiProvider, buildBrandAnalysisPrompt } from '@oma/ai';
 
 function budgetLimits() {
   return {
@@ -223,16 +223,7 @@ export async function runBrandProfileAnalysis(input: {
   let errorCode: string | null = null;
 
   if (live && !useTest) {
-    const adapter = new OpenAiProviderAdapter({
-      liveEnabled: true,
-      defaultModel: models.defaultModel,
-      reasoningModel: models.reasoningModel,
-      apiKey: process.env.OPENAI_API_KEY,
-      projectId: process.env.OPENAI_PROJECT_ID,
-      baseUrl: process.env.OPENAI_BASE_URL,
-      timeoutMs: Number(process.env.AI_REQUEST_TIMEOUT_MS || 60_000),
-      maxRetries: Number(process.env.AI_MAX_RETRIES || 2),
-    });
+    const adapter = createAiAdapterFromEnv();
     const result = await adapter.completeStructured({
       useCase: 'brand_profile_synthesis',
       payload: { scanAttemptId: input.scanAttemptId },
@@ -334,7 +325,7 @@ export async function runBrandProfileAnalysis(input: {
             : errorCode === 'SCHEMA_INVALID'
               ? 'SCHEMA_INVALID'
               : 'FAILED',
-          provider: useTest ? 'test-adapter' : 'openai',
+          provider: useTest ? 'test-adapter' : configuredAiProvider(),
           model,
           promptVersion: proposal?.promptVersion ?? prompt.promptVersion,
           inputTokens,
@@ -357,7 +348,7 @@ export async function runBrandProfileAnalysis(input: {
           tenantId: input.tenantId,
           actorUserId: input.actorUserId,
           useCase: 'brand_profile_synthesis',
-          provider: useTest ? 'test-adapter' : 'openai',
+          provider: useTest ? 'test-adapter' : configuredAiProvider(),
           model,
           promptVersion: proposal?.promptVersion ?? prompt.promptVersion,
           schemaVersion: '1',

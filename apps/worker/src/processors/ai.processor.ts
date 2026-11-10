@@ -1,12 +1,12 @@
 import { getPrisma } from '@oma/db';
 import { AiProviderNotConfiguredError } from '@oma/domain';
-import { createOpenAiAdapterFromEnv } from '@oma/ai';
+import { createAiAdapterFromEnv } from '@oma/ai';
 import { Worker } from 'bullmq';
 import type IORedis from 'ioredis';
 
-/** Text jobs only. Live OpenAI calls stay disabled until billing activation. */
+/** Text jobs only. Live provider calls stay disabled unless explicitly enabled with a provider key. */
 export function startAiProcessor(connection: IORedis) {
-  const adapter = createOpenAiAdapterFromEnv();
+  const adapter = createAiAdapterFromEnv();
 
   return new Worker(
     'ai',
