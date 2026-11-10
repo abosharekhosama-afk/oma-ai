@@ -18,26 +18,12 @@ import {
   type AiUseCase,
   type LedgerEntry,
 } from '@oma/domain';
-import { OpenAiProviderAdapter, type PromptSpec } from '@oma/ai';
+import { createAiAdapterFromEnv, configuredAiProvider, type PromptSpec } from '@oma/ai';
 import { billingService } from '../billing/billing.service';
 import { throwForStructuredCode } from './ai-errors';
 import { budgetSnapshot as sharedBudgetSnapshot } from './ai.service';
 
 const TEST_RESERVE_USD = 0.05;
-
-function modelConfig() {
-  const models = defaultAiModels();
-  return {
-    defaultModel: models.defaultModel,
-    reasoningModel: models.reasoningModel,
-    liveEnabled: isAiLiveEnabled(),
-    apiKey: process.env.OPENAI_API_KEY,
-    projectId: process.env.OPENAI_PROJECT_ID,
-    baseUrl: process.env.OPENAI_BASE_URL,
-    timeoutMs: Number(process.env.AI_REQUEST_TIMEOUT_MS || 60_000),
-    maxRetries: Number(process.env.AI_MAX_RETRIES || 2),
-  };
-}
 
 function budgetLimits() {
   return {
@@ -138,7 +124,7 @@ export async function runStructuredGeneration<T>(input: {
   }
 
   const priceTable = parsePriceTable(process.env.AI_MODEL_PRICES_JSON);
-  const routed = routeModel(input.useCase, modelConfig());
+  const routed = routeModel(input.useCase, defaultAiModels());
   const reservedEstimate = useTest
     ? TEST_RESERVE_USD
     : estimateReserveUsd({
@@ -163,14 +149,14 @@ export async function runStructuredGeneration<T>(input: {
 
   let raw: unknown;
   let model = useTest ? 'test-adapter-v1' : routed.model;
-  const provider = useTest ? 'test-adapter' : 'openai';
+  const provider = useTest ? 'test-adapter' : configuredAiProvider();
   let inputTokens = estimateTokens(input.prompt.user);
   let outputTokens = 64;
 
   if (useTest) {
     raw = input.testValue();
   } else {
-    const adapter = new OpenAiProviderAdapter(modelConfig());
+    const adapter = createAiAdapterFromEnv();
     const result = await adapter.completeStructured({
       useCase: input.useCase,
       payload: { source: input.sourceEntityId },

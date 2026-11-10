@@ -1,13 +1,13 @@
 # AI brand analysis
 
-OMA can turn a finished website scan into a reviewable brand-profile proposal. The live path uses OpenAI Structured Outputs. Nothing is written to an approved profile, and every AI claim stays `PENDING` until a human accepts or rejects it.
+OMA can turn a finished website scan into a reviewable brand-profile proposal. The live path uses structured outputs from the configured OpenAI, xAI Grok, or Google Gemini provider. Nothing is written to an approved profile, and every AI claim stays `PENDING` until a human accepts or rejects it.
 
 ## Flow
 
 1. The website connector crawls and extracts observations (see `docs/brand-website-scanning.md`).
 2. Ingestion writes a heuristic `ProfileVersion` draft and `InsightClaim` rows (`createdBy=SYSTEM`).
 3. If AI is available, ingestion enqueues an `analysis.brand_profile` outbox event.
-4. The worker analysis processor loads evidence, builds a versioned prompt, calls OpenAI (or the non-prod test adapter), and writes `InsightClaim` rows (`createdBy=AI`, `infoState=AI_INFERRED`) plus tone, audiences, messaging, and visual-identity sections.
+4. The worker analysis processor loads evidence, builds a versioned prompt, calls the configured AI provider (or the non-prod test adapter), and writes `InsightClaim` rows (`createdBy=AI`, `infoState=AI_INFERRED`) plus tone, audiences, messaging, and visual-identity sections.
 5. The scan and profile record `analysisStatus`: `QUEUED` → `ANALYZING` → `ANALYZED` or `FAILED`. Successful analysis sets `aiAvailability=USED`.
 6. Humans review claims in the existing accept/reject UI before approval.
 
@@ -18,9 +18,9 @@ If AI is not configured, the heuristic draft remains and both records stay `NOT_
 Live analysis runs only when **both** are true:
 
 - `AI_LIVE_ENABLED=true`
-- `OPENAI_API_KEY` is set
+- The key matching `AI_PROVIDER` is set: `OPENAI_API_KEY` (`openai`), `XAI_API_KEY` (`grok`), or `GEMINI_API_KEY` (`gemini`).
 
-`OPENAI_PROJECT_ID` and `OPENAI_BASE_URL` are optional. If `AI_LIVE_ENABLED=true` without a key, `loadEnv()` fails at startup with a clear error.
+`OPENAI_PROJECT_ID` and `OPENAI_BASE_URL` are optional for OpenAI. Grok and Gemini use their official OpenAI-compatible Chat Completions endpoints. If live AI is enabled without the selected provider key, `loadEnv()` fails at startup with a clear error.
 
 The public status endpoint reports `availability` as:
 
@@ -58,20 +58,23 @@ Plan `ai_credits_per_month` is consumed **only after a successful proposal**, an
 
 ## How to enable in production
 
-Set the following on **both** the API and the worker, then redeploy:
+Set the following on **both** the API and the worker, then redeploy. Choose one provider and its corresponding key:
 
 ```
+AI_PROVIDER=openai           # openai | grok | gemini
 AI_LIVE_ENABLED=true
-OPENAI_API_KEY=...
-OPENAI_PROJECT_ID=          # optional
-OPENAI_BASE_URL=            # optional
-AI_DEFAULT_MODEL=gpt-4.1-mini
-AI_REASONING_MODEL=gpt-4.1
+OPENAI_API_KEY=...           # when AI_PROVIDER=openai
+XAI_API_KEY=...               # when AI_PROVIDER=grok
+GEMINI_API_KEY=...            # when AI_PROVIDER=gemini
+AI_DEFAULT_MODEL=             # optional; provider default when blank
+AI_REASONING_MODEL=           # optional; provider default when blank
 AI_REQUEST_TIMEOUT_MS=60000
 AI_MAX_RETRIES=2
 AI_MONTHLY_BUDGET_USD=25
 AI_DAILY_BUDGET_USD=2
 ```
+
+Provider defaults are OpenAI `gpt-4.1-mini` / `gpt-4.1`, Grok `grok-4.7` for both tiers, and Gemini `gemini-3.8-flash` for both tiers. Set explicit model IDs if your account exposes different models. Costs for models without configured rates use the conservative fallback shown above.
 
 Apply the `ai_brand_analysis` Prisma migration. The workspace plan must include `ai_assist`.
 
@@ -80,7 +83,7 @@ Manual re-run: `POST /api/v1/brands/:brandId/scans/:scanId/analyze` with an `Ide
 Live smoke (never in CI):
 
 ```
-AI_LIVE_ENABLED=true OPENAI_API_KEY=... AI_SMOKE_CONFIRM=I_UNDERSTAND_BILLING pnpm ai:openai:smoke
+AI_LIVE_ENABLED=true OPENAI_API_KEY=... AI_SMOKE_CONFIRM=I_UNDERSTAND_BILLING pnpm ai:openai:smoke  # OpenAI-only smoke script
 ```
 
 ## Security notes

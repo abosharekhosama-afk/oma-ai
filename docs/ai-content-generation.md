@@ -7,7 +7,7 @@ Brand-aware text generation sits on top of website scanning and brand analysis (
 1. `BrandContext` is built from the brand’s latest **APPROVED** `ProfileVersion` (pointer `currentApprovedProfileVersionId`, falling back to the newest approved row). Tenant and brand ids are always required.
 2. The compact context includes overview, tone, audiences, messaging, products/services, languages, visual identity, accepted (“do”) claims, rejected (“don’t”) claims, and banned words. It is token-budgeted (default ~1200 tokens) and cached per approved version. Approval invalidates the cache.
 3. If no approved profile exists, generation still runs using the brand name only and sets `used_approved_profile=false` so the UI can say so honestly.
-4. Composer, inbox, and strategy endpoints inject that context into versioned prompts and call OpenAI Structured Outputs (or the non-prod test adapter). Credits and USD budget are reserved first; plan credits are consumed only after a successful proposal. Replaying the same idempotency key does not charge again.
+4. Composer, inbox, and strategy endpoints inject that context into versioned prompts and call the selected provider's structured-output API (or the non-prod test adapter). Credits and USD budget are reserved first; plan credits are consumed only after a successful proposal. Replaying the same idempotency key does not charge again.
 
 ## Prompts
 
@@ -63,9 +63,10 @@ Same live gate as brand analysis, plus:
 ```
 STRATEGY_AI_MODE=live
 AI_LIVE_ENABLED=true
-OPENAI_API_KEY=...
-AI_DEFAULT_MODEL=gpt-4.1-mini
-AI_REASONING_MODEL=gpt-4.1
+AI_PROVIDER=openai           # openai | grok | gemini
+OPENAI_API_KEY=...           # or XAI_API_KEY / GEMINI_API_KEY for selected provider
+AI_DEFAULT_MODEL=             # optional, defaults follow AI_PROVIDER
+AI_REASONING_MODEL=           # optional, defaults follow AI_PROVIDER
 AI_MONTHLY_BUDGET_USD=25
 AI_DAILY_BUDGET_USD=2
 ```

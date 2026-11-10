@@ -48,7 +48,7 @@ export function throwForStructuredCode(code: string, message?: string): never {
   if (code === 'BILLING_NOT_ENABLED') {
     throw new DomainError(
       'BILLING_NOT_ENABLED',
-      'Live OpenAI is not activated. Continue manually.',
+      'Live AI billing is not activated. Continue manually.',
       503,
       'errors.billing_not_enabled',
       [{ manual_journey: true }],
