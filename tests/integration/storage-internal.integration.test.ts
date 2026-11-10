@@ -232,6 +232,7 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
     expect(orgBody.data.folders.map((f: { name: string }) => f.name)).toEqual(
       expect.arrayContaining(['brands']),
     );
+    expect(orgBody.data.files.map((f: { name: string }) => f.name)).toContain('hero.png');
 
     const brand = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=brand`,
@@ -348,5 +349,81 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
       { headers: authHeaders(other) },
     );
     expect(bad.status).toBe(400);
+  });
+
+  it('uploads into the organization root using the master key and then lists and previews the file', async () => {
+    const org = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    const orgFolderId = org.data.folder.id as string;
+
+    const r = await upload(
+      seed,
+      brandId,
+      PNG,
+      `kind=posts&name=from-org-root.png&folder_id=${encodeURIComponent(orgFolderId)}`,
+    );
+    expect(r.status).toBe(201);
+    const body = await r.json();
+    expect(body.data.storage_provider).toBe('OMA_INTERNAL');
+    expect(body.data.storage_path).toBe(`tenants/${seed.tenantId}/brands/${brandId}/posts`);
+
+    const listed = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    const listedNames = listed.data.files.map((f: { name: string }) => f.name);
+    expect(listedNames).toEqual(expect.arrayContaining(['hero.png', 'from-org-root.png']));
+    const listedFile = listed.data.files.find(
+      (f: { name: string }) => f.name === 'from-org-root.png',
+    );
+    expect(listedFile?.view_url).toBeTruthy();
+
+    const view = await fetch(`${seed.baseUrl}/api/v1/media/${body.data.id}/view`, {
+      headers: authHeaders(seed),
+      redirect: 'manual',
+    });
+    expect([302, 307, 200]).toContain(view.status);
+
+    const filePreview = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(listedFile.id)}&source=oma`,
+      { headers: authHeaders(seed), redirect: 'manual' },
+    );
+    expect(filePreview.status).toBeGreaterThanOrEqual(300);
+    expect(filePreview.status).toBeLessThan(400);
+
+    const grant = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/media/upload-grant`, {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify({
+        kind: 'posts',
+        name: 'from-org-grant.png',
+        mime: 'image/png',
+        size: PNG.length,
+        sha256: 'a'.repeat(64),
+        folder_id: orgFolderId,
+      }),
+    });
+    expect([200, 201]).toContain(grant.status);
+    expect((await grant.json()).data.upload_url).toMatch(/^https?:\/\//);
+
+    const otherOrg = await (
+      await fetch(
+        `${other.baseUrl}/api/v1/brands/${otherBrand}/media/browse?kind=posts&scope=organization&source=oma`,
+        { headers: authHeaders(other) },
+      )
+    ).json();
+    const foreign = await upload(
+      seed,
+      brandId,
+      PNG,
+      `kind=posts&name=leak.png&folder_id=${encodeURIComponent(otherOrg.data.folder.id)}`,
+    );
+    expect(foreign.status).toBe(404);
   });
 });
