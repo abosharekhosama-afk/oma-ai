@@ -428,6 +428,20 @@ export class MediaService {
     throw notFound();
   }
 
+  /** OMA internal writes are confined to the tenant tree, not just the current brand folder. */
+  private async writeScopeRoot(
+    c: {
+      client: WorkDriveClient;
+      conn: { id: string; rootFolderId?: string | null; rootFolderName: string | null };
+      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+      tenantId?: string;
+    },
+    brand: { id: string; name: string },
+  ) {
+    if (c.provider === 'OMA_INTERNAL') return this.tenantFolderFor(c);
+    return c.conn.rootFolderId || (await this.brandFolderFor(c, brand));
+  }
+
   private async resolveUploadFolder(
     c: {
       client: WorkDriveClient;
@@ -440,8 +454,24 @@ export class MediaService {
     folderId?: string | null,
   ) {
     if (!folderId) return this.folderFor(c, brand, kind);
-    const scopeRootId = c.conn.rootFolderId || (await this.brandFolderFor(c, brand));
+    const scopeRootId = await this.writeScopeRoot(c, brand);
     await this.assertInsideScope(c.client, folderId, scopeRootId);
+    // The media library opens the organization (tenant) root by default and passes
+    // that folder_id. Files still belong in the brand/kind folder so they show up
+    // under Brand Assets and match storagePath.
+    if (c.provider === 'OMA_INTERNAL') {
+      if (folderId === scopeRootId) return this.folderFor(c, brand, kind);
+      const brandFolderId = await this.brandFolderFor(c, brand);
+      if (folderId === brandFolderId) return this.folderFor(c, brand, kind);
+      try {
+        const brandFolder = await c.client.getFolder(brandFolderId);
+        if (brandFolder.parentId && folderId === brandFolder.parentId) {
+          return this.folderFor(c, brand, kind);
+        }
+      } catch {
+        /* keep the requested folder if we cannot inspect the brand parent */
+      }
+    }
     return folderId;
   }
 
@@ -962,8 +992,9 @@ export class MediaService {
       const organizationScope = q.scope === 'organization' || allScope;
       const brandFolderId = await this.brandFolderFor(c, brand);
       let startFolderId: string;
+      let tenantRootId: string | null = null;
       if (c.provider === 'OMA_INTERNAL') {
-        const tenantRootId = await this.tenantFolderFor(c);
+        tenantRootId = await this.tenantFolderFor(c);
         // Ensure-path so a brand that has never uploaded still lists empty folders.
         await this.folderFor(c, brand, kind);
         if (kind !== 'deliverables') await this.folderFor(c, brand, 'logos');
@@ -1007,9 +1038,14 @@ export class MediaService {
               updated_at: x.updatedAt,
             }));
       // Brand Assets is the brand folder: flatten posts/logos children so the grid is not empty.
-      if (f.id === brandFolderId && files.length === 0) {
+      const atInternalOrgRoot = c.provider === 'OMA_INTERNAL' && !allScope && f.id === tenantRootId;
+      if (
+        (f.id === brandFolderId || atInternalOrgRoot) &&
+        (files.length === 0 || atInternalOrgRoot)
+      ) {
+        const listing = f.id === brandFolderId ? f : await c.client.getFolder(brandFolderId);
         const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
-        const kids = f.folders.filter((child) => flattenNames.includes(child.name));
+        const kids = listing.folders.filter((child) => flattenNames.includes(child.name));
         if (kids.length) {
           const nested = await Promise.all(kids.map((child) => c.client.getFolder(child.id)));
           const seen = new Set(files.map((x) => x.id));
