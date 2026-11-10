@@ -11,7 +11,7 @@ OMA can turn a finished website scan into a reviewable brand-profile proposal. T
 5. The scan and profile record `analysisStatus`: `QUEUED` → `ANALYZING` → `ANALYZED` or `FAILED`. Successful analysis sets `aiAvailability=USED`.
 6. Humans review claims in the existing accept/reject UI before approval.
 
-If AI is not configured, the heuristic draft remains and both records stay `NOT_CONFIGURED` / `SKIPPED`. Strategy AI propose is unchanged and still refuses (follow-up).
+If AI is not configured, the heuristic draft remains and both records stay `NOT_CONFIGURED` / `SKIPPED`. Brand-aware captions, inbox drafts, and strategy propose are documented in `docs/ai-content-generation.md`.
 
 ## When AI is available
 
