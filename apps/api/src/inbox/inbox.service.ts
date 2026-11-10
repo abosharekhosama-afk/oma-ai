@@ -4,6 +4,7 @@ import { classifySentiment } from './sentiment';
 import { tryPlatformReply } from './platform-reply';
 import { deletePlatformComment, hidePlatformComment } from './platform-message-actions';
 import { enqueueInboxSync } from './enqueue-inbox';
+import { generateInboxDraft } from '../ai/content-generation.service';
 
 type Platform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
 type ConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
@@ -252,6 +253,62 @@ export class InboxService {
         createdAt: n.createdAt.toISOString(),
       })),
     };
+  }
+
+  async draftReply(
+    tenantId: string,
+    actorUserId: string,
+    conversationId: string,
+    input: {
+      language?: string;
+      messageId?: string;
+      idempotencyKey?: string;
+      correlationId?: string;
+    },
+  ) {
+    const conversation = await getPrisma().inboxConversation.findFirst({
+      where: tenantWhere(tenantId, { id: conversationId }),
+    });
+    if (!conversation) {
+      throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
+    }
+    if (!conversation.brandId) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Conversation is not linked to a brand',
+        400,
+        'errors.validation_failed',
+      );
+    }
+    const messages = await getPrisma().inboxMessage.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+      take: 40,
+    });
+    const sliced = input.messageId
+      ? messages.filter(
+          (message) =>
+            message.createdAt <=
+            (messages.find((row) => row.id === input.messageId)?.createdAt ?? new Date()),
+        )
+      : messages;
+    const data = await generateInboxDraft({
+      tenantId,
+      actorUserId,
+      brandId: conversation.brandId,
+      conversationId,
+      language: input.language,
+      channel: conversation.platform,
+      messages: sliced.slice(-12).map((message) => ({
+        direction: message.direction,
+        content: message.content,
+        senderName: message.senderName,
+      })),
+      idempotencyKey:
+        input.idempotencyKey || `inbox-draft:${conversationId}:${actorUserId}:${Date.now()}`,
+      correlationId: input.correlationId,
+    });
+    return { data: { ...data, auto_sent: false } };
   }
 
   async reply(

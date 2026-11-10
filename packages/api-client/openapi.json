@@ -1719,6 +1719,34 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/ai/propose/accept": {
+      "post": {
+        "operationId": "StrategyController_aiProposeAccept",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/ai/propose/reject": {
+      "post": {
+        "operationId": "StrategyController_aiProposeReject",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/current-strategy": {
       "get": {
         "operationId": "StrategyController_getCurrent",
@@ -3333,6 +3361,90 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/ai/generate": {
+      "post": {
+        "operationId": "ContentGenerationController_generate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentGeneration"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/ai/captions": {
+      "post": {
+        "operationId": "ContentGenerationController_captions",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentGeneration"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/ai/captions/rewrite": {
+      "post": {
+        "operationId": "ContentGenerationController_rewrite",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentGeneration"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/ai/alt-text": {
+      "post": {
+        "operationId": "ContentGenerationController_altText",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentGeneration"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/ai/ideas": {
+      "post": {
+        "operationId": "ContentGenerationController_ideas",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentGeneration"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/ai/hashtags": {
+      "post": {
+        "operationId": "ContentGenerationController_hashtags",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentGeneration"
+        ]
+      }
+    },
     "/api/v1/workspace/settings": {
       "get": {
         "operationId": "WorkspaceSettingsController_getSettings",
@@ -4309,6 +4421,20 @@
         "parameters": [],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}/ai/draft": {
+      "post": {
+        "operationId": "InboxController_draftReply",
+        "parameters": [],
+        "responses": {
+          "201": {
             "description": ""
           }
         },

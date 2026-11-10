@@ -8,10 +8,18 @@ import {
   canPatchVersionContent,
   evaluatePackageEligibility,
   evaluateSetCurrentEligibility,
+  isAiAnalysisAvailable,
   mustRefuseAiPropose,
   newId,
+  proposalJsonSchema,
   shouldClearCurrentOnArchive,
+  strategyAiMode,
+  validateProposal,
+  deterministicProposal,
 } from '@oma/domain';
+import { buildStrategyProposePrompt } from '@oma/ai';
+import { loadBrandContext } from '../ai/brand-context.service';
+import { runStructuredGeneration } from '../ai/structured-run';
 import { notificationAllowed } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
@@ -1877,17 +1885,272 @@ export class StrategyService {
     };
   }
 
-  async aiPropose(tenantId: string, brandId: string, strategyId: string, versionId: string) {
+  async aiPropose(
+    tenantId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    actorUserId: string,
+    opts?: { idempotencyKey?: string; correlationId?: string },
+  ) {
     const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
-    mustRefuseAiPropose(version.aiAvailability as never);
-    const code = aiAvailabilityToErrorCode(version.aiAvailability as never);
-    throw new DomainError(
-      code,
-      aiProposeHonestyMessage(code),
-      503,
-      `errors.${code.toLowerCase()}`,
-      [{ code, manual_journey: true }],
-    );
+    const mode = strategyAiMode();
+    const available = isAiAnalysisAvailable();
+    if (mustRefuseAiPropose(version.aiAvailability as never, { mode, aiAvailable: available })) {
+      const code =
+        !available || mode === 'not_configured'
+          ? 'AI_NOT_CONFIGURED'
+          : mode === 'refuse'
+            ? 'AI_REFUSED'
+            : aiAvailabilityToErrorCode(version.aiAvailability as never);
+      throw new DomainError(
+        code,
+        aiProposeHonestyMessage(code),
+        503,
+        `errors.${code.toLowerCase()}`,
+        [{ code, manual_journey: true }],
+      );
+    }
+    if (version.status === 'APPROVED' || version.status === 'SUPERSEDED') {
+      throw new DomainError(
+        'APPROVED_VERSION_IMMUTABLE',
+        'Approved strategy versions cannot be modified by AI.',
+        409,
+        'errors.approved_immutable',
+      );
+    }
+
+    const detail = await this.getVersion(tenantId, brandId, strategyId, versionId);
+    const brand = await loadBrandContext(tenantId, brandId);
+    const language =
+      brand.languages.includes('ar') && !brand.languages.includes('en') ? 'ar' : 'en';
+    const prompt = buildStrategyProposePrompt({
+      language,
+      brand,
+      organicEnabled: version.organicEnabled,
+      paidEnabled: version.paidEnabled,
+      sourceVersion: version.id,
+      foundation: detail.data.foundation,
+      organic: detail.data.organic,
+      paid: detail.data.paid,
+      audiences: detail.data.audiences,
+      kpis: detail.data.kpis,
+    });
+
+    const run = await runStructuredGeneration({
+      tenantId,
+      actorUserId,
+      useCase: prompt.useCase,
+      sourceEntityType: 'strategy_version',
+      sourceEntityId: versionId,
+      sourceVersion: version.id,
+      idempotencyKey:
+        opts?.idempotencyKey || `strategy-propose:${versionId}:${actorUserId}:${Date.now()}`,
+      correlationId: opts?.correlationId,
+      prompt,
+      schema: proposalJsonSchema(),
+      parse: (raw) => {
+        const checked = validateProposal(raw);
+        return checked.ok ? { ok: true as const, value: checked.proposal } : { ok: false as const };
+      },
+      testValue: () =>
+        deterministicProposal({
+          useCase: prompt.useCase,
+          evidenceRefs: brand.profileVersionId ? [brand.profileVersionId] : [],
+          sourceVersion: version.id,
+          language,
+        }),
+      serialize: (value) => value,
+      brandProfileVersionId: brand.profileVersionId,
+      metadata: {
+        kind: 'strategy_propose',
+        organicEnabled: version.organicEnabled,
+        paidEnabled: version.paidEnabled,
+      },
+    });
+
+    return {
+      data: {
+        run_id: run.runId,
+        proposal: run.value,
+        replayed: run.replayed,
+        model: run.model,
+        prompt_id: prompt.promptId,
+        prompt_version: prompt.promptVersion,
+        used_approved_profile: brand.usedApprovedProfile,
+        brand_profile_version_id: brand.profileVersionId,
+        requires_acceptance: true,
+        approved_unchanged: true,
+        version_status: version.status,
+      },
+    };
+  }
+
+  async aiProposeAccept(
+    tenantId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    runId: string,
+  ) {
+    const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
+    if (!canPatchVersionContent(version.status as never)) {
+      throw new DomainError(
+        'APPROVED_VERSION_IMMUTABLE',
+        'Only draft strategy versions can accept an AI proposal.',
+        409,
+        'errors.approved_immutable',
+      );
+    }
+    const run = await getPrisma().aiRun.findFirst({
+      where: { id: runId, tenantId, sourceEntityId: versionId },
+    });
+    if (!run?.proposalJson) {
+      throw new DomainError('NOT_FOUND', 'AI proposal not found', 404, 'errors.not_found');
+    }
+    const checked = validateProposal(JSON.parse(run.proposalJson));
+    if (!checked.ok) {
+      throw new DomainError(
+        'SCHEMA_INVALID',
+        'Proposal failed validation',
+        422,
+        'errors.schema_invalid',
+      );
+    }
+    const proposal = checked.proposal;
+    const pick = (field: string) => proposal.items.find((item) => item.field === field)?.value;
+    const split = (value?: string) =>
+      (value ?? '')
+        .split(/\n|;|\||(?<=\.)\s+/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    const foundation = parseJson<Record<string, unknown>>(version.foundationJson, {});
+    const goals = split(pick('foundation.goals'));
+    if (goals.length && (!Array.isArray(foundation.goals) || foundation.goals.length === 0)) {
+      foundation.goals = goals;
+    }
+    const positioning = pick('foundation.positioning');
+    const currentPos =
+      typeof foundation.positioning === 'string'
+        ? foundation.positioning
+        : ((foundation.positioning as { value?: string } | undefined)?.value ?? '');
+    if (positioning && !String(currentPos).trim()) {
+      foundation.positioning = { value: positioning, infoClass: 'AI_PROPOSED' };
+    }
+    const keyMessages = split(pick('foundation.keyMessages'));
+    if (
+      keyMessages.length &&
+      (!Array.isArray(foundation.keyMessages) || foundation.keyMessages.length === 0)
+    ) {
+      foundation.keyMessages = keyMessages;
+    }
+    const constraints = split(pick('foundation.constraints'));
+    if (
+      constraints.length &&
+      (!Array.isArray(foundation.constraints) || foundation.constraints.length === 0)
+    ) {
+      foundation.constraints = constraints;
+    }
+    foundation.ai_proposal_run_id = runId;
+    foundation.ai_proposal_accepted = true;
+
+    await getPrisma().$transaction(async (tx) => {
+      await tx.strategyVersion.update({
+        where: { id: version.id },
+        data: {
+          foundationJson: JSON.stringify(foundation),
+          rowVersion: { increment: 1 },
+        },
+      });
+      if (version.organicEnabled) {
+        const organic = await tx.strategyOrganicTrack.findUnique({
+          where: { strategyVersionId: version.id },
+        });
+        if (organic) {
+          const pillars = split(pick('organic.pillars'));
+          const channels = split(pick('organic.channels'));
+          const formats = split(pick('organic.formats'));
+          const existingPillars = parseJson<unknown[]>(organic.pillarsJson, []);
+          await tx.strategyOrganicTrack.update({
+            where: { id: organic.id },
+            data: {
+              pillarsJson:
+                pillars.length && existingPillars.length === 0
+                  ? JSON.stringify(pillars)
+                  : organic.pillarsJson,
+              channelsJson:
+                channels.length && parseJson<unknown[]>(organic.channelsJson, []).length === 0
+                  ? JSON.stringify(channels)
+                  : organic.channelsJson,
+              formatsJson:
+                formats.length && parseJson<unknown[]>(organic.formatsJson, []).length === 0
+                  ? JSON.stringify(formats)
+                  : organic.formatsJson,
+              frequency: pick('organic.frequency') || organic.frequency,
+            },
+          });
+        }
+      }
+      if (version.paidEnabled) {
+        const paid = await tx.strategyPaidTrack.findUnique({
+          where: { strategyVersionId: version.id },
+        });
+        if (paid) {
+          const objectives = split(pick('paid.campaign_objectives'));
+          await tx.strategyPaidTrack.update({
+            where: { id: paid.id },
+            data: {
+              campaignObjectivesJson:
+                objectives.length &&
+                parseJson<unknown[]>(paid.campaignObjectivesJson, []).length === 0
+                  ? JSON.stringify(objectives)
+                  : paid.campaignObjectivesJson,
+              offerAngle: pick('paid.offer_angle') || paid.offerAngle,
+            },
+          });
+        }
+      }
+    });
+
+    return {
+      data: {
+        run_id: runId,
+        accepted: true,
+        approved_unchanged: true,
+        version_id: version.id,
+      },
+    };
+  }
+
+  async aiProposeReject(
+    tenantId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    runId: string,
+  ) {
+    await this.requireVersion(tenantId, brandId, strategyId, versionId);
+    const run = await getPrisma().aiRun.findFirst({
+      where: { id: runId, tenantId, sourceEntityId: versionId },
+    });
+    if (!run) throw new DomainError('NOT_FOUND', 'AI proposal not found', 404, 'errors.not_found');
+    const metadata = run.metadataJson
+      ? parseJson<Record<string, unknown>>(run.metadataJson, {})
+      : {};
+    metadata.review = 'rejected';
+    await getPrisma().aiRun.update({
+      where: { id: run.id },
+      data: { metadataJson: JSON.stringify(metadata) },
+    });
+    return {
+      data: {
+        run_id: run.id,
+        rejected: true,
+        approved_unchanged: true,
+        version_id: versionId,
+      },
+    };
   }
 
   async getCurrentStrategy(tenantId: string, brandId: string) {

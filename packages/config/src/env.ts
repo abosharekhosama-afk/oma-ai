@@ -46,7 +46,8 @@ export const envSchema = z
       .optional()
       .transform((v) => v === '1' || v === 'true'),
     /** Feature 003: AI propose always refuses unless a future DEC enables a live adapter. */
-    STRATEGY_AI_MODE: z.enum(['refuse', 'not_configured']).default('refuse'),
+    /** `live` proposes when AI is available; `refuse`/`not_configured` always return 503. */
+    STRATEGY_AI_MODE: z.enum(['live', 'refuse', 'not_configured']).default('live'),
     /**
      * Complete-product demo surfaces. Hard-disabled when NODE_ENV=production.
      * Allowed values: unset/0/false (off) or 1/true (on in development|test only).

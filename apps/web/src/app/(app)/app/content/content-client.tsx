@@ -149,7 +149,7 @@ import {
   contentTypeLabel,
 } from '../../../../lib/demo/stage3-content';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
-import { proposeContentText } from '../../../../lib/content-ai';
+import { proposeContentText, type ContentAiProposal } from '../../../../lib/content-ai';
 import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
@@ -473,7 +473,7 @@ function PlanableComposeCard({
   onApplyTemplate?: (tpl: BrandTemplateCard) => void;
   onCreateTemplate?: () => void;
   brandName?: string;
-  onGenerateAi?: (kind: 'caption' | 'idea') => Promise<string>;
+  onGenerateAi?: (kind: 'caption' | 'idea' | 'hashtags') => Promise<string | ContentAiProposal>;
 }) {
   const t = useT();
   const toast = useToast();
@@ -484,6 +484,26 @@ function PlanableComposeCard({
   const [customDate, setCustomDate] = useState(false);
   const [showFirstComment, setShowFirstComment] = useState(true);
   const [aiBusy, setAiBusy] = useState(false);
+  const [aiProposal, setAiProposal] = useState<ContentAiProposal | null>(null);
+
+  const applyAiProposal = (
+    raw: string | ContentAiProposal,
+    kind: 'caption' | 'idea' | 'hashtags',
+  ) => {
+    const proposal: ContentAiProposal =
+      typeof raw === 'string'
+        ? { text: raw, variants: [{ text: raw }], source: 'ai', banner: '' }
+        : raw;
+    setAiProposal(proposal);
+    if (kind === 'hashtags') {
+      onChange({ firstComment: proposal.text });
+      setShowFirstComment(true);
+    } else {
+      onChange({ caption: proposal.text, title: form.title || proposal.text.slice(0, 80) });
+    }
+    if (proposal.banner) toast.push(proposal.banner, 'default');
+    return proposal;
+  };
   if (!open) return null;
   const now = dayjs();
   const preferred = [1, 2, 3, 4].map((d) =>
@@ -634,8 +654,8 @@ function PlanableComposeCard({
                 }
                 setAiBusy(true);
                 void onGenerateAi('idea')
-                  .then((text) => {
-                    onChange({ caption: text, title: form.title || text.slice(0, 80) });
+                  .then((result) => {
+                    applyAiProposal(result, 'idea');
                     setAiHint(false);
                   })
                   .catch((err) =>
@@ -762,9 +782,7 @@ function PlanableComposeCard({
                     }
                     setAiBusy(true);
                     void onGenerateAi('caption')
-                      .then((text) =>
-                        onChange({ caption: text, title: form.title || text.slice(0, 80) }),
-                      )
+                      .then((result) => applyAiProposal(result, 'caption'))
                       .catch((err) =>
                         toast.push(
                           contentApiError(err, t('demo.content.aiNotConnected')),
@@ -783,6 +801,51 @@ function PlanableComposeCard({
                       ? 'توليد بالذكاء الاصطناعي'
                       : 'Generate with AI'}
                 </button>
+                {aiProposal ? (
+                  <div className="oma-compose-ai-meta" data-testid="compose-ai-meta">
+                    <span className="oma-muted">
+                      {aiProposal.source === 'template'
+                        ? isAr
+                          ? 'المصدر: قالب جاهز (ليس ذكاءً اصطناعياً حياً)'
+                          : 'Source: local template (not live AI)'
+                        : isAr
+                          ? 'المصدر: ذكاء اصطناعي — يحتاج مراجعة'
+                          : 'Source: AI proposal — review required'}
+                    </span>
+                    {aiProposal.usedApprovedProfile && aiProposal.brandProfileVersionId ? (
+                      <span className="oma-muted">
+                        {isAr
+                          ? `ملف البراند المعتمد: ${aiProposal.brandProfileVersionId.slice(0, 8)}`
+                          : `Approved brand profile: ${aiProposal.brandProfileVersionId.slice(0, 8)}`}
+                      </span>
+                    ) : aiProposal.source === 'ai' ? (
+                      <span className="oma-muted">
+                        {isAr
+                          ? 'لا يوجد ملف براند معتمد — تم استخدام اسم العلامة فقط'
+                          : 'No approved brand profile — brand name only'}
+                      </span>
+                    ) : null}
+                    {aiProposal.variants.length > 1 ? (
+                      <div className="oma-chip-row" data-testid="compose-ai-variants">
+                        {aiProposal.variants.map((variant, index) => (
+                          <button
+                            key={`${index}-${variant.text.slice(0, 12)}`}
+                            type="button"
+                            className="oma-chip"
+                            onClick={() =>
+                              onChange({
+                                caption: variant.text,
+                                title: form.title || variant.text.slice(0, 80),
+                              })
+                            }
+                          >
+                            {isAr ? `خيار ${index + 1}` : `Variant ${index + 1}`}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
               </>
             )}
             {form.media.length && form.contentType !== 'STORY' ? (
@@ -839,6 +902,26 @@ function PlanableComposeCard({
                     }
                     onChange={(e) => onChange({ firstComment: e.target.value })}
                   />
+                  <button
+                    type="button"
+                    className="oma-compose-ai-gen"
+                    disabled={aiBusy}
+                    onClick={() => {
+                      if (!onGenerateAi) return;
+                      setAiBusy(true);
+                      void onGenerateAi('hashtags')
+                        .then((result) => applyAiProposal(result, 'hashtags'))
+                        .catch((err) =>
+                          toast.push(
+                            contentApiError(err, t('demo.content.aiNotConnected')),
+                            'danger',
+                          ),
+                        )
+                        .finally(() => setAiBusy(false));
+                    }}
+                  >
+                    {isAr ? 'اقتراح هاشتاغات' : 'Suggest hashtags'}
+                  </button>
                 </div>
               </div>
             ) : form.contentType !== 'STORY' ? (
@@ -2463,6 +2546,7 @@ export default function ContentPage() {
             caption: item.caption ? pickCopy(item.caption, locale) : '',
             title: pickCopy(item.title, locale),
             contentId: item.id,
+            brandId: item.brandId,
           }).then((p) => {
             toast.push(p.banner, 'default');
             return p.text;
@@ -7263,7 +7347,7 @@ export default function ContentPage() {
         }}
         brandName={pickCopy(brands[0]?.name, locale)}
         onGenerateAi={async (kind) => {
-          const proposal = await proposeContentText({
+          return proposeContentText({
             kind,
             locale,
             brandName: pickCopy(brands[0]?.name, locale),
@@ -7271,9 +7355,11 @@ export default function ContentPage() {
             caption: createForm.caption,
             title: createForm.title,
             contentId: createForm.brandId || brands[0]?.id,
+            brandId:
+              createForm.brandId ||
+              campaigns.find((c) => c.id === createForm.campaignId)?.brandId ||
+              brands[0]?.id,
           });
-          toast.push(proposal.banner, 'default');
-          return proposal.text;
         }}
         open={createOpen}
         creating={creating}

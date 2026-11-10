@@ -7,9 +7,14 @@ import {
 } from '@oma/domain';
 
 describe('strategy AI honesty', () => {
-  it('always refuses propose under DEC-016', () => {
+  it('refuses propose when AI is not available or mode is refuse', () => {
     expect(mustRefuseAiPropose()).toBe(true);
     expect(mustRefuseAiPropose('NOT_CONFIGURED')).toBe(true);
+    expect(mustRefuseAiPropose('USED', { mode: 'refuse', aiAvailable: true })).toBe(true);
+  });
+
+  it('allows propose when mode is live and AI is available', () => {
+    expect(mustRefuseAiPropose('NOT_CONFIGURED', { mode: 'live', aiAvailable: true })).toBe(false);
   });
 
   it('maps availability to honesty codes', () => {

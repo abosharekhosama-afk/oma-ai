@@ -73,6 +73,22 @@ export class InboxController {
     return inboxService.getConversation(ctx(req).tenantId, id);
   }
 
+  @Post('api/v1/inbox/conversations/:id/ai/draft')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  draftReply(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: { language?: string; message_id?: string; idempotency_key?: string },
+  ) {
+    const c = ctx(req);
+    return inboxService.draftReply(c.tenantId, c.userId, id, {
+      language: body.language,
+      messageId: body.message_id,
+      idempotencyKey: req.header('idempotency-key') || body.idempotency_key,
+      correlationId: req.oma?.correlationId,
+    });
+  }
+
   @Post('api/v1/inbox/conversations/:id/reply')
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   reply(

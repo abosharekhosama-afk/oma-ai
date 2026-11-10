@@ -1,10 +1,12 @@
 'use client';
 import { useT } from '../../lib/use-locale';
-export function AiHonestyBanner() {
+
+export function AiHonestyBanner({ availability }: { availability?: string }) {
   const t = useT();
+  const live = availability === 'AVAILABLE';
   return (
     <p className="oma-muted" role="note" data-testid="strategy-ai-disclosure">
-      {t('strategy.warning.aiNotConfigured')}
+      {live ? t('strategy.warning.aiAvailable') : t('strategy.warning.aiNotConfigured')}
     </p>
   );
 }

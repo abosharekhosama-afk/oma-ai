@@ -667,7 +667,55 @@ export class StrategyController {
     @Param('versionId') versionId: string,
   ) {
     this.requireTenant(req);
-    return strategyService.aiPropose(req.oma!.tenantId!, brandId, strategyId, versionId);
+    return strategyService.aiPropose(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+      req.oma!.userId!,
+      {
+        idempotencyKey: req.header('idempotency-key'),
+        correlationId: req.oma!.correlationId,
+      },
+    );
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/ai/propose/accept')
+  @UseGuards(CsrfGuard)
+  async aiProposeAccept(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: { run_id: string },
+  ) {
+    this.requireTenant(req);
+    return strategyService.aiProposeAccept(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+      body.run_id,
+    );
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/ai/propose/reject')
+  @UseGuards(CsrfGuard)
+  async aiProposeReject(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: { run_id: string },
+  ) {
+    this.requireTenant(req);
+    return strategyService.aiProposeReject(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+      body.run_id,
+    );
   }
 
   @Get('current-strategy')

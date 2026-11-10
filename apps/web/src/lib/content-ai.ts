@@ -1,18 +1,41 @@
 import { api } from './api';
 
-export type ContentAiKind = 'caption' | 'alt' | 'idea';
+export type ContentAiKind = 'caption' | 'alt' | 'idea' | 'hashtags';
+
+export type ContentAiVariant = {
+  text: string;
+  rationale?: string;
+};
 
 export type ContentAiProposal = {
   text: string;
-  source: 'local' | 'run';
+  variants: ContentAiVariant[];
+  source: 'template' | 'ai';
   banner: string;
+  brandProfileVersionId?: string | null;
+  usedApprovedProfile?: boolean;
+  hashtags?: string[];
 };
 
 function isArLocale(locale: string): boolean {
   return locale.toLowerCase().startsWith('ar');
 }
 
-/** Honest on-device proposal (DEC-016: no live provider). Review required. */
+function templateBanner(locale: string): string {
+  return isArLocale(locale)
+    ? 'قالب جاهز — ليس نموذجاً لغوياً حياً. راجع النص قبل النشر.'
+    : 'Template suggestion — not a live AI model. Review before publishing.';
+}
+
+function reviewBanner(locale: string, fallback: string): string {
+  return (
+    fallback ||
+    (isArLocale(locale)
+      ? 'اقتراح ذكاء اصطناعي — يحتاج مراجعة بشرية قبل النشر'
+      : 'AI proposal — requires human review before publishing')
+  );
+}
+
 export function localContentProposal(input: {
   kind: ContentAiKind;
   locale: string;
@@ -26,6 +49,11 @@ export function localContentProposal(input: {
   const channel = input.channel?.split(',')[0]?.trim() || 'Instagram';
   const caption = input.caption?.trim() || '';
   const title = input.title?.trim() || '';
+
+  if (input.kind === 'hashtags') {
+    const tag = `#${brand.replace(/[^a-zA-Z0-9\u0600-\u06FF]+/g, '')}`;
+    return ar ? `${tag} #${channel}` : `${tag} #${channel}`;
+  }
 
   if (input.kind === 'alt') {
     const src = caption || title;
@@ -56,7 +84,6 @@ export function localContentProposal(input: {
   return `${core} — from ${brand}. Tell us what you think in the comments. ${hashtag}`;
 }
 
-/** Honest on-device inbox reply draft (DEC-016: no live provider). Review required. */
 export function localInboxReply(input: {
   locale: string;
   brandName?: string;
@@ -75,6 +102,35 @@ export function localInboxReply(input: {
     : `Thanks for reaching out. ${brand} is here to help — how can we support you today?`;
 }
 
+function asTemplate(input: {
+  kind: ContentAiKind;
+  locale: string;
+  brandName?: string;
+  channel?: string;
+  caption?: string;
+  title?: string;
+}): ContentAiProposal {
+  const text = localContentProposal(input);
+  return {
+    text,
+    variants: [{ text, rationale: isArLocale(input.locale) ? 'قالب محلي' : 'Local template' }],
+    source: 'template',
+    banner: templateBanner(input.locale),
+    brandProfileVersionId: null,
+    usedApprovedProfile: false,
+  };
+}
+
+function isFallbackError(err: unknown): boolean {
+  const code = (err as { code?: string } | undefined)?.code;
+  return (
+    code === 'AI_NOT_CONFIGURED' ||
+    code === 'AI_DISABLED' ||
+    code === 'BILLING_NOT_ENABLED' ||
+    code === 'NOT_CONFIGURED'
+  );
+}
+
 export async function proposeContentText(input: {
   kind: ContentAiKind;
   locale: string;
@@ -83,29 +139,99 @@ export async function proposeContentText(input: {
   caption?: string;
   title?: string;
   contentId?: string;
+  brandId?: string;
 }): Promise<ContentAiProposal> {
-  const text = localContentProposal(input);
-  const banner = isArLocale(input.locale)
-    ? 'اقتراح ذكاء اصطناعي — يحتاج مراجعة بشرية قبل النشر'
-    : 'AI proposal — requires human review before publishing';
+  const template = asTemplate(input);
+  if (!input.brandId) return template;
   try {
-    const status = await api<{ data?: { state?: string } }>('/api/v1/ai/status');
-    const state = status.data?.state;
-    if (state === 'proposal_ready' && input.contentId) {
-      await api('/api/v1/ai/runs', {
-        method: 'POST',
-        body: JSON.stringify({
-          use_case: input.kind === 'alt' ? 'extraction_normalization' : 'rewrite',
-          source_entity_type: 'content',
-          source_entity_id: input.contentId,
-          source_version: 'compose',
-          idempotency_key: `content-${input.kind}-${input.contentId}-${Date.now()}`,
-          evidence_refs: [text.slice(0, 180)],
-        }),
-      }).catch(() => null);
-    }
-  } catch {
-    /* offline / unconfigured: keep the local proposal */
+    const res = await api<{
+      data?: {
+        variants?: ContentAiVariant[];
+        banner?: string;
+        hashtags?: string[];
+        brand_profile_version_id?: string | null;
+        used_approved_profile?: boolean;
+      };
+    }>(`/api/v1/brands/${input.brandId}/ai/generate`, {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key':
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `content-${input.kind}-${Date.now()}`,
+      },
+      body: JSON.stringify({
+        kind: input.kind,
+        channel: input.channel,
+        language: input.locale,
+        caption: input.caption,
+        title: input.title,
+        content_id: input.contentId,
+      }),
+    });
+    const variants = (res.data?.variants ?? []).filter((item) => item.text?.trim());
+    if (!variants.length) return template;
+    return {
+      text: variants[0]!.text,
+      variants,
+      source: 'ai',
+      banner: reviewBanner(input.locale, res.data?.banner ?? ''),
+      brandProfileVersionId: res.data?.brand_profile_version_id ?? null,
+      usedApprovedProfile: Boolean(res.data?.used_approved_profile),
+      hashtags: res.data?.hashtags,
+    };
+  } catch (err) {
+    if (isFallbackError(err)) return template;
+    throw err;
   }
-  return { text, source: 'local', banner };
+}
+
+export async function proposeInboxReply(input: {
+  locale: string;
+  conversationId: string;
+  brandName?: string;
+  inbound?: string;
+}): Promise<ContentAiProposal> {
+  const text = localInboxReply(input);
+  const template: ContentAiProposal = {
+    text,
+    variants: [{ text, rationale: isArLocale(input.locale) ? 'قالب محلي' : 'Local template' }],
+    source: 'template',
+    banner: templateBanner(input.locale),
+    brandProfileVersionId: null,
+    usedApprovedProfile: false,
+  };
+  try {
+    const res = await api<{
+      data?: {
+        variants?: ContentAiVariant[];
+        banner?: string;
+        brand_profile_version_id?: string | null;
+        used_approved_profile?: boolean;
+        auto_sent?: boolean;
+      };
+    }>(`/api/v1/inbox/conversations/${input.conversationId}/ai/draft`, {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key':
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `inbox-${input.conversationId}-${Date.now()}`,
+      },
+      body: JSON.stringify({ language: input.locale }),
+    });
+    const variants = (res.data?.variants ?? []).filter((item) => item.text?.trim());
+    if (!variants.length) return template;
+    return {
+      text: variants[0]!.text,
+      variants,
+      source: 'ai',
+      banner: reviewBanner(input.locale, res.data?.banner ?? ''),
+      brandProfileVersionId: res.data?.brand_profile_version_id ?? null,
+      usedApprovedProfile: Boolean(res.data?.used_approved_profile),
+    };
+  } catch (err) {
+    if (isFallbackError(err)) return template;
+    throw err;
+  }
 }

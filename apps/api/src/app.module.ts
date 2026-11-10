@@ -35,6 +35,7 @@ import { ContentController } from './content/content.controller';
 import { OpsController } from './content/ops.controller';
 import { ContentExtrasController } from './content/content-extras.controller';
 import { AiController } from './ai/ai.controller';
+import { ContentGenerationController } from './ai/content-generation.controller';
 import { BillingController } from './billing/billing.controller';
 import { BillingAdminController } from './billing/billing-admin.controller';
 import { BillingWebhookController } from './billing/billing-webhook.controller';
@@ -67,6 +68,7 @@ import { WebhooksController } from './webhooks/webhooks.controller';
     ContentExtrasController,
     OpsController,
     AiController,
+    ContentGenerationController,
     WorkspaceSettingsController,
     PublishQueuesController,
     HomeController,

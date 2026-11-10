@@ -22,7 +22,7 @@ import {
   type InboxMessage,
   type InboxStats,
 } from '../../../../lib/inbox-api';
-import { localInboxReply } from '../../../../lib/content-ai';
+import { proposeInboxReply } from '../../../../lib/content-ai';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import type { MediaAsset } from '../../../../lib/workdrive-api';
 import { resolveActiveBrand, useActiveBrandId } from '../../../../lib/active-brand';
@@ -483,23 +483,40 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const draftAiReply = () => {
     if (!detail) return;
     setAiBusy(true);
-    try {
-      const inbound =
-        detail.messages.find((m) => m.id === replyToMessageId)?.content ??
-        [...detail.messages].reverse().find((m) => m.direction === 'INBOUND')?.content ??
-        '';
-      const draft = localInboxReply({
-        locale,
-        brandName: brandReplyName,
-        inbound,
-      });
-      if (replyToMessageId)
-        setInlineReply((prev) => (prev.trim() ? `${prev.trim()} ${draft}` : draft));
-      else setReply((prev) => (prev.trim() ? `${prev.trim()} ${draft}` : draft));
-      setDeliveryNote(t('inbox.aiBanner') || 'AI proposal — requires human review before sending.');
-    } finally {
-      setAiBusy(false);
-    }
+    const inbound =
+      detail.messages.find((m) => m.id === replyToMessageId)?.content ??
+      [...detail.messages].reverse().find((m) => m.direction === 'INBOUND')?.content ??
+      '';
+    void proposeInboxReply({
+      locale,
+      conversationId: detail.id,
+      brandName: brandReplyName,
+      inbound,
+    })
+      .then((proposal) => {
+        const draft = proposal.text;
+        if (replyToMessageId)
+          setInlineReply((prev) => (prev.trim() ? `${prev.trim()} ${draft}` : draft));
+        else setReply((prev) => (prev.trim() ? `${prev.trim()} ${draft}` : draft));
+        const sourceNote =
+          proposal.source === 'template'
+            ? locale.toLowerCase().startsWith('ar')
+              ? 'قالب جاهز — ليس نموذجاً لغوياً حياً. لن يُرسل تلقائياً.'
+              : 'Template suggestion — not live AI. Nothing is sent automatically.'
+            : proposal.banner ||
+              t('inbox.aiBanner') ||
+              'AI proposal — requires human review before sending.';
+        const profileNote = proposal.brandProfileVersionId
+          ? locale.toLowerCase().startsWith('ar')
+            ? ` ملف البراند: ${proposal.brandProfileVersionId.slice(0, 8)}`
+            : ` Brand profile ${proposal.brandProfileVersionId.slice(0, 8)}`
+          : '';
+        setDeliveryNote(`${sourceNote}${profileNote}`);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'AI draft failed');
+      })
+      .finally(() => setAiBusy(false));
   };
 
   const onLikeComment = async (messageId: string) => {

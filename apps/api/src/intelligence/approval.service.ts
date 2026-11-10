@@ -8,6 +8,7 @@ import {
   newId,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { invalidateBrandContextCache } from '../ai/brand-context.service';
 
 @Injectable()
 export class ApprovalService {
@@ -135,6 +136,8 @@ export class ApprovalService {
         },
       });
     });
+
+    invalidateBrandContextCache(tenantId, brandId);
 
     await this.audit.write({
       actorUserId,

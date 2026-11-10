@@ -48,6 +48,12 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
+  const [aiAvailability, setAiAvailability] = useState<string>('NOT_CONFIGURED');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiProposal, setAiProposal] = useState<{
+    run_id: string;
+    items?: Array<{ field: string; value: string }>;
+  } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -59,6 +65,10 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
       setBrand(brandRes.data);
       setStrategy(stratRes.data);
       setBrandVersion(currentRes.data.brand_version);
+      const aiRes = await api<{ data?: { availability?: string } }>('/api/v1/ai/status').catch(
+        () => ({ data: { availability: 'NOT_CONFIGURED' } }),
+      );
+      setAiAvailability(aiRes.data?.availability ?? 'NOT_CONFIGURED');
     } catch (err) {
       if (isTenantRequired(err)) setTenantRequired(true);
       else if (isPermissionDenied(err)) setDenied(true);
@@ -165,7 +175,89 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         </div>
       ) : null}
 
-      <AiHonestyBanner />
+      <AiHonestyBanner availability={aiAvailability} />
+
+      {latest && latest.status === 'DRAFT' ? (
+        <div className="oma-panel" data-testid="strategy-ai-propose">
+          <div className="oma-chip-row">
+            <Button
+              type="default"
+              disabled={aiBusy}
+              onClick={() => {
+                setAiBusy(true);
+                setError(null);
+                void api<{
+                  data?: {
+                    run_id: string;
+                    proposal?: { items?: Array<{ field: string; value: string }> };
+                  };
+                }>(
+                  `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${latest.id}/ai/propose`,
+                  { method: 'POST', body: '{}' },
+                )
+                  .then((res) => {
+                    setAiProposal({
+                      run_id: res.data?.run_id ?? '',
+                      items: res.data?.proposal?.items ?? [],
+                    });
+                    setMessage(t('strategy.saved'));
+                  })
+                  .catch((err) => setError(getApiError(err).message))
+                  .finally(() => setAiBusy(false));
+              }}
+            >
+              {aiBusy ? t('strategy.ai.proposing') : t('strategy.ai.propose')}
+            </Button>
+          </div>
+          {aiProposal?.items?.length ? (
+            <div>
+              <ul>
+                {aiProposal.items.slice(0, 8).map((item) => (
+                  <li key={item.field}>
+                    <strong>{item.field}</strong>: {item.value}
+                  </li>
+                ))}
+              </ul>
+              <div className="oma-chip-row">
+                <Button
+                  type="primary"
+                  disabled={aiBusy}
+                  onClick={() => {
+                    setAiBusy(true);
+                    void api(
+                      `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${latest.id}/ai/propose/accept`,
+                      { method: 'POST', body: JSON.stringify({ run_id: aiProposal.run_id }) },
+                    )
+                      .then(() => {
+                        setMessage(t('strategy.saved'));
+                        setAiProposal(null);
+                        return load();
+                      })
+                      .catch((err) => setError(getApiError(err).message))
+                      .finally(() => setAiBusy(false));
+                  }}
+                >
+                  {t('strategy.ai.accept')}
+                </Button>
+                <Button
+                  type="default"
+                  disabled={aiBusy}
+                  onClick={() => {
+                    void api(
+                      `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${latest.id}/ai/propose/reject`,
+                      { method: 'POST', body: JSON.stringify({ run_id: aiProposal.run_id }) },
+                    )
+                      .then(() => setAiProposal(null))
+                      .catch((err) => setError(getApiError(err).message));
+                  }}
+                >
+                  {t('strategy.ai.reject')}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {message ? <p role="status">{message}</p> : null}
       <ConflictBanner show={Boolean(error && error === t('strategy.conflict'))} />
