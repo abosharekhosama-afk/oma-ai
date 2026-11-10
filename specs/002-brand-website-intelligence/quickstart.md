@@ -1,8 +1,10 @@
 # Quickstart Validation Guide — Brand Website Intelligence
 
 **Feature:** `002-brand-website-intelligence`
-**Status:** provider-neutral core validation (fixture connector; refusing AI)
-**Purpose:** Prove 002 behavior locally and in CI with deterministic fixtures — no public crawl egress.
+**Status:** fixture connector for deterministic tests; live first-party crawler available via `BRAND_WEBSITE_CONNECTOR=live`
+**Purpose:** Prove 002 behavior locally and in CI with deterministic fixtures — no public crawl egress unless the live connector is selected.
+
+For production-style public HTTPS scanning, see [docs/brand-website-scanning.md](../../docs/brand-website-scanning.md). Set `BRAND_WEBSITE_CONNECTOR=live` (the default when the fixture flag is off). Tests and `pnpm dev:local` keep `BRAND_FIXTURE_CONNECTOR=1`.
 
 ## Prerequisites
 

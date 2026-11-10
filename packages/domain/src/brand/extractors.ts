@@ -1,3 +1,5 @@
+import { parse as parseHtml, type HTMLElement } from 'node-html-parser';
+
 export type ExtractionMethod = 'HTML_META' | 'JSON_LD' | 'OG' | 'HEURISTIC' | 'USER' | 'AI';
 
 export type ExtractedField = {
@@ -19,7 +21,26 @@ export type ExtractedProduct = {
   availability?: string;
 };
 
+export type ExtractedLink = {
+  href: string;
+  rel: string;
+};
+
 const EXCERPT_MAX = 2000;
+
+const SOCIAL_NETWORKS: Array<{ network: string; hosts: string[] }> = [
+  { network: 'instagram', hosts: ['instagram.com', 'instagr.am'] },
+  { network: 'facebook', hosts: ['facebook.com', 'fb.com', 'fb.me', 'm.facebook.com'] },
+  { network: 'x', hosts: ['x.com', 'twitter.com', 'mobile.twitter.com'] },
+  { network: 'tiktok', hosts: ['tiktok.com'] },
+  { network: 'linkedin', hosts: ['linkedin.com', 'lnkd.in'] },
+  { network: 'youtube', hosts: ['youtube.com', 'youtu.be', 'm.youtube.com'] },
+  { network: 'snapchat', hosts: ['snapchat.com', 'snap.com'] },
+  { network: 'whatsapp', hosts: ['whatsapp.com', 'wa.me', 'api.whatsapp.com'] },
+];
+
+const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const PHONE_RE = /(?:\+|00)[1-9][\d\s().-]{7,18}\d/g;
 
 export function boundExcerpt(text: string, max = EXCERPT_MAX): string {
   const trimmed = text.trim();
@@ -27,36 +48,36 @@ export function boundExcerpt(text: string, max = EXCERPT_MAX): string {
   return trimmed.slice(0, max);
 }
 
-function extractMeta(html: string, name: string): string | null {
-  const re = new RegExp(
-    `<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']+)["']`,
-    'i',
-  );
-  const m = html.match(re);
-  return m?.[1]?.trim() ?? null;
+function metaContent(root: HTMLElement, name: string): string | null {
+  const needle = name.toLowerCase();
+  for (const el of root.querySelectorAll('meta')) {
+    const key = (el.getAttribute('name') || el.getAttribute('property') || '').toLowerCase();
+    if (key === needle) {
+      const content = el.getAttribute('content')?.trim();
+      if (content) return content;
+    }
+  }
+  return null;
 }
 
-function extractTitle(html: string): string | null {
-  const m = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-  return m?.[1]?.trim() ?? null;
-}
-
-function extractJsonLd(html: string): Record<string, unknown>[] {
+function collectJsonLdNodes(root: HTMLElement): Record<string, unknown>[] {
   const results: Record<string, unknown>[] = [];
-  const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html))) {
-    const raw = m[1];
-    if (!raw) continue;
+  const visit = (value: unknown) => {
+    if (!value) return;
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item);
+      return;
+    }
+    if (typeof value !== 'object') return;
+    const record = value as Record<string, unknown>;
+    results.push(record);
+    if (record['@graph']) visit(record['@graph']);
+  };
+  for (const script of root.querySelectorAll('script')) {
+    const type = (script.getAttribute('type') || '').toLowerCase();
+    if (!type.includes('ld+json')) continue;
     try {
-      const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) {
-        for (const item of parsed) {
-          if (item && typeof item === 'object') results.push(item as Record<string, unknown>);
-        }
-      } else if (parsed && typeof parsed === 'object') {
-        results.push(parsed as Record<string, unknown>);
-      }
+      visit(JSON.parse(script.text || script.innerHTML || ''));
     } catch {
       // skip invalid JSON-LD
     }
@@ -64,7 +85,13 @@ function extractJsonLd(html: string): Record<string, unknown>[] {
   return results;
 }
 
-function classifyPage(url: string, html: string): string {
+function typeList(node: Record<string, unknown>): string {
+  const raw = node['@type'];
+  if (Array.isArray(raw)) return raw.map((item) => String(item).toLowerCase()).join(' ');
+  return String(raw ?? '').toLowerCase();
+}
+
+function classifyPage(url: string, root: HTMLElement): string {
   const path = new URL(url).pathname.toLowerCase();
   if (path === '/' || path === '') return 'HOME';
   if (path.includes('product')) return 'PRODUCT';
@@ -72,9 +99,83 @@ function classifyPage(url: string, html: string): string {
   if (path.includes('contact')) return 'CONTACT';
   if (path.includes('faq')) return 'FAQ';
   if (path.includes('legal') || path.includes('privacy') || path.includes('terms')) return 'LEGAL';
-  const ogType = extractMeta(html, 'og:type');
+  const ogType = metaContent(root, 'og:type');
   if (ogType?.includes('product')) return 'PRODUCT';
   return 'OTHER';
+}
+
+function parseRobotsDirectives(root: HTMLElement): { noindex: boolean; nofollow: boolean } {
+  const content = (
+    metaContent(root, 'robots') ||
+    metaContent(root, 'googlebot') ||
+    ''
+  ).toLowerCase();
+  return {
+    noindex: content.includes('noindex'),
+    nofollow: content.includes('nofollow'),
+  };
+}
+
+function hostMatches(hostname: string, suffix: string): boolean {
+  const host = hostname.toLowerCase();
+  return host === suffix || host.endsWith(`.${suffix}`);
+}
+
+export function classifySocialUrl(raw: string): { network: string; url: string } | null {
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    for (const entry of SOCIAL_NETWORKS) {
+      if (entry.hosts.some((host) => hostMatches(url.hostname, host))) {
+        return { network: entry.network, url: url.toString() };
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function uniqueStrings(values: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(trimmed);
+  }
+  return result;
+}
+
+function jsonLdString(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  if (value && typeof value === 'object' && 'url' in value) {
+    return jsonLdString((value as { url?: unknown }).url);
+  }
+  return null;
+}
+
+function collectAddress(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === 'string') return value.trim() || null;
+  if (Array.isArray(value)) return collectAddress(value[0]);
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const parts = [
+      record.streetAddress,
+      record.addressLocality,
+      record.addressRegion,
+      record.postalCode,
+      record.addressCountry,
+    ]
+      .map((part) => (typeof part === 'string' ? part.trim() : ''))
+      .filter(Boolean);
+    return parts.join(', ') || jsonLdString(record.name);
+  }
+  return null;
 }
 
 export function extractFromHtml(
@@ -86,10 +187,26 @@ export function extractFromHtml(
   pageTitle: string | null;
   classification: string;
   excerpt: string;
+  links: ExtractedLink[];
+  canonicalUrl: string | null;
+  noindex: boolean;
+  nofollow: boolean;
 } {
-  const pageTitle = extractTitle(html) ?? extractMeta(html, 'og:title');
-  const description = extractMeta(html, 'description') ?? extractMeta(html, 'og:description');
-  const siteName = extractMeta(html, 'og:site_name');
+  const root = parseHtml(html);
+  const pageTitle =
+    root.querySelector('title')?.text?.trim() || metaContent(root, 'og:title') || null;
+  const description = metaContent(root, 'description') ?? metaContent(root, 'og:description');
+  const siteName = metaContent(root, 'og:site_name');
+  const robots = parseRobotsDirectives(root);
+  const canonicalHref = root.querySelector('link[rel="canonical"]')?.getAttribute('href')?.trim();
+  let canonicalUrl: string | null = null;
+  if (canonicalHref) {
+    try {
+      canonicalUrl = new URL(canonicalHref, url).toString();
+    } catch {
+      canonicalUrl = null;
+    }
+  }
 
   const fields: ExtractedField[] = [];
   if (siteName || pageTitle) {
@@ -97,7 +214,7 @@ export function extractFromHtml(
       fieldKey: 'brand.name',
       value: siteName ?? pageTitle,
       isUnknown: false,
-      extractionMethod: extractMeta(html, 'og:site_name') ? 'OG' : 'HTML_META',
+      extractionMethod: siteName ? 'OG' : 'HTML_META',
       confidence: 0.9,
     });
   } else {
@@ -122,7 +239,7 @@ export function extractFromHtml(
     value: description,
     isUnknown: !description,
     extractionMethod: description
-      ? extractMeta(html, 'og:description')
+      ? metaContent(root, 'og:description')
         ? 'OG'
         : 'HTML_META'
       : 'HEURISTIC',
@@ -130,8 +247,47 @@ export function extractFromHtml(
   });
 
   const products: ExtractedProduct[] = [];
-  for (const node of extractJsonLd(html)) {
-    const type = String(node['@type'] ?? '').toLowerCase();
+  const social: Array<{ network: string; url: string }> = [];
+  const emails: string[] = [];
+  const phones: string[] = [];
+  const addresses: string[] = [];
+  const languages = uniqueStrings([
+    root.querySelector('html')?.getAttribute('lang'),
+    ...root
+      .querySelectorAll('link[rel="alternate"]')
+      .map((el) => el.getAttribute('hreflang'))
+      .filter((value) => value && value.toLowerCase() !== 'x-default'),
+  ]);
+  const logos: string[] = [];
+  const colors: string[] = [];
+
+  const themeColor = metaContent(root, 'theme-color');
+  const tileColor = metaContent(root, 'msapplication-TileColor');
+  if (themeColor) colors.push(themeColor);
+  if (tileColor) colors.push(tileColor);
+
+  const ogImage = metaContent(root, 'og:image');
+  const favicon =
+    root.querySelector('link[rel="icon"]')?.getAttribute('href') ||
+    root.querySelector('link[rel="shortcut icon"]')?.getAttribute('href') ||
+    root.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href');
+  if (ogImage) {
+    try {
+      logos.push(new URL(ogImage, url).toString());
+    } catch {
+      // ignore
+    }
+  }
+  if (favicon) {
+    try {
+      logos.push(new URL(favicon, url).toString());
+    } catch {
+      // ignore
+    }
+  }
+
+  for (const node of collectJsonLdNodes(root)) {
+    const type = typeList(node);
     if (type.includes('product') || type.includes('service')) {
       const offers = node.offers as Record<string, unknown> | undefined;
       products.push({
@@ -145,29 +301,144 @@ export function extractFromHtml(
         availability: offers?.availability ? String(offers.availability) : undefined,
       });
     }
-    if (type.includes('organization') && !siteName && node.name) {
-      fields.push({
-        fieldKey: 'brand.name',
-        value: String(node.name),
-        isUnknown: false,
-        extractionMethod: 'JSON_LD',
-        confidence: 0.95,
-      });
+    if (type.includes('organization')) {
+      if (!siteName && node.name) {
+        fields.push({
+          fieldKey: 'brand.name',
+          value: String(node.name),
+          isUnknown: false,
+          extractionMethod: 'JSON_LD',
+          confidence: 0.95,
+        });
+      }
+      const sameAs = node.sameAs;
+      const sameAsList = Array.isArray(sameAs) ? sameAs : sameAs ? [sameAs] : [];
+      for (const item of sameAsList) {
+        const classified = typeof item === 'string' ? classifySocialUrl(item) : null;
+        if (classified) social.push(classified);
+      }
+      const email = jsonLdString(node.email);
+      const telephone = jsonLdString(node.telephone);
+      if (email) emails.push(email);
+      if (telephone) phones.push(telephone);
+      const address = collectAddress(node.address);
+      if (address) addresses.push(address);
+      const logo = jsonLdString(node.logo);
+      if (logo) {
+        try {
+          logos.push(new URL(logo, url).toString());
+        } catch {
+          // ignore
+        }
+      }
     }
   }
 
-  const bodyText = html
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const links: ExtractedLink[] = [];
+  for (const el of root.querySelectorAll('a[href], area[href]')) {
+    const href = el.getAttribute('href')?.trim();
+    if (!href) continue;
+    const rel = (el.getAttribute('rel') || '').toLowerCase();
+    links.push({ href, rel });
+    try {
+      const absolute = new URL(href, url);
+      if (absolute.protocol === 'mailto:') {
+        emails.push(decodeURIComponent(absolute.pathname));
+      } else if (absolute.protocol === 'tel:') {
+        phones.push(decodeURIComponent(absolute.pathname));
+      } else {
+        const classified = classifySocialUrl(absolute.toString());
+        if (classified) social.push(classified);
+      }
+    } catch {
+      // skip bad hrefs
+    }
+  }
+
+  for (const el of root.querySelectorAll('script, style, noscript')) {
+    el.remove();
+  }
+  const bodyText = root.text.replace(/\s+/g, ' ').trim();
+  for (const match of bodyText.match(EMAIL_RE) ?? []) emails.push(match);
+  for (const match of bodyText.match(PHONE_RE) ?? [])
+    phones.push(match.replace(/\s+/g, ' ').trim());
+
+  const socialProfiles = uniqueStrings(social.map((item) => `${item.network}|${item.url}`)).map(
+    (entry) => {
+      const [network, profileUrl] = entry.split('|');
+      return { network, url: profileUrl };
+    },
+  );
+  if (socialProfiles.length > 0) {
+    fields.push({
+      fieldKey: 'brand.social',
+      value: { profiles: socialProfiles },
+      isUnknown: false,
+      extractionMethod: 'HEURISTIC',
+      confidence: 0.85,
+    });
+  }
+
+  const contact = {
+    emails: uniqueStrings(emails).slice(0, 10),
+    phones: uniqueStrings(phones).slice(0, 10),
+    addresses: uniqueStrings(addresses).slice(0, 5),
+  };
+  if (contact.emails.length || contact.phones.length || contact.addresses.length) {
+    fields.push({
+      fieldKey: 'brand.contact',
+      value: contact,
+      isUnknown: false,
+      extractionMethod: 'HEURISTIC',
+      confidence: 0.8,
+    });
+  }
+
+  if (languages.length > 0) {
+    fields.push({
+      fieldKey: 'brand.languages',
+      value: languages,
+      isUnknown: false,
+      extractionMethod: 'HTML_META',
+      confidence: 0.9,
+    });
+  }
+
+  const uniqueLogos = uniqueStrings(logos).slice(0, 5);
+  if (uniqueLogos.length > 0) {
+    fields.push({
+      fieldKey: 'brand.logo',
+      value: {
+        og_image: ogImage ? new URL(ogImage, url).toString() : null,
+        favicon: favicon ? new URL(favicon, url).toString() : null,
+        urls: uniqueLogos,
+      },
+      isUnknown: false,
+      extractionMethod: 'HTML_META',
+      confidence: 0.75,
+    });
+  }
+
+  const uniqueColors = uniqueStrings(colors);
+  if (uniqueColors.length > 0) {
+    fields.push({
+      fieldKey: 'brand.colors',
+      value: { theme: uniqueColors },
+      isUnknown: false,
+      extractionMethod: 'HTML_META',
+      confidence: 0.7,
+    });
+  }
 
   return {
     fields,
     products,
     pageTitle,
-    classification: classifyPage(url, html),
+    classification: classifyPage(url, root),
     excerpt: boundExcerpt(bodyText.slice(0, 500) || pageTitle || url),
+    links,
+    canonicalUrl,
+    noindex: robots.noindex,
+    nofollow: robots.nofollow,
   };
 }

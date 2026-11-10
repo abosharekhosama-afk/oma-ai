@@ -1,9 +1,8 @@
 import { getPrisma } from '@oma/db';
 import {
-  createFixtureWebsiteConnector,
-  isBrandFixtureConnectorEnabled,
+  brandConnectorMode,
+  createWebsiteConnector,
   isRequiredForApproval,
-  refusingWebsiteConnector,
   type WebsiteConnectorPort,
 } from '@oma/domain';
 import { createLogger } from '@oma/observability';
@@ -17,10 +16,7 @@ import type { IngestionJobPayload } from './ingestion-job-payload';
 const log = createLogger('ingestion-processor');
 
 function resolveWebsiteConnector(): WebsiteConnectorPort {
-  if (isBrandFixtureConnectorEnabled()) {
-    return createFixtureWebsiteConnector();
-  }
-  return refusingWebsiteConnector;
+  return createWebsiteConnector();
 }
 
 async function reauthz(
@@ -153,7 +149,7 @@ export function startIngestionProcessor(
           progressPercent: 5,
           // Recorded on the attempt that used it: the API process can be
           // reconfigured later and must not restate this scan's provenance.
-          connectorMode: isBrandFixtureConnectorEnabled() ? 'FIXTURE' : 'NOT_CONFIGURED',
+          connectorMode: brandConnectorMode(),
         }))
       ) {
         await markScanCancelled(prisma, scan.id, jobRun.id);

@@ -38,11 +38,11 @@ Additive methods remain behind `WebsiteConnectorPort` (or a narrow extension int
 
 ### Adapters
 
-| Adapter                         | Where                                            | Purpose                                                    |
-| ------------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
-| `refusingWebsiteConnector`      | Default production until authorized live wiring  | Throws / returns not configured (`DEC-004` / vendor gate)  |
-| Deterministic fixture connector | **Tests / local quickstart only**                | Serves `tests/fixtures/websites/*` over loopback allowlist |
-| Future live public fetch        | **Hard stop** until product + security authorize | First-party HTTPS fetch behind port; still no commerce     |
+| Adapter                         | Where                                                        | Purpose                                                               |
+| ------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------- |
+| `refusingWebsiteConnector`      | `BRAND_WEBSITE_CONNECTOR=disabled`                           | Throws / returns not configured                                       |
+| Deterministic fixture connector | Tests / local quickstart (`BRAND_FIXTURE_CONNECTOR=1`)       | Serves `tests/fixtures/websites/*`                                    |
+| Live public fetch               | Default when fixture is off (`BRAND_WEBSITE_CONNECTOR=live`) | First-party HTTP(S) fetch with SSRF pinning, robots.txt, and sitemaps |
 
 ### Security obligations (caller + adapter)
 

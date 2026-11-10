@@ -20,6 +20,7 @@ export * from './ports/object-storage.port';
 export * from './ports/workdrive.port';
 export * from './ports/website-connector.port';
 export * from './ports/fixture-website-connector';
+export * from './ports/live-website-connector';
 export * from './ports/paid-media-connector.port';
 export * from './ports/retention-policy.port';
 export * from './ports/refusing-adapters';
