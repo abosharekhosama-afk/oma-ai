@@ -25,7 +25,7 @@ test.describe('PJ-08 i18n a11y', () => {
     await page.goto('/register');
     await page.getByLabel('Name').fill('PJ08 Owner');
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByRole('button', { name: /create account|register/i }).click();
     await expect(page.getByRole('heading', { name: /set up your company/i })).toBeVisible({
       timeout: 20_000,

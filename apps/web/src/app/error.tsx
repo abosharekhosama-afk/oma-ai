@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { ErrorState, errorKindOf } from '../components/ui/error-state';
 
-/** Root error boundary (500-style) — keeps the root layout, offers retry. */
+/** Root error boundary (500-style) — standalone card, offers retry. */
 export default function RootError({
   error,
   reset,
@@ -16,7 +16,7 @@ export default function RootError({
   }, [error]);
   const kind = errorKindOf(error) === 'network' ? 'network' : 'server';
   return (
-    <main id="main" className="oma-error-page">
+    <main id="main">
       <ErrorState
         kind={kind}
         code={kind === 'server' ? '500' : undefined}

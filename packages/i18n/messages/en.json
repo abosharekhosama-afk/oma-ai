@@ -1374,6 +1374,7 @@
   "errors.retry": "Try again",
   "errors.goHome": "Go to home",
   "errors.offlineBanner": "You're offline. Changes will load when you reconnect.",
+  "errors.onlineBanner": "You're back online.",
   "session.expiredTitle": "Session expired",
   "session.expiredBody": "For your security you were signed out. Sign in again to continue where you left off.",
   "session.signInAgain": "Sign in again",

@@ -1374,6 +1374,7 @@
   "errors.retry": "حاول مرة أخرى",
   "errors.goHome": "العودة إلى الرئيسية",
   "errors.offlineBanner": "أنت غير متصل. سيتم التحميل عند عودة الاتصال.",
+  "errors.onlineBanner": "تم استعادة الاتصال.",
   "session.expiredTitle": "انتهت الجلسة",
   "session.expiredBody": "لحمايتك تم تسجيل خروجك. سجّل الدخول مجددًا للمتابعة من حيث توقفت.",
   "session.signInAgain": "سجّل الدخول مجددًا",

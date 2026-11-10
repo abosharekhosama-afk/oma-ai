@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useT } from '../../lib/use-locale';
+import { StatusPage } from './status-page';
 
 export type ErrorKind =
   'unauthorized' | 'notFound' | 'server' | 'network' | 'forbidden' | 'generic';
@@ -45,32 +46,38 @@ export function ErrorState({
   code,
   homeHref = '/app',
   compact = false,
+  standalone,
   detail,
   title,
   body,
   action,
+  testId,
 }: {
   kind?: ErrorKind;
   onRetry?: () => void;
   code?: string;
   homeHref?: string;
   compact?: boolean;
+  /** Full-page overlay without app chrome. Defaults to on when the card is not compact. */
+  standalone?: boolean;
   detail?: string | null;
   title?: string;
   body?: string;
   action?: ReactNode;
+  testId?: string;
 }) {
   const t = useT();
   const heading = title || t(`errors.page.${kind}.title`);
   const description = body || t(`errors.page.${kind}.body`);
   const shownCode = code ?? DEFAULT_CODE[kind];
   const isUnauth = kind === 'unauthorized';
+  const isStandalone = standalone ?? !compact;
 
-  return (
+  const card = (
     <section
-      className={`oma-error-state oma-plx-error${compact ? ' oma-error-state--compact' : ''}`}
+      className={`oma-error-state oma-plx-error${compact ? ' oma-error-state--compact' : ''}${isStandalone ? ' oma-error-state--standalone' : ''}`}
       role="alert"
-      data-testid={`error-state-${kind}`}
+      data-testid={testId ?? `error-state-${kind}`}
       data-kind={kind}
     >
       <span className="oma-plx-error__icon" data-kind={kind} aria-hidden>
@@ -110,4 +117,7 @@ export function ErrorState({
       </div>
     </section>
   );
+
+  if (isStandalone) return <StatusPage>{card}</StatusPage>;
+  return card;
 }

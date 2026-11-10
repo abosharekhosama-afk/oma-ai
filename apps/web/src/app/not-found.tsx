@@ -7,7 +7,7 @@ export default async function NotFound() {
   const hdrs = await headers();
   const locale = resolveLocale(cookieStore.get('oma_locale')?.value ?? hdrs.get('accept-language'));
   return (
-    <main id="main" className="oma-error-page" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+    <main id="main" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
       <ErrorState kind="notFound" code="404" homeHref="/app" />
     </main>
   );

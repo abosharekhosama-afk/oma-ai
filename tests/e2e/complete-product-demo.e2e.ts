@@ -23,7 +23,7 @@ async function createOwnerCreds(
 async function loginUi(page: import('@playwright/test').Page, creds: Creds) {
   await page.goto('/login');
   await page.getByLabel(/email|البريد/i).fill(creds.email);
-  await page.getByLabel(/password|كلمة/i).fill(creds.password);
+  await page.locator('input[name="password"]').fill(creds.password);
   await page.getByRole('button', { name: /sign in|تسجيل/i }).click();
   await expect(page).toHaveURL(/\/app/, { timeout: 30_000 });
 }

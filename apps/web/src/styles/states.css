@@ -50,6 +50,38 @@
   background: var(--oma-canvas);
   padding: var(--space-6);
 }
+.oma-status-page {
+  position: fixed;
+  inset: 0;
+  z-index: var(--shell-z-modal);
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: var(--space-6);
+  background: var(--oma-canvas);
+  color: var(--oma-ink);
+}
+.oma-status-page__inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+  width: min(100%, 440px);
+}
+.oma-status-page__brand {
+  display: flex;
+  justify-content: center;
+}
+.oma-status-page .oma-error-state {
+  margin: 0;
+  width: 100%;
+}
+body:has(.oma-status-page) .oma-rail,
+body:has(.oma-status-page) .oma-top,
+body:has(.oma-status-page) .oma-mobile-nav-fab,
+body:has(.oma-status-page) .oma-mobile-nav-toggle {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
 .oma-error-state {
   max-width: 440px;
   margin: var(--space-10) auto;
@@ -121,15 +153,54 @@
   opacity: 1;
 }
 .oma-offline-banner {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  padding: var(--space-1) var(--space-4);
-  background: var(--oma-badge-warning-bg);
-  border-bottom: 1px solid var(--oma-border);
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 8px var(--space-4);
+  background: color-mix(in srgb, var(--status-warning) 16%, var(--oma-surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--status-warning) 32%, var(--oma-border));
   color: var(--oma-ink);
   font-size: 13px;
+  line-height: 20px;
   text-align: center;
+}
+.oma-offline-banner--online {
+  background: var(--oma-badge-success-bg);
+  border-bottom-color: color-mix(in srgb, var(--status-success) 32%, var(--oma-border));
+}
+.oma-offline-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-warning);
+  flex: 0 0 auto;
+}
+.oma-offline-banner--online .oma-offline-banner__dot {
+  background: var(--status-success);
+}
+.oma-offline-banner__retry {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--oma-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.oma-offline-banner__retry:hover {
+  color: var(--oma-home-primary-hover);
+}
+html body .oma-shell-column > .oma-offline-banner {
+  flex: 0 0 auto !important;
+  position: relative !important;
+  top: auto !important;
 }
 
 /* ---- Account / static pages ---- */

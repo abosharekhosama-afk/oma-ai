@@ -15,7 +15,7 @@ test.describe('Company onboarding UI', () => {
     await page.goto('/register');
     await page.getByLabel('Name').fill('UI Owner');
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByRole('button', { name: /create account|register/i }).click();
     await page.waitForURL(/\/app/);
 
@@ -54,7 +54,7 @@ test.describe('Company onboarding UI', () => {
       await page.goto('/login');
     }
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
     await page.waitForURL(/\/app/, { timeout: 20_000 });
     await page.goto('/app/brands');

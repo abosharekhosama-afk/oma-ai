@@ -31,7 +31,7 @@ test.describe('Visible product home', () => {
 
     await page.goto('/login');
     await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill(password);
+    await page.locator('input[name="password"]').fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/app/, { timeout: 30_000 });
 

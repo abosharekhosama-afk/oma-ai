@@ -8,7 +8,9 @@ test.describe('auth e2e', () => {
     await page.goto('/register');
     await page.getByLabel(msg(testInfo, 'auth.name')).fill('E2E User');
     await page.getByLabel(msg(testInfo, 'auth.email')).fill(email);
-    await page.getByLabel(msg(testInfo, 'auth.password')).fill('CorrectHorseBattery1!');
+    await page
+      .getByLabel(msg(testInfo, 'auth.password'), { exact: true })
+      .fill('CorrectHorseBattery1!');
     await page.getByRole('button', { name: msg(testInfo, 'auth.register') }).click();
     await expect(page).toHaveURL(/\/app\/onboarding/);
     await expect(

@@ -5,7 +5,8 @@ import { OmaLinkButton } from '../../../components/ui/oma-link-button';
 import { api } from '../../../lib/api';
 import { useLocale, useT } from '../../../lib/use-locale';
 import { isPermissionDenied } from '../../../lib/brand-api';
-import { EmptyState, DeniedState } from '../../../components/ui/empty-state';
+import { EmptyState } from '../../../components/ui/empty-state';
+import { PermissionDenied } from '../../../components/shell/permission-denied';
 import { useToast } from '../../../components/ui/toast';
 import { getHome, type HomeAwaitingItem, type HomeData } from '../../../lib/home-api';
 import { listNotifications } from '../../../lib/notifications-api';
@@ -157,7 +158,7 @@ export default function AppHomePage() {
       />
     );
   }
-  if (denied) return <DeniedState title={t('errors.permission')} />;
+  if (denied) return <PermissionDenied message={t('errors.permission')} />;
 
   return (
     <HomeView
