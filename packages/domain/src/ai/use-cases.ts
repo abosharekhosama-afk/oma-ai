@@ -8,6 +8,12 @@ export const LUNA_USE_CASES = [
   'rewrite',
   'missing_fields',
   'routine_suggestion',
+  'caption_generation',
+  'caption_rewrite',
+  'alt_text',
+  'content_ideas',
+  'hashtag_suggestion',
+  'inbox_reply',
 ] as const;
 
 export const TERRA_USE_CASES = [

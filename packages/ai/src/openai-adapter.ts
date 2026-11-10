@@ -44,6 +44,7 @@ export type OpenAiAdapterOptions = AiModelConfig & {
 export type AiStructuredSuccess = {
   ok: true;
   proposal: AiProposal;
+  output: unknown;
   model: string;
   inputTokens: number;
   outputTokens: number;
@@ -111,6 +112,7 @@ export class OpenAiProviderAdapter implements AiProviderPort {
     userPrompt?: string;
     schema?: Record<string, unknown>;
     abortSignal?: AbortSignal;
+    validate?: (parsed: unknown) => { ok: true; value: unknown } | { ok: false };
   }): Promise<AiStructuredSuccess | AiStructuredFailure> {
     const routed = routeModel(input.useCase, this.options);
     if (!this.options.liveEnabled) return { ok: false, code: 'AI_DISABLED' };
@@ -167,11 +169,22 @@ export class OpenAiProviderAdapter implements AiProviderPort {
         } catch {
           return { ok: false, code: 'SCHEMA_INVALID' };
         }
-        const checked = validateProposal(parsed);
-        if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID' };
+        let output: unknown = parsed;
+        let proposal: AiProposal | null = null;
+        if (input.validate) {
+          const checked = input.validate(parsed);
+          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID' };
+          output = checked.value;
+        } else {
+          const checked = validateProposal(parsed);
+          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID' };
+          proposal = checked.proposal;
+          output = checked.proposal;
+        }
         return {
           ok: true,
-          proposal: checked.proposal,
+          proposal: proposal ?? (output as AiProposal),
+          output,
           model: routed.model,
           inputTokens: response.usage?.input_tokens ?? 0,
           outputTokens: response.usage?.output_tokens ?? 0,

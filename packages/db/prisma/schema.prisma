@@ -188,7 +188,9 @@ model AiRun {
   provider         String
   model            String
   promptVersion    String
+  promptId         String?
   schemaVersion    String
+  metadataJson     String?
   sourceEntityType String
   sourceEntityId   String
   sourceVersion    String
