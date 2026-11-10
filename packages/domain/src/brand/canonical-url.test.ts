@@ -12,4 +12,10 @@ describe('canonical-url', () => {
     const b = canonicalHash('https://example.test/a');
     expect(a).toBe(b);
   });
+
+  it('strips tracking params and sorts the rest', () => {
+    expect(canonicalizeUrl('https://example.test/path?b=2&utm_source=ad&a=1&fbclid=xyz#x')).toBe(
+      'https://example.test/path?a=1&b=2',
+    );
+  });
 });

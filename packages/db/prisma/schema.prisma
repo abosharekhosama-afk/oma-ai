@@ -424,6 +424,7 @@ enum BrandAiAvailability {
 enum BrandConnectorMode {
   FIXTURE
   NOT_CONFIGURED
+  LIVE
 }
 
 enum PageClassification {

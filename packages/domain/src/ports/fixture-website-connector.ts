@@ -3,6 +3,7 @@ import type {
   FetchPublicInput,
   FetchPublicResult,
   RobotsDecision,
+  RobotsInfo,
   WebsiteConnectorPort,
 } from './website-connector.port';
 import { validateRedirectTarget } from '../brand/redirect-safety';
@@ -103,6 +104,9 @@ export function createFixtureWebsiteConnector(): WebsiteConnectorPort {
     async evaluateRobots(_host: string, path: string): Promise<RobotsDecision> {
       if (path.includes('/private')) return 'DISALLOW';
       return 'ALLOW';
+    },
+    async inspectRobots(): Promise<RobotsInfo> {
+      return { sitemaps: [], crawlDelaySeconds: null, availability: 'ok' };
     },
   };
 }

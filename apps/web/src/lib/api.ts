@@ -54,6 +54,13 @@ const CODE_KEYS: Record<string, string> = {
   ADDON_REQUIRED: 'errors.addon_required',
   PAYMENT_REQUIRED: 'errors.payment_required',
   PROVIDER_NOT_CONFIGURED: 'errors.provider_not_configured',
+  URL_SSRF_DENIED: 'errors.url_ssrf_denied',
+  URL_SCHEME_DENIED: 'errors.url_scheme_denied',
+  WEBSITE_UNREACHABLE: 'errors.website_unreachable',
+  WEBSITE_NON_HTML: 'errors.website_non_html',
+  WEBSITE_ROBOTS_DISALLOWED: 'errors.website_robots_disallowed',
+  WEBSITE_TOO_MANY_REDIRECTS: 'errors.website_too_many_redirects',
+  WEBSITE_TLS_ERROR: 'errors.website_tls_error',
 };
 
 /** Localized, user-facing message for an API error (prefers the server's message_key). */

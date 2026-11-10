@@ -31,9 +31,9 @@ export type BrandDetail = {
     id: string;
     status: string;
     job_run_id: string;
-    connector_mode: 'FIXTURE' | 'NOT_CONFIGURED';
+    connector_mode: 'FIXTURE' | 'NOT_CONFIGURED' | 'LIVE';
   } | null;
-  next_scan_connector_mode: 'FIXTURE' | 'NOT_CONFIGURED';
+  next_scan_connector_mode: 'FIXTURE' | 'NOT_CONFIGURED' | 'LIVE';
   archived_at: string | null;
   logo_url?: string | null;
   logo_asset_id?: string | null;
@@ -50,7 +50,7 @@ export type ScanDetail = {
   pages_failed: number;
   pages_skipped: number;
   ai_availability: string;
-  connector_mode: 'FIXTURE' | 'NOT_CONFIGURED';
+  connector_mode: 'FIXTURE' | 'NOT_CONFIGURED' | 'LIVE';
   coverage: {
     required_missing?: string[];
     unknown_fields?: string[];
@@ -100,7 +100,7 @@ export type EvidenceItem = {
   extraction_method: string;
   scan_attempt_id: string;
   discovered_page_id: string | null;
-  connector_mode?: 'FIXTURE' | 'NOT_CONFIGURED';
+  connector_mode?: 'FIXTURE' | 'NOT_CONFIGURED' | 'LIVE';
 };
 
 export type InsightItem = {

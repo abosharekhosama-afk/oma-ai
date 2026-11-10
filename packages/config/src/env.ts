@@ -17,10 +17,34 @@ export const envSchema = z
       .enum(['0', '1'])
       .optional()
       .transform((v) => v === '1'),
+    BRAND_WEBSITE_CONNECTOR: z.enum(['live', 'fixture', 'disabled']).optional(),
     BRAND_MAX_PAGES: z.coerce.number().default(50),
     BRAND_MAX_DEPTH: z.coerce.number().default(3),
     BRAND_MAX_DURATION_SECONDS: z.coerce.number().default(600),
     BRAND_MAX_BYTES: z.coerce.number().default(1_000_000),
+    BRAND_MAX_SITEMAP_DOCUMENTS: z.coerce.number().int().positive().default(5),
+    BRAND_SCANNER_USER_AGENT: z.string().min(1).default('OMA-BrandScanner/1.0 (+https://oma.ai)'),
+    BRAND_SCANNER_ACCEPT_LANGUAGE: z.string().min(1).default('en,ar;q=0.9'),
+    BRAND_SCANNER_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+    BRAND_SCANNER_CONNECT_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+    BRAND_SCANNER_MAX_REDIRECTS: z.coerce.number().int().nonnegative().default(5),
+    BRAND_SCANNER_CONCURRENCY: z.coerce.number().int().positive().default(1),
+    BRAND_SCANNER_DELAY_MS: z.coerce.number().int().nonnegative().default(500),
+    BRAND_SCANNER_MAX_RETRIES: z.coerce.number().int().nonnegative().default(2),
+    BRAND_ALLOWED_PORTS: z
+      .string()
+      .default('80,443')
+      .transform((v) =>
+        v
+          .split(',')
+          .map((part) => Number(part.trim()))
+          .filter((port) => Number.isInteger(port) && port > 0 && port < 65536),
+      )
+      .refine((ports) => ports.length > 0, 'BRAND_ALLOWED_PORTS must include at least one port'),
+    BRAND_SCANNER_ALLOW_PRIVATE_HOSTS: z
+      .enum(['0', '1', 'true', 'false'])
+      .optional()
+      .transform((v) => v === '1' || v === 'true'),
     /** Feature 003: AI propose always refuses unless a future DEC enables a live adapter. */
     STRATEGY_AI_MODE: z.enum(['refuse', 'not_configured']).default('refuse'),
     /**
@@ -89,6 +113,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     !parsed.OMA_DEMO_ALLOW_PRODUCTION
   ) {
     throw new Error('OMA_DEMO_MODE requires OMA_DEMO_ALLOW_PRODUCTION=1 in production');
+  }
+  if (parsed.NODE_ENV === 'production' && parsed.BRAND_SCANNER_ALLOW_PRIVATE_HOSTS) {
+    throw new Error('BRAND_SCANNER_ALLOW_PRIVATE_HOSTS cannot be enabled in production');
   }
   return parsed;
 }

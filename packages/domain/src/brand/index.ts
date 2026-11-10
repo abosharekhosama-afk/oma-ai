@@ -10,3 +10,8 @@ export * from './immutability';
 export * from './approval-eligibility';
 export * from './info-state';
 export * from './fixture-connector-env';
+export * from './robots-parser';
+export * from './sitemap-parser';
+export * from './html-charset';
+export * from './fetch-url-policy';
+export * from './website-connector-factory';

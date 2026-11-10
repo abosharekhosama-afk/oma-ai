@@ -72,6 +72,9 @@ export const refusingWebsiteConnector: WebsiteConnectorPort = {
   async evaluateRobots() {
     throw new WebsiteConnectorNotConfiguredError();
   },
+  async inspectRobots() {
+    throw new WebsiteConnectorNotConfiguredError();
+  },
 };
 
 export const refusingPaidMedia: PaidMediaConnectorPort = {

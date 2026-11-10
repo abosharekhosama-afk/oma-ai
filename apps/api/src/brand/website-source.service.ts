@@ -4,10 +4,9 @@ import {
   DomainError,
   assertNormalizedUrl,
   assertSsrfAllowed,
-  isBrandFixtureConnectorEnabled,
   newId,
-  refusingWebsiteConnector,
-  createFixtureWebsiteConnector,
+  createWebsiteConnector,
+  type ErrorCode,
   type WebsiteConnectorPort,
 } from '@oma/domain';
 import { getPrisma, tenantWhere } from '@oma/db';
@@ -15,10 +14,24 @@ import { AuditService } from '../audit/audit.service';
 import { BrandService } from './brand.service';
 
 function resolveWebsiteConnector(): WebsiteConnectorPort {
-  if (isBrandFixtureConnectorEnabled()) {
-    return createFixtureWebsiteConnector();
-  }
-  return refusingWebsiteConnector;
+  return createWebsiteConnector();
+}
+
+const CONNECT_ERROR_CODES = new Set<string>([
+  'VALIDATION_FAILED',
+  'URL_SCHEME_DENIED',
+  'URL_SSRF_DENIED',
+  'WEBSITE_UNREACHABLE',
+  'WEBSITE_NON_HTML',
+  'WEBSITE_ROBOTS_DISALLOWED',
+  'WEBSITE_TOO_MANY_REDIRECTS',
+  'WEBSITE_TLS_ERROR',
+]);
+
+function throwConnectFailure(code: string | undefined, reason: string): never {
+  const resolved =
+    code && CONNECT_ERROR_CODES.has(code) ? (code as ErrorCode) : 'VALIDATION_FAILED';
+  throw new DomainError(resolved, reason, 400, `errors.${resolved.toLowerCase()}`);
 }
 
 @Injectable()
@@ -53,10 +66,10 @@ export class WebsiteSourceService {
     const { normalizedUrl, host } = assertNormalizedUrl(input.url);
     assertSsrfAllowed(host);
 
-    // Saving the website is profile info and must work without the scanning connector
-    // (prod runs NOT_CONFIGURED). URL shape + SSRF rules were already checked locally above;
-    // scanning stays unavailable until a connector is configured.
-    let validation: { ok: boolean; reason?: string };
+    // When the live or fixture connector is enabled, probe the URL before marking VALID.
+    // If the connector is disabled, URL shape + SSRF rules already ran above and we persist
+    // the source so the profile can be saved without a crawl.
+    let validation: { ok: boolean; reason?: string; code?: string };
     try {
       validation = await this.connector.validateSource({ url: normalizedUrl });
     } catch (err) {
@@ -64,12 +77,7 @@ export class WebsiteSourceService {
       else throw err;
     }
     if (!validation.ok) {
-      throw new DomainError(
-        'VALIDATION_FAILED',
-        validation.reason ?? 'Invalid source',
-        400,
-        'errors.validation_failed',
-      );
+      throwConnectFailure(validation.code, validation.reason ?? 'Invalid source');
     }
 
     const prisma = getPrisma();
