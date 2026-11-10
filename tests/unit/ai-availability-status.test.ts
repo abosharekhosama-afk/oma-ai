@@ -18,6 +18,9 @@ describe('AI availability and cost', () => {
       isAiLiveEnabled({ AI_PROVIDER: 'grok', AI_LIVE_ENABLED: 'true', XAI_API_KEY: 'xai-test' }),
     ).toBe(true);
     expect(
+      isAiLiveEnabled({ AI_PROVIDER: 'groq', AI_LIVE_ENABLED: 'true', GROQ_API_KEY: 'groq-test' }),
+    ).toBe(true);
+    expect(
       isAiLiveEnabled({
         AI_PROVIDER: 'gemini',
         AI_LIVE_ENABLED: 'true',
@@ -26,6 +29,9 @@ describe('AI availability and cost', () => {
     ).toBe(true);
     expect(
       isAiLiveEnabled({ AI_PROVIDER: 'grok', AI_LIVE_ENABLED: 'true', OPENAI_API_KEY: 'sk-test' }),
+    ).toBe(false);
+    expect(
+      isAiLiveEnabled({ AI_PROVIDER: 'groq', AI_LIVE_ENABLED: 'true', OPENAI_API_KEY: 'sk-test' }),
     ).toBe(false);
     expect(
       isAiAnalysisAvailable({
@@ -61,6 +67,10 @@ describe('AI availability and cost', () => {
     expect(defaultAiModels({ AI_PROVIDER: 'grok' })).toEqual({
       defaultModel: 'grok-4.7',
       reasoningModel: 'grok-4.7',
+    });
+    expect(defaultAiModels({ AI_PROVIDER: 'groq' })).toEqual({
+      defaultModel: 'openai/gpt-oss-20b',
+      reasoningModel: 'openai/gpt-oss-120b',
     });
     expect(defaultAiModels({ AI_PROVIDER: 'gemini' })).toEqual({
       defaultModel: 'gemini-3.8-flash',

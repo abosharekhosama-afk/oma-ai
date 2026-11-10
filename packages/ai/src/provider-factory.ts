@@ -6,15 +6,17 @@ export type StructuredAiProvider = OpenAiProviderAdapter | ChatCompletionsProvid
 
 export function configuredAiProvider(
   env: NodeJS.ProcessEnv = process.env,
-): 'openai' | 'grok' | 'gemini' {
+): 'openai' | 'grok' | 'groq' | 'gemini' {
   const value = env.AI_PROVIDER?.trim().toLowerCase() || 'openai';
-  return value === 'grok' || value === 'gemini' ? value : 'openai';
+  return value === 'grok' || value === 'groq' || value === 'gemini' ? value : 'openai';
 }
 
 export function configuredAiApiKey(env: NodeJS.ProcessEnv = process.env): string {
   switch (configuredAiProvider(env)) {
     case 'grok':
       return env.XAI_API_KEY?.trim() || '';
+    case 'groq':
+      return env.GROQ_API_KEY?.trim() || '';
     case 'gemini':
       return env.GEMINI_API_KEY?.trim() || '';
     default:
@@ -51,7 +53,9 @@ export function createAiAdapterFromEnv(env: NodeJS.ProcessEnv = process.env): St
     baseUrl:
       provider === 'grok'
         ? 'https://api.x.ai/v1'
-        : 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        : provider === 'groq'
+          ? env.GROQ_BASE_URL?.trim() || 'https://api.groq.com/openai/v1'
+          : 'https://generativelanguage.googleapis.com/v1beta/openai/',
     timeoutMs,
     maxRetries,
   });

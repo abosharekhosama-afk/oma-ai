@@ -1,6 +1,6 @@
 # AI brand analysis
 
-OMA can turn a finished website scan into a reviewable brand-profile proposal. The live path uses structured outputs from the configured OpenAI, xAI Grok, or Google Gemini provider. Nothing is written to an approved profile, and every AI claim stays `PENDING` until a human accepts or rejects it.
+OMA can turn a finished website scan into a reviewable brand-profile proposal. The live path uses structured outputs from the configured OpenAI, xAI Grok, Groq Cloud, or Google Gemini provider. Nothing is written to an approved profile, and every AI claim stays `PENDING` until a human accepts or rejects it.
 
 ## Flow
 
@@ -18,9 +18,9 @@ If AI is not configured, the heuristic draft remains and both records stay `NOT_
 Live analysis runs only when **both** are true:
 
 - `AI_LIVE_ENABLED=true`
-- The key matching `AI_PROVIDER` is set: `OPENAI_API_KEY` (`openai`), `XAI_API_KEY` (`grok`), or `GEMINI_API_KEY` (`gemini`).
+- The key matching `AI_PROVIDER` is set: `OPENAI_API_KEY` (`openai`), `XAI_API_KEY` (`grok`), `GROQ_API_KEY` (`groq`), or `GEMINI_API_KEY` (`gemini`).
 
-`OPENAI_PROJECT_ID` and `OPENAI_BASE_URL` are optional for OpenAI. Grok and Gemini use their official OpenAI-compatible Chat Completions endpoints. If live AI is enabled without the selected provider key, `loadEnv()` fails at startup with a clear error.
+`OPENAI_PROJECT_ID` and `OPENAI_BASE_URL` are optional for OpenAI. Grok, Groq, and Gemini use their official OpenAI-compatible Chat Completions endpoints. Groq Structured Outputs strict mode uses `openai/gpt-oss-20b` or `openai/gpt-oss-120b` by default. If live AI is enabled without the selected provider key, `loadEnv()` fails at startup with a clear error.
 
 The public status endpoint reports `availability` as:
 
@@ -48,7 +48,7 @@ Crawled text is wrapped in `BEGIN/END UNTRUSTED CRAWLED CONTENT` delimiters. The
 
 USD cost is computed from provider token usage and a price table:
 
-- Defaults: `gpt-4.1-mini` $0.40 / $1.60 per 1M tokens; `gpt-4.1` $2.00 / $8.00 per 1M tokens (input / output).
+- Defaults: `gpt-4.1-mini` $0.40 / $1.60 per 1M tokens; `gpt-4.1` $2.00 / $8.00 per 1M tokens (input / output). Groq defaults are `openai/gpt-oss-20b` $0.075 / $0.30 and `openai/gpt-oss-120b` $0.15 / $0.60 per 1M tokens (input / output).
 - Override with `AI_MODEL_PRICES_JSON`, e.g. `{"gpt-4.1":{"inputPerMillion":2,"outputPerMillion":8}}`.
 - Unknown models use a conservative $5 / $15 per 1M fallback.
 
@@ -61,10 +61,12 @@ Plan `ai_credits_per_month` is consumed **only after a successful proposal**, an
 Set the following on **both** the API and the worker, then redeploy. Choose one provider and its corresponding key:
 
 ```
-AI_PROVIDER=openai           # openai | grok | gemini
+AI_PROVIDER=openai           # openai | grok | groq | gemini
 AI_LIVE_ENABLED=true
 OPENAI_API_KEY=...           # when AI_PROVIDER=openai
 XAI_API_KEY=...               # when AI_PROVIDER=grok
+GROQ_API_KEY=...              # when AI_PROVIDER=groq
+GROQ_BASE_URL=https://api.groq.com/openai/v1
 GEMINI_API_KEY=...            # when AI_PROVIDER=gemini
 AI_DEFAULT_MODEL=             # optional; provider default when blank
 AI_REASONING_MODEL=           # optional; provider default when blank
@@ -74,7 +76,7 @@ AI_MONTHLY_BUDGET_USD=25
 AI_DAILY_BUDGET_USD=2
 ```
 
-Provider defaults are OpenAI `gpt-4.1-mini` / `gpt-4.1`, Grok `grok-4.7` for both tiers, and Gemini `gemini-3.8-flash` for both tiers. Set explicit model IDs if your account exposes different models. Costs for models without configured rates use the conservative fallback shown above.
+Provider defaults are OpenAI `gpt-4.1-mini` / `gpt-4.1`, Grok `grok-4.7` for both tiers, Groq `openai/gpt-oss-20b` / `openai/gpt-oss-120b`, and Gemini `gemini-3.8-flash` for both tiers. Set explicit model IDs if your account exposes different models. Costs for models without configured rates use the conservative fallback shown above.
 
 Apply the `ai_brand_analysis` Prisma migration. The workspace plan must include `ai_assist`.
 

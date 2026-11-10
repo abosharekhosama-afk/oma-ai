@@ -8,6 +8,7 @@ export type AiRuntimeEnv = {
   AI_TEST_ADAPTER?: string;
   OPENAI_API_KEY?: string;
   XAI_API_KEY?: string;
+  GROQ_API_KEY?: string;
   GEMINI_API_KEY?: string;
   AI_PROVIDER?: string;
 };
@@ -20,6 +21,7 @@ export function isAiLiveEnabled(env: AiRuntimeEnv = process.env): boolean {
 export function isAiProviderConfigured(env: AiRuntimeEnv = process.env): boolean {
   const provider = env.AI_PROVIDER?.trim().toLowerCase() || 'openai';
   if (provider === 'grok') return Boolean(env.XAI_API_KEY?.trim());
+  if (provider === 'groq') return Boolean(env.GROQ_API_KEY?.trim());
   if (provider === 'gemini') return Boolean(env.GEMINI_API_KEY?.trim());
   return Boolean(env.OPENAI_API_KEY?.trim());
 }
@@ -53,9 +55,11 @@ export function defaultAiModels(
   const defaults =
     provider === 'grok'
       ? { defaultModel: 'grok-4.7', reasoningModel: 'grok-4.7' }
-      : provider === 'gemini'
-        ? { defaultModel: 'gemini-3.8-flash', reasoningModel: 'gemini-3.8-flash' }
-        : { defaultModel: 'gpt-4.1-mini', reasoningModel: 'gpt-4.1' };
+      : provider === 'groq'
+        ? { defaultModel: 'openai/gpt-oss-20b', reasoningModel: 'openai/gpt-oss-120b' }
+        : provider === 'gemini'
+          ? { defaultModel: 'gemini-3.8-flash', reasoningModel: 'gemini-3.8-flash' }
+          : { defaultModel: 'gpt-4.1-mini', reasoningModel: 'gpt-4.1' };
   const defaultModel = env.AI_DEFAULT_MODEL?.trim() || defaults.defaultModel;
   const reasoningModel = env.AI_REASONING_MODEL?.trim() || defaults.reasoningModel;
   if (!defaultModel || !reasoningModel) {
