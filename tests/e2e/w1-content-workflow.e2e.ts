@@ -34,8 +34,9 @@ test('W1 content views keep a dated draft unscheduled until Schedule', async ({
       (cellBox?.x ?? 0) + (cellBox?.width ?? 0) + 2,
     );
   } else {
-    // Planable LIVE_VERIFIED mobile: Saved column collapses; agenda is the mobile calendar surface.
-    await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
+    // Calendar view stays a calendar on phones — no stacked agenda/card list.
+    await expect(page.getByTestId('demo-content-cal-grid')).toBeVisible();
+    await expect(page.getByTestId('demo-content-agenda')).toBeHidden();
   }
   if (await page.getByTestId('demo-content-open-filters').isVisible()) {
     await openContentFilters(page);

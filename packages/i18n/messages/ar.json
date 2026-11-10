@@ -1570,6 +1570,8 @@
   "content.select_date_time": "اختر التاريخ والوقت",
   "content.scheduled_time_moved": "تم نقل موعد الجدولة",
   "content.planned_date_updated_not_scheduled": "تم تحديث التاريخ المخطط (غير مجدول)",
+  "content.pick_a_day_to_place_draft": "اختر يوماً في التقويم ثم أضف المسودة إلى {date}.",
+  "content.add_draft_to_selected_day": "إضافة إلى {date}",
   "content.created_request_task_deliverable": "تم إنشاء طلب → مهمة → تسليم",
   "content.ops_conversion_failed": "فشل التحويل",
   "content.select_a_brand": "اختر البراند",

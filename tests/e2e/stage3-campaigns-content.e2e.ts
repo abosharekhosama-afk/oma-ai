@@ -212,7 +212,7 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     ).toBeVisible();
   });
 
-  test('mobile 390 calendar agenda + content drawer', async ({ page, request }, testInfo) => {
+  test('mobile 390 calendar grid + content drawer', async ({ page, request }, testInfo) => {
     test.skip(testInfo.project.name !== 'en-mobile', 'mobile');
     const guards = attachGuards(page);
     await installOwnerSession(page, request);
@@ -220,9 +220,8 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.goto('/app/content');
     await expect(page.getByTestId('demo-content')).toBeVisible();
     await switchContentView(page, 'calendar');
-    await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
-    await expect(page.getByTestId('demo-content-date-strip')).toBeVisible();
-    await expect(page.locator('.oma-cal-grid')).toBeHidden();
+    await expect(page.getByTestId('demo-content-cal-grid')).toBeVisible();
+    await expect(page.getByTestId('demo-content-agenda')).toBeHidden();
     await page.getByTestId('demo-create-content').scrollIntoViewIfNeeded();
     await page.getByTestId('demo-create-content').click();
     await expect(page.getByTestId('demo-create-content-dialog')).toBeVisible();
