@@ -42,7 +42,7 @@ test.describe('Review collaboration + permission (T130/T131)', () => {
     await signOutUi(page);
     await page.goto('/login');
     await page.getByLabel('Email').fill(owner.email);
-    await page.getByLabel('Password').fill(owner.password);
+    await page.getByLabel('Password', { exact: true }).fill(owner.password);
     await page.getByRole('button', { name: /sign in|log in/i }).click();
     await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
     await page.goto(profileUrl);

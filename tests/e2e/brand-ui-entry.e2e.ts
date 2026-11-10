@@ -19,7 +19,7 @@ test.describe('Brand UI entry journey', () => {
     await page.goto('/register');
     await page.getByLabel('Name').fill('Entry User');
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByRole('button', { name: /create account|register/i }).click();
     await expect(page.getByRole('heading', { name: /set up your company/i })).toBeVisible({
       timeout: 20_000,
@@ -60,7 +60,7 @@ test.describe('Brand UI entry journey', () => {
     await signOutUi(page);
     if (!page.url().includes('/login')) await page.goto('/login');
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
 
     await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
