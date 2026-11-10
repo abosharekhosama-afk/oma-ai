@@ -68,7 +68,13 @@ export default function ScanDetailPage() {
   }, [brandId, loadScan]);
 
   useEffect(() => {
-    if (!scan || TERMINAL.has(scan.status)) return;
+    if (
+      !scan ||
+      (TERMINAL.has(scan.status) &&
+        scan.analysis_status !== 'QUEUED' &&
+        scan.analysis_status !== 'ANALYZING')
+    )
+      return;
     const id = window.setInterval(() => {
       loadScan().catch(() => undefined);
     }, POLL_MS);
@@ -101,6 +107,26 @@ export default function ScanDetailPage() {
     } catch (err) {
       setActionError(getApiError(err).message);
       await loadScan().catch(() => undefined);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleAnalyze() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const res = await apiMutate<{ data: ScanDetail }>(
+        `/api/v1/brands/${brandId}/scans/${scanId}/analyze`,
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+          idempotencyKey: newIdempotencyKey('brand:scan-analyze'),
+        },
+      );
+      setScan({ ...scan!, ...res.data });
+    } catch (err) {
+      setActionError(getApiError(err).message);
     } finally {
       setBusy(false);
     }
@@ -145,7 +171,11 @@ export default function ScanDetailPage() {
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name} scanStatus={scan.status}>
-      <AiUnavailableBanner aiAvailability={scan.ai_availability} />
+      <AiUnavailableBanner
+        aiAvailability={scan.ai_availability}
+        analysisStatus={scan.analysis_status}
+        analysisErrorCode={scan.analysis_error_code}
+      />
 
       <ConnectorModeBanner mode={scan.connector_mode} />
 
@@ -213,6 +243,11 @@ export default function ScanDetailPage() {
           <span className="oma-badge" data-testid="scan-status">
             {scan.status}
           </span>
+          {scan.analysis_status ? (
+            <span className="oma-badge" data-testid="scan-analysis-status">
+              {scan.analysis_status}
+            </span>
+          ) : null}
         </p>
         <div className="oma-scan-stats" aria-label={t('brand.scan.progressTitle')}>
           <div className="oma-scan-stat">
@@ -242,6 +277,14 @@ export default function ScanDetailPage() {
           {canRetry ? (
             <Button type="primary" disabled={busy} onClick={() => void handleRetry()}>
               {t('brand.scan.retry')}
+            </Button>
+          ) : null}
+          {scan.profile_version_id &&
+          ['SUCCEEDED', 'PARTIAL'].includes(scan.status) &&
+          scan.analysis_status !== 'QUEUED' &&
+          scan.analysis_status !== 'ANALYZING' ? (
+            <Button type="default" disabled={busy} onClick={() => void handleAnalyze()}>
+              {t('brand.ai.rerun')}
             </Button>
           ) : null}
           {scan.profile_version_id ? (

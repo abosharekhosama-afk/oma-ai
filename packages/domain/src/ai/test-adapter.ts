@@ -45,6 +45,47 @@ export function deterministicProposal(input: {
         confidence: 1,
         evidenceRefs: input.evidenceRefs,
       },
+      ...(input.useCase === 'brand_profile_synthesis'
+        ? [
+            {
+              field: 'brand.description',
+              value:
+                language === 'ar'
+                  ? 'وصف تجريبي للعلامة من الأدلة.'
+                  : 'Test brand description grounded in scan evidence.',
+              kind: 'proposal' as const,
+              confidence: 0.55,
+              evidenceRefs: input.evidenceRefs,
+            },
+            {
+              field: 'brand.tone',
+              value: language === 'ar' ? 'نبرة مهنية وواضحة.' : 'Professional and clear.',
+              kind: 'inference' as const,
+              confidence: 0.45,
+              evidenceRefs: input.evidenceRefs,
+            },
+            {
+              field: 'brand.audiences',
+              value:
+                language === 'ar'
+                  ? 'عملاء يبحثون عن حلول موثوقة.'
+                  : 'Customers looking for a reliable solution.',
+              kind: 'inference' as const,
+              confidence: 0.4,
+              evidenceRefs: input.evidenceRefs,
+            },
+            {
+              field: 'brand.messaging',
+              value:
+                language === 'ar'
+                  ? 'قيمة واضحة مدعومة بالدليل.'
+                  : 'Clear value supported by evidence.',
+              kind: 'inference' as const,
+              confidence: 0.4,
+              evidenceRefs: input.evidenceRefs,
+            },
+          ]
+        : []),
     ],
     banner: AI_PROPOSAL_BANNER,
   };

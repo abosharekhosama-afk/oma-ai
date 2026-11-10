@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { getPrisma, tenantWhere, writeOutbox } from '@oma/db';
+import { enqueueBrandAnalysis, getPrisma, tenantWhere, writeOutbox } from '@oma/db';
 import { DomainError, canRetryScan, isTerminalScanStatus, newId } from '@oma/domain';
+import { billingService } from '../billing/billing.service';
 import { AuditService } from '../audit/audit.service';
 import { BrandService } from './brand.service';
 
@@ -35,6 +36,8 @@ export class ScanService {
     pagesFailed: number;
     pagesSkipped: number;
     aiAvailability: string;
+    analysisStatus?: string;
+    analysisErrorCode?: string | null;
     connectorMode: string;
     coverageJson: string | null;
     jobRunId: string;
@@ -50,6 +53,8 @@ export class ScanService {
       pages_failed: scan.pagesFailed,
       pages_skipped: scan.pagesSkipped,
       ai_availability: scan.aiAvailability,
+      analysis_status: scan.analysisStatus ?? 'NOT_REQUESTED',
+      analysis_error_code: scan.analysisErrorCode ?? null,
       connector_mode: scan.connectorMode,
       coverage: scan.coverageJson ? JSON.parse(scan.coverageJson) : null,
       job_run_id: scan.jobRunId,
@@ -344,6 +349,87 @@ export class ScanService {
         status: scan.status,
         progress_percent: scan.progressPercent,
         ai_availability: scan.aiAvailability,
+      },
+    };
+  }
+
+  async requestAnalysis(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    scanId: string,
+    idempotencyKey: string,
+    correlationId?: string,
+  ) {
+    await billingService.assertFeature(tenantId, 'ai_assist');
+    await this.brands.assertBrandMutable(tenantId, brandId);
+    const scan = await getPrisma().scanAttempt.findFirst({
+      where: tenantWhere(tenantId, { id: scanId, brandId }),
+    });
+    if (!scan) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
+    if (!['SUCCEEDED', 'PARTIAL'].includes(scan.status)) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'AI analysis can only be run on a completed scan',
+        409,
+        'errors.conflict_state',
+      );
+    }
+    const profile = await getPrisma().profileVersion.findFirst({
+      where: tenantWhere(tenantId, { scanAttemptId: scanId }),
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!profile) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'No profile draft exists for this scan',
+        409,
+        'errors.conflict_state',
+      );
+    }
+    if (profile.status === 'APPROVED' || profile.status === 'SUPERSEDED') {
+      throw new DomainError(
+        'APPROVED_VERSION_IMMUTABLE',
+        'Approved versions cannot be modified by AI.',
+        409,
+        'errors.approved_immutable',
+      );
+    }
+    const result = await enqueueBrandAnalysis({
+      tenantId,
+      brandId,
+      scanAttemptId: scanId,
+      profileVersionId: profile.id,
+      actorUserId,
+      correlationId,
+      idempotencyKey,
+    });
+    if (!result.queued && result.reason === 'NOT_CONFIGURED') {
+      throw new DomainError(
+        'AI_NOT_CONFIGURED',
+        'AI is not configured. Continue manually.',
+        503,
+        'errors.ai_not_configured',
+        [{ manual_journey: true }],
+      );
+    }
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'brand.scan.analysis_requested',
+      targetType: 'ScanAttempt',
+      targetId: scanId,
+      correlationId,
+    });
+    const updated = await getPrisma().scanAttempt.findFirstOrThrow({
+      where: tenantWhere(tenantId, { id: scanId, brandId }),
+    });
+    return {
+      data: {
+        ...this.serializeScan(updated),
+        profile_version_id: profile.id,
+        job_run_id: result.jobRunId ?? updated.jobRunId,
+        queued: result.queued,
       },
     };
   }

@@ -91,6 +91,34 @@ export class ScanController {
     );
   }
 
+  @Post(':scanId/analyze')
+  @HttpCode(202)
+  @UseGuards(CsrfGuard)
+  async analyze(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('scanId') scanId: string,
+  ) {
+    this.requireTenant(req);
+    const idempotencyKey = req.headers['idempotency-key'] as string;
+    if (!idempotencyKey) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Idempotency-Key required',
+        400,
+        'errors.validation_failed',
+      );
+    }
+    return scanService.requestAnalysis(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      scanId,
+      idempotencyKey,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post(':scanId/retry')
   @HttpCode(202)
   @UseGuards(CsrfGuard)

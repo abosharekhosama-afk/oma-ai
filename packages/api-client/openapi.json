@@ -1031,6 +1031,20 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/scans/{scanId}/analyze": {
+      "post": {
+        "operationId": "ScanController_analyze",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/scans/{scanId}/retry": {
       "post": {
         "operationId": "ScanController_retry",

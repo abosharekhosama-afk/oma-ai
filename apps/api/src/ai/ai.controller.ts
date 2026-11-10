@@ -2,7 +2,14 @@ import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/comm
 import type { Request } from 'express';
 import { DomainError } from '@oma/domain';
 import { CsrfGuard } from '../common/guards/csrf.guard';
-import { aiStatus, acceptAiRun, cancelAiRun, createAiRun, readAiRun } from './ai.service';
+import {
+  aiStatus,
+  aiBudgetForTenant,
+  acceptAiRun,
+  cancelAiRun,
+  createAiRun,
+  readAiRun,
+} from './ai.service';
 
 @Controller('api/v1/ai')
 export class AiController {
@@ -30,16 +37,9 @@ export class AiController {
   }
 
   @Get('budget')
-  budget(@Req() req: Request) {
-    this.requireTenant(req);
-    return {
-      data: {
-        monthly_usd: Number(process.env.AI_MONTHLY_BUDGET_USD || 25),
-        daily_usd: Number(process.env.AI_DAILY_BUDGET_USD || 2),
-        warning_ratio: 0.8,
-        live_enabled: false,
-      },
-    };
+  async budget(@Req() req: Request) {
+    const actor = this.requireTenant(req);
+    return { data: await aiBudgetForTenant(actor.tenantId!) };
   }
 
   @Post('runs')

@@ -1,5 +1,10 @@
 import { getPrisma } from '@oma/db';
-import { discoveryTierForField, isRequiredForApproval, newId } from '@oma/domain';
+import {
+  discoveryTierForField,
+  isRequiredForApproval,
+  newId,
+  visualIdentityFromObservations,
+} from '@oma/domain';
 
 export async function createProfileDraftFromScan(input: {
   tenantId: string;
@@ -17,6 +22,10 @@ export async function createProfileDraftFromScan(input: {
     overview: {},
     catalog: {},
     languages: {},
+    tone: {},
+    audiences: {},
+    messaging: {},
+    visual_identity: visualIdentityFromObservations(observations),
     claims: {},
     risks: {},
     evidence_refs: observations.map((o) => o.evidenceId).filter(Boolean),

@@ -71,8 +71,15 @@ export const envSchema = z
       .transform((v) => v === 'true'),
     OPENAI_API_KEY: z.string().optional().default(''),
     OPENAI_PROJECT_ID: z.string().optional().default(''),
-    AI_DEFAULT_MODEL: z.string().min(1).default('gpt-5.6-luna'),
-    AI_REASONING_MODEL: z.string().min(1).default('gpt-5.6-terra'),
+    OPENAI_BASE_URL: z.preprocess(
+      (v) => (v === '' || v == null ? undefined : v),
+      z.string().url().optional(),
+    ),
+    AI_DEFAULT_MODEL: z.string().min(1).default('gpt-4.1-mini'),
+    AI_REASONING_MODEL: z.string().min(1).default('gpt-4.1'),
+    AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
+    AI_MAX_RETRIES: z.coerce.number().int().nonnegative().default(2),
+    AI_MODEL_PRICES_JSON: z.string().optional().default(''),
     AI_MONTHLY_BUDGET_USD: z.coerce.number().positive().default(25),
     AI_DAILY_BUDGET_USD: z.coerce.number().positive().default(2),
     AI_MAX_INPUT_TOKENS: z.preprocess(
@@ -87,11 +94,11 @@ export const envSchema = z
   })
   .superRefine((env, ctx) => {
     if (!env.AI_LIVE_ENABLED) return;
-    if (!env.OPENAI_API_KEY || !env.OPENAI_PROJECT_ID) {
+    if (!env.OPENAI_API_KEY) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'AI_LIVE_ENABLED requires provider, project, and model configuration',
-        path: ['AI_LIVE_ENABLED'],
+        message: 'AI_LIVE_ENABLED=true requires OPENAI_API_KEY',
+        path: ['OPENAI_API_KEY'],
       });
     }
     if (!env.AI_DEFAULT_MODEL || !env.AI_REASONING_MODEL) {

@@ -50,6 +50,8 @@ export type ScanDetail = {
   pages_failed: number;
   pages_skipped: number;
   ai_availability: string;
+  analysis_status?: string;
+  analysis_error_code?: string | null;
   connector_mode: 'FIXTURE' | 'NOT_CONFIGURED' | 'LIVE';
   coverage: {
     required_missing?: string[];
@@ -113,6 +115,8 @@ export type InsightItem = {
   text_value: string | null;
   value_json: unknown;
   row_version: number;
+  confidence?: number | null;
+  created_by?: string;
 };
 
 export type ProfileDetail = {
@@ -121,6 +125,7 @@ export type ProfileDetail = {
   row_version: number;
   scan_attempt_id: string | null;
   ai_availability: string;
+  analysis_status?: string;
   sections: Record<string, unknown>;
   insights: InsightItem[];
   coverage_snapshot: Record<string, unknown> | null;

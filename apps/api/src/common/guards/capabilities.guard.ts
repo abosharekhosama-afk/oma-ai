@@ -86,6 +86,7 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/brands/:brandId/scans/:scanId': ['brand.read'],
   'POST /api/v1/brands/:brandId/scans/:scanId/cancel': ['brand.scan.control'],
   'POST /api/v1/brands/:brandId/scans/:scanId/retry': ['brand.scan.control'],
+  'POST /api/v1/brands/:brandId/scans/:scanId/analyze': ['brand.scan.control'],
   'GET /api/v1/brands/:brandId/scans/:scanId/pages': ['brand.read'],
   'GET /api/v1/brands/:brandId/scans/:scanId/products': ['brand.read'],
   'GET /api/v1/brands/:brandId/scans/:scanId/evidence': ['brand.read'],
@@ -320,6 +321,10 @@ export function matchRequirements(method: string, path: string): string[] | null
     .replace(
       /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/retry/,
       '/api/v1/brands/:brandId/scans/:scanId/retry',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/analyze/,
+      '/api/v1/brands/:brandId/scans/:scanId/analyze',
     )
     .replace(
       /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/pages/,
