@@ -8,12 +8,13 @@ type Handler = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
 async function listen(
   handler: Handler,
+  host = '127.0.0.1',
 ): Promise<{ url: string; port: number; close: () => Promise<void> }> {
   const server = http.createServer(handler);
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await new Promise<void>((resolve) => server.listen(0, host, resolve));
   const address = server.address() as AddressInfo;
   return {
-    url: `http://127.0.0.1:${address.port}`,
+    url: `http://${host}:${address.port}`,
     port: address.port,
     close: () =>
       new Promise((resolve, reject) => {
@@ -192,6 +193,26 @@ describe('live-website-connector', () => {
         code: 'WEBSITE_ROBOTS_DISALLOWED',
       },
     );
+  });
+
+  it('supports hostname lookups when validating a public URL', async () => {
+    const server = await listen(
+      (req, res) => {
+        if (req.url === '/robots.txt') {
+          res.writeHead(404);
+          res.end();
+          return;
+        }
+        res.writeHead(200, { 'content-type': 'text/html' });
+        res.end('<html><title>Ok</title></html>');
+      },
+      'localhost',
+    );
+    servers.push(server.close);
+
+    await expect(testConnector().validateSource({ url: `${server.url}/` })).resolves.toEqual({
+      ok: true,
+    });
   });
 
   it('blocks metadata and private targets even with the loopback test override', async () => {
