@@ -30,6 +30,7 @@ export type MediaAsset = {
   status: 'READY' | 'MISSING';
   missing: boolean;
   source: string;
+  storage_provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE' | null;
   view_url: string;
   stream_url: string | null;
   created_at: string;
@@ -210,8 +211,13 @@ export const workDriveApi = {
 };
 
 export const mediaApi = {
-  list: (brandId: string, kind?: MediaKind) =>
-    api<{ data: MediaLibrary }>(`/api/v1/brands/${brandId}/media${kind ? `?kind=${kind}` : ''}`),
+  list: (brandId: string, kind?: MediaKind, source?: 'oma' | 'workdrive') => {
+    const qs = new URLSearchParams();
+    if (kind) qs.set('kind', kind);
+    if (source) qs.set('source', source);
+    const q = qs.toString();
+    return api<{ data: MediaLibrary }>(`/api/v1/brands/${brandId}/media${q ? `?${q}` : ''}`);
+  },
   browse: (
     brandId: string,
     kind: MediaKind,
@@ -269,6 +275,7 @@ export const mediaApi = {
     onProgress?: (fraction: number) => void,
     signal?: AbortSignal,
     folderId?: string | null,
+    source?: 'oma' | 'workdrive',
   ): Promise<MediaAsset> {
     const mime = file.type || 'application/octet-stream';
     const sha256 = await sha256Hex(file);
@@ -284,6 +291,7 @@ export const mediaApi = {
         size: file.size,
         sha256,
         ...(folderId ? { folder_id: folderId } : {}),
+        ...(source ? { source } : {}),
       }),
     );
     try {
@@ -299,7 +307,7 @@ export const mediaApi = {
     } catch (e) {
       const code = (e as { code?: string }).code;
       if (code === 'ABORTED' || file.size > PROXY_LIMIT) throw e;
-      return mediaApi.uploadViaApi(brandId, kind, file, onProgress, signal, folderId);
+      return mediaApi.uploadViaApi(brandId, kind, file, onProgress, signal, folderId, source);
     }
     const done = await api<{ data: MediaAsset }>(
       '/api/v1/media/upload-complete',
@@ -318,9 +326,11 @@ export const mediaApi = {
     onProgress?: (fraction: number) => void,
     signal?: AbortSignal,
     folderId?: string | null,
+    source?: 'oma' | 'workdrive',
   ): Promise<MediaAsset> {
     const qs = new URLSearchParams({ kind, name: file.name });
     if (folderId) qs.set('folder_id', folderId);
+    if (source) qs.set('source', source);
     const csrf = await ensureCsrfToken();
     const res = await xhrSend({
       url: `/api/v1/brands/${brandId}/media?${qs}`,

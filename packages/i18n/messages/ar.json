@@ -2960,5 +2960,9 @@
   "analytics.optimal.networks.tiktok": "تيك توك",
   "analytics.optimal.networks.x": "إكس",
   "analytics.optimal.networks.linkedin": "لينكدإن",
-  "analytics.optimal.networks.whatsapp": "واتساب"
+  "analytics.optimal.networks.whatsapp": "واتساب",
+  "errors.storage_oma_unavailable": "تخزين OMA غير متاح. فعّله من الإعدادات، أو اطلب من المسؤول ضبط تخزين المنصة.",
+  "errors.storage_workdrive_unavailable": "WorkDrive الخاص بك غير متصل. وصّله من الإعدادات حتى تتمكن من تصفح الملفات أو رفعها إليه.",
+  "media.viewingOma": "عرض تخزين OMA",
+  "media.viewingWorkDrive": "عرض WorkDrive الخاص بك"
 }

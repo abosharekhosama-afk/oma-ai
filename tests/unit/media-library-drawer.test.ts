@@ -83,4 +83,38 @@ describe('Planable media library side panel', () => {
     expect(en['media.sourceLabel']).toBeTruthy();
     expect(ar['media.sourceLabel']).toBeTruthy();
   });
+
+  it('uploads and lists only the selected source and persists it in the URL', () => {
+    const picker = read('apps/web/src/components/content/media-picker.tsx');
+    const api = read('apps/web/src/lib/workdrive-api.ts');
+    const en = JSON.parse(read('packages/i18n/messages/en.json')) as Record<string, string>;
+    const ar = JSON.parse(read('packages/i18n/messages/ar.json')) as Record<string, string>;
+    expect(picker).toContain('persistSource');
+    expect(picker).toContain('media_source');
+    expect(picker).toContain('assetSource(a) !== storageSource');
+    expect(picker).toContain('storageSource ?? undefined');
+    expect(picker).toContain("t('errors.storage_oma_unavailable')");
+    expect(picker).toContain("t('errors.storage_workdrive_unavailable')");
+    expect(picker).toContain('data-testid="media-source-badge"');
+    expect(api).toContain('...(source ? { source } : {})');
+    expect(api).toContain("qs.set('source', source)");
+    expect(en['errors.storage_oma_unavailable']).toMatch(/OMA storage/);
+    expect(en['errors.storage_workdrive_unavailable']).toMatch(/WorkDrive/);
+    expect(ar['errors.storage_oma_unavailable']).toMatch(/تخزين OMA/);
+    expect(ar['errors.storage_workdrive_unavailable']).toMatch(/WorkDrive/);
+    expect(en['media.viewingOma']).toBeTruthy();
+    expect(en['media.viewingWorkDrive']).toBeTruthy();
+    expect(ar['media.viewingOma']).toBeTruthy();
+    expect(ar['media.viewingWorkDrive']).toBeTruthy();
+  });
+
+  it('pins the media panel and lets the calendar scroll on its own', () => {
+    const css = read('apps/web/src/styles/inbox-listening.css');
+    expect(css).toContain(".oma-plx-ml-split[data-open='true']");
+    expect(css).toContain("main.oma-container:has(.oma-plx-ml-split[data-open='true'])");
+    expect(css).toContain('overflow: hidden !important');
+    expect(css).toContain(".oma-plx-ml-split[data-open='true'] .oma-plx-ml-split__main");
+    expect(css).toContain('position: sticky');
+    expect(css).toContain('clamp(260px, 28vw, 400px)');
+  });
 });

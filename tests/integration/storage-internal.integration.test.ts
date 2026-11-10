@@ -426,4 +426,86 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
     );
     expect(foreign.status).toBe(404);
   });
+
+  it('uploads only to the requested source and lists assets filtered by provider', async () => {
+    const omaUp = await upload(other, otherBrand, PNG, 'kind=posts&name=only-oma.png&source=oma');
+    expect(omaUp.status).toBe(201);
+    expect((await omaUp.json()).data.storage_provider).toBe('OMA_INTERNAL');
+
+    const wdUp = await upload(
+      other,
+      otherBrand,
+      PNG,
+      'kind=posts&name=only-wd.png&source=workdrive',
+    );
+    expect(wdUp.status).toBe(201);
+    expect((await wdUp.json()).data.storage_provider).toBe('USER_WORKDRIVE');
+
+    const omaList = await (
+      await fetch(`${other.baseUrl}/api/v1/brands/${otherBrand}/media?kind=posts&source=oma`, {
+        headers: authHeaders(other),
+      })
+    ).json();
+    const omaNames = omaList.data.assets.map((a: { name: string }) => a.name);
+    expect(omaNames).toContain('only-oma.png');
+    expect(omaNames).not.toContain('only-wd.png');
+    expect(
+      omaList.data.assets.every(
+        (a: { storage_provider: string }) => a.storage_provider === 'OMA_INTERNAL',
+      ),
+    ).toBe(true);
+
+    const wdList = await (
+      await fetch(
+        `${other.baseUrl}/api/v1/brands/${otherBrand}/media?kind=posts&source=workdrive`,
+        {
+          headers: authHeaders(other),
+        },
+      )
+    ).json();
+    const wdNames = wdList.data.assets.map((a: { name: string }) => a.name);
+    expect(wdNames).toContain('only-wd.png');
+    expect(wdNames).not.toContain('only-oma.png');
+    expect(
+      wdList.data.assets.every(
+        (a: { storage_provider: string }) => a.storage_provider === 'USER_WORKDRIVE',
+      ),
+    ).toBe(true);
+
+    const grant = await fetch(`${other.baseUrl}/api/v1/brands/${otherBrand}/media/upload-grant`, {
+      method: 'POST',
+      headers: authHeaders(other),
+      body: JSON.stringify({
+        kind: 'posts',
+        name: 'grant-wd.png',
+        mime: 'image/png',
+        size: PNG.length,
+        sha256: 'b'.repeat(64),
+        source: 'workdrive',
+      }),
+    });
+    expect([200, 201]).toContain(grant.status);
+
+    const noWd = await upload(seed, brandId, PNG, 'kind=posts&name=nope.png&source=workdrive');
+    expect(noWd.status).toBe(409);
+    const noWdBody = await noWd.json();
+    expect(noWdBody.error.code).toBe('STORAGE_WORKDRIVE_UNAVAILABLE');
+    expect(noWdBody.error.message_key).toBe('errors.storage_workdrive_unavailable');
+
+    const browseWd = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&source=workdrive`,
+      { headers: authHeaders(seed) },
+    );
+    expect(browseWd.status).toBe(409);
+    expect((await browseWd.json()).error.code).toBe('STORAGE_WORKDRIVE_UNAVAILABLE');
+
+    const prev = WorkDriveService.masterConfigImpl;
+    WorkDriveService.masterConfigImpl = () => undefined;
+    const noOma = await upload(seed, brandId, PNG, 'kind=posts&name=no-oma.png&source=oma');
+    expect(noOma.status).toBe(409);
+    const noOmaBody = await noOma.json();
+    expect(noOmaBody.error.code).toBe('STORAGE_OMA_UNAVAILABLE');
+    expect(noOmaBody.error.message_key).toBe('errors.storage_oma_unavailable');
+    WorkDriveService.masterConfigImpl = prev;
+  });
 });

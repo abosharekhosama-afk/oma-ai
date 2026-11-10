@@ -7378,6 +7378,39 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   min-width: 0;
   min-height: 0;
 }
+.oma-shell-column > main.oma-container:has(.oma-plx-ml-split[data-open='true']),
+.oma-container:has(.oma-plx-ml-split[data-open='true']) {
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+.oma-content-plan:has(.oma-plx-ml-split[data-open='true']) {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.oma-plx-ml-split[data-open='true'] {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.oma-plx-ml-split[data-open='true'] .oma-plx-ml-split__main {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.oma-plx-ml-split[data-open='true'] .oma-cal-with-saved,
+.oma-plx-ml-split[data-open='true'] .oma-cal-main {
+  min-width: 0;
+}
+.oma-plx-ml-split[data-open='true'] .oma-cal-toolbar {
+  flex-wrap: wrap;
+  min-width: 0;
+}
 .oma-plx-listening.oma-plx-content:has(.oma-plx-ml-split[data-open='true']) {
   max-width: none;
 }
@@ -7413,8 +7446,15 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   box-shadow: -12px 0 32px rgb(15 23 42 / 10%);
 }
 .oma-ml--panel {
-  flex: 0 0 400px;
-  max-height: calc(100vh - 96px);
+  flex: 0 0 clamp(260px, 28vw, 400px);
+  width: clamp(260px, 28vw, 400px);
+  max-width: 100%;
+  height: auto;
+  max-height: none;
+  align-self: stretch;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
 }
 .oma-ml-head {
   display: flex;
@@ -7691,10 +7731,23 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   height: 100%;
   background: #2563eb;
 }
+.oma-ml-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.oma-ml-source-status {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: #1d4ed8;
+}
 .oma-ml-source {
   display: inline-flex;
   align-items: stretch;
-  margin: 0 0 10px;
+  margin: 0;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   overflow: hidden;
@@ -8018,9 +8071,19 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   font-size: 13px;
 }
 
+@media (max-width: 1100px) {
+  .oma-ml-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 @media (max-width: 900px) {
   .oma-plx-ml-split[data-open='true'] {
     display: block;
+    overflow: auto;
+  }
+  .oma-content-plan:has(.oma-plx-ml-split[data-open='true']),
+  .oma-container:has(.oma-plx-ml-split[data-open='true']) {
+    overflow: hidden !important;
   }
   .oma-ml--panel {
     position: fixed;
@@ -8029,6 +8092,7 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     z-index: 70;
     flex: none;
     width: min(400px, 100%);
+    max-width: 100vw;
     max-height: none;
     height: 100%;
     box-shadow: -12px 0 32px rgb(15 23 42 / 10%);
