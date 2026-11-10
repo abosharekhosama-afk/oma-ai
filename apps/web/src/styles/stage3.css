@@ -1332,25 +1332,15 @@
     display: grid;
   }
 
-  .oma-cal-grid {
-    display: none;
-  }
-
   .oma-cal-main {
     padding: 8px;
   }
 
+  /* Calendar view stays a calendar on phones. The later Planable !important
+     grid rules already keep .oma-cal-grid visible; do not surface the agenda
+     card list or hide the Saved/Drafts panel (it opens as a drawer/sheet). */
   .oma-cal-agenda,
   .oma-cal-date-strip {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .oma-cal-date-strip {
-    flex-direction: row;
-  }
-
-  [data-testid='demo-content-saved'] {
     display: none;
   }
 

@@ -135,13 +135,14 @@ test('Stage 3 visual evidence pack', async ({ page, request }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/content');
   await switchContentView(page, 'calendar');
-  await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
+  await expect(page.getByTestId('demo-content-cal-grid')).toBeVisible();
+  await expect(page.getByTestId('demo-content-agenda')).toBeHidden();
   await shot(page, '08-content-mobile-390', {
     route: '/app/content',
     viewport: '390x844',
     locale: 'ar',
     direction: 'rtl',
-    referencePattern: 'Mobile agenda (not cramped month grid)',
+    referencePattern: 'Mobile calendar grid (no stacked card list)',
     acceptanceIds: ['V-CONT-02'],
   });
 

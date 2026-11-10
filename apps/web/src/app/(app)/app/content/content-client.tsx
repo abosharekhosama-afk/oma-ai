@@ -4483,7 +4483,12 @@ export default function ContentPage() {
                 </div>
 
                 {/* Mobile agenda (hidden on desktop) */}
-                <div className="oma-cal-agenda" data-testid="demo-content-agenda">
+                <div
+                  className="oma-cal-agenda"
+                  data-testid="demo-content-agenda"
+                  hidden
+                  aria-hidden="true"
+                >
                   {agendaDays.map((day) => (
                     <div key={day.key} className="oma-cal-agenda-day">
                       <strong className="oma-cal-agenda-day__label">
@@ -4559,6 +4564,14 @@ export default function ContentPage() {
                         </button>
                       </div>
                     </header>
+                    {savedItems.length > 0 ? (
+                      <p className="oma-cal-saved-place-hint oma-muted">
+                        {t('content.pick_a_day_to_place_draft').replace(
+                          '{date}',
+                          selectedDay ?? todayKeyVal,
+                        )}
+                      </p>
+                    ) : null}
                     {savedItems.length === 0 ? (
                       <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
                         <div className="oma-cal-saved-empty__art" aria-hidden />
@@ -4606,6 +4619,24 @@ export default function ContentPage() {
                               onOpen={placeCardMenu}
                               onClose={closeCardMenu}
                             />
+                            <button
+                              type="button"
+                              className="oma-cal-saved-place"
+                              data-testid={`demo-saved-place-${item.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void rescheduleContentToDay(
+                                  item.id,
+                                  selectedDay ?? todayKeyVal,
+                                  null,
+                                );
+                              }}
+                            >
+                              {t('content.add_draft_to_selected_day').replace(
+                                '{date}',
+                                selectedDay ?? todayKeyVal,
+                              )}
+                            </button>
                           </div>
                         ))}
                       </div>

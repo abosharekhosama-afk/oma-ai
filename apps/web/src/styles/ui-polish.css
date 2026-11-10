@@ -424,3 +424,125 @@ html body .oma-plx-content-header-btn--primary svg.oma-lucide {
     padding: 0 4px !important;
   }
 }
+
+/* ── 9. Content calendar on phones ────────────────────────────────────────
+   Older stage3 rules hid the month grid and revealed a card/agenda list under
+   it. Later Planable chrome forced the grid back with !important, so phones
+   saw BOTH. Calendar view is calendar-only at every width. Saved/Drafts opens
+   as a full-width bottom sheet because HTML5 drag is poor on touch. */
+html body .oma-cal-agenda,
+html body [data-testid='demo-content-agenda'] {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid,
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
+  html body .oma-cal-grid {
+    display: grid !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+  html body .oma-cal-grid[data-span='month'] {
+    grid-auto-rows: minmax(68px, 1fr) !important;
+  }
+  html body .oma-cal-grid[data-span='month'][data-post-size='compact'] {
+    grid-auto-rows: minmax(60px, 1fr) !important;
+  }
+  html body .oma-cal-cell {
+    min-height: 64px !important;
+    overflow: hidden !important;
+    padding: 3px 2px 4px !important;
+  }
+  html body .oma-cal-dow,
+  html body .oma-cal-grid .oma-cal-dow,
+  html body [data-testid='demo-content-weekdays'] .oma-cal-dow {
+    font-size: 10px !important;
+    padding: 4px 1px !important;
+    line-height: 1.2 !important;
+  }
+  html body .oma-cal-cell .oma-post-card--calendar,
+  html body .oma-cal-cell .oma-post-card.oma-post-card--calendar {
+    padding: 3px 4px !important;
+    min-height: 0 !important;
+    gap: 2px !important;
+  }
+  html body .oma-cal-more {
+    font-size: 10px !important;
+    min-height: 22px !important;
+    padding: 0 4px !important;
+  }
+
+  html body .oma-cal-saved,
+  html body [data-testid='demo-content-saved'] {
+    display: flex !important;
+    flex-direction: column !important;
+    position: fixed !important;
+    inset-inline: 0 !important;
+    inset-block-start: auto !important;
+    inset-block-end: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: min(78dvh, 640px) !important;
+    max-height: 78dvh !important;
+    overflow: hidden !important;
+    z-index: 1220 !important;
+    border-inline-start: 0 !important;
+    border-block-start: 1px solid var(--oma-home-border, #e8e9eb) !important;
+    border-radius: 16px 16px 0 0 !important;
+    box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.22) !important;
+    padding: 0 0 env(safe-area-inset-bottom, 0) !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+  html body .oma-cal-saved-head {
+    flex-shrink: 0 !important;
+    padding: 14px 16px 10px !important;
+  }
+  html body .oma-cal-saved-list,
+  html body .oma-cal-saved-empty {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-cal-saved-place,
+  html body .oma-cal-saved-place-hint {
+    display: flex !important;
+  }
+}
+
+.oma-cal-saved-place-hint {
+  display: none;
+  margin: 0;
+  padding: 0 16px 10px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.oma-cal-saved-place {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 36px;
+  margin-top: 8px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--oma-home-border, #e8e9eb);
+  background: var(--oma-surface, #fff);
+  color: var(--oma-home-ink-2, #3a3d42);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  html body .oma-cal-saved-place,
+  html body .oma-cal-saved-place-hint {
+    display: flex !important;
+  }
+}

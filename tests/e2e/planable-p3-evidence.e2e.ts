@@ -221,11 +221,12 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/app/content');
     await switchContentView(page, 'calendar');
-    await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
+    await expect(page.getByTestId('demo-content-cal-grid')).toBeVisible();
+    await expect(page.getByTestId('demo-content-agenda')).toBeHidden();
     await shot('07-mobile-agenda', '/app/content', '390x844', {
       evidenceLevel: 'OMA_ADAPTATION',
       match: 'OMA_ADAPTATION',
-      viewType: 'mobile-agenda',
+      viewType: 'mobile-calendar',
     });
     await page.getByTestId('demo-create-content').click();
     await shot('19-mobile-composer', '/app/content', '390x844', {

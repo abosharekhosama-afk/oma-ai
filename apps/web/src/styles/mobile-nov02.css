@@ -68,6 +68,8 @@
 
   html body .oma-cal-saved,
   html body [data-testid='demo-content-saved'] {
+    display: flex !important;
+    flex-direction: column !important;
     position: fixed !important;
     inset-block: 0 !important;
     inset-inline-end: 0 !important;
@@ -77,11 +79,19 @@
     max-width: 88vw !important;
     height: 100dvh !important;
     max-height: 100dvh !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
     background: var(--oma-surface) !important;
     border-inline-start: 1px solid var(--oma-home-border) !important;
     box-shadow: 0 16px 48px rgba(15, 23, 42, 0.22) !important;
     padding: 14px 12px 24px !important;
+  }
+
+  html body .oma-cal-saved-list,
+  html body .oma-cal-saved-empty {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
 

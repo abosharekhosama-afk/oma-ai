@@ -26,5 +26,28 @@ describe('Mobile responsiveness: Top Header, Calendar Toolbar, and Off-Canvas Sa
     expect(mobileCss).toContain('overflow: visible !important');
     expect(mobileCss).toContain('.oma-pv-ds__pop');
     expect(mobileCss).toContain('.oma-ext-cal-pop');
+    expect(mobileCss).toContain('display: flex !important');
+  });
+
+  it('keeps calendar view as a grid on phones and never hides the Saved panel', () => {
+    const stage3 = readFileSync(resolve('apps/web/src/styles/stage3.css'), 'utf8');
+    expect(stage3).not.toMatch(
+      /@media \(max-width: 720px\)[\s\S]{0,800}?\.oma-cal-grid \{\s*display: none;/,
+    );
+    expect(stage3).not.toMatch(
+      /@media \(max-width: 720px\)[\s\S]{0,900}?\[data-testid='demo-content-saved'\] \{\s*display: none;/,
+    );
+
+    const polish = readFileSync(resolve('apps/web/src/styles/ui-polish.css'), 'utf8');
+    expect(polish).toContain("[data-testid='demo-content-agenda']");
+    expect(polish).toContain('display: none !important');
+    expect(polish).toContain('height: min(78dvh, 640px) !important');
+
+    const client = readFileSync(
+      resolve('apps/web/src/app/(app)/app/content/content-client.tsx'),
+      'utf8',
+    );
+    expect(client).toContain('demo-saved-place-${item.id}');
+    expect(client).toContain('content.add_draft_to_selected_day');
   });
 });

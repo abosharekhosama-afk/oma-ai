@@ -1541,6 +1541,8 @@
   "content.select_date_time": "Select a date and time",
   "content.scheduled_time_moved": "Scheduled time moved",
   "content.planned_date_updated_not_scheduled": "Planned date updated (not scheduled)",
+  "content.pick_a_day_to_place_draft": "Select a day on the calendar, then add a draft to {date}.",
+  "content.add_draft_to_selected_day": "Add to {date}",
   "content.created_request_task_deliverable": "Created Request → Task → Deliverable",
   "content.ops_conversion_failed": "Ops conversion failed",
   "content.select_a_brand": "Select a brand",
