@@ -50,6 +50,11 @@ model User {
 | GET    | `/admin/tenants`             | Paginated tenant list                          |
 | POST   | `/admin/tenants`             | Provision tenant                               |
 | PATCH  | `/admin/tenants/:id`         | Suspend, plan limits, storage quota            |
+| GET    | `/admin/operators`           | Platform operators (support + super admin)     |
+| POST   | `/admin/operators`           | Create/promote support specialist              |
+| PATCH  | `/admin/operators/:userId`   | Revoke or change operator role                 |
+| GET    | `/admin/plans`               | Plan catalog (prices + limits from DB)         |
+| PATCH  | `/admin/plans/:code`         | Edit list prices and usage limits              |
 | GET    | `/admin/system/secrets`      | Secret **status** map                          |
 | PUT    | `/admin/system/secrets/:key` | Rotate metadata / trigger reload (no echo)     |
 
@@ -71,7 +76,7 @@ model User {
 ## Frontend (Phase 3 — MVP shipped)
 
 - `/app/admin` hub layout (bypasses client AppShell), gated by `system_role` + legacy `platform.support.access`
-- Screens: overview, tenants, support, billing (existing)
+- Screens: overview, tenants, plans & limits, support team, support, billing (existing)
 - `auth/me` exposes `user.system_role`
 - Follow-up: Planable polish, operator E2E, structured support diagnostics UI
 

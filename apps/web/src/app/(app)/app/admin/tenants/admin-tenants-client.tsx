@@ -4,7 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useLocale } from '../../../../../lib/use-locale';
 import { usePlatformOperator } from '../../../../../lib/use-platform-operator';
-import { adminListTenants, adminPatchTenant } from '../../../../../lib/platform-admin-api';
+import {
+  adminListTenants,
+  adminPatchTenant,
+  adminTenantDetail,
+} from '../../../../../lib/platform-admin-api';
 import { useToast } from '../../../../../components/ui/toast';
 
 type TenantRow = {
@@ -26,6 +30,9 @@ export default function AdminTenantsClient() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editPlan, setEditPlan] = useState('pro');
+  const [editStorageGb, setEditStorageGb] = useState('');
 
   const load = useCallback(async () => {
     if (!superAdmin) return;
@@ -48,6 +55,42 @@ export default function AdminTenantsClient() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function openEdit(tenantId: string) {
+    setSelectedId(tenantId);
+    try {
+      const res = await adminTenantDetail(tenantId);
+      const d = res.data;
+      setEditPlan(String(d.plan_code ?? 'pro'));
+      const override = d.storage_limit_bytes_override;
+      const planLim = d.plan_storage_limit_bytes;
+      const bytes = override ?? planLim;
+      setEditStorageGb(bytes != null ? String(Number(bytes) / (1024 * 1024 * 1024)) : '');
+    } catch (err) {
+      toast.push(err instanceof Error ? err.message : 'Load failed', 'danger');
+    }
+  }
+
+  async function saveTenantPlan() {
+    if (!selectedId) return;
+    try {
+      const storage_limit_bytes =
+        editStorageGb.trim() === ''
+          ? null
+          : Math.round(Number(editStorageGb) * 1024 * 1024 * 1024);
+      await adminPatchTenant(selectedId, {
+        plan_code: editPlan,
+        storage_limit_bytes,
+      });
+      toast.push(isAr ? 'تم تحديث الخطة والحدود' : 'Plan and limits updated', 'success');
+      setSelectedId(null);
+      setCursor(null);
+      setRows([]);
+      void load();
+    } catch (err) {
+      toast.push(err instanceof Error ? err.message : 'Update failed', 'danger');
+    }
+  }
 
   async function suspend(tenantId: string) {
     try {
@@ -101,7 +144,10 @@ export default function AdminTenantsClient() {
                 {t.plan_code ?? '—'} / {t.subscription_status ?? '—'}
               </td>
               <td>{t.storage_mode}</td>
-              <td>
+              <td className="admin-hub__actions">
+                <Button htmlType="button" onClick={() => void openEdit(t.id)}>
+                  {isAr ? 'خطة وحدود' : 'Plan & limits'}
+                </Button>
                 {t.status === 'ACTIVE' ? (
                   <Button htmlType="button" onClick={() => void suspend(t.id)}>
                     {isAr ? 'إيقاف' : 'Suspend'}
@@ -116,6 +162,40 @@ export default function AdminTenantsClient() {
         <Button htmlType="button" disabled={busy} onClick={() => setCursor(nextCursor)}>
           {isAr ? 'المزيد' : 'Load more'}
         </Button>
+      ) : null}
+
+      {selectedId ? (
+        <section className="admin-hub__card admin-hub__form" role="dialog" aria-labelledby="tenant-edit-title">
+          <h2 id="tenant-edit-title">{isAr ? 'تعديل الخطة والتخزين' : 'Edit plan & storage override'}</h2>
+          <label className="admin-hub__field">
+            <span>{isAr ? 'رمز الخطة' : 'Plan code'}</span>
+            <select value={editPlan} onChange={(e) => setEditPlan(e.target.value)}>
+              <option value="starter">starter</option>
+              <option value="pro">pro</option>
+              <option value="agency">agency</option>
+            </select>
+          </label>
+          <label className="admin-hub__field">
+            <span>
+              {isAr
+                ? 'حد التخزين الإداري (GB، فارغ = الافتراضي للخطة)'
+                : 'Admin storage cap (GB, empty = plan default)'}
+            </span>
+            <input
+              inputMode="decimal"
+              value={editStorageGb}
+              onChange={(e) => setEditStorageGb(e.target.value)}
+            />
+          </label>
+          <div className="admin-hub__row">
+            <Button htmlType="button" type="primary" onClick={() => void saveTenantPlan()}>
+              {isAr ? 'حفظ' : 'Save'}
+            </Button>
+            <Button htmlType="button" onClick={() => setSelectedId(null)}>
+              {isAr ? 'إلغاء' : 'Cancel'}
+            </Button>
+          </div>
+        </section>
       ) : null}
     </div>
   );

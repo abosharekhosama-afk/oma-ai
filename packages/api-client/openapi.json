@@ -5011,6 +5011,74 @@
         ]
       }
     },
+    "/api/v1/admin/operators": {
+      "get": {
+        "operationId": "PlatformAdminController_listOperators",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      },
+      "post": {
+        "operationId": "PlatformAdminController_createOperator",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/operators/{userId}": {
+      "patch": {
+        "operationId": "PlatformAdminController_patchOperator",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/plans": {
+      "get": {
+        "operationId": "PlatformAdminController_listPlans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/plans/{planCode}": {
+      "patch": {
+        "operationId": "PlatformAdminController_patchPlan",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
     "/api/v1/support/health": {
       "get": {
         "operationId": "SupportController_health",

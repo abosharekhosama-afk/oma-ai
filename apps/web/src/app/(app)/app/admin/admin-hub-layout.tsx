@@ -9,6 +9,8 @@ import './admin-hub.css';
 const links = [
   { href: '/app/admin', labelEn: 'Overview', labelAr: 'نظرة عامة', superOnly: true },
   { href: '/app/admin/tenants', labelEn: 'Tenants', labelAr: 'المستأجرون', superOnly: true },
+  { href: '/app/admin/plans', labelEn: 'Plans & limits', labelAr: 'الخطط والحدود', superOnly: true },
+  { href: '/app/admin/team', labelEn: 'Support team', labelAr: 'فريق الدعم', superOnly: true },
   { href: '/app/admin/support', labelEn: 'Support', labelAr: 'الدعم الفني', superOnly: false },
   { href: '/app/admin/billing', labelEn: 'Billing', labelAr: 'الفوترة', superOnly: false },
 ] as const;

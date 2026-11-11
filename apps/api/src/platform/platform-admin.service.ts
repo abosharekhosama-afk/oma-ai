@@ -13,6 +13,12 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { billingService } from '../billing/billing.service';
 import { estimateMrrUsdCents } from './platform-admin-metrics';
+import {
+  createOrPromoteOperator,
+  listPlatformOperators,
+  patchPlatformOperator,
+} from './platform-admin-operators';
+import { listAdminPlans, patchAdminPlan } from './platform-admin-plans';
 
 function secretConfigured(...values: Array<string | undefined>): boolean {
   return values.some((v) => Boolean(v?.trim()));
@@ -321,5 +327,39 @@ export class PlatformAdminService {
         source: 'environment',
       })),
     };
+  }
+
+  listOperators(q?: string) {
+    return listPlatformOperators(q);
+  }
+
+  createOperator(
+    actorUserId: string,
+    body: Parameters<typeof createOrPromoteOperator>[2],
+    correlationId?: string,
+  ) {
+    return createOrPromoteOperator(this.audit, actorUserId, body, correlationId);
+  }
+
+  patchOperator(
+    actorUserId: string,
+    userId: string,
+    body: { system_role?: unknown },
+    correlationId?: string,
+  ) {
+    return patchPlatformOperator(this.audit, actorUserId, userId, body, correlationId);
+  }
+
+  listPlans() {
+    return listAdminPlans();
+  }
+
+  patchPlan(
+    actorUserId: string,
+    planCode: string,
+    body: Parameters<typeof patchAdminPlan>[3],
+    correlationId?: string,
+  ) {
+    return patchAdminPlan(this.audit, actorUserId, planCode, body, correlationId);
   }
 }

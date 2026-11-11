@@ -70,4 +70,61 @@ export class PlatformAdminController {
   secretsStatus() {
     return platformAdminService.systemSecretsStatus();
   }
+
+  @Get('operators')
+  async listOperators(@Query('q') q?: string) {
+    return platformAdminService.listOperators(q);
+  }
+
+  @Post('operators')
+  @UseGuards(CsrfGuard)
+  async createOperator(
+    @Req() req: Request,
+    @Body()
+    body: {
+      email: string;
+      name?: string;
+      password?: string;
+      system_role?: string;
+    },
+  ) {
+    const actor = await requireSuperAdminOperator(req);
+    return platformAdminService.createOperator(actor, body ?? {}, req.oma?.correlationId);
+  }
+
+  @Patch('operators/:userId')
+  @UseGuards(CsrfGuard)
+  async patchOperator(
+    @Req() req: Request,
+    @Param('userId') userId: string,
+    @Body() body: { system_role?: string },
+  ) {
+    const actor = await requireSuperAdminOperator(req);
+    return platformAdminService.patchOperator(actor, userId, body ?? {}, req.oma?.correlationId);
+  }
+
+  @Get('plans')
+  async listPlans() {
+    return platformAdminService.listPlans();
+  }
+
+  @Patch('plans/:planCode')
+  @UseGuards(CsrfGuard)
+  async patchPlan(
+    @Req() req: Request,
+    @Param('planCode') planCode: string,
+    @Body()
+    body: {
+      price_monthly_usd_cents?: number;
+      price_yearly_per_month_usd_cents?: number;
+      name_en?: string;
+      name_ar?: string;
+      popular?: boolean;
+      active?: boolean;
+      limits?: Record<string, number | string | null>;
+    },
+  ) {
+    const actor = await requireSuperAdminOperator(req);
+    return platformAdminService.patchPlan(actor, planCode, body ?? {}, req.oma?.correlationId);
+  }
 }
