@@ -4931,6 +4931,86 @@
         ]
       }
     },
+    "/api/v1/admin/metrics/overview": {
+      "get": {
+        "operationId": "PlatformAdminController_metricsOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/tenants": {
+      "get": {
+        "operationId": "PlatformAdminController_listTenants",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      },
+      "post": {
+        "operationId": "PlatformAdminController_createTenant",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/tenants/{tenantId}": {
+      "get": {
+        "operationId": "PlatformAdminController_getTenant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      },
+      "patch": {
+        "operationId": "PlatformAdminController_patchTenant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/system/secrets": {
+      "get": {
+        "operationId": "PlatformAdminController_secretsStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
     "/api/v1/support/health": {
       "get": {
         "operationId": "SupportController_health",
