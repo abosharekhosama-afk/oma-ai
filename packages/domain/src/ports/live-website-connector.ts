@@ -303,13 +303,15 @@ export function createLiveWebsiteConnector(
       connect: {
         timeout: options.connectTimeoutMs,
         servername: net.isIP(url.hostname) ? undefined : url.hostname,
-        lookup: (_hostname, _lookupOptions, callback) => {
-          // undici requests all addresses from Node's lookup hook. Returning the
-          // legacy scalar form makes Node try to connect to an undefined address
-          // (`ERR_INVALID_IP_ADDRESS`) and is surfaced by fetch as only "fetch
-          // failed". Keep the resolved address pinned for SSRF protection while
-          // returning the shape requested by the lookup options.
-          callback(null, [{ address: pin.address, family: pin.family }]);
+        lookup: (_hostname, lookupOptions, callback) => {
+          const result = { address: pin.address, family: pin.family };
+          // Node 22 may request all addresses when auto-select-family is enabled.
+          // Returning a scalar for that form causes ERR_INVALID_IP_ADDRESS in Undici.
+          if (lookupOptions?.all) {
+            callback(null, [result]);
+          } else {
+            callback(null, result.address, result.family);
+          }
         },
       },
     });
