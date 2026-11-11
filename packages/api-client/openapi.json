@@ -4916,6 +4916,34 @@
           "Webhooks"
         ]
       }
+    },
+    "/api/v1/admin/health": {
+      "get": {
+        "operationId": "PlatformAdminController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/support/health": {
+      "get": {
+        "operationId": "SupportController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
     }
   },
   "info": {
