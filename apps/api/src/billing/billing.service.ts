@@ -1,4 +1,18 @@
 import { createHash } from 'node:crypto';
+
+function manualBankTransferCopy(
+  settings: Awaited<ReturnType<typeof loadBillingSettings>>,
+  fallback: { en: string; ar: string },
+) {
+  const en = settings.bankInstructionsEn ?? fallback.en;
+  const ar = settings.bankInstructionsAr ?? fallback.ar;
+  const acc = settings.bankTransferAccountNumber?.trim();
+  if (!acc) return { en, ar };
+  return {
+    en: `${en}\n\nBank account / IBAN: ${acc}`,
+    ar: `${ar}\n\nرقم الحساب البنكي: ${acc}`,
+  };
+}
 import { getPrisma } from '@oma/db';
 import {
   hydratePlan,
@@ -160,8 +174,9 @@ export class BillingService {
     const plan = await hydratePlan(planCode);
     const canonical = canonicalLimitKey(key);
     let limit = plan.limits[canonical] ?? plan.limits[key as PlanLimitKey];
+    const { resolveTenantLimitOverride, resolveAdminStorageLimitBytes } = await import('@oma/db');
+    limit = await resolveTenantLimitOverride(tenantId, canonical, limit ?? null);
     if (canonical === 'storage_bytes') {
-      const { resolveAdminStorageLimitBytes } = await import('@oma/db');
       limit = await resolveAdminStorageLimitBytes(tenantId, limit ?? null);
     }
     if (limit == null) return { planCode, limit, used: opts?.usedOverride ?? 0 };
@@ -726,12 +741,10 @@ export class BillingService {
                 en: 'Send the transfer through Reflect using the reference below, then upload proof.',
                 ar: 'أرسل التحويل عبر ريفلكت مع رقم المرجع أدناه ثم ارفع إثبات الدفع.',
               }
-            : {
-                en:
-                  settings.bankInstructionsEn ??
-                  'Transfer the billed amount and include the reference number.',
-                ar: settings.bankInstructionsAr ?? 'حوّل المبلغ المذكور وأضف رقم المرجع.',
-              };
+            : manualBankTransferCopy(settings, {
+                en: 'Transfer the billed amount and include the reference number.',
+                ar: 'حوّل المبلغ المذكور وأضف رقم المرجع.',
+              });
     const order = await prisma.manualPaymentOrder.create({
       data: {
         id: newId(),
@@ -1542,6 +1555,7 @@ export class BillingService {
       x_api_addon_monthly_usd_cents?: number;
       bank_instructions_en?: string;
       bank_instructions_ar?: string;
+      bank_transfer_account_number?: string | null;
     },
   ) {
     const current = await loadBillingSettings();
@@ -1566,6 +1580,10 @@ export class BillingService {
           input.x_api_addon_monthly_usd_cents ?? current.xApiAddonMonthlyUsdCents,
         bankInstructionsEn: input.bank_instructions_en ?? current.bankInstructionsEn,
         bankInstructionsAr: input.bank_instructions_ar ?? current.bankInstructionsAr,
+        bankTransferAccountNumber:
+          input.bank_transfer_account_number !== undefined
+            ? input.bank_transfer_account_number
+            : (current.bankTransferAccountNumber ?? null),
       },
       update: {
         vatRateBps,
@@ -1575,6 +1593,9 @@ export class BillingService {
           input.x_api_addon_monthly_usd_cents ?? current.xApiAddonMonthlyUsdCents,
         bankInstructionsEn: input.bank_instructions_en ?? current.bankInstructionsEn,
         bankInstructionsAr: input.bank_instructions_ar ?? current.bankInstructionsAr,
+        ...(input.bank_transfer_account_number !== undefined
+          ? { bankTransferAccountNumber: input.bank_transfer_account_number }
+          : {}),
       },
     });
     await audit.write({

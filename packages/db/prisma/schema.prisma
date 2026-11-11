@@ -251,6 +251,20 @@ model Tenant {
   storageMigrations       StorageMigration[]
   supportImpersonations SupportImpersonationSession[]
   supportCases          SupportCase[]
+  usageOverrides        WorkspaceUsageOverride[]
+}
+
+/// Per-tenant override for a plan limit key (null JSON = unlimited).
+model WorkspaceUsageOverride {
+  id        String   @id
+  tenantId  String
+  key       String
+  valueJson String
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@index([key])
 }
 
 enum AiRunStatus {
@@ -2260,9 +2274,11 @@ model BillingSettings {
   trialDays                Int      @default(14)
   currency                 String   @default("usd")
   xApiAddonMonthlyUsdCents Int      @default(2900)
-  bankInstructionsEn       String?
-  bankInstructionsAr       String?
-  updatedAt                DateTime @updatedAt
+  bankInstructionsEn           String?
+  bankInstructionsAr           String?
+  /// Shown on manual bank-transfer checkout and admin activation screens.
+  bankTransferAccountNumber    String?
+  updatedAt                    DateTime @updatedAt
 }
 
 model BillingInvoice {

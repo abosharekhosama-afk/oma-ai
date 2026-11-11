@@ -45,6 +45,7 @@ export class BillingAdminController {
       x_api_addon_monthly_usd_cents?: number;
       bank_instructions_en?: string;
       bank_instructions_ar?: string;
+      bank_transfer_account_number?: string | null;
     },
   ) {
     const actor = await requireSuperAdminOperator(req);

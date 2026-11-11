@@ -664,6 +664,9 @@ export function LandingPage() {
               <Link href="/login">{c.nav.login}</Link>
               <Link href="/register">{c.footer.signup}</Link>
               <Link href="/forgot-password">{c.footer.reset}</Link>
+              <Link href="/login?next=/app/help">
+                {locale === 'ar' ? 'الدعم الفني' : 'Contact support'}
+              </Link>
             </div>
             <div>
               <h4>{c.footer.language}</h4>

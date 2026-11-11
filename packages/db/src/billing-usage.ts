@@ -79,6 +79,7 @@ export async function loadBillingSettings() {
     xApiAddonMonthlyUsdCents: row?.xApiAddonMonthlyUsdCents ?? 2900,
     bankInstructionsEn: row?.bankInstructionsEn ?? null,
     bankInstructionsAr: row?.bankInstructionsAr ?? null,
+    bankTransferAccountNumber: row?.bankTransferAccountNumber ?? null,
   };
 }
 

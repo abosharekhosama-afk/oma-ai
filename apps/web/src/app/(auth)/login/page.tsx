@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useLocale, useT } from '../../../lib/use-locale';
 import { getProfile, safeReturnPath, setLocaleCookie } from '../../../lib/account-api';
+import { resolvePostLoginPath } from '../../../lib/post-login-path';
 import {
   CURRENT_TERMS_VERSION,
   saveLocalTermsConsent,
@@ -124,7 +125,8 @@ export default function LoginPage() {
       } catch {
         /* non-blocking */
       }
-      window.location.assign(next);
+      const dest = await resolvePostLoginPath(next);
+      window.location.assign(dest);
     } catch (err) {
       const e = err as { code?: string; data?: { error?: { message_key?: string } } };
       if (e?.data?.error?.message_key === 'errors.two_factor_required') {
