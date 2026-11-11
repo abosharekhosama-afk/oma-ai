@@ -1,5 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { getPrisma, hydratePlan, loadBillingSettings, periodStartOf, snapshotUsage } from '@oma/db';
+import {
+  getPrisma,
+  hydratePlan,
+  listTenantUsageOverrides,
+  loadBillingSettings,
+  periodStartOf,
+  snapshotUsage,
+  upsertTenantUsageOverrides,
+} from '@oma/db';
 import {
   assertCompanyName,
   DomainError,
@@ -149,6 +157,7 @@ export class PlatformAdminService {
     const usage = await snapshotUsage(tenantId, periodStart);
     const planCode = normalizePlanCode(sub?.planCode ?? null);
     const plan = planCode ? await hydratePlan(planCode) : null;
+    const usage_overrides = await listTenantUsageOverrides(tenantId);
     return {
       data: {
         id: t.id,
@@ -158,12 +167,25 @@ export class PlatformAdminService {
         plan_code: planCode,
         subscription_status: sub?.status ?? null,
         plan_storage_limit_bytes: plan?.limits.storage_bytes ?? null,
+        plan_limits: plan?.limits ?? null,
         storage_limit_bytes_override:
           t.storageSetting?.adminStorageLimitBytes != null
             ? String(t.storageSetting.adminStorageLimitBytes)
             : null,
         storage_mode: t.storageSetting?.mode ?? 'OMA_INTERNAL',
         usage_storage_bytes: usage.storage_bytes,
+        usage_overrides,
+        usage_snapshot: {
+          brands: usage.brands,
+          social_accounts: usage.social_accounts,
+          seats: usage.seats,
+          guests: usage.guests,
+          scheduled_posts_per_month: usage.scheduled_posts_per_month,
+          storage_bytes: usage.storage_bytes,
+          ai_credits_per_month: usage.ai_credits_per_month,
+          listening_keywords: usage.listening_keywords,
+          mentions_per_month: usage.mentions_per_month,
+        },
       },
     };
   }
@@ -257,6 +279,7 @@ export class PlatformAdminService {
       plan_code?: string;
       billing_cycle?: string;
       storage_limit_bytes?: number | null;
+      usage_overrides?: Record<string, number | null>;
       note?: string;
     },
     correlationId?: string,
@@ -301,6 +324,10 @@ export class PlatformAdminService {
         create: { tenantId, adminStorageLimitBytes: bytes },
         update: { adminStorageLimitBytes: bytes },
       });
+    }
+
+    if (body.usage_overrides && typeof body.usage_overrides === 'object') {
+      await upsertTenantUsageOverrides(tenantId, body.usage_overrides);
     }
 
     await this.audit.write({

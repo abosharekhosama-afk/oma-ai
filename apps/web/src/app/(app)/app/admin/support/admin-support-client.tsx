@@ -153,18 +153,35 @@ export default function AdminSupportClient() {
 
       {selectedTenant ? (
         <>
-          <section className="admin-hub__card">
-            <h3>{isAr ? 'حسابات التواصل' : 'Social connections'}</h3>
-            <pre style={{ fontSize: '0.75rem', overflow: 'auto', maxHeight: '12rem' }}>
-              {JSON.stringify(social, null, 2)}
-            </pre>
-          </section>
-          <section className="admin-hub__card">
-            <h3>{isAr ? 'التخزين' : 'Storage'}</h3>
-            <pre style={{ fontSize: '0.75rem', overflow: 'auto', maxHeight: '12rem' }}>
-              {JSON.stringify(storage, null, 2)}
-            </pre>
-          </section>
+          <div className="admin-hub__diag-grid">
+            <section className="admin-hub__diag-card">
+              <h3>{isAr ? 'حسابات التواصل' : 'Social connections'}</h3>
+              <ul>
+                {(Array.isArray(social) ? social : []).slice(0, 12).map((row) => (
+                  <li key={String((row as { id?: string }).id)}>
+                    <strong>{String((row as { network?: string }).network ?? '—')}</strong> ·{' '}
+                    {String((row as { name?: string }).name ?? '')} ·{' '}
+                    {String((row as { status?: string }).status ?? '—')}
+                    {(row as { last_error?: string }).last_error
+                      ? ` · ${String((row as { last_error?: string }).last_error)}`
+                      : ''}
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="admin-hub__diag-card">
+              <h3>{isAr ? 'التخزين' : 'Storage'}</h3>
+              <ul>
+                {storage
+                  ? Object.entries(storage).map(([k, v]) => (
+                      <li key={k}>
+                        <strong>{k}</strong>: {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                      </li>
+                    ))
+                  : null}
+              </ul>
+            </section>
+          </div>
           <section className="admin-hub__card">
             <h3>{isAr ? 'فشل النشر' : 'Publishing failures'}</h3>
             <ul>

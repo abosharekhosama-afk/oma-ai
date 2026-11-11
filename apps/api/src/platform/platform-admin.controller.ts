@@ -59,6 +59,7 @@ export class PlatformAdminController {
       plan_code?: string;
       billing_cycle?: string;
       storage_limit_bytes?: number | null;
+      usage_overrides?: Record<string, number | null>;
       note?: string;
     },
   ) {

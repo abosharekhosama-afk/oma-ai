@@ -52,6 +52,9 @@ export default function AdminBillingClient() {
   const [reference, setReference] = useState('');
   const [days, setDays] = useState('30');
   const [vat, setVat] = useState('');
+  const [bankAccount, setBankAccount] = useState('');
+  const [bankEn, setBankEn] = useState('');
+  const [bankAr, setBankAr] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [receipts, setReceipts] = useState<Record<string, string>>({});
@@ -70,6 +73,9 @@ export default function AdminBillingClient() {
       setOrders(o.data ?? []);
       setSettings(s.data ?? {});
       if (s.data?.vatRateBps != null) setVat(String(Number(s.data.vatRateBps) / 100));
+      setBankAccount(String(s.data?.bankTransferAccountNumber ?? ''));
+      setBankEn(String(s.data?.bankInstructionsEn ?? ''));
+      setBankAr(String(s.data?.bankInstructionsAr ?? ''));
     } catch (err) {
       const denied =
         (err as { status?: number; code?: string } | null)?.status === 403 ||
@@ -211,6 +217,44 @@ export default function AdminBillingClient() {
           {isAr ? 'المهلة الحالية' : 'Current grace'}: {String(settings.gracePeriodDays ?? 7)}{' '}
           {isAr ? 'يوماً' : 'days'}
         </p>
+      </section>
+
+      <section className="oma-billing__card oma-billing__admin-panel">
+        <h2>{isAr ? 'التحويل البنكي' : 'Bank transfer'}</h2>
+        <p className="oma-billing__desc">
+          {isAr
+            ? 'يظهر رقم الحساب والتعليمات عند طلب اشتراك بالتحويل اليدوي وتفعيل الطلبات المعلّقة.'
+            : 'Account number and instructions appear on manual transfer checkout and pending activation.'}
+        </p>
+        <label className="oma-billing__field">
+          <span>{isAr ? 'رقم الحساب / IBAN' : 'Account / IBAN'}</span>
+          <input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} />
+        </label>
+        <label className="oma-billing__field">
+          <span>{isAr ? 'تعليمات (EN)' : 'Instructions (EN)'}</span>
+          <textarea rows={3} value={bankEn} onChange={(e) => setBankEn(e.target.value)} />
+        </label>
+        <label className="oma-billing__field">
+          <span>{isAr ? 'تعليمات (AR)' : 'Instructions (AR)'}</span>
+          <textarea rows={3} value={bankAr} onChange={(e) => setBankAr(e.target.value)} />
+        </label>
+        <Button
+          type="primary"
+          disabled={busy}
+          onClick={() =>
+            void run(
+              () =>
+                adminUpdateSettings({
+                  bank_transfer_account_number: bankAccount.trim() || null,
+                  bank_instructions_en: bankEn.trim() || null,
+                  bank_instructions_ar: bankAr.trim() || null,
+                }),
+              isAr ? 'تم حفظ بيانات التحويل' : 'Transfer details saved',
+            )
+          }
+        >
+          {isAr ? 'حفظ التحويل' : 'Save transfer details'}
+        </Button>
       </section>
 
       <section className="oma-billing__card oma-billing__admin-panel">

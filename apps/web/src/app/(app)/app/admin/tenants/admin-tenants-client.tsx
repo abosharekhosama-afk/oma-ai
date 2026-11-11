@@ -33,6 +33,10 @@ export default function AdminTenantsClient() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editPlan, setEditPlan] = useState('pro');
   const [editStorageGb, setEditStorageGb] = useState('');
+  const [limitBrands, setLimitBrands] = useState('');
+  const [limitSocial, setLimitSocial] = useState('');
+  const [limitAi, setLimitAi] = useState('');
+  const [limitPosts, setLimitPosts] = useState('');
 
   const load = useCallback(async () => {
     if (!superAdmin) return;
@@ -66,6 +70,12 @@ export default function AdminTenantsClient() {
       const planLim = d.plan_storage_limit_bytes;
       const bytes = override ?? planLim;
       setEditStorageGb(bytes != null ? String(Number(bytes) / (1024 * 1024 * 1024)) : '');
+      const ov = (d.usage_overrides ?? {}) as Record<string, number | null>;
+      const fmt = (k: string) => (ov[k] == null ? '' : String(ov[k]));
+      setLimitBrands(fmt('brands'));
+      setLimitSocial(fmt('social_accounts'));
+      setLimitAi(fmt('ai_credits_per_month'));
+      setLimitPosts(fmt('scheduled_posts_per_month'));
     } catch (err) {
       toast.push(err instanceof Error ? err.message : 'Load failed', 'danger');
     }
@@ -76,9 +86,16 @@ export default function AdminTenantsClient() {
     try {
       const storage_limit_bytes =
         editStorageGb.trim() === '' ? null : Math.round(Number(editStorageGb) * 1024 * 1024 * 1024);
+      const numOrNull = (s: string) => (s.trim() === '' ? null : Math.floor(Number(s)));
       await adminPatchTenant(selectedId, {
         plan_code: editPlan,
         storage_limit_bytes,
+        usage_overrides: {
+          brands: numOrNull(limitBrands),
+          social_accounts: numOrNull(limitSocial),
+          ai_credits_per_month: numOrNull(limitAi),
+          scheduled_posts_per_month: numOrNull(limitPosts),
+        },
       });
       toast.push(isAr ? 'تم تحديث الخطة والحدود' : 'Plan and limits updated', 'success');
       setSelectedId(null);
@@ -191,6 +208,24 @@ export default function AdminTenantsClient() {
               onChange={(e) => setEditStorageGb(e.target.value)}
             />
           </label>
+          <div className="admin-hub__limit-grid">
+            <label className="admin-hub__field">
+              <span>{isAr ? 'علامات (تجاوز)' : 'Brands override'}</span>
+              <input value={limitBrands} onChange={(e) => setLimitBrands(e.target.value)} placeholder="∞" />
+            </label>
+            <label className="admin-hub__field">
+              <span>{isAr ? 'حسابات اجتماعية' : 'Social accounts'}</span>
+              <input value={limitSocial} onChange={(e) => setLimitSocial(e.target.value)} />
+            </label>
+            <label className="admin-hub__field">
+              <span>{isAr ? 'رصيد AI / شهر' : 'AI credits / mo'}</span>
+              <input value={limitAi} onChange={(e) => setLimitAi(e.target.value)} />
+            </label>
+            <label className="admin-hub__field">
+              <span>{isAr ? 'منشورات مجدولة / شهر' : 'Scheduled posts / mo'}</span>
+              <input value={limitPosts} onChange={(e) => setLimitPosts(e.target.value)} />
+            </label>
+          </div>
           <div className="admin-hub__row">
             <Button htmlType="button" type="primary" onClick={() => void saveTenantPlan()}>
               {isAr ? 'حفظ' : 'Save'}
