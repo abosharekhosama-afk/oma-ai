@@ -1,6 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { DomainError, isSuperAdmin, isSupportStaff } from '@oma/domain';
+import { DomainError, isSuperAdmin } from '@oma/domain';
 import type { NextFunction, Request, Response } from 'express';
+import { isSupportOperator } from '../../platform/support-auth';
 import { mergeSessionIntoOmaContext, resolveSessionFromRequest } from '../auth/session-context';
 
 /**
@@ -28,7 +29,7 @@ export class PlatformAdminSupportMiddleware implements NestMiddleware {
           'errors.permission_denied',
         );
       }
-      if (isSupport && !isSupportStaff(session.systemRole)) {
+      if (isSupport && !(await isSupportOperator(session.userId, session.systemRole))) {
         throw new DomainError(
           'PERMISSION_DENIED',
           'Support or super admin role required',

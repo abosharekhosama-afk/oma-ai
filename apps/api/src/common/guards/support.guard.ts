@@ -1,12 +1,12 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { DomainError, isSupportStaff } from '@oma/domain';
+import { DomainError } from '@oma/domain';
 import type { Request } from 'express';
+import { isSupportOperator } from '../../platform/support-auth';
 
 @Injectable()
 export class SupportGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
-    const role = req.oma?.systemRole;
     if (!req.oma?.userId) {
       throw new DomainError(
         'UNAUTHENTICATED',
@@ -15,7 +15,7 @@ export class SupportGuard implements CanActivate {
         'errors.unauthenticated',
       );
     }
-    if (!isSupportStaff(role)) {
+    if (!(await isSupportOperator(req.oma.userId, req.oma.systemRole))) {
       throw new DomainError(
         'PERMISSION_DENIED',
         'Support or super admin role required',

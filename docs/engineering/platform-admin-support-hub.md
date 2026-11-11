@@ -94,11 +94,16 @@ model User {
 - [x] Billing admin routes use shared `requireSuperAdminOperator` (legacy `platform.support.access` fallback)
 - [ ] Next.js `/app/admin` shell (Phase 3)
 
-### Phase 2 — Support Hub
+### Phase 2 — Support Hub (in progress)
 
-- Lookup + redacted diagnostics
-- Impersonation sessions + audit
-- Publishing/worker retry commands via existing job outbox
+- [x] `GET /support/lookup` — users, tenants, brands (scoped brand search with `tenant_id`)
+- [x] `GET /support/tenants/:id/social` — token health, errors (no secrets)
+- [x] `GET /support/tenants/:id/storage` — mode, backup/worker failures
+- [x] `GET /support/publishing/failures` + `POST /support/publishing/:id/retry`
+- [x] Impersonation: `POST /support/impersonate`, `POST .../assume` (sets session cookie), `DELETE ...`
+- [x] `SupportImpersonationSession` model + audit events
+- [x] Legacy `platform.support.access` + `SUPPORT_SPECIALIST` / `SUPER_ADMIN`
+- [ ] Next.js support UI (Phase 3)
 
 ### Phase 3 — Next.js operator UI
 

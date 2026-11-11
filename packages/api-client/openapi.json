@@ -5024,6 +5024,118 @@
           "Support"
         ]
       }
+    },
+    "/api/v1/support/lookup": {
+      "get": {
+        "operationId": "SupportController_lookup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/tenants/{tenantId}/social": {
+      "get": {
+        "operationId": "SupportController_tenantSocial",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/tenants/{tenantId}/storage": {
+      "get": {
+        "operationId": "SupportController_tenantStorage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/publishing/failures": {
+      "get": {
+        "operationId": "SupportController_publishingFailures",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/publishing/{publishTargetId}/retry": {
+      "post": {
+        "operationId": "SupportController_retryPublish",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/impersonate": {
+      "post": {
+        "operationId": "SupportController_startImpersonation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/impersonate/{impersonationId}/assume": {
+      "post": {
+        "operationId": "SupportController_assumeImpersonation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/impersonate/{impersonationId}": {
+      "delete": {
+        "operationId": "SupportController_endImpersonation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
     }
   },
   "info": {
