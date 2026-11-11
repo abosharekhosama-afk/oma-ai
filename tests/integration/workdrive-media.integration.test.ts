@@ -45,7 +45,7 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
   const upload = (s: Seed, b: string, bytes: Buffer, q: string, type = 'image/png') =>
     fetch(`${s.baseUrl}/api/v1/brands/${b}/media?${q}`, {
       method: 'POST',
-      headers: { ...authHeaders(s), 'content-type': type, 'content-length': String(bytes.length) },
+      headers: { ...authHeaders(s), 'content-type': type },
       body: bytes,
     });
 

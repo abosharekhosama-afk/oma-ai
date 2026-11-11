@@ -32,7 +32,6 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
       headers: {
         ...authHeaders(s),
         'content-type': 'image/png',
-        'content-length': String(bytes.length),
       },
       body: bytes,
     });

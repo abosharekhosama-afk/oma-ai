@@ -453,7 +453,7 @@ export class WorkDriveClient {
         // Signed URL: no Authorization header.
         put = await this.fetchImpl(uploadUrl, {
           method: 'PUT',
-          headers: { 'content-type': mimeType, 'content-length': String(source.size) },
+          headers: { 'content-type': mimeType },
           body: source.full() as RequestInit['body'],
           // Required by Node fetch for streamed bodies.
           ...({ duplex: 'half' } as object),
