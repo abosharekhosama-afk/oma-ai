@@ -1,12 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useLocale } from '../../../../lib/use-locale';
 import { usePlatformOperator } from '../../../../lib/use-platform-operator';
 import {
   adminMetricsOverview,
+  adminProbeAi,
+  adminProbeRedis,
+  adminProbeWebsiteScan,
+  adminSystemIntegrations,
   adminSystemSecrets,
+  type AdminIntegrationsStatus,
   type AdminMetrics,
 } from '../../../../lib/platform-admin-api';
 import { useToast } from '../../../../components/ui/toast';
@@ -25,27 +30,111 @@ function formatBytes(raw: string | null) {
   return `${(n / 1024 ** 3).toFixed(2)} GB`;
 }
 
+type ProbeState = 'idle' | 'running' | 'done' | 'error';
+
 export default function AdminOverviewClient() {
   const isAr = useLocale() === 'ar';
   const { superAdmin } = usePlatformOperator();
   const toast = useToast();
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
+  const [integrations, setIntegrations] = useState<AdminIntegrationsStatus | null>(null);
   const [secrets, setSecrets] = useState<
     Array<{ key: string; label: string; configured: boolean }>
   >([]);
+  const [probeUrl, setProbeUrl] = useState('');
+  const [aiProbe, setAiProbe] = useState<ProbeState>('idle');
+  const [aiProbeResult, setAiProbeResult] = useState<string | null>(null);
+  const [scanProbe, setScanProbe] = useState<ProbeState>('idle');
+  const [scanProbeResult, setScanProbeResult] = useState<string | null>(null);
+  const [redisProbe, setRedisProbe] = useState<ProbeState>('idle');
+  const [redisProbeResult, setRedisProbeResult] = useState<string | null>(null);
+
+  const loadOverview = useCallback(async () => {
+    const [m, s, i] = await Promise.all([
+      adminMetricsOverview(),
+      adminSystemSecrets(),
+      adminSystemIntegrations(),
+    ]);
+    setMetrics(m.data);
+    setSecrets(s.data);
+    setIntegrations(i.data);
+  }, []);
 
   useEffect(() => {
     if (!superAdmin) return;
-    void (async () => {
-      try {
-        const [m, s] = await Promise.all([adminMetricsOverview(), adminSystemSecrets()]);
-        setMetrics(m.data);
-        setSecrets(s.data);
-      } catch (err) {
-        toast.push(err instanceof Error ? err.message : 'Failed to load metrics', 'danger');
-      }
-    })();
-  }, [superAdmin, toast]);
+    void loadOverview().catch((err) => {
+      toast.push(err instanceof Error ? err.message : 'Failed to load metrics', 'danger');
+    });
+  }, [superAdmin, loadOverview, toast]);
+
+  const runAiProbe = () => {
+    setAiProbe('running');
+    setAiProbeResult(null);
+    void adminProbeAi()
+      .then((res) => {
+        setAiProbe('done');
+        if (res.ok) {
+          setAiProbeResult(
+            isAr
+              ? `نجح — ${res.model ?? ''} — ${res.latency_ms}ms${res.sample_text ? ` — «${res.sample_text.slice(0, 80)}…»` : ''}`
+              : `OK — ${res.model ?? ''} — ${res.latency_ms}ms${res.sample_text ? ` — "${res.sample_text.slice(0, 80)}…"` : ''}`,
+          );
+        } else if (res.skipped) {
+          setAiProbeResult(
+            isAr
+              ? `تخطي: ${res.reason ?? res.code ?? '—'}`
+              : `Skipped: ${res.reason ?? res.code ?? '—'}`,
+          );
+        } else {
+          setAiProbe('error');
+          setAiProbeResult(res.code ?? res.reason ?? 'failed');
+        }
+      })
+      .catch((err) => {
+        setAiProbe('error');
+        setAiProbeResult(err instanceof Error ? err.message : 'probe_failed');
+      });
+  };
+
+  const runScanProbe = () => {
+    setScanProbe('running');
+    setScanProbeResult(null);
+    void adminProbeWebsiteScan(probeUrl || undefined)
+      .then((res) => {
+        setScanProbe(res.ok ? 'done' : 'error');
+        setScanProbeResult(
+          res.ok
+            ? isAr
+              ? `نجح — ${res.url} — HTTP ${res.http_status ?? '—'} — ${res.latency_ms}ms`
+              : `OK — ${res.url} — HTTP ${res.http_status ?? '—'} — ${res.latency_ms}ms`
+            : `${res.code ?? 'failed'}: ${res.reason ?? res.url} (${res.latency_ms}ms)`,
+        );
+      })
+      .catch((err) => {
+        setScanProbe('error');
+        setScanProbeResult(err instanceof Error ? err.message : 'probe_failed');
+      });
+  };
+
+  const runRedisProbe = () => {
+    setRedisProbe('running');
+    setRedisProbeResult(null);
+    void adminProbeRedis()
+      .then((res) => {
+        setRedisProbe(res.ok ? 'done' : 'error');
+        setRedisProbeResult(
+          res.ok
+            ? isAr
+              ? `نجح — ${res.latency_ms}ms`
+              : `OK — ${res.latency_ms}ms`
+            : res.error ?? 'redis_failed',
+        );
+      })
+      .catch((err) => {
+        setRedisProbe('error');
+        setRedisProbeResult(err instanceof Error ? err.message : 'probe_failed');
+      });
+  };
 
   if (!superAdmin) {
     return (
@@ -60,6 +149,117 @@ export default function AdminOverviewClient() {
   return (
     <div className="admin-hub__stack">
       <h1>{isAr ? 'لوحة الإدارة العليا' : 'Super Admin overview'}</h1>
+
+      <section className="admin-hub__card" data-testid="admin-integrations-health">
+        <h3>{isAr ? 'الذكاء الاصطناعي ومسح المواقع' : 'AI & website scan health'}</h3>
+        {integrations ? (
+          <div className="admin-hub__probe-grid">
+            <div>
+              <h4>{isAr ? 'الذكاء الاصطناعي' : 'AI'}</h4>
+              <ul className="admin-hub__probe-meta">
+                <li>
+                  {isAr ? 'المزود: ' : 'Provider: '}
+                  <strong>{integrations.ai.provider}</strong>
+                </li>
+                <li>
+                  {isAr ? 'الوضع: ' : 'Mode: '}
+                  <strong>{integrations.ai.mode}</strong> ({integrations.ai.availability})
+                </li>
+                <li>
+                  {isAr ? 'النموذج: ' : 'Model: '}
+                  <strong>{integrations.ai.default_model}</strong>
+                </li>
+              </ul>
+              <Button
+                htmlType="button"
+                disabled={aiProbe === 'running'}
+                onClick={runAiProbe}
+                data-testid="admin-probe-ai"
+              >
+                {aiProbe === 'running'
+                  ? isAr
+                    ? 'جارٍ اختبار توليد فكرة…'
+                    : 'Testing post idea generation…'
+                  : isAr
+                    ? 'اختبار توليد فكرة (Gemini)'
+                    : 'Test post idea (live AI)'}
+              </Button>
+              {aiProbeResult ? <p className="admin-hub__probe-result">{aiProbeResult}</p> : null}
+            </div>
+            <div>
+              <h4>{isAr ? 'مسح الموقع' : 'Website scan'}</h4>
+              <ul className="admin-hub__probe-meta">
+                <li>
+                  {isAr ? 'الموصل: ' : 'Connector: '}
+                  <strong>{integrations.website_scan.connector_mode}</strong>
+                </li>
+                <li>
+                  {isAr ? 'تجاهل robots.txt: ' : 'Ignore robots.txt: '}
+                  <strong>
+                    {integrations.website_scan.ignore_robots_txt
+                      ? isAr
+                        ? 'نعم'
+                        : 'Yes'
+                      : isAr
+                        ? 'لا'
+                        : 'No'}
+                  </strong>
+                </li>
+              </ul>
+              <label className="admin-hub__probe-url">
+                <span className="oma-muted">{isAr ? 'رابط اختياري' : 'Optional URL'}</span>
+                <input
+                  type="url"
+                  value={probeUrl}
+                  onChange={(e) => setProbeUrl(e.target.value)}
+                  placeholder="https://example.com"
+                />
+              </label>
+              <Button
+                htmlType="button"
+                disabled={scanProbe === 'running'}
+                onClick={runScanProbe}
+                data-testid="admin-probe-website"
+              >
+                {scanProbe === 'running'
+                  ? isAr
+                    ? 'جارٍ اختبار الجلب…'
+                    : 'Testing fetch…'
+                  : isAr
+                    ? 'اختبار جلب الموقع'
+                    : 'Test live fetch'}
+              </Button>
+              {scanProbeResult ? <p className="admin-hub__probe-result">{scanProbeResult}</p> : null}
+            </div>
+            <div>
+              <h4>{isAr ? 'قائمة المهام (Redis)' : 'Job queue (Redis)'}</h4>
+              <p className="oma-muted" style={{ fontSize: '0.85rem' }}>
+                {integrations.worker_note}
+              </p>
+              <Button
+                htmlType="button"
+                disabled={redisProbe === 'running'}
+                onClick={runRedisProbe}
+                data-testid="admin-probe-redis"
+              >
+                {redisProbe === 'running'
+                  ? isAr
+                    ? 'جارٍ ping…'
+                    : 'Pinging…'
+                  : isAr
+                    ? 'اختبار Redis'
+                    : 'Test Redis'}
+              </Button>
+              {redisProbeResult ? (
+                <p className="admin-hub__probe-result">{redisProbeResult}</p>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <p>…</p>
+        )}
+      </section>
+
       <div className="admin-hub__grid">
         <MetricCard
           title={isAr ? 'تقدير MRR' : 'MRR estimate'}
@@ -130,7 +330,14 @@ export default function AdminOverviewClient() {
           </tbody>
         </table>
       </section>
-      <Button htmlType="button" onClick={() => window.location.reload()}>
+      <Button
+        htmlType="button"
+        onClick={() => {
+          void loadOverview().catch((err) =>
+            toast.push(err instanceof Error ? err.message : 'Failed to refresh', 'danger'),
+          );
+        }}
+      >
         {isAr ? 'تحديث' : 'Refresh'}
       </Button>
     </div>

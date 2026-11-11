@@ -379,7 +379,7 @@
   "brand.connector.fixtureChip": "فحص الموقع غير متصل",
   "brand.connector.notConfiguredChip": "لا يوجد موصل حي مهيأ",
   "brand.connector.liveTitle": "مسح الموقع المباشر مفعّل",
-  "brand.connector.liveBody": "يجلب أوما الصفحات العامة من الموقع المرتبط، ويحترم ملف robots.txt، ويلتزم بحدود الزحف المحددة. الصفحات التي تعتمد على جافاسكربت فقط لا تُعرض.",
+  "brand.connector.liveBody": "يجلب أوما الصفحات العامة من الموقع المرتبط ضمن حدود الزحف. افتراضياً لا تُطبَّق قيود منع robots.txt أثناء المسح (اضبط BRAND_SCANNER_IGNORE_ROBOTS_TXT=false لفرضها). الصفحات التي تعتمد على جافاسكربت فقط لا تُعرض.",
   "brand.connector.liveChip": "مسح الموقع المباشر",
   "brand.scan.partialTitle": "مسح جزئي",
   "brand.scan.partialBody": "تعذر جلب بعض الصفحات. راجع التغطية قبل الاعتماد.",

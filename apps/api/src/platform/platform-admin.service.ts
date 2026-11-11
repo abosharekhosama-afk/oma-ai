@@ -27,6 +27,14 @@ import {
   patchPlatformOperator,
 } from './platform-admin-operators';
 import { listAdminPlans, patchAdminPlan } from './platform-admin-plans';
+import {
+  probeLiveAi as runProbeLiveAi,
+  probeRedis as runProbeRedis,
+  probeWebsiteScan as runProbeWebsiteScan,
+  systemIntegrationsStatus as buildSystemIntegrationsStatus,
+} from './platform-admin-system-probes';
+import { isAiLiveEnabled, isAiProviderConfigured } from '@oma/domain';
+import { configuredAiProvider } from '@oma/ai';
 
 function secretConfigured(...values: Array<string | undefined>): boolean {
   return values.some((v) => Boolean(v?.trim()));
@@ -61,6 +69,17 @@ const SECRET_KEYS = [
     key: 'lahza',
     label: 'Lahza',
     check: () => secretConfigured(process.env.LAHZA_SECRET_KEY),
+  },
+  {
+    key: 'ai_gemini',
+    label: 'Gemini (GEMINI_API_KEY)',
+    check: () =>
+      configuredAiProvider() === 'gemini' && secretConfigured(process.env.GEMINI_API_KEY),
+  },
+  {
+    key: 'ai_live',
+    label: 'AI live (AI_LIVE_ENABLED)',
+    check: () => isAiLiveEnabled() && isAiProviderConfigured(),
   },
 ] as const;
 
@@ -379,6 +398,22 @@ export class PlatformAdminService {
 
   listPlans() {
     return listAdminPlans();
+  }
+
+  systemIntegrationsStatus() {
+    return buildSystemIntegrationsStatus();
+  }
+
+  probeRedis() {
+    return runProbeRedis();
+  }
+
+  probeLiveAi() {
+    return runProbeLiveAi();
+  }
+
+  probeWebsiteScan(body: { url?: string }) {
+    return runProbeWebsiteScan(body);
   }
 
   patchPlan(

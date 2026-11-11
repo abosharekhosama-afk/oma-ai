@@ -379,7 +379,7 @@
   "brand.connector.fixtureChip": "Website scan not connected",
   "brand.connector.notConfiguredChip": "No live connector configured",
   "brand.connector.liveTitle": "Live website scanning is enabled",
-  "brand.connector.liveBody": "OMA fetches public pages from the connected website, respects robots.txt, and stays within the configured crawl limits. JavaScript-only pages are not rendered.",
+  "brand.connector.liveBody": "OMA fetches public pages from the connected website within configured crawl limits. By default robots.txt disallow rules are not applied during scans (set BRAND_SCANNER_IGNORE_ROBOTS_TXT=false to enforce). JavaScript-only pages are not rendered.",
   "brand.connector.liveChip": "Live website scan",
   "brand.scan.partialTitle": "Partial scan",
   "brand.scan.partialBody": "Some pages could not be fetched. Review coverage before approval.",

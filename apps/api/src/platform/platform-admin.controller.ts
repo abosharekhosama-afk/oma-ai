@@ -72,6 +72,29 @@ export class PlatformAdminController {
     return platformAdminService.systemSecretsStatus();
   }
 
+  @Get('system/integrations')
+  integrationsStatus() {
+    return platformAdminService.systemIntegrationsStatus();
+  }
+
+  @Post('system/probes/redis')
+  @UseGuards(CsrfGuard)
+  async probeRedis() {
+    return platformAdminService.probeRedis();
+  }
+
+  @Post('system/probes/ai')
+  @UseGuards(CsrfGuard)
+  async probeAi() {
+    return platformAdminService.probeLiveAi();
+  }
+
+  @Post('system/probes/website-scan')
+  @UseGuards(CsrfGuard)
+  async probeWebsiteScan(@Body() body: { url?: string }) {
+    return platformAdminService.probeWebsiteScan(body ?? {});
+  }
+
   @Get('operators')
   async listOperators(@Query('q') q?: string) {
     return platformAdminService.listOperators(q);

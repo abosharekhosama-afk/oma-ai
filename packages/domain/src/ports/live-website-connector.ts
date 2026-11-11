@@ -44,6 +44,8 @@ export type LiveWebsiteConnectorOptions = {
   allowedPorts?: number[];
   allowPrivateHosts?: boolean;
   maxBytes?: number;
+  /** When true, crawling ignores robots.txt disallow rules (validateSource still checks reachability). */
+  ignoreRobotsTxt?: boolean;
 };
 
 export const DEFAULT_LIVE_CONNECTOR_OPTIONS = {
@@ -277,6 +279,7 @@ export function createLiveWebsiteConnector(
     maxRetries: rawOptions.maxRetries ?? DEFAULT_LIVE_CONNECTOR_OPTIONS.maxRetries,
     allowedPorts: rawOptions.allowedPorts ?? [...DEFAULT_LIVE_CONNECTOR_OPTIONS.allowedPorts],
     maxBytes: rawOptions.maxBytes ?? DEFAULT_LIVE_CONNECTOR_OPTIONS.maxBytes,
+    ignoreRobotsTxt: rawOptions.ignoreRobotsTxt ?? false,
   };
   const policy: FetchUrlPolicy = {
     allowedPorts: new Set(options.allowedPorts),
@@ -482,15 +485,17 @@ export function createLiveWebsiteConnector(
         if (!parsed.ok) return { ok: false, reason: parsed.reason, code: parsed.code };
         const hostCheck = checkSsrfHost(parsed.url.hostname, ssrf);
         if (!hostCheck.ok) return { ok: false, reason: hostCheck.reason, code: 'URL_SSRF_DENIED' };
-        const robots = await loadRobots(parsed.url.host);
-        const path = `${parsed.url.pathname || '/'}${parsed.url.search}`;
-        const decision = decideRobotsPath(robots, path, options.userAgent);
-        if (decision.decision === 'DISALLOW') {
-          return {
-            ok: false,
-            reason: 'robots.txt disallows crawling this website',
-            code: 'WEBSITE_ROBOTS_DISALLOWED',
-          };
+        if (!options.ignoreRobotsTxt) {
+          const robots = await loadRobots(parsed.url.host);
+          const path = `${parsed.url.pathname || '/'}${parsed.url.search}`;
+          const decision = decideRobotsPath(robots, path, options.userAgent);
+          if (decision.decision === 'DISALLOW') {
+            return {
+              ok: false,
+              reason: 'robots.txt disallows crawling this website',
+              code: 'WEBSITE_ROBOTS_DISALLOWED',
+            };
+          }
         }
         let fetched: FetchPublicResult;
         try {
@@ -561,6 +566,7 @@ export function createLiveWebsiteConnector(
       return fetched.finalUrl === url ? null : fetched.finalUrl;
     },
     async evaluateRobots(host: string, path: string): Promise<RobotsDecision> {
+      if (options.ignoreRobotsTxt) return 'ALLOW';
       const cached = await loadRobots(host);
       return decideRobotsPath(cached, path || '/', options.userAgent).decision;
     },
@@ -601,7 +607,14 @@ export function liveConnectorOptionsFromEnv(
     allowedPorts: parseAllowedPorts(env.BRAND_ALLOWED_PORTS),
     allowPrivateHosts: isPrivateHostOverrideEnabled(env),
     maxBytes: Number(env.BRAND_MAX_BYTES ?? DEFAULT_LIVE_CONNECTOR_OPTIONS.maxBytes),
+    ignoreRobotsTxt: envFlagIgnoreRobots(env),
   };
+}
+
+function envFlagIgnoreRobots(env: NodeJS.ProcessEnv): boolean {
+  const raw = env.BRAND_SCANNER_IGNORE_ROBOTS_TXT;
+  if (raw === undefined || raw === '') return true;
+  return raw === '1' || raw === 'true';
 }
 
 export { defaultPortForProtocol };

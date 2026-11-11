@@ -116,6 +116,52 @@
   box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
 }
 
+.admin-hub__probe-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 900px) {
+  .admin-hub__probe-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.admin-hub__probe-meta {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.admin-hub__probe-meta li + li {
+  margin-top: 0.35rem;
+}
+
+.admin-hub__probe-url {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.85rem;
+}
+
+.admin-hub__probe-url input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--oma-border, #e2e8f0);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.admin-hub__probe-result {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: var(--oma-text-muted, #64748b);
+  word-break: break-word;
+}
+
 .admin-hub__grid {
   display: grid;
   gap: 1rem;
