@@ -14,12 +14,12 @@ OMA AI needs a **cross-tenant operator plane** beside the existing tenant-scoped
 
 ## SystemRole vs existing capabilities
 
-| Mechanism | Scope | Purpose |
-|-----------|--------|---------|
-| `User.systemRole` | Global user identity | Gate `/admin` and `/support` APIs and UI |
-| `PLATFORM_OWNER` profile | `platform` tenant membership | Legacy bootstrap + `platform.tenant.create` |
-| `platform.support.access` | Tenant capability | Billing ops inside a tenant context |
-| `tenant.manage` | Tenant capability | Workspace administration |
+| Mechanism                 | Scope                        | Purpose                                     |
+| ------------------------- | ---------------------------- | ------------------------------------------- |
+| `User.systemRole`         | Global user identity         | Gate `/admin` and `/support` APIs and UI    |
+| `PLATFORM_OWNER` profile  | `platform` tenant membership | Legacy bootstrap + `platform.tenant.create` |
+| `platform.support.access` | Tenant capability            | Billing ops inside a tenant context         |
+| `tenant.manage`           | Tenant capability            | Workspace administration                    |
 
 **Migration rule:** Bootstrap platform owner email → `SUPER_ADMIN`. Existing `platform.support.access` grants remain until support flows are migrated to `/api/v1/support/*`.
 
@@ -43,28 +43,28 @@ model User {
 
 ### `/api/v1/admin/*` — Super Admin only
 
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/admin/health` | Liveness (implemented) |
-| GET | `/admin/metrics/overview` | MRR, active subscriptions, WorkDrive aggregate |
-| GET | `/admin/tenants` | Paginated tenant list |
-| POST | `/admin/tenants` | Provision tenant |
-| PATCH | `/admin/tenants/:id` | Suspend, plan limits, storage quota |
-| GET | `/admin/system/secrets` | Secret **status** map |
-| PUT | `/admin/system/secrets/:key` | Rotate metadata / trigger reload (no echo) |
+| Method | Route                        | Purpose                                        |
+| ------ | ---------------------------- | ---------------------------------------------- |
+| GET    | `/admin/health`              | Liveness (implemented)                         |
+| GET    | `/admin/metrics/overview`    | MRR, active subscriptions, WorkDrive aggregate |
+| GET    | `/admin/tenants`             | Paginated tenant list                          |
+| POST   | `/admin/tenants`             | Provision tenant                               |
+| PATCH  | `/admin/tenants/:id`         | Suspend, plan limits, storage quota            |
+| GET    | `/admin/system/secrets`      | Secret **status** map                          |
+| PUT    | `/admin/system/secrets/:key` | Rotate metadata / trigger reload (no echo)     |
 
 ### `/api/v1/support/*` — Support Specialist + Super Admin
 
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/support/health` | Liveness (implemented) |
-| GET | `/support/lookup` | User/brand search (tenant-scoped query params) |
-| GET | `/support/tenants/:tenantId/social` | Connection + token health (redacted) |
-| GET | `/support/tenants/:tenantId/storage` | OMA_INTERNAL / USER_WORKDRIVE errors |
-| POST | `/support/impersonate` | Start audited impersonation session |
-| DELETE | `/support/impersonate/:id` | End impersonation |
-| GET | `/support/publishing/failures` | Recent publish/worker failures |
-| POST | `/support/publishing/:jobId/retry` | Retry publish (idempotent) |
+| Method | Route                                | Purpose                                        |
+| ------ | ------------------------------------ | ---------------------------------------------- |
+| GET    | `/support/health`                    | Liveness (implemented)                         |
+| GET    | `/support/lookup`                    | User/brand search (tenant-scoped query params) |
+| GET    | `/support/tenants/:tenantId/social`  | Connection + token health (redacted)           |
+| GET    | `/support/tenants/:tenantId/storage` | OMA_INTERNAL / USER_WORKDRIVE errors           |
+| POST   | `/support/impersonate`               | Start audited impersonation session            |
+| DELETE | `/support/impersonate/:id`           | End impersonation                              |
+| GET    | `/support/publishing/failures`       | Recent publish/worker failures                 |
+| POST   | `/support/publishing/:jobId/retry`   | Retry publish (idempotent)                     |
 
 **Auth stack per route:** `AuthGuard` → `PlatformAdminGuard` or `SupportGuard` → handler. **Global middleware** `PlatformAdminSupportMiddleware` enforces the same roles on path prefix.
 

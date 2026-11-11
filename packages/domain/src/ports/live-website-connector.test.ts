@@ -196,18 +196,15 @@ describe('live-website-connector', () => {
   });
 
   it('supports hostname lookups when validating a public URL', async () => {
-    const server = await listen(
-      (req, res) => {
-        if (req.url === '/robots.txt') {
-          res.writeHead(404);
-          res.end();
-          return;
-        }
-        res.writeHead(200, { 'content-type': 'text/html' });
-        res.end('<html><title>Ok</title></html>');
-      },
-      'localhost',
-    );
+    const server = await listen((req, res) => {
+      if (req.url === '/robots.txt') {
+        res.writeHead(404);
+        res.end();
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'text/html' });
+      res.end('<html><title>Ok</title></html>');
+    }, 'localhost');
     servers.push(server.close);
 
     await expect(testConnector().validateSource({ url: `${server.url}/` })).resolves.toEqual({

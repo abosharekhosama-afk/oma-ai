@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isSuperAdmin, isSupportStaff, SYSTEM_ROLES } from '../../packages/domain/src/authz/system-role';
+import {
+  isSuperAdmin,
+  isSupportStaff,
+  SYSTEM_ROLES,
+} from '../../packages/domain/src/authz/system-role';
 
 describe('SystemRole helpers', () => {
   it('defines the three platform roles', () => {
