@@ -12,7 +12,12 @@ function requireTenantUser(req: Request): { userId: string; tenantId: string } {
     throw new DomainError('UNAUTHENTICATED', 'Sign in required', 401, 'errors.unauthenticated');
   }
   if (!tenantId) {
-    throw new DomainError('TENANT_REQUIRED', 'Active tenant required', 400, 'errors.tenant_required');
+    throw new DomainError(
+      'TENANT_REQUIRED',
+      'Active tenant required',
+      400,
+      'errors.tenant_required',
+    );
   }
   return { userId, tenantId };
 }
@@ -47,6 +52,12 @@ export class HelpdeskController {
     @Body() body: { message?: string },
   ) {
     const { userId, tenantId } = requireTenantUser(req);
-    return supportCaseService.replyAsCustomer(userId, tenantId, caseId, body, req.oma?.correlationId);
+    return supportCaseService.replyAsCustomer(
+      userId,
+      tenantId,
+      caseId,
+      body,
+      req.oma?.correlationId,
+    );
   }
 }

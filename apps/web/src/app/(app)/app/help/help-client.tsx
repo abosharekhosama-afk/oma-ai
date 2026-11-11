@@ -164,7 +164,12 @@ export default function HelpClient() {
                 placeholder={isAr ? 'ردك…' : 'Your reply…'}
                 rows={3}
               />
-              <Button htmlType="button" type="primary" disabled={busy || !reply.trim()} onClick={() => void sendReply()}>
+              <Button
+                htmlType="button"
+                type="primary"
+                disabled={busy || !reply.trim()}
+                onClick={() => void sendReply()}
+              >
                 {isAr ? 'رد' : 'Reply'}
               </Button>
             </div>
