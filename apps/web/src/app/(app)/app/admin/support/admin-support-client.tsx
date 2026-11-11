@@ -117,7 +117,7 @@ export default function AdminSupportClient() {
             onChange={(e) => setQ(e.target.value)}
             placeholder={isAr ? 'بريد، اسم، معرّف' : 'Email, name, or id'}
           />
-          <Button type="button" onClick={() => void runLookup()} disabled={busy}>
+          <Button htmlType="button" onClick={() => void runLookup()} disabled={busy}>
             {isAr ? 'بحث' : 'Search'}
           </Button>
         </div>
@@ -171,7 +171,7 @@ export default function AdminSupportClient() {
               {failures.map((f) => (
                 <li key={String(f.id)}>
                   {String(f.content_title ?? f.id)} — {String(f.last_error ?? '')}
-                  <Button type="button" onClick={() => void retry(String(f.id))}>
+                  <Button htmlType="button" onClick={() => void retry(String(f.id))}>
                     {isAr ? 'إعادة المحاولة' : 'Retry'}
                   </Button>
                 </li>
@@ -193,7 +193,7 @@ export default function AdminSupportClient() {
           placeholder={isAr ? 'سبب تذكرة الدعم (8+ أحرف)' : 'Support ticket reason (8+ chars)'}
         />
         <div className="admin-hub__row" style={{ marginTop: '0.5rem' }}>
-          <Button type="button" disabled={busy} onClick={() => void impersonate()}>
+          <Button htmlType="button" disabled={busy} onClick={() => void impersonate()}>
             {isAr ? 'افتح لوحة العميل' : 'Open client workspace'}
           </Button>
         </div>

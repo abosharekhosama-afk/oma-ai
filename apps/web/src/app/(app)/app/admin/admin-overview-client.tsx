@@ -130,7 +130,7 @@ export default function AdminOverviewClient() {
           </tbody>
         </table>
       </section>
-      <Button type="button" onClick={() => window.location.reload()}>
+      <Button htmlType="button" onClick={() => window.location.reload()}>
         {isAr ? 'تحديث' : 'Refresh'}
       </Button>
     </div>

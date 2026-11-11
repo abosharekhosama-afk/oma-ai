@@ -75,7 +75,7 @@ export default function AdminTenantsClient() {
           placeholder={isAr ? 'بحث بالاسم أو المعرّف' : 'Search name, slug, or id'}
           aria-label={isAr ? 'بحث' : 'Search'}
         />
-        <Button type="button" onClick={() => void load()} disabled={busy}>
+        <Button htmlType="button" onClick={() => void load()} disabled={busy}>
           {isAr ? 'بحث' : 'Search'}
         </Button>
       </div>
@@ -103,7 +103,7 @@ export default function AdminTenantsClient() {
               <td>{t.storage_mode}</td>
               <td>
                 {t.status === 'ACTIVE' ? (
-                  <Button type="button" onClick={() => void suspend(t.id)}>
+                  <Button htmlType="button" onClick={() => void suspend(t.id)}>
                     {isAr ? 'إيقاف' : 'Suspend'}
                   </Button>
                 ) : null}
@@ -113,7 +113,7 @@ export default function AdminTenantsClient() {
         </tbody>
       </table>
       {nextCursor ? (
-        <Button type="button" disabled={busy} onClick={() => setCursor(nextCursor)}>
+        <Button htmlType="button" disabled={busy} onClick={() => setCursor(nextCursor)}>
           {isAr ? 'المزيد' : 'Load more'}
         </Button>
       ) : null}
