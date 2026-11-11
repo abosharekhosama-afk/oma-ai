@@ -18,13 +18,55 @@ type NavItem = {
 
 const nav: NavItem[] = [
   { href: '/app/admin', icon: 'home', labelEn: 'Overview', labelAr: 'نظرة عامة', superOnly: true },
-  { href: '/app/admin/tenants', icon: 'company', labelEn: 'Subscribers', labelAr: 'المشتركون', superOnly: true },
-  { href: '/app/admin/plans', icon: 'settings', labelEn: 'Plans & pricing', labelAr: 'الخطط والأسعار', superOnly: true },
-  { href: '/app/admin/billing', icon: 'analytics', labelEn: 'Billing & transfers', labelAr: 'الفوترة والتحويل', superOnly: false },
-  { href: '/app/admin/cases', icon: 'requests', labelEn: 'Support tickets', labelAr: 'تذاكر الدعم', superOnly: false },
-  { href: '/app/admin/issues', icon: 'activity', labelEn: 'Errors & jobs', labelAr: 'الأخطاء والمهام', superOnly: false },
-  { href: '/app/admin/support', icon: 'filter', labelEn: 'Diagnostics', labelAr: 'التشخيص', superOnly: false },
-  { href: '/app/admin/team', icon: 'team', labelEn: 'Support team', labelAr: 'فريق الدعم', superOnly: true },
+  {
+    href: '/app/admin/tenants',
+    icon: 'company',
+    labelEn: 'Subscribers',
+    labelAr: 'المشتركون',
+    superOnly: true,
+  },
+  {
+    href: '/app/admin/plans',
+    icon: 'settings',
+    labelEn: 'Plans & pricing',
+    labelAr: 'الخطط والأسعار',
+    superOnly: true,
+  },
+  {
+    href: '/app/admin/billing',
+    icon: 'analytics',
+    labelEn: 'Billing & transfers',
+    labelAr: 'الفوترة والتحويل',
+    superOnly: false,
+  },
+  {
+    href: '/app/admin/cases',
+    icon: 'requests',
+    labelEn: 'Support tickets',
+    labelAr: 'تذاكر الدعم',
+    superOnly: false,
+  },
+  {
+    href: '/app/admin/issues',
+    icon: 'activity',
+    labelEn: 'Errors & jobs',
+    labelAr: 'الأخطاء والمهام',
+    superOnly: false,
+  },
+  {
+    href: '/app/admin/support',
+    icon: 'filter',
+    labelEn: 'Diagnostics',
+    labelAr: 'التشخيص',
+    superOnly: false,
+  },
+  {
+    href: '/app/admin/team',
+    icon: 'team',
+    labelEn: 'Support team',
+    labelAr: 'فريق الدعم',
+    superOnly: true,
+  },
 ];
 
 export function AdminHubLayout({ children }: { children: React.ReactNode }) {

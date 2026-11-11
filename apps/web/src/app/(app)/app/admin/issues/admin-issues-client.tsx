@@ -4,7 +4,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useLocale } from '../../../../../lib/use-locale';
 import { usePlatformOperator } from '../../../../../lib/use-platform-operator';
-import { supportPublishingFailures, supportRetryPublish } from '../../../../../lib/platform-support-api';
+import {
+  supportPublishingFailures,
+  supportRetryPublish,
+} from '../../../../../lib/platform-support-api';
 import { useToast } from '../../../../../components/ui/toast';
 
 export default function AdminIssuesClient() {

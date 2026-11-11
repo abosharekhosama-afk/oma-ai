@@ -211,7 +211,11 @@ export default function AdminTenantsClient() {
           <div className="admin-hub__limit-grid">
             <label className="admin-hub__field">
               <span>{isAr ? 'علامات (تجاوز)' : 'Brands override'}</span>
-              <input value={limitBrands} onChange={(e) => setLimitBrands(e.target.value)} placeholder="∞" />
+              <input
+                value={limitBrands}
+                onChange={(e) => setLimitBrands(e.target.value)}
+                placeholder="∞"
+              />
             </label>
             <label className="admin-hub__field">
               <span>{isAr ? 'حسابات اجتماعية' : 'Social accounts'}</span>

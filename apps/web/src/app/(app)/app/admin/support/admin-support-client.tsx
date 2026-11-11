@@ -175,7 +175,8 @@ export default function AdminSupportClient() {
                 {storage
                   ? Object.entries(storage).map(([k, v]) => (
                       <li key={k}>
-                        <strong>{k}</strong>: {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                        <strong>{k}</strong>:{' '}
+                        {typeof v === 'object' ? JSON.stringify(v) : String(v)}
                       </li>
                     ))
                   : null}
