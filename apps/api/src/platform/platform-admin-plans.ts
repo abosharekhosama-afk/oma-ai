@@ -126,7 +126,10 @@ export async function patchAdminPlan(
     planUpdates.priceMonthlyUsdCents = Math.max(0, Math.floor(body.price_monthly_usd_cents));
   }
   if (body.price_yearly_per_month_usd_cents != null) {
-    planUpdates.priceYearlyPerMonthCents = Math.max(0, Math.floor(body.price_yearly_per_month_usd_cents));
+    planUpdates.priceYearlyPerMonthCents = Math.max(
+      0,
+      Math.floor(body.price_yearly_per_month_usd_cents),
+    );
   }
   if (body.name_en?.trim()) planUpdates.nameEn = body.name_en.trim();
   if (body.name_ar?.trim()) planUpdates.nameAr = body.name_ar.trim();

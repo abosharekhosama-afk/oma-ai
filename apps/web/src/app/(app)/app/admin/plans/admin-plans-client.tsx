@@ -4,7 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useLocale } from '../../../../../lib/use-locale';
 import { usePlatformOperator } from '../../../../../lib/use-platform-operator';
-import { adminListPlans, adminPatchPlan, type AdminPlanRow } from '../../../../../lib/platform-admin-api';
+import {
+  adminListPlans,
+  adminPatchPlan,
+  type AdminPlanRow,
+} from '../../../../../lib/platform-admin-api';
 import { useToast } from '../../../../../components/ui/toast';
 
 const LIMIT_FIELDS: Array<{ key: string; labelEn: string; labelAr: string; hint?: string }> = [
@@ -71,7 +75,12 @@ export default function AdminPlansClient() {
     void load();
   }, [load]);
 
-  function setDraftField(planCode: string, field: keyof Draft | string, value: string, isLimit?: boolean) {
+  function setDraftField(
+    planCode: string,
+    field: keyof Draft | string,
+    value: string,
+    isLimit?: boolean,
+  ) {
     setDrafts((prev) => {
       const d = prev[planCode];
       if (!d) return prev;
@@ -125,7 +134,8 @@ export default function AdminPlansClient() {
         return (
           <section key={plan.code} className="admin-hub__card admin-hub__form">
             <h2>
-              {isAr ? plan.name_ar : plan.name_en} <span className="admin-hub__tag">{plan.code}</span>
+              {isAr ? plan.name_ar : plan.name_en}{' '}
+              <span className="admin-hub__tag">{plan.code}</span>
             </h2>
             <div className="admin-hub__row">
               <label className="admin-hub__field">

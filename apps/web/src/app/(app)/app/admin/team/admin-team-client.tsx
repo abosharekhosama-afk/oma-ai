@@ -112,7 +112,11 @@ export default function AdminTeamClient() {
           <input value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         <label className="admin-hub__field">
-          <span>{isAr ? 'كلمة المرور (اختياري للحسابات الجديدة)' : 'Password (optional for new accounts)'}</span>
+          <span>
+            {isAr
+              ? 'كلمة المرور (اختياري للحسابات الجديدة)'
+              : 'Password (optional for new accounts)'}
+          </span>
           <input
             type="password"
             value={password}
@@ -120,7 +124,11 @@ export default function AdminTeamClient() {
             autoComplete="new-password"
           />
         </label>
-        <Button htmlType="button" disabled={busy || !email.trim()} onClick={() => void createSupportUser()}>
+        <Button
+          htmlType="button"
+          disabled={busy || !email.trim()}
+          onClick={() => void createSupportUser()}
+        >
           {isAr ? 'إنشاء / ترقية' : 'Create / promote'}
         </Button>
         {tempPassword ? (

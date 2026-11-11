@@ -191,11 +191,21 @@ export async function patchPlatformOperator(
   correlationId?: string,
 ) {
   if (!body.system_role) {
-    throw new DomainError('VALIDATION_FAILED', 'system_role required', 400, 'errors.validation_failed');
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'system_role required',
+      400,
+      'errors.validation_failed',
+    );
   }
   const next = String(body.system_role).trim().toUpperCase();
   if (!(SYSTEM_ROLES as readonly string[]).includes(next)) {
-    throw new DomainError('VALIDATION_FAILED', 'Invalid system_role', 400, 'errors.validation_failed');
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'Invalid system_role',
+      400,
+      'errors.validation_failed',
+    );
   }
   const prisma = getPrisma();
   const user = await prisma.user.findUnique({
@@ -214,7 +224,9 @@ export async function patchPlatformOperator(
   }
 
   if (user.systemRole === 'SUPER_ADMIN' && next === 'USER') {
-    const supers = await prisma.user.count({ where: { systemRole: 'SUPER_ADMIN', status: 'ACTIVE' } });
+    const supers = await prisma.user.count({
+      where: { systemRole: 'SUPER_ADMIN', status: 'ACTIVE' },
+    });
     if (supers <= 1) {
       throw new DomainError(
         'VALIDATION_FAILED',

@@ -75,9 +75,7 @@ export default function AdminTenantsClient() {
     if (!selectedId) return;
     try {
       const storage_limit_bytes =
-        editStorageGb.trim() === ''
-          ? null
-          : Math.round(Number(editStorageGb) * 1024 * 1024 * 1024);
+        editStorageGb.trim() === '' ? null : Math.round(Number(editStorageGb) * 1024 * 1024 * 1024);
       await adminPatchTenant(selectedId, {
         plan_code: editPlan,
         storage_limit_bytes,
@@ -165,8 +163,14 @@ export default function AdminTenantsClient() {
       ) : null}
 
       {selectedId ? (
-        <section className="admin-hub__card admin-hub__form" role="dialog" aria-labelledby="tenant-edit-title">
-          <h2 id="tenant-edit-title">{isAr ? 'تعديل الخطة والتخزين' : 'Edit plan & storage override'}</h2>
+        <section
+          className="admin-hub__card admin-hub__form"
+          role="dialog"
+          aria-labelledby="tenant-edit-title"
+        >
+          <h2 id="tenant-edit-title">
+            {isAr ? 'تعديل الخطة والتخزين' : 'Edit plan & storage override'}
+          </h2>
           <label className="admin-hub__field">
             <span>{isAr ? 'رمز الخطة' : 'Plan code'}</span>
             <select value={editPlan} onChange={(e) => setEditPlan(e.target.value)}>
