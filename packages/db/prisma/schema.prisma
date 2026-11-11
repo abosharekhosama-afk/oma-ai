@@ -13,6 +13,13 @@ enum UserStatus {
   DELETED
 }
 
+/// Cross-tenant platform operator role (orthogonal to tenant CapabilityProfile grants).
+enum SystemRole {
+  SUPER_ADMIN
+  SUPPORT_SPECIALIST
+  USER
+}
+
 enum MembershipStatus {
   INVITED
   ACTIVE
@@ -62,6 +69,7 @@ model User {
   twoFactorBackupCodes String?
   deletionScheduledAt  DateTime?
   deletionPurgeAt      DateTime?
+  systemRole           SystemRole     @default(USER)
   status               UserStatus     @default(ACTIVE)
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt

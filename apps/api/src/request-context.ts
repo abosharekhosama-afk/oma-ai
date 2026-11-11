@@ -3,6 +3,8 @@ export type RequestContext = {
   requestId: string;
   userId?: string;
   tenantId?: string;
+  /** Cross-tenant platform operator role from User.systemRole (set by AuthGuard / operator middleware). */
+  systemRole?: import('@oma/domain').SystemRole;
   capabilities: string[];
   membershipId?: string;
   /** Planable team | client — client/guest must not see hidden posts. */

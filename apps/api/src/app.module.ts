@@ -2,6 +2,7 @@ import { SocialController } from './social/social.controller';
 import { MediaController, WorkDriveController } from './media/media.controller';
 import { WorkDriveWebhookController } from './media/workdrive-webhook.controller';
 import { BrandScopeMiddleware } from './common/middleware/brand-scope.middleware';
+import { PlatformAdminSupportMiddleware } from './common/middleware/platform-admin-support.middleware';
 import { ActivityController, HomeController } from './home/home.controller';
 import { WorkspaceSettingsController } from './workspace/workspace-settings.controller';
 import { PublishQueuesController } from './workspace/publish-queues.controller';
@@ -42,6 +43,8 @@ import { BillingWebhookController } from './billing/billing-webhook.controller';
 import { InboxController } from './inbox/inbox.controller';
 import { ListeningController } from './listening/listening.controller';
 import { WebhooksController } from './webhooks/webhooks.controller';
+import { PlatformAdminController } from './platform/platform-admin.controller';
+import { SupportController } from './platform/support.controller';
 
 @Module({
   controllers: [
@@ -83,6 +86,8 @@ import { WebhooksController } from './webhooks/webhooks.controller';
     InboxController,
     ListeningController,
     WebhooksController,
+    PlatformAdminController,
+    SupportController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
@@ -93,6 +98,8 @@ import { WebhooksController } from './webhooks/webhooks.controller';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationMiddleware, BrandScopeMiddleware).forRoutes('*');
+    consumer
+      .apply(CorrelationMiddleware, BrandScopeMiddleware, PlatformAdminSupportMiddleware)
+      .forRoutes('*');
   }
 }

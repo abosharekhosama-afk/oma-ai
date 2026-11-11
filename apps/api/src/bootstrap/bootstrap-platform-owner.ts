@@ -18,7 +18,13 @@ async function main() {
         name: 'Platform Owner',
         passwordHash: await hashPassword(env.BOOTSTRAP_PLATFORM_OWNER_PASSWORD),
         status: 'ACTIVE',
+        systemRole: 'SUPER_ADMIN',
       },
+    });
+  } else if (user.systemRole !== 'SUPER_ADMIN') {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { systemRole: 'SUPER_ADMIN' },
     });
   }
   let tenant = await prisma.tenant.findUnique({ where: { slug: 'platform' } });
