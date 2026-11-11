@@ -85,11 +85,14 @@ model User {
 - Stub `GET /admin/health`, `GET /support/health`
 - EDD (this document)
 
-### Phase 1 — Super Admin Dashboard API
+### Phase 1 — Super Admin Dashboard API (in progress)
 
-- Admin module services: tenant CRUD, plan limits, metrics aggregation
-- Audit events for every mutating admin action
-- No secret values in responses
+- [x] `GET /admin/metrics/overview` — MRR estimate, subscriptions, WorkDrive reconcile snapshot
+- [x] `GET/POST/PATCH /admin/tenants` (+ `GET /admin/tenants/:id`) with audit
+- [x] `GET /admin/system/secrets` — configured/missing only (env)
+- [x] `WorkspaceStorageSetting.adminStorageLimitBytes` override wired into storage quota checks
+- [x] Billing admin routes use shared `requireSuperAdminOperator` (legacy `platform.support.access` fallback)
+- [ ] Next.js `/app/admin` shell (Phase 3)
 
 ### Phase 2 — Support Hub
 

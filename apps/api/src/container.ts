@@ -18,8 +18,10 @@ import { ContentExtrasService } from './content/content-extras.service';
 import { OpsService } from './content/ops.service';
 import { WorkDriveService } from './media/workdrive.service';
 import { MediaService } from './media/media.service';
+import { PlatformAdminService } from './platform/platform-admin.service';
 
 export const auditService = new AuditService();
+export const platformAdminService = new PlatformAdminService(auditService);
 export const identityService = new IdentityService(auditService);
 export const tenantService = new TenantService(auditService);
 export const brandService = new BrandService(auditService);

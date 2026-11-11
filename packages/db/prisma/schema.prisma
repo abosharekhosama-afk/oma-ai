@@ -1963,6 +1963,8 @@ model WorkspaceStorageSetting {
   backupPausedAt        DateTime?
   /// quota_exceeded | key_revoked
   backupPausedReason    String?
+  /// Super-admin override for plan storage_bytes (null = follow plan catalog only).
+  adminStorageLimitBytes BigInt?
   updatedAt             DateTime    @updatedAt
   tenant                Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
