@@ -68,12 +68,12 @@ model User {
 
 **Auth stack per route:** `AuthGuard` → `PlatformAdminGuard` or `SupportGuard` → handler. **Global middleware** `PlatformAdminSupportMiddleware` enforces the same roles on path prefix.
 
-## Frontend (Phase 3)
+## Frontend (Phase 3 — MVP shipped)
 
-- Route group `apps/web/src/app/admin/**` with dedicated layout.
-- Server component loads session + calls API `GET /api/v1/account/...` (extended with `system_role`) or BFF proxy.
-- Redirect non-operators to `/app`.
-- EN/AR + RTL using Planable tokens (DEC-017).
+- `/app/admin` hub layout (bypasses client AppShell), gated by `system_role` + legacy `platform.support.access`
+- Screens: overview, tenants, support, billing (existing)
+- `auth/me` exposes `user.system_role`
+- Follow-up: Planable polish, operator E2E, structured support diagnostics UI
 
 ## Phase plan
 

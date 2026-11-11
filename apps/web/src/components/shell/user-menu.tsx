@@ -149,6 +149,23 @@ export function UserMenu({ variant = 'rail' }: { variant?: 'rail' | 'header' } =
           </span>
         </Link>
 
+        {isPlatformAdmin ? (
+          <Link
+            href="/app/admin"
+            className="oma-plx-account-card__item"
+            role="menuitem"
+            data-testid="shell-user-menu-platform-hub"
+            onClick={() => setOpen(false)}
+          >
+            <span className="oma-plx-account-card__icon" aria-hidden="true">
+              <ShellIcon name="settings" size={16} />
+            </span>
+            <span className="oma-plx-account-card__label">
+              {t('shell.platform_hub') || (locale === 'ar' ? 'إدارة المنصة' : 'Platform hub')}
+            </span>
+          </Link>
+        ) : null}
+
         <button
           type="button"
           className="oma-plx-account-card__item oma-plx-account-card__item--logout"
