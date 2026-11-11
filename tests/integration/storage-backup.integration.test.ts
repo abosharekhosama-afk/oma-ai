@@ -30,7 +30,6 @@ describe('SYNC_BACKUP StorageBackupJob', () => {
       headers: {
         ...authHeaders(seed),
         'content-type': 'image/png',
-        'content-length': String(bytes.length),
       },
       body: bytes,
     });

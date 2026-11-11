@@ -32,7 +32,6 @@ describe('storage strategy cleanup (phase 5)', () => {
       headers: {
         ...authHeaders(seed),
         'content-type': 'image/png',
-        'content-length': String(bytes.length),
       },
       body: bytes,
     });

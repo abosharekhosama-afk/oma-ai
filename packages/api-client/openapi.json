@@ -4916,6 +4916,294 @@
           "Webhooks"
         ]
       }
+    },
+    "/api/v1/admin/health": {
+      "get": {
+        "operationId": "PlatformAdminController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/metrics/overview": {
+      "get": {
+        "operationId": "PlatformAdminController_metricsOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/tenants": {
+      "get": {
+        "operationId": "PlatformAdminController_listTenants",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      },
+      "post": {
+        "operationId": "PlatformAdminController_createTenant",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/tenants/{tenantId}": {
+      "get": {
+        "operationId": "PlatformAdminController_getTenant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      },
+      "patch": {
+        "operationId": "PlatformAdminController_patchTenant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/system/secrets": {
+      "get": {
+        "operationId": "PlatformAdminController_secretsStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/operators": {
+      "get": {
+        "operationId": "PlatformAdminController_listOperators",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      },
+      "post": {
+        "operationId": "PlatformAdminController_createOperator",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/operators/{userId}": {
+      "patch": {
+        "operationId": "PlatformAdminController_patchOperator",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/plans": {
+      "get": {
+        "operationId": "PlatformAdminController_listPlans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/plans/{planCode}": {
+      "patch": {
+        "operationId": "PlatformAdminController_patchPlan",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/support/health": {
+      "get": {
+        "operationId": "SupportController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/lookup": {
+      "get": {
+        "operationId": "SupportController_lookup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/tenants/{tenantId}/social": {
+      "get": {
+        "operationId": "SupportController_tenantSocial",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/tenants/{tenantId}/storage": {
+      "get": {
+        "operationId": "SupportController_tenantStorage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/publishing/failures": {
+      "get": {
+        "operationId": "SupportController_publishingFailures",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/publishing/{publishTargetId}/retry": {
+      "post": {
+        "operationId": "SupportController_retryPublish",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/impersonate": {
+      "post": {
+        "operationId": "SupportController_startImpersonation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/impersonate/{impersonationId}/assume": {
+      "post": {
+        "operationId": "SupportController_assumeImpersonation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/impersonate/{impersonationId}": {
+      "delete": {
+        "operationId": "SupportController_endImpersonation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
     }
   },
   "info": {

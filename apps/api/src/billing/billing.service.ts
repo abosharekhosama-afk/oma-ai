@@ -159,7 +159,11 @@ export class BillingService {
     const planCode = await this.getPlanCode(tenantId);
     const plan = await hydratePlan(planCode);
     const canonical = canonicalLimitKey(key);
-    const limit = plan.limits[canonical] ?? plan.limits[key as PlanLimitKey];
+    let limit = plan.limits[canonical] ?? plan.limits[key as PlanLimitKey];
+    if (canonical === 'storage_bytes') {
+      const { resolveAdminStorageLimitBytes } = await import('@oma/db');
+      limit = await resolveAdminStorageLimitBytes(tenantId, limit ?? null);
+    }
     if (limit == null) return { planCode, limit, used: opts?.usedOverride ?? 0 };
     let used = opts?.usedOverride;
     if (used == null) {

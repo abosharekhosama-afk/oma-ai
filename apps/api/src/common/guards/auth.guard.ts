@@ -66,6 +66,7 @@ export class AuthGuard implements CanActivate {
       ...(req.oma ?? { correlationId: '', requestId: '', capabilities: [] }),
       userId: session.userId,
       tenantId: activeTenantId ?? undefined,
+      systemRole: session.user.systemRole,
       capabilities: [],
     };
     (req as Request & { sessionId?: string }).sessionId = session.id;

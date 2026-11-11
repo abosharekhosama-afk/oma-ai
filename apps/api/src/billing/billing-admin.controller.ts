@@ -1,64 +1,35 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { DomainError } from '@oma/domain';
-import { getPrisma } from '@oma/db';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
+import { requireSuperAdminOperator } from '../platform/platform-admin-auth';
 import { billingService } from './billing.service';
-
-async function requireSuperAdmin(req: Request) {
-  const userId = req.oma?.userId;
-  if (!userId) {
-    throw new DomainError(
-      'UNAUTHENTICATED',
-      'Authentication required',
-      401,
-      'errors.unauthenticated',
-    );
-  }
-  const grant = await getPrisma().capabilityGrant.findFirst({
-    where: {
-      capabilityCode: 'platform.support.access',
-      revokedAt: null,
-      membership: { userId, status: 'ACTIVE' },
-    },
-    select: { id: true },
-  });
-  if (!grant) {
-    throw new DomainError(
-      'PERMISSION_DENIED',
-      'Only the platform owner can manage billing for workspaces',
-      403,
-      'errors.permission_denied',
-    );
-  }
-  return userId;
-}
 
 @Controller()
 @UseGuards(AuthGuard)
 export class BillingAdminController {
   @Get('api/v1/admin/billing/workspaces')
   async workspaces(@Req() req: Request, @Query('q') q?: string) {
-    await requireSuperAdmin(req);
+    await requireSuperAdminOperator(req);
     return billingService.adminListWorkspaces(q);
   }
 
   @Get('api/v1/admin/billing/orders')
   async orders(@Req() req: Request, @Query('status') status?: string) {
-    await requireSuperAdmin(req);
+    await requireSuperAdminOperator(req);
     return billingService.adminListOrders(status);
   }
 
   @Get('api/v1/admin/billing/orders/:id/receipt')
   async receipt(@Req() req: Request, @Param('id') id: string) {
-    await requireSuperAdmin(req);
+    await requireSuperAdminOperator(req);
     return billingService.adminGetOrderReceipt(id);
   }
 
   @Get('api/v1/admin/billing/settings')
   async settings(@Req() req: Request) {
-    await requireSuperAdmin(req);
+    await requireSuperAdminOperator(req);
     return billingService.getSettings();
   }
 
@@ -76,7 +47,7 @@ export class BillingAdminController {
       bank_instructions_ar?: string;
     },
   ) {
-    const actor = await requireSuperAdmin(req);
+    const actor = await requireSuperAdminOperator(req);
     return billingService.updateSettings(actor, body ?? {});
   }
 
@@ -95,7 +66,7 @@ export class BillingAdminController {
       x_api_addon?: boolean;
     },
   ) {
-    const actor = await requireSuperAdmin(req);
+    const actor = await requireSuperAdminOperator(req);
     if (!body?.plan_code) {
       throw new DomainError(
         'VALIDATION_FAILED',
@@ -121,7 +92,7 @@ export class BillingAdminController {
     @Param('tenantId') tenantId: string,
     @Body() body: { days?: number; note?: string },
   ) {
-    const actor = await requireSuperAdmin(req);
+    const actor = await requireSuperAdminOperator(req);
     return billingService.adminExtend(tenantId, actor, {
       days: Number(body?.days ?? 0),
       note: body?.note,
@@ -135,21 +106,21 @@ export class BillingAdminController {
     @Param('tenantId') tenantId: string,
     @Body() body: { note?: string },
   ) {
-    const actor = await requireSuperAdmin(req);
+    const actor = await requireSuperAdminOperator(req);
     return billingService.adminCancel(tenantId, actor, { note: body?.note });
   }
 
   @Post('api/v1/admin/billing/orders/:id/approve')
   @UseGuards(CsrfGuard)
   async approve(@Req() req: Request, @Param('id') id: string, @Body() body: { note?: string }) {
-    const actor = await requireSuperAdmin(req);
+    const actor = await requireSuperAdminOperator(req);
     return billingService.adminReviewOrder(id, actor, 'approve', body?.note);
   }
 
   @Post('api/v1/admin/billing/orders/:id/reject')
   @UseGuards(CsrfGuard)
   async reject(@Req() req: Request, @Param('id') id: string, @Body() body: { note?: string }) {
-    const actor = await requireSuperAdmin(req);
+    const actor = await requireSuperAdminOperator(req);
     return billingService.adminReviewOrder(id, actor, 'reject', body?.note);
   }
 }

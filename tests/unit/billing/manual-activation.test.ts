@@ -19,8 +19,7 @@ describe('manual activation and access', () => {
 
   it('exposes super-admin activate, extend, cancel and audit actions', () => {
     const admin = readFileSync(resolve('apps/api/src/billing/billing-admin.controller.ts'), 'utf8');
-    expect(admin).toContain('requireSuperAdmin');
-    expect(admin).toContain('platform.support.access');
+    expect(admin).toContain('requireSuperAdminOperator');
     expect(admin).toContain('api/v1/admin/billing/workspaces/:tenantId/activate');
     expect(admin).toContain('api/v1/admin/billing/workspaces/:tenantId/extend');
     expect(admin).toContain('api/v1/admin/billing/workspaces/:tenantId/cancel');

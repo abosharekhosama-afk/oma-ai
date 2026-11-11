@@ -3,6 +3,7 @@ export * from './errors';
 export * from './auth/password';
 export * from './auth/session-token';
 export * from './authz/capabilities';
+export * from './authz/system-role';
 export * from './authz/brand-roles';
 export * from './tenant/slug';
 export * from './tenant/membership-routing';

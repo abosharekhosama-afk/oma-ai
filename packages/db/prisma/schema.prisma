@@ -13,6 +13,13 @@ enum UserStatus {
   DELETED
 }
 
+/// Cross-tenant platform operator role (orthogonal to tenant CapabilityProfile grants).
+enum SystemRole {
+  SUPER_ADMIN
+  SUPPORT_SPECIALIST
+  USER
+}
+
 enum MembershipStatus {
   INVITED
   ACTIVE
@@ -62,13 +69,16 @@ model User {
   twoFactorBackupCodes String?
   deletionScheduledAt  DateTime?
   deletionPurgeAt      DateTime?
+  systemRole           SystemRole     @default(USER)
   status               UserStatus     @default(ACTIVE)
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
-  sessions             Session[]
-  memberships          Membership[]
-  auditEvents          AuditEvent[]   @relation("ActorUser")
-  authIdentities       AuthIdentity[]
+  sessions                          Session[]
+  memberships                       Membership[]
+  auditEvents                       AuditEvent[]                  @relation("ActorUser")
+  authIdentities                    AuthIdentity[]
+  supportImpersonationsAsSpecialist SupportImpersonationSession[] @relation("SupportImpersonator")
+  supportImpersonationsAsTarget     SupportImpersonationSession[] @relation("SupportImpersonationTarget")
 }
 
 model AuthIdentity {
@@ -127,9 +137,32 @@ model Session {
   revokedAt      DateTime?
   lastSeenAt     DateTime  @default(now())
   user           User      @relation(fields: [userId], references: [id])
-  activeTenant   Tenant?   @relation(fields: [activeTenantId], references: [id])
+  activeTenant          Tenant?                      @relation(fields: [activeTenantId], references: [id])
+  supportImpersonation  SupportImpersonationSession?
 
   @@index([userId])
+}
+
+/// Audited, time-boxed "login as" for support troubleshooting.
+model SupportImpersonationSession {
+  id            String    @id
+  supportUserId String
+  targetUserId  String
+  tenantId      String
+  sessionId     String?   @unique
+  reason        String
+  startedAt     DateTime  @default(now())
+  expiresAt     DateTime
+  endedAt       DateTime?
+  endedReason   String?
+  supportUser   User      @relation("SupportImpersonator", fields: [supportUserId], references: [id])
+  targetUser    User      @relation("SupportImpersonationTarget", fields: [targetUserId], references: [id])
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  session       Session?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([supportUserId, endedAt])
+  @@index([targetUserId])
+  @@index([tenantId, startedAt])
 }
 
 model Tenant {
@@ -165,7 +198,8 @@ model Tenant {
   listeningAlerts      ListeningAlert[]
   storageSetting       WorkspaceStorageSetting?
   storageBackupJobs    StorageBackupJob[]
-  storageMigrations    StorageMigration[]
+  storageMigrations       StorageMigration[]
+  supportImpersonations SupportImpersonationSession[]
 }
 
 enum AiRunStatus {
@@ -1955,6 +1989,8 @@ model WorkspaceStorageSetting {
   backupPausedAt        DateTime?
   /// quota_exceeded | key_revoked
   backupPausedReason    String?
+  /// Super-admin override for plan storage_bytes (null = follow plan catalog only).
+  adminStorageLimitBytes BigInt?
   updatedAt             DateTime    @updatedAt
   tenant                Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }

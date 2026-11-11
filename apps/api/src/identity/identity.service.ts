@@ -433,6 +433,7 @@ export class IdentityService {
         id: user.id,
         email: user.email,
         name: user.name,
+        system_role: user.systemRole,
         preferred_locale: user.preferredLocale,
         preferred_dir: user.preferredDir,
         avatar_url: user.avatarUrl ?? null,
