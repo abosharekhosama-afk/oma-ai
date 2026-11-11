@@ -7,6 +7,7 @@ import { getProfile, initials, type Profile } from '../../lib/account-api';
 import { SESSION_OK_KEY } from '../../lib/session';
 import { useCapabilities } from '../../lib/use-capabilities';
 import { useLocale, useT } from '../../lib/use-locale';
+import { usePlatformOperator } from '../../lib/use-platform-operator';
 import { ConfirmActionDialog } from '../ui/confirm-action-dialog';
 import { ShellIcon } from './shell-icons';
 import { ShellPopover } from './shell-popover';
@@ -16,7 +17,8 @@ export function UserMenu({ variant = 'rail' }: { variant?: 'rail' | 'header' } =
   const locale = useLocale();
   const headerPlacement = locale === 'ar' ? 'bottomLeft' : 'bottomRight';
   const caps = useCapabilities();
-  const isPlatformAdmin = caps.can('platform.support.access');
+  const operator = usePlatformOperator();
+  const isPlatformAdmin = operator.ok || caps.can('platform.support.access');
   const billingHref = isPlatformAdmin ? '/app/admin/billing' : '/app/billing';
   const [open, setOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
