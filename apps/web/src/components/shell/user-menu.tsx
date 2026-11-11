@@ -151,6 +151,20 @@ export function UserMenu({ variant = 'rail' }: { variant?: 'rail' | 'header' } =
           </span>
         </Link>
 
+        <Link
+          href="/app/help"
+          className="oma-plx-account-card__item"
+          role="menuitem"
+          onClick={() => setOpen(false)}
+        >
+          <span className="oma-plx-account-card__icon" aria-hidden="true">
+            <ShellIcon name="requests" size={16} />
+          </span>
+          <span className="oma-plx-account-card__label">
+            {t('shell.help_contact') || (locale === 'ar' ? 'الدعم الفني' : 'Contact support')}
+          </span>
+        </Link>
+
         {isPlatformAdmin ? (
           <Link
             href="/app/admin"

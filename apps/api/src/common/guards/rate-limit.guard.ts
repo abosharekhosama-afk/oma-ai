@@ -11,6 +11,7 @@ type RateLimitRequest = {
   method?: string;
   route?: { path?: string | string[] };
   body?: { email?: unknown };
+  oma?: { userId?: string };
 };
 
 const MAX_MEMORY_BUCKETS = 50_000;
@@ -161,6 +162,16 @@ export class RateLimitGuard implements CanActivate {
       budgets.push({ key: `billing:${ip}`, limit: 20, windowMs: 60_000 });
     } else if (method !== 'GET' && path.includes('/api/v1/admin/billing')) {
       budgets.push({ key: `admin-billing:${ip}`, limit: 30, windowMs: 60_000 });
+    } else if (path.startsWith('/api/v1/admin')) {
+      budgets.push({ key: `platform-admin:${ip}`, limit: 120, windowMs: 60_000 });
+    } else if (path.startsWith('/api/v1/support')) {
+      const userId = req.oma?.userId ?? 'anon';
+      budgets.push({ key: `platform-support:${userId}:${ip}`, limit: 90, windowMs: 60_000 });
+      if (path.includes('/lookup')) {
+        budgets.push({ key: `platform-support-lookup:${userId}`, limit: 30, windowMs: 60_000 });
+      }
+    } else if (path.startsWith('/api/v1/helpdesk')) {
+      budgets.push({ key: `helpdesk:${ip}`, limit: 30, windowMs: 60_000 });
     }
 
     for (const budget of budgets) {
