@@ -79,6 +79,8 @@ model User {
   authIdentities                    AuthIdentity[]
   supportImpersonationsAsSpecialist SupportImpersonationSession[] @relation("SupportImpersonator")
   supportImpersonationsAsTarget     SupportImpersonationSession[] @relation("SupportImpersonationTarget")
+  supportCasesCreated               SupportCase[]                 @relation("SupportCaseCreator")
+  supportCaseMessages               SupportCaseMessage[]
 }
 
 model AuthIdentity {
@@ -165,6 +167,54 @@ model SupportImpersonationSession {
   @@index([tenantId, startedAt])
 }
 
+enum SupportCaseStatus {
+  OPEN
+  AWAITING_SUPPORT
+  AWAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportCasePriority {
+  NORMAL
+  HIGH
+}
+
+/// Tenant-scoped helpdesk ticket. Customers open cases; platform support replies.
+model SupportCase {
+  id               String              @id
+  tenantId         String
+  createdByUserId  String
+  subject          String
+  status           SupportCaseStatus   @default(OPEN)
+  priority         SupportCasePriority @default(NORMAL)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  closedAt         DateTime?
+  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy        User                @relation("SupportCaseCreator", fields: [createdByUserId], references: [id])
+  messages         SupportCaseMessage[]
+
+  @@index([tenantId, updatedAt])
+  @@index([status, updatedAt])
+}
+
+model SupportCaseMessage {
+  id             String   @id
+  caseId         String
+  authorUserId   String
+  /// customer | support — derived from session role at write time
+  authorKind     String
+  body           String
+  /// Visible to support operators only (internal note).
+  internal       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  case           SupportCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  author         User        @relation(fields: [authorUserId], references: [id])
+
+  @@index([caseId, createdAt])
+}
+
 model Tenant {
   id                   String                 @id
   name                 String
@@ -200,6 +250,7 @@ model Tenant {
   storageBackupJobs    StorageBackupJob[]
   storageMigrations       StorageMigration[]
   supportImpersonations SupportImpersonationSession[]
+  supportCases          SupportCase[]
 }
 
 enum AiRunStatus {

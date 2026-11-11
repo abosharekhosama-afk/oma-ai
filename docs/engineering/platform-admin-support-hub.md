@@ -115,12 +115,23 @@ model User {
 - `/app/admin` navigation, role gates, tables, detail drawers
 - Wire to Phase 1–2 APIs; empty/error states
 
+## Phase 4 — Helpdesk (customer ↔ support)
+
+| Surface      | Route                             | Audience                             |
+| ------------ | --------------------------------- | ------------------------------------ |
+| Tenant API   | `POST/GET /api/v1/helpdesk/cases` | Active tenant members                |
+| Operator API | `GET/POST /api/v1/support/cases`  | `SUPPORT_SPECIALIST` + `SUPER_ADMIN` |
+| Client UI    | `/app/help`                       | Workspace users                      |
+| Operator UI  | `/app/admin/cases`                | Support inbox + internal notes       |
+
+**Security:** tenant isolation on helpdesk reads/writes; operator sees all cases; `internal` messages hidden from customers; audit events on create/reply; rate limits on `/admin`, `/support`, `/helpdesk`.
+
 ## Security checklist
 
 - [x] Default `systemRole = USER` for new users
 - [x] Admin/support paths denied without role (middleware + guards)
-- [ ] Impersonation audit (Phase 2)
-- [ ] Rate limits on lookup endpoints (Phase 2)
+- [x] Rate limits on admin/support/helpdesk/lookup
+- [x] Helpdesk tenant membership gate + audit trail
 - [ ] CI security tests for cross-tenant denial
 
 ## References

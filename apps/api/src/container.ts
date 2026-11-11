@@ -19,11 +19,13 @@ import { OpsService } from './content/ops.service';
 import { WorkDriveService } from './media/workdrive.service';
 import { MediaService } from './media/media.service';
 import { PlatformAdminService } from './platform/platform-admin.service';
+import { SupportCaseService } from './platform/support-case.service';
 import { SupportService } from './platform/support.service';
 
 export const auditService = new AuditService();
 export const identityService = new IdentityService(auditService);
 export const platformAdminService = new PlatformAdminService(auditService);
+export const supportCaseService = new SupportCaseService(auditService);
 export const supportService = new SupportService(auditService, identityService);
 export const tenantService = new TenantService(auditService);
 export const brandService = new BrandService(auditService);

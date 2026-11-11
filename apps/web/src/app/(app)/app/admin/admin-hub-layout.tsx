@@ -16,7 +16,8 @@ const links = [
     superOnly: true,
   },
   { href: '/app/admin/team', labelEn: 'Support team', labelAr: 'فريق الدعم', superOnly: true },
-  { href: '/app/admin/support', labelEn: 'Support', labelAr: 'الدعم الفني', superOnly: false },
+  { href: '/app/admin/cases', labelEn: 'Tickets', labelAr: 'التذاكر', superOnly: false },
+  { href: '/app/admin/support', labelEn: 'Diagnostics', labelAr: 'التشخيص', superOnly: false },
   { href: '/app/admin/billing', labelEn: 'Billing', labelAr: 'الفوترة', superOnly: false },
 ] as const;
 

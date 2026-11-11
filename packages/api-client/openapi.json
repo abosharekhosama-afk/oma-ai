@@ -5191,6 +5191,48 @@
         ]
       }
     },
+    "/api/v1/support/cases": {
+      "get": {
+        "operationId": "SupportController_cases",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/cases/{caseId}": {
+      "get": {
+        "operationId": "SupportController_caseDetail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
+    "/api/v1/support/cases/{caseId}/messages": {
+      "post": {
+        "operationId": "SupportController_caseReply",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Support"
+        ]
+      }
+    },
     "/api/v1/support/impersonate/{impersonationId}": {
       "delete": {
         "operationId": "SupportController_endImpersonation",
@@ -5202,6 +5244,60 @@
         },
         "tags": [
           "Support"
+        ]
+      }
+    },
+    "/api/v1/helpdesk/cases": {
+      "get": {
+        "operationId": "HelpdeskController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Helpdesk"
+        ]
+      },
+      "post": {
+        "operationId": "HelpdeskController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Helpdesk"
+        ]
+      }
+    },
+    "/api/v1/helpdesk/cases/{caseId}": {
+      "get": {
+        "operationId": "HelpdeskController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Helpdesk"
+        ]
+      }
+    },
+    "/api/v1/helpdesk/cases/{caseId}/messages": {
+      "post": {
+        "operationId": "HelpdeskController_reply",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Helpdesk"
         ]
       }
     }

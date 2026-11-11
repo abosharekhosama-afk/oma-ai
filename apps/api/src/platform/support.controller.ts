@@ -15,7 +15,7 @@ import type { Request, Response } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { SupportGuard } from '../common/guards/support.guard';
-import { supportService } from '../container';
+import { supportCaseService, supportService } from '../container';
 import { ensureCsrfCookie, setSessionCookie } from '../identity/session-cookie';
 import { requireSupportOperator } from './support-auth';
 
@@ -95,6 +95,28 @@ export class SupportController {
         tenant_id: result.tenant_id,
       },
     };
+  }
+
+  @Get('cases')
+  cases(@Query('status') status?: string, @Query('q') q?: string) {
+    return supportCaseService.listForOperator({ status, q });
+  }
+
+  @Get('cases/:caseId')
+  caseDetail(@Param('caseId') caseId: string) {
+    return supportCaseService.getForOperator(caseId);
+  }
+
+  @Post('cases/:caseId/messages')
+  @UseGuards(CsrfGuard)
+  @HttpCode(200)
+  async caseReply(
+    @Req() req: Request,
+    @Param('caseId') caseId: string,
+    @Body() body: { message?: string; internal?: boolean; status?: string },
+  ) {
+    const actor = await requireSupportOperator(req);
+    return supportCaseService.replyAsOperator(actor, caseId, body, req.oma?.correlationId);
   }
 
   @Delete('impersonate/:impersonationId')
