@@ -41,6 +41,11 @@ export const envSchema = z
           .filter((port) => Number.isInteger(port) && port > 0 && port < 65536),
       )
       .refine((ports) => ports.length > 0, 'BRAND_ALLOWED_PORTS must include at least one port'),
+    /** Default true: do not skip URLs disallowed by robots.txt during brand scans. */
+    BRAND_SCANNER_IGNORE_ROBOTS_TXT: z
+      .enum(['0', '1', 'true', 'false'])
+      .optional()
+      .transform((v) => v === undefined || v === '1' || v === 'true'),
     BRAND_SCANNER_ALLOW_PRIVATE_HOSTS: z
       .enum(['0', '1', 'true', 'false'])
       .optional()

@@ -151,6 +151,31 @@ describe('live-website-connector', () => {
     );
   });
 
+  it('skips robots disallow when ignoreRobotsTxt is set', async () => {
+    const server = await listen((req, res) => {
+      if (req.url === '/robots.txt') {
+        res.writeHead(200, { 'content-type': 'text/plain' });
+        res.end('User-agent: *\nDisallow: /\n');
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'text/html' });
+      res.end('<html><title>Ok</title></html>');
+    });
+    servers.push(server.close);
+    const connector = createLiveWebsiteConnector({
+      allowPrivateHosts: true,
+      delayMs: 0,
+      timeoutMs: 1500,
+      connectTimeoutMs: 500,
+      maxRetries: 1,
+      ignoreRobotsTxt: true,
+    });
+    await expect(connector.validateSource({ url: `${server.url}/about` })).resolves.toEqual({
+      ok: true,
+    });
+    expect(await connector.evaluateRobots(new URL(server.url).host, '/secret')).toBe('ALLOW');
+  });
+
   it('validates reachable html and rejects non-html plus robots disallow-all', async () => {
     const server = await listen((req, res) => {
       if (req.url === '/robots.txt') {

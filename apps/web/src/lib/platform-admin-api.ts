@@ -57,6 +57,63 @@ export function adminSystemSecrets() {
   }>('/api/v1/admin/system/secrets');
 }
 
+export type AdminIntegrationsStatus = {
+  ai: {
+    provider: string;
+    live_enabled: boolean;
+    availability: string;
+    mode: string;
+    state: string;
+    default_model: string;
+    reasoning_model: string;
+    provider_configured: boolean;
+  };
+  website_scan: {
+    connector_choice: string;
+    connector_mode: string;
+    ignore_robots_txt: boolean;
+    live_connector: boolean;
+  };
+  worker_note: string;
+};
+
+export function adminSystemIntegrations() {
+  return api<{ data: AdminIntegrationsStatus }>('/api/v1/admin/system/integrations');
+}
+
+export function adminProbeRedis() {
+  return api<{ ok: boolean; latency_ms: number; error?: string }>(
+    '/api/v1/admin/system/probes/redis',
+    { method: 'POST', body: JSON.stringify({}) },
+  );
+}
+
+export function adminProbeAi() {
+  return api<{
+    ok: boolean;
+    skipped?: boolean;
+    reason?: string;
+    code?: string;
+    model?: string;
+    latency_ms: number;
+    sample_text?: string;
+  }>('/api/v1/admin/system/probes/ai', { method: 'POST', body: JSON.stringify({}) });
+}
+
+export function adminProbeWebsiteScan(url?: string) {
+  return api<{
+    ok: boolean;
+    url: string;
+    latency_ms: number;
+    code?: string;
+    reason?: string;
+    http_status?: number;
+  }>('/api/v1/admin/system/probes/website-scan', {
+    method: 'POST',
+    body: JSON.stringify(url?.trim() ? { url: url.trim() } : {}),
+  });
+}
+
 export type AdminOperator = {
   id: string;
   email: string;
