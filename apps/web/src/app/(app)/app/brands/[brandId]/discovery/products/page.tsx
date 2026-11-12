@@ -10,11 +10,13 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
 import type {
   BrandDetail,
+  DiscoveredPage,
   DiscoveredProduct,
   EvidenceItem,
   Paginated,
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
+import { likelySpaShell } from '../../../../../../../lib/brand-scan-ui';
 import {
   ConnectorModeChip,
   type ConnectorMode,
@@ -38,6 +40,7 @@ export default function DiscoveryProductsPage() {
   const [denied, setDenied] = useState(false);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [evidenceByPage, setEvidenceByPage] = useState<Record<string, string>>({});
+  const [spaLikely, setSpaLikely] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -50,15 +53,17 @@ export default function DiscoveryProductsPage() {
           return;
         }
         setScanId(latest);
-        const [scanRes, productsRes, evidenceRes] = await Promise.all([
+        const [scanRes, productsRes, evidenceRes, pagesRes] = await Promise.all([
           api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${latest}`),
           api<Paginated<DiscoveredProduct>>(`/api/v1/brands/${brandId}/scans/${latest}/products`),
           api<Paginated<EvidenceItem>>(
             `/api/v1/brands/${brandId}/scans/${latest}/evidence?limit=100`,
           ),
+          api<Paginated<DiscoveredPage>>(`/api/v1/brands/${brandId}/scans/${latest}/pages?limit=100`),
         ]);
         setConnectorMode(scanRes.data.connector_mode);
         setProducts(productsRes.data);
+        setSpaLikely(productsRes.data.length === 0 && likelySpaShell(pagesRes.data));
         const map: Record<string, string> = {};
         for (const item of evidenceRes.data) {
           if (item.discovered_page_id && !map[item.discovered_page_id]) {
@@ -116,8 +121,14 @@ export default function DiscoveryProductsPage() {
           <p style={{ color: 'var(--status-danger)' }}>{error}</p>
         </div>
       ) : products.length === 0 ? (
-        <div className="oma-card" role="status">
+        <div className="oma-card oma-stack" role="status">
           <p>{t('brand.discovery.productsEmpty')}</p>
+          {spaLikely ? (
+            <div className="oma-banner oma-banner-warning" data-testid="discovery-spa-hint">
+              <strong>{t('brand.discovery.spaHintTitle')}</strong>
+              <p>{t('brand.discovery.spaHintBody')}</p>
+            </div>
+          ) : null}
         </div>
       ) : (
         <ul className="oma-discovery-list">

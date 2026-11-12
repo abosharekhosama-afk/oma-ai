@@ -2,6 +2,7 @@
 import { Button, TextArea } from '@oma/ui/controls';
 
 import type { InsightItem } from '../../lib/brand-types';
+import { groupInsightsByFieldAndValue } from '../../lib/brand-scan-ui';
 import { useT } from '../../lib/use-locale';
 
 type ProfileSectionsProps = {
@@ -175,6 +176,7 @@ export function ProfileSections({
         <span className="oma-muted">
           {filled}/{insights.length || 0}
         </span>
+        <p className="oma-muted">{t('brand.profile.completenessHint')}</p>
       </div>
       <div className="oma-doc-canvas oma-editor-shell">
         <nav className="oma-doc-outline" aria-label={t('brand.profile.outline')}>
@@ -196,7 +198,10 @@ export function ProfileSections({
               {key === 'visual_identity' ? <VisualIdentity value={sections[key]} /> : null}
               <SectionData label={t('brand.profile.sectionDataTitle')} value={sections[key]} />
               <ul className="oma-insight-list">
-                {(insightsBySection.get(key) ?? []).map((insight) => (
+                {groupInsightsByFieldAndValue(insightsBySection.get(key) ?? []).map((group) => {
+                  const insight = group.primary;
+                  const dupCount = group.duplicates.length;
+                  return (
                   <li key={insight.id} className="oma-insight-item">
                     <div className="oma-insight-header">
                       <strong>{fieldLabel(t, insight.field_key)}</strong>
@@ -247,6 +252,11 @@ export function ProfileSections({
                     ) : (
                       <p>{insight.text_value ?? t('brand.profile.emptyValue')}</p>
                     )}
+                    {dupCount > 0 ? (
+                      <p className="oma-muted" style={{ fontSize: 12 }}>
+                        {t('brand.profile.duplicateEvidence').replace('{count}', String(dupCount + 1))}
+                      </p>
+                    ) : null}
                     {insight.evidence_id ? (
                       <Button type="link" onClick={() => onViewEvidence?.(insight.evidence_id!)}>
                         {t('brand.evidence.view')}
@@ -257,7 +267,8 @@ export function ProfileSections({
                       </p>
                     )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </section>
           ))}
