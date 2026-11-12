@@ -22,6 +22,7 @@ import { Panel } from '../../../../../components/ui/page-header';
 import { ErrorState } from '../../../../../components/ui/empty-state';
 import { useT } from '../../../../../lib/use-locale';
 import { buildBrandJourneySteps, brandPrimaryNextStep } from '../../../../../lib/brand-journey';
+import { BrandPipelineOutcome } from '../../../../../components/brand/brand-pipeline-outcome';
 
 export default function BrandDetailPage() {
   const t = useT();
@@ -172,6 +173,8 @@ export default function BrandDetailPage() {
             </dl>
           </Panel>
 
+          <BrandPipelineOutcome brandId={brandId} brand={brand} scan={scanDetail} />
+
           {scanDetail ? (
             <Panel title={t('brand.coverage.title')} labelledBy="brand-coverage">
               <CoverageDisclosure coverage={scanDetail.coverage} scanStatus={scanDetail.status} />
@@ -223,8 +226,8 @@ export default function BrandDetailPage() {
               </li>
               {scan ? (
                 <li>
-                  <Link href={`/app/brands/${brandId}/discovery/pages`} className="oma-work-row">
-                    <strong>{t('brand.discovery.pagesTitle')}</strong>
+                  <Link href={`/app/brands/${brandId}/discovery`} className="oma-work-row">
+                    <strong>{t('brand.discovery.hubTitle')}</strong>
                     <span className="oma-work-row-cta" aria-hidden="true">
                       {t('home.action.open')}
                     </span>

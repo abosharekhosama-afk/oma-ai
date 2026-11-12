@@ -66,7 +66,7 @@ export function brandPrimaryNextStep(
       (brand.latest_scan.status === 'SUCCEEDED' || brand.latest_scan.status === 'PARTIAL')
     ) {
       return {
-        href: `/app/brands/${brandId}/discovery/products`,
+        href: `/app/brands/${brandId}/discovery`,
         label: t('brand.detail.discoveryCta'),
       };
     }

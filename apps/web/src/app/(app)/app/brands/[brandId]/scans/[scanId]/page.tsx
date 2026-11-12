@@ -21,7 +21,7 @@ import { ConnectorModeBanner } from '../../../../../../../components/brand/conne
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip } from '../../../../../../../components/ui/status-chip';
 import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
-import { ScanPipelineHandoff } from '../../../../../../../components/brand/scan-pipeline-handoff';
+import { BrandPipelineOutcome } from '../../../../../../../components/brand/brand-pipeline-outcome';
 import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -208,7 +208,7 @@ export default function ScanDetailPage() {
 
       <CoverageDisclosure coverage={scan.coverage} scanStatus={scan.status} />
 
-      {brand ? <ScanPipelineHandoff brandId={brandId} brand={brand} scan={scan} /> : null}
+      {brand ? <BrandPipelineOutcome brandId={brandId} brand={brand} scan={scan} /> : null}
 
       <div className="oma-panel">
         <h2>{t('brand.scan.progressTitle')}</h2>

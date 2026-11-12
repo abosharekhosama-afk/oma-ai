@@ -81,7 +81,7 @@ export function BrandWorkspaceShell({
       match: (p: string) => p.includes('/scans'),
     },
     {
-      href: `${base}/discovery/pages`,
+      href: `${base}/discovery`,
       label: t('brand.nav.discovery'),
       match: (p: string) => p.includes('/discovery'),
     },

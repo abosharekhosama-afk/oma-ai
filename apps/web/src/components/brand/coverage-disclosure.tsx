@@ -9,6 +9,10 @@ type CoverageSnapshot = {
   skipped_pages?: { url: string; reason: string }[];
   pages_fetched?: number;
   pages_failed?: number;
+  scan_max_pages?: number;
+  pages_discovered?: number;
+  products_discovered?: number;
+  services_discovered?: number;
   pages_js_rendered?: number;
   pages_js_render_attempted?: number;
   pages_js_render_failed?: number;
@@ -47,6 +51,33 @@ export function CoverageDisclosure({
         </p>
       ) : null}
       <dl className="oma-detail-dl">
+        {coverage?.pages_fetched != null && coverage.scan_max_pages != null ? (
+          <div>
+            <dt>{t('brand.coverage.pageBudget')}</dt>
+            <dd data-testid="coverage-page-budget">
+              {t('brand.coverage.pageBudgetDetail')
+                .replace('{fetched}', String(coverage.pages_fetched))
+                .replace('{max}', String(coverage.scan_max_pages))
+                .replace(
+                  '{hitLimit}',
+                  coverage.pages_fetched >= coverage.scan_max_pages
+                    ? t('brand.coverage.pageBudgetHitLimit')
+                    : t('brand.coverage.pageBudgetBelowLimit'),
+                )}
+            </dd>
+          </div>
+        ) : null}
+        {coverage?.products_discovered != null ? (
+          <div>
+            <dt>{t('brand.coverage.discoveryTotals')}</dt>
+            <dd>
+              {t('brand.coverage.discoveryTotalsDetail')
+                .replace('{products}', String(coverage.products_discovered ?? 0))
+                .replace('{services}', String(coverage.services_discovered ?? 0))
+                .replace('{pages}', String(coverage.pages_discovered ?? 0))}
+            </dd>
+          </div>
+        ) : null}
         <div>
           <dt>{t('brand.coverage.requiredMissing')}</dt>
           <dd data-testid="coverage-required-missing">

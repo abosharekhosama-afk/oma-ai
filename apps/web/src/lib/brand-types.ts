@@ -68,12 +68,21 @@ export type ScanDetail = {
     js_render_error_details?: string[];
     js_render_launch_detail?: string | null;
     js_render_mode?: string;
+    scan_max_pages?: number;
+    pages_discovered?: number;
+    products_discovered?: number;
+    services_discovered?: number;
   } | null;
   job_run_id: string;
   error_code: string | null;
   started_at: string | null;
   finished_at: string | null;
   profile_version_id: string | null;
+  discovery_summary?: {
+    pages: number;
+    products: number;
+    services: number;
+  };
 };
 
 export type DiscoveredPage = {
