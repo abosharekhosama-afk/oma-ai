@@ -24,6 +24,25 @@ describe('extractors', () => {
     expect(r.classification).toBe('PRODUCT');
   });
 
+  it('extracts itemList and service page heuristics', () => {
+    const html = `<!doctype html><html><head><title>Services</title></head><body>
+      <h1>Cloud consulting</h1>
+      <script type="application/ld+json">
+        {
+          "@type": "ItemList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Audit" },
+            { "item": { "@type": "Service", "name": "Migration", "description": "Move workloads" } }
+          ]
+        }
+      </script>
+    </body></html>`;
+    const r = extractFromHtml('https://brand.test/services', html);
+    const names = r.products.map((p) => p.name);
+    expect(names).toEqual(expect.arrayContaining(['Audit', 'Migration', 'Cloud consulting']));
+    expect(r.classification).toBe('SERVICE');
+  });
+
   it('extracts social, contact, languages, canonical and robots directives', () => {
     const html = `<!doctype html>
 <html lang="ar">

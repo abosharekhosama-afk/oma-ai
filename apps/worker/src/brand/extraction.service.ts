@@ -1,10 +1,14 @@
 import { getPrisma } from '@oma/db';
 import {
+  buildCatalogFieldValue,
+  buildMarketingSeedUrls,
+  buildSitemapSeedUrls,
   canonicalHash,
   canonicalizeUrl,
   contentHash,
   discoveryTierForField,
   extractFromHtml,
+  isCatalogLikePath,
   isInCrawlScope,
   newId,
   parseSitemapXml,
@@ -22,6 +26,59 @@ function pagePath(url: string): string {
   return `${parsed.pathname || '/'}${parsed.search}`;
 }
 
+function enqueueCrawlUrl(
+  queue: { url: string; depth: number }[],
+  url: string,
+  depth: number,
+  priority = false,
+) {
+  const entry = { url, depth };
+  if (priority) {
+    queue.unshift(entry);
+    return;
+  }
+  try {
+    const path = new URL(url).pathname;
+    if (isCatalogLikePath(path)) queue.unshift(entry);
+    else queue.push(entry);
+  } catch {
+    queue.push(entry);
+  }
+}
+
+async function persistCatalogObservations(input: {
+  tenantId: string;
+  brandId: string;
+  scanAttemptId: string;
+}) {
+  const rows = await getPrisma().discoveredProductService.findMany({
+    where: {
+      tenantId: input.tenantId,
+      scanAttemptId: input.scanAttemptId,
+    },
+    orderBy: { name: 'asc' },
+  });
+  const catalog = buildCatalogFieldValue(rows);
+  for (const fieldKey of ['catalog.products', 'catalog.services'] as const) {
+    const value = fieldKey === 'catalog.products' ? catalog.products : catalog.services;
+    if (!value) continue;
+    await getPrisma().extractedObservation.create({
+      data: {
+        id: newId(),
+        tenantId: input.tenantId,
+        brandId: input.brandId,
+        scanAttemptId: input.scanAttemptId,
+        fieldKey,
+        discoveryTier: discoveryTierForField(fieldKey) as never,
+        valueJson: JSON.stringify(value),
+        isUnknown: false,
+        infoState: 'OBSERVED',
+        confidence: 0.75,
+      },
+    });
+  }
+}
+
 export async function runExtractionForScan(input: {
   tenantId: string;
   brandId: string;
@@ -37,7 +94,13 @@ export async function runExtractionForScan(input: {
   const deadline = Date.now() + (input.config?.max_duration_seconds ?? 600) * 1000;
 
   const visited = new Set<string>();
-  const queue: { url: string; depth: number }[] = [{ url: input.startUrl, depth: 0 }];
+  const queue: { url: string; depth: number }[] = [];
+  enqueueCrawlUrl(queue, canonicalizeUrl(input.startUrl), 0, true);
+  for (const seedUrl of buildMarketingSeedUrls(input.startUrl)) {
+    if (isInCrawlScope(input.startUrl, seedUrl)) {
+      enqueueCrawlUrl(queue, canonicalizeUrl(seedUrl), 1, true);
+    }
+  }
   let pagesFetched = 0;
   let pagesFailed = 0;
   let pagesSkipped = 0;
@@ -45,10 +108,7 @@ export async function runExtractionForScan(input: {
   const startHost = new URL(input.startUrl).host;
   try {
     const robotsInfo = await input.connector.inspectRobots(startHost);
-    const seedTargets = [
-      ...robotsInfo.sitemaps,
-      new URL('/sitemap.xml', input.startUrl).toString(),
-    ];
+    const seedTargets = [...new Set([...robotsInfo.sitemaps, ...buildSitemapSeedUrls(input.startUrl)])];
     const sitemapDocs = [...new Set(seedTargets)].slice(0, maxSitemapDocuments);
     let docsFetched = 0;
     while (sitemapDocs.length > 0 && docsFetched < maxSitemapDocuments && Date.now() < deadline) {
@@ -73,7 +133,7 @@ export async function runExtractionForScan(input: {
         }
         for (const loc of parsed.urls) {
           if (isInCrawlScope(input.startUrl, loc)) {
-            queue.push({ url: canonicalizeUrl(loc), depth: 1 });
+            enqueueCrawlUrl(queue, canonicalizeUrl(loc), 1);
           }
         }
       } catch {
@@ -239,7 +299,7 @@ export async function runExtractionForScan(input: {
           try {
             const next = canonicalizeUrl(new URL(link.href, fetched.finalUrl).toString());
             if (isInCrawlScope(input.startUrl, next)) {
-              queue.push({ url: next, depth: current.depth + 1 });
+              enqueueCrawlUrl(queue, next, current.depth + 1);
             }
           } catch {
             // skip bad links
@@ -250,6 +310,12 @@ export async function runExtractionForScan(input: {
       pagesFailed += 1;
     }
   }
+
+  await persistCatalogObservations({
+    tenantId: input.tenantId,
+    brandId: input.brandId,
+    scanAttemptId: input.scanAttemptId,
+  });
 
   return { pagesFetched, pagesFailed, pagesSkipped };
 }

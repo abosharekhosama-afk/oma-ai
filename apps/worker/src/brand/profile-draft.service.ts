@@ -18,9 +18,22 @@ export async function createProfileDraftFromScan(input: {
   });
 
   const versionId = newId();
+  const catalogFromObs = (fieldKey: string) => {
+    const obs = observations.find((o) => o.fieldKey === fieldKey && o.valueJson);
+    if (!obs?.valueJson) return undefined;
+    try {
+      return JSON.parse(obs.valueJson) as unknown;
+    } catch {
+      return undefined;
+    }
+  };
+  const catalog = {
+    ...(catalogFromObs('catalog.products') ? { products: catalogFromObs('catalog.products') } : {}),
+    ...(catalogFromObs('catalog.services') ? { services: catalogFromObs('catalog.services') } : {}),
+  };
   const sections = {
     overview: {},
-    catalog: {},
+    catalog,
     languages: {},
     tone: {},
     audiences: {},
