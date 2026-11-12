@@ -59,4 +59,4 @@ JavaScript-rendered apps are not executed. Only the initial HTML response is par
 | `BRAND_ALLOWED_PORTS`               | `80,443`                                  | Allowed destination ports                                        |
 | `BRAND_SCANNER_ALLOW_PRIVATE_HOSTS` | off                                       | Test-only loopback override; rejected when `NODE_ENV=production` |
 
-CI and local demo scripts still set `BRAND_FIXTURE_CONNECTOR=1` so existing fixture-based tests stay deterministic.
+CI and local demo scripts still set `BRAND_FIXTURE_CONNECTOR=1` so existing fixture-based tests stay deterministic. Fixture crawls do not enqueue the extra marketing/sitemap path seeds (only link-following from fixture HTML); live crawls use the full seed set.

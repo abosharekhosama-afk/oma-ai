@@ -8,6 +8,7 @@ import {
   contentHash,
   discoveryTierForField,
   extractFromHtml,
+  isBrandFixtureConnectorEnabled,
   isCatalogLikePath,
   isInCrawlScope,
   newId,
@@ -116,9 +117,12 @@ export async function runExtractionForScan(input: {
   const visited = new Set<string>();
   const queue: { url: string; depth: number }[] = [];
   enqueueCrawlUrl(queue, canonicalizeUrl(input.startUrl), 0, true);
-  for (const seedUrl of buildMarketingSeedUrls(input.startUrl)) {
-    if (isInCrawlScope(input.startUrl, seedUrl)) {
-      enqueueCrawlUrl(queue, canonicalizeUrl(seedUrl), 1, true);
+  const fixtureCrawl = isBrandFixtureConnectorEnabled();
+  if (!fixtureCrawl) {
+    for (const seedUrl of buildMarketingSeedUrls(input.startUrl)) {
+      if (isInCrawlScope(input.startUrl, seedUrl)) {
+        enqueueCrawlUrl(queue, canonicalizeUrl(seedUrl), 1, true);
+      }
     }
   }
   let pagesFetched = 0;
@@ -128,9 +132,9 @@ export async function runExtractionForScan(input: {
   const startHost = new URL(input.startUrl).host;
   try {
     const robotsInfo = await input.connector.inspectRobots(startHost);
-    const seedTargets = [
-      ...new Set([...robotsInfo.sitemaps, ...buildSitemapSeedUrls(input.startUrl)]),
-    ];
+    const seedTargets = fixtureCrawl
+      ? [...robotsInfo.sitemaps]
+      : [...new Set([...robotsInfo.sitemaps, ...buildSitemapSeedUrls(input.startUrl)])];
     const sitemapDocs = [...new Set(seedTargets)].slice(0, maxSitemapDocuments);
     let docsFetched = 0;
     while (sitemapDocs.length > 0 && docsFetched < maxSitemapDocuments && Date.now() < deadline) {

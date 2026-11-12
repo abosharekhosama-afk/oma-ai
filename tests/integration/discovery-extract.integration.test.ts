@@ -38,5 +38,11 @@ describe('discovery extract integration', () => {
     expect(observations.length).toBeGreaterThan(0);
     expect(pages.every((p) => p.tenantId === seed.tenantId)).toBe(true);
     expect(products.every((p) => p.tenantId === seed.tenantId)).toBe(true);
+
+    const catalogObs = observations.filter((o) =>
+      ['catalog.products', 'catalog.services'].includes(o.fieldKey),
+    );
+    expect(catalogObs.length).toBeGreaterThan(0);
+    expect(catalogObs.every((o) => o.evidenceId)).toBe(true);
   });
 });
