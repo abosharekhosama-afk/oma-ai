@@ -64,9 +64,14 @@ export class OpsService {
   }
 
   // --- Requests ---
-  async listRequests(tenantId: string, brandId: string, query?: { status?: string; q?: string }) {
+  async listRequests(
+    tenantId: string,
+    brandId: string,
+    query?: { status?: string; q?: string; strategy_version_id?: string },
+  ) {
     await this.requireBrand(tenantId, brandId);
     const where: Record<string, unknown> = { tenantId, brandId };
+    if (query?.strategy_version_id) where.strategyVersionId = query.strategy_version_id;
     if (query?.status) where.status = query.status;
     if (query?.q) {
       where.OR = [
@@ -125,6 +130,9 @@ export class OpsService {
       briefKeyMessageEn?: string;
       briefKeyMessageAr?: string;
       briefReadyAt?: Date | null;
+      strategyId?: string | null;
+      strategyVersionId?: string | null;
+      planSourceKey?: string | null;
       createdAt: Date;
       updatedAt: Date;
     }>,
@@ -133,14 +141,16 @@ export class OpsService {
     const userIds = new Set<string>();
     const brandIds = new Set<string>();
     const campaignIds = new Set<string>();
+    const strategyIds = new Set<string>();
     for (const r of rows) {
       if (r.requesterUserId) userIds.add(r.requesterUserId);
       if (r.assigneeUserId) userIds.add(r.assigneeUserId);
       brandIds.add(r.brandId);
       if (r.campaignId) campaignIds.add(r.campaignId);
+      if (r.strategyId) strategyIds.add(r.strategyId);
     }
     const prisma = getPrisma();
-    const [users, brands, campaigns] = await Promise.all([
+    const [users, brands, campaigns, strategies] = await Promise.all([
       userIds.size
         ? prisma.user.findMany({
             where: { id: { in: [...userIds] } },
@@ -159,12 +169,19 @@ export class OpsService {
             select: { id: true, nameEn: true, nameAr: true },
           })
         : Promise.resolve([]),
+      strategyIds.size
+        ? prisma.strategy.findMany({
+            where: { id: { in: [...strategyIds] } },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve([]),
     ]);
     const userMap = new Map(
       users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
     );
     const brandMap = new Map(brands.map((b) => [b.id, b.name || 'Brand']));
     const campaignMap = new Map(campaigns.map((c) => [c.id, c.nameEn || c.nameAr || 'Campaign']));
+    const strategyMap = new Map(strategies.map((s) => [s.id, s.name || 'Strategy']));
     return rows.map((row) => {
       const base = mapRequest(row);
       return {
@@ -173,6 +190,7 @@ export class OpsService {
         assignee_name: row.assigneeUserId ? userMap.get(row.assigneeUserId) || 'Team member' : null,
         brand_name: brandMap.get(row.brandId) || 'Brand',
         campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
+        strategy_name: row.strategyId ? strategyMap.get(row.strategyId) || null : null,
       };
     });
   }
@@ -1474,6 +1492,9 @@ function mapRequest(row: {
   briefKeyMessageEn?: string;
   briefKeyMessageAr?: string;
   briefReadyAt?: Date | null;
+  strategyId?: string | null;
+  strategyVersionId?: string | null;
+  planSourceKey?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -1482,6 +1503,9 @@ function mapRequest(row: {
     id: row.id,
     tenant_id: row.tenantId,
     brand_id: row.brandId,
+    strategy_id: row.strategyId ?? null,
+    strategy_version_id: row.strategyVersionId ?? null,
+    plan_source_key: row.planSourceKey ?? null,
     campaign_id: row.campaignId,
     content_id: row.contentId,
     title: { en: row.titleEn, ar: row.titleAr },

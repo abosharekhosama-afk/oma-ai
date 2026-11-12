@@ -12,6 +12,7 @@ import { ProfileService } from './intelligence/profile.service';
 import { InsightService } from './intelligence/insight.service';
 import { ApprovalService } from './intelligence/approval.service';
 import { StrategyService } from './strategy/strategy.service';
+import { StrategyPlanRequestsService } from './strategy/strategy-plan-requests.service';
 import { CampaignService } from './content/campaign.service';
 import { ContentService } from './content/content.service';
 import { ContentExtrasService } from './content/content-extras.service';
@@ -43,5 +44,9 @@ export const campaignService = new CampaignService(auditService);
 export const contentService = new ContentService(auditService);
 export const contentExtrasService = new ContentExtrasService(auditService, contentService);
 export const opsService = new OpsService(auditService);
+export const strategyPlanRequestsService = new StrategyPlanRequestsService(
+  auditService,
+  opsService,
+);
 export const workDriveService = new WorkDriveService(auditService);
 export const mediaService = new MediaService(auditService, workDriveService);

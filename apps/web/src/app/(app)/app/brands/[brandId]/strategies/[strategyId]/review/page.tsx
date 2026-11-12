@@ -21,6 +21,7 @@ import { SubmitEligibility } from '../../../../../../../../components/strategy/s
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
+import { StrategyPlanRequestsPanel } from '../../../../../../../../components/strategy/strategy-plan-requests-panel';
 
 export default function StrategyReviewPage() {
   const t = useT();
@@ -173,6 +174,13 @@ export default function StrategyReviewPage() {
           </Button>
         ) : null}
       </div>
+      {version.status === 'APPROVED' ? (
+        <StrategyPlanRequestsPanel
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+        />
+      ) : null}
       {error ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>
           {error}

@@ -2,7 +2,7 @@
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import type { DemoGraph } from '@oma/demo';
@@ -19,6 +19,7 @@ import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import { daysFromToday } from '../../../../lib/calendar-today';
 import {
   loadRequestsWorkspace,
+  listRequests,
   createRequest,
   toRequestRow,
   opsError,
@@ -130,6 +131,9 @@ export default function RequestsPage() {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const strategyVersionFromUrl = searchParams.get('strategy_version');
+  const brandFromUrl = searchParams.get('brand');
   const toast = useToast();
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
@@ -199,7 +203,15 @@ export default function RequestsPage() {
     setLoading(true);
     try {
       const ws = await loadRequestsWorkspace();
-      setRows(ws.requests);
+      let requestRows = ws.requests;
+      if (brandFromUrl && strategyVersionFromUrl) {
+        const scoped = await listRequests(brandFromUrl, {
+          strategy_version_id: strategyVersionFromUrl,
+        });
+        requestRows = scoped.map(toRequestRow);
+        setFilters((f) => ({ ...f, brandId: brandFromUrl }));
+      }
+      setRows(requestRows);
       setBriefs([]);
       setBrands(ws.brands as Brand[]);
       setCampaigns(ws.campaigns as Campaign[]);
@@ -226,7 +238,7 @@ export default function RequestsPage() {
     } finally {
       setLoading(false);
     }
-  }, [locale]);
+  }, [locale, brandFromUrl, strategyVersionFromUrl]);
 
   useEffect(() => {
     setHeaderSlot(document.getElementById('oma-workspace-top-actions'));

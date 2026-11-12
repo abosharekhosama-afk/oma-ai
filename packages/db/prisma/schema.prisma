@@ -1558,6 +1558,9 @@ model WorkRequest {
   briefKeyMessageEn String              @default("")
   briefKeyMessageAr String              @default("")
   briefReadyAt      DateTime?
+  strategyId        String?
+  strategyVersionId String?
+  planSourceKey     String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   tasks             WorkTask[]
@@ -1566,6 +1569,7 @@ model WorkRequest {
   @@index([tenantId, brandId])
   @@index([brandId, status])
   @@index([contentId])
+  @@index([strategyVersionId])
 }
 
 enum WorkTaskStatus {

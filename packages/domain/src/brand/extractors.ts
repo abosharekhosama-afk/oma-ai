@@ -94,7 +94,10 @@ function typeList(node: Record<string, unknown>): string {
 function classifyPage(url: string, root: HTMLElement): string {
   const path = new URL(url).pathname.toLowerCase();
   if (path === '/' || path === '') return 'HOME';
-  if (path.includes('product')) return 'PRODUCT';
+  if (path.includes('product') || path.includes('shop') || path.includes('catalog'))
+    return 'PRODUCT';
+  if (path.includes('service') || path.includes('solution') || path.includes('pricing'))
+    return 'SERVICE';
   if (path.includes('about')) return 'ABOUT';
   if (path.includes('contact')) return 'CONTACT';
   if (path.includes('faq')) return 'FAQ';
@@ -156,6 +159,136 @@ function jsonLdString(value: unknown): string | null {
     return jsonLdString((value as { url?: unknown }).url);
   }
   return null;
+}
+
+function productFromJsonLdNode(
+  node: Record<string, unknown>,
+  kindHint?: 'PRODUCT' | 'SERVICE',
+): ExtractedProduct | null {
+  const type = typeList(node);
+  const isService =
+    kindHint === 'SERVICE' ||
+    type.includes('service') ||
+    (type.includes('professional') && type.includes('service'));
+  const isProduct =
+    kindHint === 'PRODUCT' || type.includes('product') || type.includes('individualproduct');
+  if (!isProduct && !isService) return null;
+  const name = String(node.name ?? node.title ?? '').trim();
+  if (!name || name === 'Unknown') return null;
+  const offersRaw = node.offers;
+  const offers = Array.isArray(offersRaw)
+    ? (offersRaw[0] as Record<string, unknown> | undefined)
+    : (offersRaw as Record<string, unknown> | undefined);
+  return {
+    kind: isService ? 'SERVICE' : 'PRODUCT',
+    name,
+    description: node.description ? String(node.description).slice(0, 2000) : undefined,
+    category: node.category ? String(node.category) : undefined,
+    skuPublic: node.sku ? String(node.sku) : node.gtin13 ? String(node.gtin13) : undefined,
+    priceAmount: offers?.price ? String(offers.price) : undefined,
+    priceCurrency: offers?.priceCurrency ? String(offers.priceCurrency) : undefined,
+    availability: offers?.availability ? String(offers.availability) : undefined,
+  };
+}
+
+function collectProductsFromJsonLd(nodes: Record<string, unknown>[]): ExtractedProduct[] {
+  const out: ExtractedProduct[] = [];
+  const seen = new Set<string>();
+  const push = (product: ExtractedProduct | null) => {
+    if (!product) return;
+    const key = `${product.kind}:${product.name.toLowerCase()}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(product);
+  };
+  for (const node of nodes) {
+    push(productFromJsonLdNode(node));
+    const type = typeList(node);
+    if (type.includes('itemlist')) {
+      const elements = node.itemListElement;
+      const list = Array.isArray(elements) ? elements : elements ? [elements] : [];
+      for (const el of list) {
+        if (typeof el !== 'object' || !el) continue;
+        const record = el as Record<string, unknown>;
+        const nested = record.item;
+        if (nested && typeof nested === 'object') {
+          push(productFromJsonLdNode(nested as Record<string, unknown>));
+        }
+        const name = jsonLdString(record.name);
+        if (name) {
+          const elType = typeList(record);
+          push({
+            kind: elType.includes('service') ? 'SERVICE' : 'PRODUCT',
+            name,
+            description: record.description ? String(record.description) : undefined,
+          });
+        }
+      }
+    }
+    if (type.includes('offer')) {
+      const item = node.itemOffered;
+      if (item && typeof item === 'object')
+        push(productFromJsonLdNode(item as Record<string, unknown>));
+    }
+    if (type.includes('offerCatalog') || type.includes('productgroup')) {
+      const items = node.hasVariant ?? node.hasPart ?? node.itemListElement;
+      const list = Array.isArray(items) ? items : items ? [items] : [];
+      for (const item of list) {
+        if (item && typeof item === 'object')
+          push(productFromJsonLdNode(item as Record<string, unknown>));
+      }
+    }
+  }
+  return out;
+}
+
+function collectHeuristicProducts(root: HTMLElement, pageUrl: string): ExtractedProduct[] {
+  const out: ExtractedProduct[] = [];
+  const seen = new Set<string>();
+  const push = (kind: 'PRODUCT' | 'SERVICE', name: string, description?: string) => {
+    const trimmed = name.trim();
+    if (trimmed.length < 2 || trimmed.length > 200) return;
+    const key = `${kind}:${trimmed.toLowerCase()}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ kind, name: trimmed, description: description?.slice(0, 500) });
+  };
+  for (const el of root.querySelectorAll('[itemtype]')) {
+    const itemtype = (el.getAttribute('itemtype') || '').toLowerCase();
+    const isProduct = itemtype.includes('product');
+    const isService = itemtype.includes('service');
+    if (!isProduct && !isService) continue;
+    const name =
+      el.querySelector('[itemprop="name"]')?.text?.trim() ||
+      el.querySelector('h1,h2,h3')?.text?.trim() ||
+      '';
+    const description = el.querySelector('[itemprop="description"]')?.text?.trim();
+    push(isService ? 'SERVICE' : 'PRODUCT', name, description);
+  }
+  for (const el of root.querySelectorAll(
+    '[class*="product"], [class*="service"], [data-product]',
+  )) {
+    const heading = el.querySelector('h1,h2,h3,h4,a')?.text?.trim();
+    if (!heading) continue;
+    const cls = (el.getAttribute('class') || '').toLowerCase();
+    const kind = cls.includes('service') ? 'SERVICE' : 'PRODUCT';
+    push(kind, heading);
+  }
+  try {
+    const path = new URL(pageUrl).pathname.toLowerCase();
+    if (path.includes('service') || path.includes('solution')) {
+      const h1 = root.querySelector('h1')?.text?.trim();
+      if (h1)
+        push(
+          'SERVICE',
+          h1,
+          root.querySelector('meta[name="description"]')?.getAttribute('content') ?? undefined,
+        );
+    }
+  } catch {
+    // ignore
+  }
+  return out;
 }
 
 function collectAddress(value: unknown): string | null {
@@ -286,22 +419,13 @@ export function extractFromHtml(
     }
   }
 
-  for (const node of collectJsonLdNodes(root)) {
+  const jsonLdNodes = collectJsonLdNodes(root);
+  products.push(...collectProductsFromJsonLd(jsonLdNodes));
+  products.push(...collectHeuristicProducts(root, url));
+
+  for (const node of jsonLdNodes) {
     const type = typeList(node);
-    if (type.includes('product') || type.includes('service')) {
-      const offers = node.offers as Record<string, unknown> | undefined;
-      products.push({
-        kind: type.includes('service') ? 'SERVICE' : 'PRODUCT',
-        name: String(node.name ?? 'Unknown'),
-        description: node.description ? String(node.description) : undefined,
-        category: node.category ? String(node.category) : undefined,
-        skuPublic: node.sku ? String(node.sku) : undefined,
-        priceAmount: offers?.price ? String(offers.price) : undefined,
-        priceCurrency: offers?.priceCurrency ? String(offers.priceCurrency) : undefined,
-        availability: offers?.availability ? String(offers.availability) : undefined,
-      });
-    }
-    if (type.includes('organization')) {
+    if (type.includes('organization') || type.includes('localbusiness')) {
       if (!siteName && node.name) {
         fields.push({
           fieldKey: 'brand.name',

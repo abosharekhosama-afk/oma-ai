@@ -134,10 +134,14 @@ export function truncateEvidenceInput(
     evidence.pop();
     truncated = true;
   }
+  const protectedObservationFields = new Set([
+    'brand.name',
+    'brand.source_url',
+    'catalog.products',
+    'catalog.services',
+  ]);
   while (observations.length > 4 && packed() > cap) {
-    const removable = observations.findIndex(
-      (o) => o.fieldKey !== 'brand.name' && o.fieldKey !== 'brand.source_url',
-    );
+    const removable = observations.findIndex((o) => !protectedObservationFields.has(o.fieldKey));
     if (removable < 0) break;
     observations.splice(removable, 1);
     truncated = true;

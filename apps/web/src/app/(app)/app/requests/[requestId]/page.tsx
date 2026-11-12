@@ -127,6 +127,13 @@ export default function RequestDetailPage() {
   const [comments, setComments] = useState<ContentCommentDto[]>([]);
   const [commentDraft, setCommentDraft] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
+  const [strategySource, setStrategySource] = useState<{
+    strategyId: string;
+    strategyVersionId: string;
+    planSourceKey: string;
+    strategyName: string | null;
+    brandId: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!requestId) return;
@@ -145,6 +152,21 @@ export default function RequestDetailPage() {
         dueAt: task.due_at ? String(task.due_at).slice(0, 10) : '',
       })) as RequestDetail['tasks'];
       setRow(data);
+      if (
+        detail.data.strategy_id &&
+        detail.data.strategy_version_id &&
+        detail.data.plan_source_key
+      ) {
+        setStrategySource({
+          strategyId: detail.data.strategy_id,
+          strategyVersionId: detail.data.strategy_version_id,
+          planSourceKey: detail.data.plan_source_key,
+          strategyName: detail.data.strategy_name ?? null,
+          brandId: detail.data.brand_id,
+        });
+      } else {
+        setStrategySource(null);
+      }
 
       const decoded = decodeRequestBrief(detail.data.description);
       const empty = emptyCopy();
@@ -538,6 +560,21 @@ export default function RequestDetailPage() {
                       className="oma-req-detail__link"
                       testId="demo-request-content-link"
                     />
+                  ) : null}
+                  {strategySource ? (
+                    <div
+                      className="oma-req-detail__link"
+                      data-testid="demo-request-strategy-source"
+                    >
+                      <span className="oma-muted">{t('demo.requests.strategySource')}: </span>
+                      <Link
+                        href={`/app/brands/${strategySource.brandId}/strategies/${strategySource.strategyId}/review`}
+                        className="oma-link"
+                      >
+                        {strategySource.strategyName || t('strategy.list.col.name')} ·{' '}
+                        {strategySource.planSourceKey}
+                      </Link>
+                    </div>
                   ) : null}
                 </div>
               </section>
