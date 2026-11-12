@@ -19,6 +19,7 @@ import { TrackTabs } from '../../../../../../../../components/strategy/track-tab
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
+import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 
 async function loadLatestVersion(brandId: string, strategyId: string) {
   const brandRes = await api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`);
@@ -100,6 +101,18 @@ export default function StrategyOrganicPage() {
       <header className="oma-page-header">
         <h2>{t('strategy.organic.title')}</h2>
       </header>
+      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
+        <StrategyAiAssistant
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+          versionStatus={version.status}
+          linkedProfileVersionId={version.linked_approved_profile_version_id}
+          organicEnabled={version.organic_enabled}
+          paidEnabled={version.paid_enabled}
+          onApplied={() => void load()}
+        />
+      ) : null}
       <form
         className="oma-panel oma-sectioned-form"
         onSubmit={onSave}

@@ -15,7 +15,7 @@ import {
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
-import { AiHonestyBanner } from '../../../../../../../../components/strategy/honesty-banners';
+import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyStatusBadge } from '../../../../../../../../components/strategy/status-badge';
 import { SubmitEligibility } from '../../../../../../../../components/strategy/submit-eligibility';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
@@ -98,7 +98,18 @@ export default function StrategyReviewPage() {
         <h2>{t('strategy.review.title')}</h2>
         <StrategyStatusBadge status={version.status} />
       </header>
-      <AiHonestyBanner />
+      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
+        <StrategyAiAssistant
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+          versionStatus={version.status}
+          linkedProfileVersionId={version.linked_approved_profile_version_id}
+          organicEnabled={version.organic_enabled}
+          paidEnabled={version.paid_enabled}
+          onApplied={() => void load()}
+        />
+      ) : null}
       {version.missing_source ? (
         <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
           {t('strategy.warning.missingProfile')}
