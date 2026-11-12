@@ -564,7 +564,7 @@ export default function RequestDetailPage() {
                         href={`/app/brands/${strategySource.brandId}/strategies/${strategySource.strategyId}/review`}
                         className="oma-link"
                       >
-                        {strategySource.strategyName || t('strategy.title')} ·{' '}
+                        {strategySource.strategyName || t('strategy.list.col.name')} ·{' '}
                         {strategySource.planSourceKey}
                       </Link>
                     </div>
