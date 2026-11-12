@@ -27,9 +27,7 @@ describe('brand catalog → profile → strategy chain', () => {
     await app.close();
   });
 
-  it(
-    'links scan catalog through approved profile into strategy and brand context',
-    async () => {
+  it('links scan catalog through approved profile into strategy and brand context', async () => {
     const journey = await fullScanJourney(seed, connection, { max_pages: 4, max_depth: 2 });
     expect(journey.profileVersionId).toBeTruthy();
 
@@ -107,7 +105,5 @@ describe('brand catalog → profile → strategy chain', () => {
     });
     expect(ctx.usedApprovedProfile).toBe(true);
     expect(ctx.products.toLowerCase()).toMatch(/widget/);
-    },
-    120_000,
-  );
+  }, 120_000);
 });
