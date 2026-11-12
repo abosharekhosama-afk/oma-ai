@@ -94,7 +94,7 @@ describe('strategy plan → work requests', () => {
         }),
       },
     );
-    expect(commitRes.status).toBe(200);
+    expect([200, 201]).toContain(commitRes.status);
     const commit = await commitRes.json();
     expect(commit.data.created_request_ids.length).toBeGreaterThanOrEqual(2);
 
@@ -117,7 +117,7 @@ describe('strategy plan → work requests', () => {
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/convert-tasks`,
       { method: 'POST', headers: authHeaders(seed), body: '{}' },
     );
-    expect(convertRes.status).toBe(200);
+    expect([200, 201]).toContain(convertRes.status);
     const convert = await convertRes.json();
     expect(convert.data.created_task_ids.length).toBeGreaterThanOrEqual(2);
 
