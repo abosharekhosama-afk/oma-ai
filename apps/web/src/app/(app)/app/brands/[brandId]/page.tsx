@@ -21,6 +21,7 @@ import { StatusChip, statusLabel } from '../../../../../components/ui/status-chi
 import { Panel } from '../../../../../components/ui/page-header';
 import { ErrorState } from '../../../../../components/ui/empty-state';
 import { useT } from '../../../../../lib/use-locale';
+import { buildBrandJourneySteps, brandPrimaryNextStep } from '../../../../../lib/brand-journey';
 
 export default function BrandDetailPage() {
   const t = useT();
@@ -65,40 +66,7 @@ export default function BrandDetailPage() {
       .finally(() => setLoading(false));
   }, [brandId]);
 
-  const journey = useMemo(() => {
-    if (!brand) return [];
-    const scan = brand.latest_scan;
-    return [
-      {
-        id: 'connect',
-        label: t('brand.detail.journeyConnect'),
-        state: brand.website ? ('done' as const) : ('current' as const),
-      },
-      {
-        id: 'scan',
-        label: t('brand.detail.journeyScan'),
-        state: scan ? ('done' as const) : brand.website ? ('current' as const) : ('todo' as const),
-      },
-      {
-        id: 'discover',
-        label: t('brand.detail.journeyDiscover'),
-        state: scan
-          ? brand.current_approved_profile_version_id
-            ? ('done' as const)
-            : ('current' as const)
-          : ('todo' as const),
-      },
-      {
-        id: 'intel',
-        label: t('brand.detail.journeyIntelligence'),
-        state: brand.current_approved_profile_version_id
-          ? ('done' as const)
-          : scan
-            ? ('current' as const)
-            : ('todo' as const),
-      },
-    ];
-  }, [brand, t]);
+  const journey = useMemo(() => (brand ? buildBrandJourneySteps(brand, t) : []), [brand, t]);
 
   if (denied)
     return <PermissionDenied message={t('errors.brandNoAccess') || t('errors.permission')} />;
@@ -117,19 +85,7 @@ export default function BrandDetailPage() {
   }
 
   const scan = brand.latest_scan;
-  const nextStep = !brand.website
-    ? { href: `/app/brands/${brandId}/connect`, label: t('brand.detail.connectCta') }
-    : !scan
-      ? { href: `/app/brands/${brandId}/scans/new`, label: t('brand.scan.start') }
-      : brand.current_approved_profile_version_id
-        ? {
-            href: `/app/brands/${brandId}/profiles/${brand.current_approved_profile_version_id}`,
-            label: t('brand.detail.viewProfile'),
-          }
-        : {
-            href: `/app/brands/${brandId}/profiles`,
-            label: t('brand.detail.intelligenceCta'),
-          };
+  const nextStep = brandPrimaryNextStep(brandId, brand, t);
 
   return (
     <BrandWorkspaceShell
@@ -192,6 +148,24 @@ export default function BrandDetailPage() {
                     </Link>
                   ) : (
                     <span className="oma-muted">{t('brand.detail.noApprovedProfile')}</span>
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('brand.detail.currentStrategy')}</dt>
+                <dd>
+                  {brand.current_approved_strategy_id ? (
+                    <Link
+                      href={`/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}`}
+                    >
+                      {t('brand.detail.openStrategyCta')}
+                    </Link>
+                  ) : brand.current_approved_profile_version_id ? (
+                    <Link href={`/app/brands/${brandId}/strategies/new`}>
+                      {t('brand.detail.createStrategyCta')}
+                    </Link>
+                  ) : (
+                    <span className="oma-muted">{t('brand.detail.noStrategy')}</span>
                   )}
                 </dd>
               </div>
@@ -265,6 +239,27 @@ export default function BrandDetailPage() {
                   </span>
                 </Link>
               </li>
+              {brand.current_approved_profile_version_id ? (
+                <li>
+                  <Link
+                    href={
+                      brand.current_approved_strategy_id
+                        ? `/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}`
+                        : `/app/brands/${brandId}/strategies`
+                    }
+                    className="oma-work-row"
+                  >
+                    <strong>
+                      {brand.current_approved_strategy_id
+                        ? t('brand.detail.openStrategyCta')
+                        : t('brand.detail.createStrategyCta')}
+                    </strong>
+                    <span className="oma-work-row-cta" aria-hidden="true">
+                      {t('home.action.open')}
+                    </span>
+                  </Link>
+                </li>
+              ) : null}
             </ul>
           </Panel>
         </aside>

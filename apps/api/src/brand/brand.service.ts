@@ -231,6 +231,7 @@ export class BrandService {
         status: brand.status,
         version: brand.version,
         current_approved_profile_version_id: brand.currentApprovedProfileVersionId,
+        current_approved_strategy_id: brand.currentApprovedStrategyId,
         website: source
           ? {
               website_source_id: source.id,

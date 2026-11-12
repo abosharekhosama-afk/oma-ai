@@ -27,6 +27,8 @@ import {
   isDemoStrategyRoute,
 } from '../../../../../../../components/demo/demo-strategy-document';
 import { useT } from '../../../../../../../lib/use-locale';
+import { StrategyOverviewSummary } from '../../../../../../../components/strategy/strategy-overview-summary';
+import { StrategyPlanRequestsPanel } from '../../../../../../../components/strategy/strategy-plan-requests-panel';
 
 export default function StrategyOverviewPage() {
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -163,6 +165,10 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         </div>
       </header>
 
+      <StrategyOverviewSummary brandId={brandId} strategyId={strategyId} strategy={strategy} />
+
+      <AiHonestyBanner availability={aiAvailability} />
+
       {latest?.missing_source ? (
         <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
           <p>{t('strategy.warning.missingProfile')}</p>
@@ -175,7 +181,13 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         </div>
       ) : null}
 
-      <AiHonestyBanner availability={aiAvailability} />
+      {latest?.status === 'APPROVED' && !latest.missing_source ? (
+        <StrategyPlanRequestsPanel
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={latest.id}
+        />
+      ) : null}
 
       {latest && latest.status === 'DRAFT' ? (
         <div className="oma-panel" data-testid="strategy-ai-propose">

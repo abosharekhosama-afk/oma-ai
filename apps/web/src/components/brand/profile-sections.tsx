@@ -27,6 +27,7 @@ const SECTION_ORDER = [
   'languages',
   'claims',
   'risks',
+  'evidence_refs',
 ];
 
 function humanizeKey(key: string) {
@@ -123,8 +124,18 @@ function SectionData({ label, value }: { label: string; value: unknown }) {
 }
 
 function sectionTitle(t: (key: string) => string, key: string) {
-  const label = t(`brand.profile.section.${key}`);
-  return label.startsWith('brand.profile.section.') ? key.replace(/_/g, ' ') : label;
+  const i18nKey = `brand.profile.section.${key}`;
+  const label = t(i18nKey);
+  if (label === i18nKey || label.startsWith('brand.profile.section.')) {
+    return humanizeKey(key);
+  }
+  return label;
+}
+
+function provenanceBadgeClass(infoState: string): string {
+  if (infoState === 'AI_INFERRED') return 'oma-badge';
+  if (infoState === 'OBSERVED') return 'oma-badge oma-badge-muted';
+  return 'oma-badge oma-badge-muted';
 }
 
 /**
@@ -205,7 +216,10 @@ export function ProfileSections({
                     <li key={insight.id} className="oma-insight-item">
                       <div className="oma-insight-header">
                         <strong>{fieldLabel(t, insight.field_key)}</strong>
-                        <span className="oma-badge">
+                        <span
+                          className={provenanceBadgeClass(insight.info_state)}
+                          data-testid={`insight-provenance-${insight.info_state}`}
+                        >
                           {t(`brand.infoState.${insight.info_state}`)}
                         </span>
                         <span className="oma-badge oma-badge-muted">
