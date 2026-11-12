@@ -21,6 +21,7 @@ export type BrandDetail = {
   status: string;
   version: number;
   current_approved_profile_version_id: string | null;
+  current_approved_strategy_id: string | null;
   website: {
     website_source_id: string;
     normalized_url: string;

@@ -27,6 +27,10 @@ import { InsightDecisionControls } from '../../../../../../../components/brand/i
 import { ApprovalSummary } from '../../../../../../../components/brand/approval-summary';
 import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
+import {
+  ProfileStrategyHandoffBanner,
+  ScanCatalogHonestyBanner,
+} from '../../../../../../../components/brand/brand-context-banners';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -265,6 +269,7 @@ export default function ProfileEditorPage() {
       </header>
 
       {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
+      {linkedScan ? <ScanCatalogHonestyBanner scan={linkedScan} /> : null}
 
       <AiUnavailableBanner
         aiAvailability={profile.ai_availability}
@@ -276,6 +281,14 @@ export default function ProfileEditorPage() {
           <strong>{t('brand.profile.immutableTitle')}</strong>
           <p>{t('brand.profile.immutableBody')}</p>
         </div>
+      ) : null}
+
+      {profile.status === 'APPROVED' && brand.current_approved_profile_version_id === versionId ? (
+        <ProfileStrategyHandoffBanner
+          brandId={brandId}
+          profileVersionId={versionId}
+          strategyId={brand.current_approved_strategy_id}
+        />
       ) : null}
 
       {scanStatus === 'PARTIAL' ? (

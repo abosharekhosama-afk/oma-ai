@@ -90,6 +90,26 @@ export default function StrategiesListPage() {
         </div>
       ) : null}
 
+      {!missingProfile && brand.current_approved_strategy_id ? (
+        <div
+          className="oma-banner oma-banner-info"
+          role="status"
+          data-testid="strategy-list-current"
+        >
+          <span>{t('strategy.list.currentPointer')}</span>
+          <Link
+            href={`/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}`}
+            className="oma-text-link"
+          >
+            {t('brand.detail.openStrategyCta')}
+          </Link>
+        </div>
+      ) : !missingProfile ? (
+        <div className="oma-banner oma-banner-info" role="status">
+          <span>{t('strategy.list.readyToCreate')}</span>
+        </div>
+      ) : null}
+
       {error ? <ErrorState title={t('common.error')} body={error} /> : null}
 
       {rows.length === 0 ? (
