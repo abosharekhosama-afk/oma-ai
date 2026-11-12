@@ -1197,6 +1197,34 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/profiles/{versionId}/catalog/merge-discovery": {
+      "post": {
+        "operationId": "ProfileController_mergeDiscoveryCatalog",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/profiles/{versionId}/insights/bulk-accept": {
+      "post": {
+        "operationId": "ProfileController_bulkAcceptInsights",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/insights/{insightId}/accept": {
       "post": {
         "operationId": "ProfileController_acceptInsight",

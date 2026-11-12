@@ -23,6 +23,7 @@
 | Strategy organic/paid                     | Feature 003                                                                     |
 | AI strategy propose API                   | Implemented (`oma.strategy_propose` prompt)                                     |
 | AI strategy assistant UI                  | Overview, foundation, organic, paid, review                                     |
+| Discovery → profile catalog merge         | Discovery products UI, merge API, bulk accept catalog insights                  |
 | Live AI                                   | Needs `AI_LIVE_ENABLED` + provider key on **API**; brand analysis on **Worker** |
 
 ## Operations checklist (Brp / production demo)
@@ -34,6 +35,6 @@
 ## Next engineering waves (not all done)
 
 - Stronger catalog extraction (API/feed hooks after DEC-004 product decision).
-- Discovery → profile catalog merge UI (bulk accept observations).
+- Discovery → profile catalog merge UI (bulk accept observations). **Done** on `004` (wave 2).
 - Strategy AI: per-section accept (not whole package accept only).
 - E2E: scan → approve profile → AI propose → approve strategy → commit requests.

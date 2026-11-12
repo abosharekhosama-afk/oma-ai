@@ -3,9 +3,13 @@ import { getPrisma, tenantWhere } from '@oma/db';
 import {
   DomainError,
   canEditProfile,
+  discoveryRowsToCatalogItems,
+  discoveryTierForField,
   evaluateApprovalEligibility,
   isRequiredForApproval,
+  mergeCatalogFieldValues,
   newId,
+  parseCatalogFieldValue,
 } from '@oma/domain';
 import { notificationAllowed } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
@@ -253,6 +257,181 @@ export class ProfileService {
       correlationId,
     });
     return this.get(tenantId, brandId, versionId);
+  }
+
+  async mergeDiscoveryCatalog(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    versionId: string,
+    input: {
+      row_version: number;
+      scan_id: string;
+      discovery_item_ids: string[];
+      accept_catalog_insights?: boolean;
+    },
+    correlationId?: string,
+  ) {
+    const version = await this.loadVersion(tenantId, brandId, versionId);
+    if (!canEditProfile(version.status as never)) {
+      throw new DomainError('CONFLICT_STATE', 'Not editable', 409, 'errors.conflict_state');
+    }
+    if (version.rowVersion !== input.row_version) {
+      throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
+    }
+    if (input.discovery_item_ids.length === 0) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'No discovery items',
+        400,
+        'errors.validation_failed',
+      );
+    }
+
+    const scan = await getPrisma().scanAttempt.findFirst({
+      where: tenantWhere(tenantId, { id: input.scan_id, brandId }),
+    });
+    if (!scan) throw new DomainError('NOT_FOUND', 'Scan not found', 404, 'errors.not_found');
+
+    const rows = await getPrisma().discoveredProductService.findMany({
+      where: tenantWhere(tenantId, {
+        scanAttemptId: input.scan_id,
+        id: { in: input.discovery_item_ids },
+      }),
+    });
+    if (rows.length === 0) {
+      throw new DomainError('NOT_FOUND', 'No matching items', 404, 'errors.not_found');
+    }
+
+    const productRows = rows.filter((r) => r.kind === 'PRODUCT');
+    const serviceRows = rows.filter((r) => r.kind === 'SERVICE');
+    const productAdditions = discoveryRowsToCatalogItems(productRows);
+    const serviceAdditions = discoveryRowsToCatalogItems(serviceRows);
+
+    const insights = await getPrisma().insightClaim.findMany({
+      where: tenantWhere(tenantId, { profileVersionId: versionId }),
+    });
+
+    const sections = version.sectionsJson
+      ? (JSON.parse(version.sectionsJson) as Record<string, unknown>)
+      : {};
+    const catalog = (
+      typeof sections.catalog === 'object' && sections.catalog ? sections.catalog : {}
+    ) as Record<string, unknown>;
+
+    const mergeField = async (
+      fieldKey: 'catalog.products' | 'catalog.services',
+      additions: ReturnType<typeof discoveryRowsToCatalogItems>,
+    ) => {
+      if (additions.length === 0) return null;
+      let insight = insights.find((i) => i.fieldKey === fieldKey);
+      const existing = parseCatalogFieldValue(
+        insight?.textValue,
+        insight?.valueJson ? JSON.parse(insight.valueJson) : undefined,
+      );
+      const merged = mergeCatalogFieldValues(existing, additions);
+      const serialized = JSON.stringify(merged);
+      const sectionKey = fieldKey === 'catalog.products' ? 'products' : 'services';
+      catalog[sectionKey] = merged;
+
+      await getPrisma().$transaction(async (tx) => {
+        const targetInsightId = insight?.id ?? newId();
+        if (!insight) {
+          await tx.insightClaim.create({
+            data: {
+              id: targetInsightId,
+              tenantId,
+              brandId,
+              profileVersionId: versionId,
+              fieldKey,
+              infoState: 'USER_CORRECTED',
+              reviewStatus: 'EDITED',
+              textValue: serialized,
+              valueJson: serialized,
+              discoveryTier: discoveryTierForField(fieldKey) as never,
+              createdBy: 'USER',
+            },
+          });
+        } else {
+          await tx.insightClaim.update({
+            where: { id: targetInsightId },
+            data: {
+              textValue: serialized,
+              valueJson: serialized,
+              infoState: 'USER_CORRECTED',
+              reviewStatus: 'EDITED',
+              rowVersion: { increment: 1 },
+            },
+          });
+          await tx.humanEdit.create({
+            data: {
+              id: newId(),
+              tenantId,
+              brandId,
+              profileVersionId: versionId,
+              insightId: targetInsightId,
+              actorUserId,
+              action: 'EDIT',
+              beforeRef: insight.textValue,
+              afterRef: serialized,
+              correlationId,
+            },
+          });
+        }
+        if (input.accept_catalog_insights) {
+          await tx.insightClaim.update({
+            where: { id: targetInsightId },
+            data: {
+              reviewStatus: 'ACCEPTED',
+              infoState: 'USER_CONFIRMED',
+              rowVersion: { increment: 1 },
+            },
+          });
+          await tx.reviewDecision.create({
+            data: {
+              id: newId(),
+              tenantId,
+              brandId,
+              profileVersionId: versionId,
+              insightId: targetInsightId,
+              actorUserId,
+              action: 'ACCEPT',
+              correlationId,
+            },
+          });
+        }
+      });
+      return merged;
+    };
+
+    await mergeField('catalog.products', productAdditions);
+    await mergeField('catalog.services', serviceAdditions);
+
+    sections.catalog = catalog;
+    await getPrisma().profileVersion.update({
+      where: { id: versionId },
+      data: {
+        rowVersion: { increment: 1 },
+        sectionsJson: JSON.stringify(sections),
+        status: version.status === 'DRAFT' ? 'NEEDS_REVIEW' : version.status,
+      },
+    });
+
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'brand.profile.catalog_merged',
+      targetType: 'ProfileVersion',
+      targetId: versionId,
+      correlationId,
+    });
+
+    return {
+      data: {
+        merged_item_count: rows.length,
+        profile: (await this.get(tenantId, brandId, versionId)).data,
+      },
+    };
   }
 
   private async loadVersion(tenantId: string, brandId: string, versionId: string) {

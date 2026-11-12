@@ -26,6 +26,8 @@ import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
+import { DiscoveryCatalogMergeBar } from '../../../../../../../components/brand/discovery-catalog-merge-bar';
+import type { ProfileDetail } from '../../../../../../../lib/brand-types';
 
 export default function DiscoveryProductsPage() {
   const t = useT();
@@ -41,6 +43,7 @@ export default function DiscoveryProductsPage() {
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [evidenceByPage, setEvidenceByPage] = useState<Record<string, string>>({});
   const [spaLikely, setSpaLikely] = useState(false);
+  const [profile, setProfile] = useState<ProfileDetail | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -53,18 +56,30 @@ export default function DiscoveryProductsPage() {
           return;
         }
         setScanId(latest);
-        const [scanRes, productsRes, evidenceRes, pagesRes] = await Promise.all([
+        const profilePromise =
+          brandRes.data.latest_profile_version_id &&
+          brandRes.data.latest_profile_status &&
+          brandRes.data.latest_profile_status !== 'APPROVED'
+            ? api<{ data: ProfileDetail }>(
+                `/api/v1/brands/${brandId}/profiles/${brandRes.data.latest_profile_version_id}`,
+              )
+            : Promise.resolve(null);
+        const [scanRes, productsRes, evidenceRes, pagesRes, profileRes] = await Promise.all([
           api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${latest}`),
-          api<Paginated<DiscoveredProduct>>(`/api/v1/brands/${brandId}/scans/${latest}/products`),
+          api<Paginated<DiscoveredProduct>>(
+            `/api/v1/brands/${brandId}/scans/${latest}/products?limit=100`,
+          ),
           api<Paginated<EvidenceItem>>(
             `/api/v1/brands/${brandId}/scans/${latest}/evidence?limit=100`,
           ),
           api<Paginated<DiscoveredPage>>(
             `/api/v1/brands/${brandId}/scans/${latest}/pages?limit=100`,
           ),
+          profilePromise,
         ]);
         setConnectorMode(scanRes.data.connector_mode);
         setProducts(productsRes.data);
+        setProfile(profileRes?.data ?? null);
         setSpaLikely(productsRes.data.length === 0 && likelySpaShell(pagesRes.data));
         const map: Record<string, string> = {};
         for (const item of evidenceRes.data) {
@@ -133,50 +148,67 @@ export default function DiscoveryProductsPage() {
           ) : null}
         </div>
       ) : (
-        <ul className="oma-discovery-list">
-          {products.map((product) => {
-            const linked =
-              product.source_page_id != null ? evidenceByPage[product.source_page_id] : undefined;
-            return (
-              <li key={product.id} className="oma-discovery-item">
-                <div>
-                  <strong>{product.name}</strong>
-                  <span className="oma-badge oma-badge-muted">{product.kind}</span>
-                </div>
-                {product.description ? (
-                  <p className="oma-muted" style={{ margin: '0.25rem 0', fontSize: 14 }}>
-                    {product.description}
-                  </p>
-                ) : null}
-                <dl className="oma-detail-dl oma-detail-dl-inline">
-                  {product.category ? (
-                    <div>
-                      <dt>{t('brand.discovery.category')}</dt>
-                      <dd>{product.category}</dd>
-                    </div>
+        <>
+          <DiscoveryCatalogMergeBar
+            brandId={brandId}
+            scanId={scanId}
+            products={products}
+            profile={profile}
+            onMerged={() => {
+              void (async () => {
+                if (!brand.latest_profile_version_id) return;
+                const res = await api<{ data: ProfileDetail }>(
+                  `/api/v1/brands/${brandId}/profiles/${brand.latest_profile_version_id}`,
+                );
+                setProfile(res.data);
+              })();
+            }}
+          />
+          <ul className="oma-discovery-list">
+            {products.map((product) => {
+              const linked =
+                product.source_page_id != null ? evidenceByPage[product.source_page_id] : undefined;
+              return (
+                <li key={product.id} className="oma-discovery-item">
+                  <div>
+                    <strong>{product.name}</strong>
+                    <span className="oma-badge oma-badge-muted">{product.kind}</span>
+                  </div>
+                  {product.description ? (
+                    <p className="oma-muted" style={{ margin: '0.25rem 0', fontSize: 14 }}>
+                      {product.description}
+                    </p>
                   ) : null}
-                  {product.price_amount ? (
-                    <div>
-                      <dt>{t('brand.discovery.price')}</dt>
-                      <dd>
-                        {product.price_amount} {product.price_currency}
-                      </dd>
-                    </div>
-                  ) : null}
-                </dl>
-                <div className="oma-form-actions">
-                  {linked ? (
-                    <Button type="default" onClick={() => setEvidenceId(linked)}>
-                      {t('brand.evidence.view')}
-                    </Button>
-                  ) : (
-                    <span className="oma-muted">{t('brand.evidence.none')}</span>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                  <dl className="oma-detail-dl oma-detail-dl-inline">
+                    {product.category ? (
+                      <div>
+                        <dt>{t('brand.discovery.category')}</dt>
+                        <dd>{product.category}</dd>
+                      </div>
+                    ) : null}
+                    {product.price_amount ? (
+                      <div>
+                        <dt>{t('brand.discovery.price')}</dt>
+                        <dd>
+                          {product.price_amount} {product.price_currency}
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                  <div className="oma-form-actions">
+                    {linked ? (
+                      <Button type="default" onClick={() => setEvidenceId(linked)}>
+                        {t('brand.evidence.view')}
+                      </Button>
+                    ) : (
+                      <span className="oma-muted">{t('brand.evidence.none')}</span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
 
       <EvidenceSidePanel

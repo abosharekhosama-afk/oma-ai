@@ -125,6 +125,50 @@ export class ProfileController {
     );
   }
 
+  @Post('profiles/:versionId/catalog/merge-discovery')
+  @UseGuards(CsrfGuard)
+  async mergeDiscoveryCatalog(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('versionId') versionId: string,
+    @Body()
+    body: {
+      row_version: number;
+      scan_id: string;
+      discovery_item_ids: string[];
+      accept_catalog_insights?: boolean;
+    },
+  ) {
+    this.requireTenant(req);
+    return profileService.mergeDiscoveryCatalog(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      versionId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('profiles/:versionId/insights/bulk-accept')
+  @UseGuards(CsrfGuard)
+  async bulkAcceptInsights(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: { insights: { id: string; row_version: number }[] },
+  ) {
+    this.requireTenant(req);
+    return insightService.bulkAccept(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      versionId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post('insights/:insightId/accept')
   @UseGuards(CsrfGuard)
   async acceptInsight(

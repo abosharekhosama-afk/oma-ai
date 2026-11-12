@@ -34,6 +34,8 @@ export type BrandDetail = {
     job_run_id: string;
     connector_mode: 'FIXTURE' | 'NOT_CONFIGURED' | 'LIVE';
   } | null;
+  latest_profile_status: string | null;
+  latest_profile_version_id: string | null;
   next_scan_connector_mode: 'FIXTURE' | 'NOT_CONFIGURED' | 'LIVE';
   archived_at: string | null;
   logo_url?: string | null;

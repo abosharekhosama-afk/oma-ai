@@ -29,6 +29,54 @@ export class InsightService {
     return this.decide(tenantId, actorUserId, brandId, insightId, 'REJECTED', input, correlationId);
   }
 
+  async bulkAccept(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    profileVersionId: string,
+    input: { insights: { id: string; row_version: number }[] },
+    correlationId?: string,
+  ) {
+    const results: Array<{ id: string; ok: boolean; error?: string }> = [];
+    for (const item of input.insights) {
+      try {
+        const insight = await getPrisma().insightClaim.findFirst({
+          where: tenantWhere(tenantId, {
+            id: item.id,
+            brandId,
+            profileVersionId,
+          }),
+        });
+        if (!insight) {
+          results.push({ id: item.id, ok: false, error: 'NOT_FOUND' });
+          continue;
+        }
+        if (insight.rowVersion !== item.row_version) {
+          results.push({ id: item.id, ok: false, error: 'CONFLICT_VERSION' });
+          continue;
+        }
+        await this.decide(
+          tenantId,
+          actorUserId,
+          brandId,
+          item.id,
+          'ACCEPTED',
+          { row_version: item.row_version },
+          correlationId,
+        );
+        results.push({ id: item.id, ok: true });
+      } catch {
+        results.push({ id: item.id, ok: false, error: 'FAILED' });
+      }
+    }
+    return {
+      data: {
+        accepted: results.filter((r) => r.ok).length,
+        results,
+      },
+    };
+  }
+
   private async decide(
     tenantId: string,
     actorUserId: string,
