@@ -15,5 +15,6 @@ export * from './sitemap-parser';
 export * from './html-charset';
 export * from './fetch-url-policy';
 export * from './crawl-seeds';
+export * from './js-render-heuristic';
 export * from './catalog-summary';
 export * from './website-connector-factory';

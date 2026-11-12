@@ -33,7 +33,19 @@ When the connector is `disabled`, the URL can still be saved so a profile can ex
 - Extracts title, description, JSON-LD and heuristic **products/services**, organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
 - After the crawl, aggregates discovered products/services into scan-level `catalog.products` / `catalog.services` observations for profile draft and AI analysis.
 
-JavaScript-rendered apps are not executed. Only the initial HTML response is parsed.
+### JavaScript rendering (optional)
+
+By default the crawler parses the **initial HTML** only (`BRAND_SCANNER_JS_RENDER_MODE=off`).
+
+When the worker has `playwright-core` and Chromium available, set:
+
+| Variable                                 | Default | Purpose                                                                                                                                             |
+| ---------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BRAND_SCANNER_JS_RENDER_MODE`           | `off`   | `off` \| `auto` \| `always` — `auto` re-fetches with headless Chromium when the page looks like an SPA shell or a catalog path returned no products |
+| `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000` | Per-page render timeout                                                                                                                             |
+| `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`  | Block images/fonts/media during render to save RAM                                                                                                  |
+
+`auto` keeps static fetch first; Playwright runs only when heuristics say JS is likely required. Evidence from rendered pages is stored with `extractionMethod=RENDERED_JS`.
 
 ## Environment variables
 

@@ -1030,6 +1030,8 @@
   "brand.coverage.failedPages": "Failed pages",
   "brand.coverage.skippedPages": "Skipped pages",
   "brand.coverage.noneListed": "None listed",
+  "brand.coverage.jsRender": "JavaScript rendering",
+  "brand.coverage.jsRenderDetail": "Mode: {mode}. Pages re-fetched with headless browser: {count}.",
   "home.kicker": "Brand Website Intelligence",
   "home.viewPortfolio": "View brand portfolio",
   "home.summaryLabel": "Workspace summary",
