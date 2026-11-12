@@ -71,6 +71,7 @@ GEMINI_API_KEY=...            # when AI_PROVIDER=gemini
 AI_DEFAULT_MODEL=             # optional; provider default when blank
 AI_REASONING_MODEL=           # optional; provider default when blank
 AI_REQUEST_TIMEOUT_MS=60000
+AI_BRAND_ANALYSIS_TIMEOUT_MS=120000
 AI_MAX_RETRIES=2
 AI_MONTHLY_BUDGET_USD=25
 AI_DAILY_BUDGET_USD=2

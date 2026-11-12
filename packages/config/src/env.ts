@@ -91,6 +91,7 @@ export const envSchema = z
     AI_DEFAULT_MODEL: z.string().optional().default(''),
     AI_REASONING_MODEL: z.string().optional().default(''),
     AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
+    AI_BRAND_ANALYSIS_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
     AI_MAX_RETRIES: z.coerce.number().int().nonnegative().default(2),
     AI_MODEL_PRICES_JSON: z.string().optional().default(''),
     AI_MONTHLY_BUDGET_USD: z.coerce.number().positive().default(25),

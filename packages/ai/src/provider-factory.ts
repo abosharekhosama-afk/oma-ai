@@ -24,12 +24,17 @@ export function configuredAiApiKey(env: NodeJS.ProcessEnv = process.env): string
   }
 }
 
-export function createAiAdapterFromEnv(env: NodeJS.ProcessEnv = process.env): StructuredAiProvider {
+export function createAiAdapterFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+  overrides?: { timeoutMs?: number; maxRetries?: number },
+): StructuredAiProvider {
   const provider = configuredAiProvider(env);
   const models = defaultAiModels(env);
   const liveEnabled = env.AI_LIVE_ENABLED === 'true' && Boolean(configuredAiApiKey(env));
-  const timeoutMs = env.AI_REQUEST_TIMEOUT_MS ? Number(env.AI_REQUEST_TIMEOUT_MS) : 60_000;
-  const maxRetries = env.AI_MAX_RETRIES ? Number(env.AI_MAX_RETRIES) : 2;
+  const timeoutMs =
+    overrides?.timeoutMs ??
+    (env.AI_REQUEST_TIMEOUT_MS ? Number(env.AI_REQUEST_TIMEOUT_MS) : 60_000);
+  const maxRetries = overrides?.maxRetries ?? (env.AI_MAX_RETRIES ? Number(env.AI_MAX_RETRIES) : 2);
 
   if (provider === 'openai') {
     return new OpenAiProviderAdapter({

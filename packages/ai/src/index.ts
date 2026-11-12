@@ -11,6 +11,7 @@ export { mapProviderError, type AiStructuredErrorCode } from './provider-errors'
 export * from './prompts';
 
 export { ChatCompletionsProviderAdapter } from './chat-completions-adapter';
+export { brandAnalysisTimeoutMs } from './brand-analysis-timeout';
 export {
   createAiAdapterFromEnv,
   configuredAiProvider,

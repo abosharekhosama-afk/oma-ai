@@ -27,9 +27,11 @@ When the connector is `disabled`, the URL can still be saved so a profile can ex
 - Identifies itself with `BRAND_SCANNER_USER_AGENT`, sends `Accept-Language`, and accepts gzip/br.
 - Limits per-host concurrency and adds a polite delay. `429` / `503` responses honor `Retry-After` with bounded retries.
 - Fetches and parses `robots.txt` (user-agent groups, `Allow` / `Disallow` with `*` and `$`, longest-match with Allow winning ties, `Crawl-delay`, `Sitemap`). A missing file (404) allows crawling; a 5xx response is treated conservatively as disallow (RFC 9309).
-- Seeds additional URLs from sitemap indexes and `sitemap.xml`, within document and page bounds.
+- Seeds additional URLs from sitemap indexes and common locations (`/sitemap.xml`, `/wp-sitemap.xml`, …), plus default marketing paths (`/products`, `/services`, `/shop`, …) and optional `BRAND_SCANNER_PATH_SEEDS`.
+- Prioritizes catalog-like paths in the crawl queue when link budget is tight.
 - Canonicalizes URLs (fragments and tracking parameters such as `utm_*` are stripped) and respects `link rel=canonical` plus `meta robots` `nofollow` when discovering links.
-- Extracts title, description, JSON-LD products/organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
+- Extracts title, description, JSON-LD and heuristic **products/services**, organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
+- After the crawl, aggregates discovered products/services into scan-level `catalog.products` / `catalog.services` observations for profile draft and AI analysis.
 
 JavaScript-rendered apps are not executed. Only the initial HTML response is parsed.
 
@@ -47,6 +49,7 @@ JavaScript-rendered apps are not executed. Only the initial HTML response is par
 | `BRAND_SCANNER_USER_AGENT`          | `OMA-BrandScanner/1.0 (+https://oma.ai)`  | Crawler identity                                                 |
 | `BRAND_SCANNER_ACCEPT_LANGUAGE`     | `en,ar;q=0.9`                             | `Accept-Language` header                                         |
 | `BRAND_SCANNER_IGNORE_ROBOTS_TXT`   | `true`                                    | When true, `Disallow` rules in robots.txt do not skip pages      |
+| `BRAND_SCANNER_PATH_SEEDS`          | (built-in list)                           | Comma-separated extra paths, e.g. `/offers,/ar/services`         |
 | `BRAND_SCANNER_TIMEOUT_MS`          | `15000`                                   | Total per-request timeout                                        |
 | `BRAND_SCANNER_CONNECT_TIMEOUT_MS`  | `5000`                                    | TCP/TLS connect timeout                                          |
 | `BRAND_SCANNER_MAX_REDIRECTS`       | `5`                                       | Redirect hop limit                                               |

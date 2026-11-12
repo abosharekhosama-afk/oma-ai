@@ -31,6 +31,26 @@ describe('brand analysis prompts', () => {
     expect(prompt.system).toContain('Do not invent facts');
   });
 
+  it('keeps catalog observations when trimming observation rows', () => {
+    const filler = Array.from({ length: 12 }, (_, i) => ({
+      fieldKey: `brand.extra_${i}`,
+      value: 'x'.repeat(40),
+    }));
+    const result = truncateEvidenceInput(
+      {
+        observations: [
+          { fieldKey: 'brand.name', value: 'Acme' },
+          { fieldKey: 'catalog.products', value: { summary: 'Widget' } },
+          ...filler,
+        ],
+        evidence: [{ id: 'e1', excerpt: 'short' }],
+      },
+      120,
+    );
+    expect(result.observations.some((o) => o.fieldKey === 'catalog.products')).toBe(true);
+    expect(result.observations.some((o) => o.fieldKey === 'brand.name')).toBe(true);
+  });
+
   it('truncates evidence to the token budget', () => {
     const evidence = Array.from({ length: 20 }, (_, i) => ({
       id: `e${i}`,

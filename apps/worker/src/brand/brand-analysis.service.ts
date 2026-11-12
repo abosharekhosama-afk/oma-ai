@@ -18,7 +18,12 @@ import {
   visualIdentityFromObservations,
   type LedgerEntry,
 } from '@oma/domain';
-import { createAiAdapterFromEnv, configuredAiProvider, buildBrandAnalysisPrompt } from '@oma/ai';
+import {
+  createAiAdapterFromEnv,
+  configuredAiProvider,
+  buildBrandAnalysisPrompt,
+  brandAnalysisTimeoutMs,
+} from '@oma/ai';
 
 function budgetLimits() {
   return {
@@ -223,7 +228,9 @@ export async function runBrandProfileAnalysis(input: {
   let errorCode: string | null = null;
 
   if (live && !useTest) {
-    const adapter = createAiAdapterFromEnv();
+    const adapter = createAiAdapterFromEnv(process.env, {
+      timeoutMs: brandAnalysisTimeoutMs(process.env),
+    });
     const result = await adapter.completeStructured({
       useCase: 'brand_profile_synthesis',
       payload: { scanAttemptId: input.scanAttemptId },

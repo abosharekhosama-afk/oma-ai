@@ -59,6 +59,25 @@ async function persistCatalogObservations(input: {
     orderBy: { name: 'asc' },
   });
   const catalog = buildCatalogFieldValue(rows);
+  if (!catalog.products && !catalog.services) return;
+  const productWithPage = rows.find((row) => row.kind === 'PRODUCT');
+  const anchorEvidence = productWithPage?.sourcePageId
+    ? await getPrisma().evidenceExcerpt.findFirst({
+        where: {
+          tenantId: input.tenantId,
+          scanAttemptId: input.scanAttemptId,
+          discoveredPageId: productWithPage.sourcePageId,
+        },
+      })
+    : null;
+  const evidenceId =
+    anchorEvidence?.id ??
+    (
+      await getPrisma().evidenceExcerpt.findFirst({
+        where: { tenantId: input.tenantId, scanAttemptId: input.scanAttemptId },
+        orderBy: { fetchedAt: 'asc' },
+      })
+    )?.id;
   for (const fieldKey of ['catalog.products', 'catalog.services'] as const) {
     const value = fieldKey === 'catalog.products' ? catalog.products : catalog.services;
     if (!value) continue;
@@ -74,6 +93,7 @@ async function persistCatalogObservations(input: {
         isUnknown: false,
         infoState: 'OBSERVED',
         confidence: 0.75,
+        evidenceId: evidenceId ?? null,
       },
     });
   }
