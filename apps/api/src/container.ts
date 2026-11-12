@@ -44,6 +44,9 @@ export const campaignService = new CampaignService(auditService);
 export const contentService = new ContentService(auditService);
 export const contentExtrasService = new ContentExtrasService(auditService, contentService);
 export const opsService = new OpsService(auditService);
-export const strategyPlanRequestsService = new StrategyPlanRequestsService(auditService, opsService);
+export const strategyPlanRequestsService = new StrategyPlanRequestsService(
+  auditService,
+  opsService,
+);
 export const workDriveService = new WorkDriveService(auditService);
 export const mediaService = new MediaService(auditService, workDriveService);

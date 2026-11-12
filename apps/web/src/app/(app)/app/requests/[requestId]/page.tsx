@@ -152,7 +152,11 @@ export default function RequestDetailPage() {
         dueAt: task.due_at ? String(task.due_at).slice(0, 10) : '',
       })) as RequestDetail['tasks'];
       setRow(data);
-      if (detail.data.strategy_id && detail.data.strategy_version_id && detail.data.plan_source_key) {
+      if (
+        detail.data.strategy_id &&
+        detail.data.strategy_version_id &&
+        detail.data.plan_source_key
+      ) {
         setStrategySource({
           strategyId: detail.data.strategy_id,
           strategyVersionId: detail.data.strategy_version_id,
@@ -558,7 +562,10 @@ export default function RequestDetailPage() {
                     />
                   ) : null}
                   {strategySource ? (
-                    <div className="oma-req-detail__link" data-testid="demo-request-strategy-source">
+                    <div
+                      className="oma-req-detail__link"
+                      data-testid="demo-request-strategy-source"
+                    >
                       <span className="oma-muted">{t('demo.requests.strategySource')}: </span>
                       <Link
                         href={`/app/brands/${strategySource.brandId}/strategies/${strategySource.strategyId}/review`}

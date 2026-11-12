@@ -65,10 +65,7 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
     [locale],
   );
 
-  const driftedImpact = useMemo(
-    () => impact.filter((row) => row.status === 'drifted'),
-    [impact],
-  );
+  const driftedImpact = useMemo(() => impact.filter((row) => row.status === 'drifted'), [impact]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);

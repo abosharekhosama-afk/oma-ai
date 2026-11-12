@@ -25,7 +25,10 @@ export type PlanRequestImpactRow = {
 };
 
 function normList(values: string[]): string[] {
-  return [...values].map((v) => v.trim()).filter(Boolean).sort();
+  return [...values]
+    .map((v) => v.trim())
+    .filter(Boolean)
+    .sort();
 }
 
 function normText(value: string): string {

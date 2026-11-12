@@ -349,9 +349,7 @@ export class StrategyPlanRequestsService {
           briefAudienceEn: row.briefAudienceEn,
           briefKeyMessageEn: row.briefKeyMessageEn,
         }),
-        has_open_task: row.tasks.some(
-          (t) => !['DONE', 'CANCELLED'].includes(String(t.status)),
-        ),
+        has_open_task: row.tasks.some((t) => !['DONE', 'CANCELLED'].includes(String(t.status))),
       })),
     });
     const actionable = report.filter((r) => r.status === 'drifted' || r.status === 'orphaned');
