@@ -44,3 +44,31 @@ export function shouldUseJsRender(input: {
   if (isCatalogLikePath(path) && input.productCount === 0) return true;
   return false;
 }
+
+export function renderedExtractImprovesStatic(input: {
+  staticProductCount: number;
+  staticKnownFieldCount: number;
+  renderedProductCount: number;
+  renderedKnownFieldCount: number;
+}): boolean {
+  return (
+    input.renderedProductCount > input.staticProductCount ||
+    input.renderedKnownFieldCount > input.staticKnownFieldCount
+  );
+}
+
+export function shouldAdoptRenderedExtraction(
+  mode: JsRenderMode,
+  staticProductCount: number,
+  staticKnownFieldCount: number,
+  renderedProductCount: number,
+  renderedKnownFieldCount: number,
+): boolean {
+  if (mode === 'always') return true;
+  return renderedExtractImprovesStatic({
+    staticProductCount,
+    staticKnownFieldCount,
+    renderedProductCount,
+    renderedKnownFieldCount,
+  });
+}

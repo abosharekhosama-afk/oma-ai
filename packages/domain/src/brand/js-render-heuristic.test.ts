@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { looksLikeSpaShell, shouldUseJsRender } from './js-render-heuristic';
+import {
+  looksLikeSpaShell,
+  shouldAdoptRenderedExtraction,
+  shouldUseJsRender,
+} from './js-render-heuristic';
 
 const SPA_SHELL = `<!DOCTYPE html><html><head><title>VELVET</title></head><body>
 <div id="root"></div><script type="module" src="/assets/index.js"></script></body></html>`;
@@ -31,5 +35,10 @@ describe('js-render-heuristic', () => {
         productCount: 2,
       }),
     ).toBe(false);
+  });
+
+  it('always mode adopts render even without product delta', () => {
+    expect(shouldAdoptRenderedExtraction('always', 0, 2, 0, 2)).toBe(true);
+    expect(shouldAdoptRenderedExtraction('auto', 0, 2, 0, 2)).toBe(false);
   });
 });

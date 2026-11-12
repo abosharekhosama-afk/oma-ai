@@ -218,6 +218,9 @@ export function startIngestionProcessor(
         pages_failed: counts.pagesFailed,
         pages_skipped: counts.pagesSkipped,
         pages_js_rendered: counts.pagesJsRendered ?? 0,
+        pages_js_render_attempted: counts.pagesJsRenderAttempted ?? 0,
+        pages_js_render_failed: counts.pagesJsRenderFailed ?? 0,
+        js_render_errors: counts.jsRenderErrors ?? [],
         js_render_mode: counts.jsRenderMode ?? 'off',
         required_missing: usable
           ? []

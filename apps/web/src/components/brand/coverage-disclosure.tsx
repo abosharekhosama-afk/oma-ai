@@ -10,6 +10,9 @@ type CoverageSnapshot = {
   pages_fetched?: number;
   pages_failed?: number;
   pages_js_rendered?: number;
+  pages_js_render_attempted?: number;
+  pages_js_render_failed?: number;
+  js_render_errors?: string[];
   js_render_mode?: string;
 } | null;
 
@@ -71,14 +74,26 @@ export function CoverageDisclosure({
           </dd>
         </div>
         {coverage?.js_render_mode && coverage.js_render_mode !== 'off' ? (
-          <div>
-            <dt>{t('brand.coverage.jsRender')}</dt>
-            <dd data-testid="coverage-js-render">
-              {t('brand.coverage.jsRenderDetail')
-                .replace('{mode}', coverage.js_render_mode)
-                .replace('{count}', String(coverage.pages_js_rendered ?? 0))}
-            </dd>
-          </div>
+          <>
+            <div>
+              <dt>{t('brand.coverage.jsRender')}</dt>
+              <dd data-testid="coverage-js-render">
+                {t('brand.coverage.jsRenderDetail')
+                  .replace('{mode}', coverage.js_render_mode)
+                  .replace('{rendered}', String(coverage.pages_js_rendered ?? 0))
+                  .replace('{attempted}', String(coverage.pages_js_render_attempted ?? 0))
+                  .replace('{failed}', String(coverage.pages_js_render_failed ?? 0))}
+              </dd>
+            </div>
+            {(coverage.js_render_errors?.length ?? 0) > 0 ? (
+              <div>
+                <dt>{t('brand.coverage.jsRenderErrors')}</dt>
+                <dd data-testid="coverage-js-render-errors">
+                  {coverage.js_render_errors!.join(', ')}
+                </dd>
+              </div>
+            ) : null}
+          </>
         ) : null}
       </dl>
     </section>

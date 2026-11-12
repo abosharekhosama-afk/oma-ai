@@ -229,7 +229,7 @@ importers:
       ioredis:
         specifier: ^5.5.0
         version: 5.11.1
-      playwright-core:
+      playwright:
         specifier: ^1.51.0
         version: 1.62.1
       sharp:

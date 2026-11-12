@@ -45,7 +45,11 @@ When the worker has `playwright-core` and Chromium available, set:
 | `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000` | Per-page render timeout                                                                                                                             |
 | `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`  | Block images/fonts/media during render to save RAM                                                                                                  |
 
-`auto` keeps static fetch first; Playwright runs only when heuristics say JS is likely required. Evidence from rendered pages is stored with `extractionMethod=RENDERED_JS`.
+`auto` keeps static fetch first; Playwright runs only when heuristics say JS is likely required. In `always` mode, every HTML page is re-fetched with Chromium after the static response when rendering succeeds. Evidence from rendered pages is stored with `extractionMethod=RENDERED_JS`.
+
+**Worker runtime (Render/Docker):** install a Chromium binary for Playwright (`npx playwright install chromium` during image build, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`). Without a binary, coverage reports `js_render_errors` such as `PLAYWRIGHT_LAUNCH_FAILED` and `pages_js_render_failed` increments while `pages_js_rendered` stays 0.
+
+Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`, and up to five distinct `js_render_errors` codes for operations debugging.
 
 ## Environment variables
 

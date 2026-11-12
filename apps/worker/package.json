@@ -14,7 +14,7 @@
     "@oma/domain": "workspace:*",
     "@oma/observability": "workspace:*",
     "bullmq": "^5.41.0",
-    "playwright-core": "^1.51.0",
+    "playwright": "^1.51.0",
     "ioredis": "^5.5.0",
     "sharp": "^0.35.5"
   },

@@ -14,10 +14,11 @@ import {
   newId,
   parseSitemapXml,
   resolveJsRenderMode,
+  shouldAdoptRenderedExtraction,
   shouldUseJsRender,
   type WebsiteConnectorPort,
 } from '@oma/domain';
-import { fetchRenderedPageHtml } from './rendered-page-fetch';
+import { fetchRenderedPageHtml, RenderedPageFetchError } from './rendered-page-fetch';
 
 type CrawlConfig = {
   max_pages?: number;
@@ -132,7 +133,16 @@ export async function runExtractionForScan(input: {
   let pagesFailed = 0;
   let pagesSkipped = 0;
   let pagesJsRendered = 0;
+  let pagesJsRenderAttempted = 0;
+  let pagesJsRenderFailed = 0;
+  const jsRenderErrors: string[] = [];
   const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
+
+  const recordJsRenderError = (code: string) => {
+    if (!jsRenderErrors.includes(code) && jsRenderErrors.length < 5) {
+      jsRenderErrors.push(code);
+    }
+  };
 
   const startHost = new URL(input.startUrl).host;
   try {
@@ -246,21 +256,35 @@ export async function runExtractionForScan(input: {
           productCount: extracted.products.length,
         })
       ) {
+        pagesJsRenderAttempted += 1;
         try {
           const renderedHtml = await fetchRenderedPageHtml(fetched.finalUrl);
           const renderedExtracted = extractFromHtml(fetched.finalUrl, renderedHtml);
+          const staticKnown = extracted.fields.filter((f) => !f.isUnknown).length;
+          const renderedKnown = renderedExtracted.fields.filter((f) => !f.isUnknown).length;
           if (
-            renderedExtracted.products.length > extracted.products.length ||
-            renderedExtracted.fields.filter((f) => !f.isUnknown).length >
-              extracted.fields.filter((f) => !f.isUnknown).length
+            shouldAdoptRenderedExtraction(
+              jsRenderMode,
+              extracted.products.length,
+              staticKnown,
+              renderedExtracted.products.length,
+              renderedKnown,
+            )
           ) {
             htmlBody = renderedHtml;
             extracted = renderedExtracted;
             pageUsedRendered = true;
             pagesJsRendered += 1;
           }
-        } catch {
-          // Keep static HTML extraction when Playwright is unavailable or times out.
+        } catch (err) {
+          pagesJsRenderFailed += 1;
+          const code =
+            err instanceof RenderedPageFetchError
+              ? err.code
+              : err instanceof Error
+                ? err.name
+                : 'RENDER_FAILED';
+          recordJsRenderError(code);
         }
       }
       const pageCanonical =
@@ -375,5 +399,14 @@ export async function runExtractionForScan(input: {
     scanAttemptId: input.scanAttemptId,
   });
 
-  return { pagesFetched, pagesFailed, pagesSkipped, pagesJsRendered, jsRenderMode };
+  return {
+    pagesFetched,
+    pagesFailed,
+    pagesSkipped,
+    pagesJsRendered,
+    pagesJsRenderAttempted,
+    pagesJsRenderFailed,
+    jsRenderErrors,
+    jsRenderMode,
+  };
 }
