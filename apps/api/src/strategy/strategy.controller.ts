@@ -769,6 +769,43 @@ export class StrategyController {
     );
   }
 
+  @Get('strategies/:strategyId/versions/:versionId/plan-to-requests/impact')
+  async planRequestImpact(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanRequestsService.planRequestImpact(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+    );
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/plan-to-requests/sync-requests')
+  @UseGuards(CsrfGuard)
+  async syncPlanRequests(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: { request_ids: string[] },
+  ) {
+    this.requireTenant(req);
+    return strategyPlanRequestsService.syncPlanRequestsFromVersion(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post('strategies/:strategyId/versions/:versionId/plan-to-requests/commit')
   @UseGuards(CsrfGuard)
   async commitPlanToRequests(
@@ -776,7 +813,15 @@ export class StrategyController {
     @Param('brandId') brandId: string,
     @Param('strategyId') strategyId: string,
     @Param('versionId') versionId: string,
-    @Body() body: { plan_source_keys?: string[] },
+    @Body()
+    body: {
+      plan_source_keys?: string[];
+      defaults?: {
+        assignee_user_id?: string | null;
+        due_at?: string | null;
+        campaign_id?: string | null;
+      };
+    },
   ) {
     this.requireTenant(req);
     return strategyPlanRequestsService.commitPlanToRequests(

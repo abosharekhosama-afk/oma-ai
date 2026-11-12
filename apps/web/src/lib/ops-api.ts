@@ -42,6 +42,7 @@ export type ApiWorkRequest = {
   strategy_id?: string | null;
   strategy_version_id?: string | null;
   plan_source_key?: string | null;
+  strategy_name?: string | null;
 };
 
 export type ApiWorkTask = {

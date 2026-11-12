@@ -1,8 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
-import { DomainError, buildPlanWorkRequestDrafts, briefReadiness, newId } from '@oma/domain';
+import {
+  DomainError,
+  buildPlanWorkRequestDrafts,
+  briefReadiness,
+  newId,
+  buildPlanRequestImpactReport,
+  comparableFromStored,
+  type PlanWorkRequestDraft,
+} from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { OpsService } from '../content/ops.service';
+import { parseOptionalDate } from '../content/content.service';
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   if (!raw) return fallback;
@@ -109,17 +118,107 @@ export class StrategyPlanRequestsService {
     };
   }
 
+  private async resolveCommitDefaults(
+    tenantId: string,
+    brandId: string,
+    defaults?: {
+      assignee_user_id?: string | null;
+      due_at?: string | null;
+      campaign_id?: string | null;
+    },
+  ) {
+    if (!defaults) return {};
+    let campaignId: string | null | undefined;
+    if (defaults.campaign_id) {
+      const campaign = await getPrisma().campaign.findFirst({
+        where: { id: defaults.campaign_id, tenantId, brandId },
+      });
+      if (!campaign) {
+        throw new DomainError('NOT_FOUND', 'Campaign not found', 404, 'errors.not_found');
+      }
+      campaignId = campaign.id;
+    } else if (defaults.campaign_id === null) {
+      campaignId = null;
+    }
+    const dueAt =
+      defaults.due_at !== undefined
+        ? parseOptionalDate(defaults.due_at as string | null, 'dueAt')
+        : undefined;
+    return {
+      assigneeUserId:
+        defaults.assignee_user_id !== undefined ? defaults.assignee_user_id : undefined,
+      dueAt,
+      campaignId,
+    };
+  }
+
+  private createDataFromDraft(
+    draft: PlanWorkRequestDraft,
+    ctx: {
+      tenantId: string;
+      brandId: string;
+      strategyId: string;
+      versionId: string;
+      actorUserId: string;
+    },
+    defaults: Awaited<ReturnType<StrategyPlanRequestsService['resolveCommitDefaults']>>,
+  ) {
+    const readiness = briefReadiness({
+      objective: draft.brief.objective.en,
+      audience: draft.brief.audience.en,
+      keyMessage: draft.brief.keyMessage.en,
+    });
+    const assigneeUserId = defaults.assigneeUserId ?? null;
+    const status = assigneeUserId ? 'ASSIGNED' : 'OPEN';
+    return {
+      id: newId(),
+      tenantId: ctx.tenantId,
+      brandId: ctx.brandId,
+      strategyId: ctx.strategyId,
+      strategyVersionId: ctx.versionId,
+      planSourceKey: draft.plan_source_key,
+      titleEn: draft.title.en,
+      titleAr: draft.title.ar,
+      descriptionEn: draft.description.en,
+      descriptionAr: draft.description.ar,
+      type: 'CONTENT' as const,
+      priority: 'MEDIUM' as const,
+      status: status as 'OPEN' | 'ASSIGNED',
+      requesterUserId: ctx.actorUserId,
+      assigneeUserId,
+      dueAt: defaults.dueAt ?? null,
+      campaignId: defaults.campaignId ?? null,
+      channels: draft.channels,
+      formats: draft.formats,
+      briefObjectiveEn: draft.brief.objective.en,
+      briefObjectiveAr: draft.brief.objective.ar,
+      briefAudienceEn: draft.brief.audience.en,
+      briefAudienceAr: draft.brief.audience.ar,
+      briefKeyMessageEn: draft.brief.keyMessage.en,
+      briefKeyMessageAr: draft.brief.keyMessage.ar,
+      briefReadyAt: readiness.ready ? new Date() : null,
+    };
+  }
+
   async commitPlanToRequests(
     tenantId: string,
     actorUserId: string,
     brandId: string,
     strategyId: string,
     versionId: string,
-    input: { plan_source_keys?: string[] },
+    input: {
+      plan_source_keys?: string[];
+      defaults?: {
+        assignee_user_id?: string | null;
+        due_at?: string | null;
+        campaign_id?: string | null;
+      };
+    },
     correlationId?: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
     const drafts = this.buildDrafts(version);
+    const defaults = await this.resolveCommitDefaults(tenantId, brandId, input.defaults);
     const selected =
       input.plan_source_keys && input.plan_source_keys.length > 0
         ? drafts.filter((d) => input.plan_source_keys!.includes(d.plan_source_key))
@@ -140,37 +239,12 @@ export class StrategyPlanRequestsService {
         skipped.push(draft.plan_source_key);
         continue;
       }
-      const readiness = briefReadiness({
-        objective: draft.brief.objective.en,
-        audience: draft.brief.audience.en,
-        keyMessage: draft.brief.keyMessage.en,
-      });
       const row = await getPrisma().workRequest.create({
-        data: {
-          id: newId(),
-          tenantId,
-          brandId,
-          strategyId,
-          strategyVersionId: versionId,
-          planSourceKey: draft.plan_source_key,
-          titleEn: draft.title.en,
-          titleAr: draft.title.ar,
-          descriptionEn: draft.description.en,
-          descriptionAr: draft.description.ar,
-          type: 'CONTENT',
-          priority: 'MEDIUM',
-          status: 'OPEN',
-          requesterUserId: actorUserId,
-          channels: draft.channels,
-          formats: draft.formats,
-          briefObjectiveEn: draft.brief.objective.en,
-          briefObjectiveAr: draft.brief.objective.ar,
-          briefAudienceEn: draft.brief.audience.en,
-          briefAudienceAr: draft.brief.audience.ar,
-          briefKeyMessageEn: draft.brief.keyMessage.en,
-          briefKeyMessageAr: draft.brief.keyMessage.ar,
-          briefReadyAt: readiness.ready ? new Date() : null,
-        },
+        data: this.createDataFromDraft(
+          draft,
+          { tenantId, brandId, strategyId, versionId, actorUserId },
+          defaults,
+        ),
       });
       created.push(row.id);
       await this.audit.write({
@@ -232,6 +306,142 @@ export class StrategyPlanRequestsService {
     return {
       data: {
         created_task_ids: created,
+        skipped,
+        strategy_version_id: versionId,
+      },
+    };
+  }
+
+  async planRequestImpact(
+    tenantId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+  ) {
+    const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
+    const drafts = this.buildDrafts(version);
+    const prior = await getPrisma().workRequest.findMany({
+      where: {
+        tenantId,
+        brandId,
+        strategyId,
+        planSourceKey: { not: null },
+        strategyVersionId: { not: versionId },
+      },
+      include: { tasks: { select: { id: true, status: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    const report = buildPlanRequestImpactReport({
+      drafts,
+      prior_requests: prior.map((row) => ({
+        id: row.id,
+        strategy_version_id: row.strategyVersionId ?? versionId,
+        plan_source_key: row.planSourceKey ?? '',
+        comparable: comparableFromStored({
+          planSourceKey: row.planSourceKey ?? '',
+          titleEn: row.titleEn,
+          titleAr: row.titleAr,
+          descriptionEn: row.descriptionEn,
+          descriptionAr: row.descriptionAr,
+          channels: row.channels,
+          formats: row.formats,
+          briefObjectiveEn: row.briefObjectiveEn,
+          briefAudienceEn: row.briefAudienceEn,
+          briefKeyMessageEn: row.briefKeyMessageEn,
+        }),
+        has_open_task: row.tasks.some(
+          (t) => !['DONE', 'CANCELLED'].includes(String(t.status)),
+        ),
+      })),
+    });
+    const actionable = report.filter((r) => r.status === 'drifted' || r.status === 'orphaned');
+    return {
+      data: {
+        strategy_version_id: versionId,
+        impact: report,
+        needs_decision: actionable.length > 0,
+        drifted_count: report.filter((r) => r.status === 'drifted').length,
+        orphaned_count: report.filter((r) => r.status === 'orphaned').length,
+      },
+    };
+  }
+
+  async syncPlanRequestsFromVersion(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    input: { request_ids: string[] },
+    correlationId?: string,
+  ) {
+    if (!input.request_ids?.length) {
+      throw new DomainError('VALIDATION_FAILED', 'request_ids required', 400, 'errors.validation');
+    }
+    const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
+    const drafts = this.buildDrafts(version);
+    const draftByKey = new Map(drafts.map((d) => [d.plan_source_key, d]));
+    const impact = await this.planRequestImpact(tenantId, brandId, strategyId, versionId);
+    const driftedIds = new Set(
+      impact.data.impact.filter((r) => r.status === 'drifted').map((r) => r.request_id),
+    );
+    const updated: string[] = [];
+    const skipped: Array<{ request_id: string; reason: string }> = [];
+    for (const requestId of input.request_ids) {
+      if (!driftedIds.has(requestId)) {
+        skipped.push({ request_id: requestId, reason: 'not_drifted' });
+        continue;
+      }
+      const request = await getPrisma().workRequest.findFirst({
+        where: tenantWhere(tenantId, { id: requestId, brandId, strategyId }),
+      });
+      if (!request?.planSourceKey) {
+        skipped.push({ request_id: requestId, reason: 'not_found' });
+        continue;
+      }
+      const draft = draftByKey.get(request.planSourceKey);
+      if (!draft) {
+        skipped.push({ request_id: requestId, reason: 'orphaned' });
+        continue;
+      }
+      const readiness = briefReadiness({
+        objective: draft.brief.objective.en,
+        audience: draft.brief.audience.en,
+        keyMessage: draft.brief.keyMessage.en,
+      });
+      await getPrisma().workRequest.update({
+        where: { id: requestId },
+        data: {
+          titleEn: draft.title.en,
+          titleAr: draft.title.ar,
+          descriptionEn: draft.description.en,
+          descriptionAr: draft.description.ar,
+          channels: draft.channels,
+          formats: draft.formats,
+          briefObjectiveEn: draft.brief.objective.en,
+          briefObjectiveAr: draft.brief.objective.ar,
+          briefAudienceEn: draft.brief.audience.en,
+          briefAudienceAr: draft.brief.audience.ar,
+          briefKeyMessageEn: draft.brief.keyMessage.en,
+          briefKeyMessageAr: draft.brief.keyMessage.ar,
+          briefReadyAt: readiness.ready ? new Date() : null,
+          strategyVersionId: versionId,
+        },
+      });
+      updated.push(requestId);
+      await this.audit.write({
+        actorUserId,
+        tenantId,
+        action: 'request.synced_from_strategy',
+        targetType: 'WorkRequest',
+        targetId: requestId,
+        afterRef: `${strategyId}:${versionId}:${request.planSourceKey}`,
+        correlationId,
+      });
+    }
+    return {
+      data: {
+        updated_request_ids: updated,
         skipped,
         strategy_version_id: versionId,
       },

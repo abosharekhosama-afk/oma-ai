@@ -77,9 +77,21 @@ describe('strategy plan → work requests', () => {
     const preview = await previewRes.json();
     expect(preview.data.preview.length).toBeGreaterThanOrEqual(2);
 
+    const impactBefore = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/impact`,
+      { headers: authHeaders(seed) },
+    );
+    expect(impactBefore.status).toBe(200);
+
     const commitRes = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/commit`,
-      { method: 'POST', headers: authHeaders(seed), body: JSON.stringify({}) },
+      {
+        method: 'POST',
+        headers: authHeaders(seed),
+        body: JSON.stringify({
+          defaults: { due_at: new Date(Date.now() + 86400000 * 10).toISOString() },
+        }),
+      },
     );
     expect(commitRes.status).toBe(200);
     const commit = await commitRes.json();
@@ -98,6 +110,7 @@ describe('strategy plan → work requests', () => {
     });
     expect(rows.every((r) => r.briefObjectiveEn.length > 0)).toBe(true);
     expect(rows.every((r) => r.planSourceKey)).toBe(true);
+    expect(rows.every((r) => r.dueAt)).toBe(true);
 
     const convertRes = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/convert-tasks`,
