@@ -12,6 +12,7 @@
     "dev:api": "pnpm --filter @oma/api dev",
     "dev:web": "pnpm --filter @oma/web dev",
     "dev:worker": "pnpm --filter @oma/worker dev",
+    "worker:chromium": "pnpm --filter @oma/worker run setup:chromium",
     "dev:local": "bash scripts/dev-local.sh",
     "lint": "eslint .",
     "format": "prettier --check .",

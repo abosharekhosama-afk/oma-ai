@@ -18,7 +18,11 @@ import {
   shouldUseJsRender,
   type WebsiteConnectorPort,
 } from '@oma/domain';
-import { fetchRenderedPageHtml, RenderedPageFetchError } from './rendered-page-fetch';
+import {
+  fetchRenderedPageHtml,
+  lastBrowserInitError,
+  RenderedPageFetchError,
+} from './rendered-page-fetch';
 
 type CrawlConfig = {
   max_pages?: number;
@@ -136,9 +140,16 @@ export async function runExtractionForScan(input: {
   let pagesJsRenderAttempted = 0;
   let pagesJsRenderFailed = 0;
   const jsRenderErrors: string[] = [];
+  let jsRenderLaunchDetail: string | null = null;
   const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
 
-  const recordJsRenderError = (code: string) => {
+  const recordJsRenderError = (code: string, detail?: string) => {
+    if (code === 'PLAYWRIGHT_LAUNCH_FAILED') {
+      const launchDetail = detail ?? lastBrowserInitError();
+      if (launchDetail && !jsRenderLaunchDetail) {
+        jsRenderLaunchDetail = launchDetail.slice(0, 500);
+      }
+    }
     if (!jsRenderErrors.includes(code) && jsRenderErrors.length < 5) {
       jsRenderErrors.push(code);
     }
@@ -284,7 +295,10 @@ export async function runExtractionForScan(input: {
               : err instanceof Error
                 ? err.name
                 : 'RENDER_FAILED';
-          recordJsRenderError(code);
+          recordJsRenderError(
+            code,
+            err instanceof RenderedPageFetchError ? err.message : undefined,
+          );
         }
       }
       const pageCanonical =
@@ -407,6 +421,7 @@ export async function runExtractionForScan(input: {
     pagesJsRenderAttempted,
     pagesJsRenderFailed,
     jsRenderErrors,
+    jsRenderLaunchDetail,
     jsRenderMode,
   };
 }
