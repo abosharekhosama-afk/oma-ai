@@ -15,7 +15,7 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { DomainError } from '@oma/domain';
-import { strategyService } from '../container';
+import { strategyPlanRequestsService, strategyService } from '../container';
 
 @Controller('api/v1/brands/:brandId')
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -715,6 +715,43 @@ export class StrategyController {
       strategyId,
       versionId,
       body.run_id,
+    );
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/plan-to-requests/preview')
+  async previewPlanToRequests(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanRequestsService.previewPlanToRequests(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+    );
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/plan-to-requests/commit')
+  @UseGuards(CsrfGuard)
+  async commitPlanToRequests(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: { plan_source_keys?: string[] },
+  ) {
+    this.requireTenant(req);
+    return strategyPlanRequestsService.commitPlanToRequests(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      body,
+      req.oma!.correlationId,
     );
   }
 

@@ -323,6 +323,8 @@
   "strategy.review.requestChanges": "طلب تعديلات",
   "strategy.review.comment": "إضافة تعليق",
   "strategy.review.unknowns": "أقرّ بالمجهولات والافتراضات",
+  "strategy.review.createRequests": "إنشاء طلبات إنتاج من الخطة",
+  "strategy.review.requestsCreated": "تم إنشاء طلبات الإنتاج من هذه الاستراتيجية.",
   "strategy.versions.title": "سجل الإصدارات",
   "strategy.versions.compare": "مقارنة الإصدارات",
   "strategy.versions.revise": "مراجعة",

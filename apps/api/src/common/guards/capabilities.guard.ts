@@ -159,6 +159,10 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/reject': [
     'strategy.approve',
   ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan-to-requests/preview':
+    ['strategy.read', 'request.create'],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan-to-requests/commit':
+    ['strategy.read', 'request.create'],
   'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/comments': [
     'strategy.read',
   ],

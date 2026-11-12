@@ -323,6 +323,8 @@
   "strategy.review.requestChanges": "Request changes",
   "strategy.review.comment": "Add comment",
   "strategy.review.unknowns": "I acknowledge unknowns and assumptions",
+  "strategy.review.createRequests": "Create production requests from plan",
+  "strategy.review.requestsCreated": "Production requests created from this strategy.",
   "strategy.versions.title": "Version history",
   "strategy.versions.compare": "Compare versions",
   "strategy.versions.revise": "Revise",
