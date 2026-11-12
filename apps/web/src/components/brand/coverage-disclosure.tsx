@@ -13,6 +13,7 @@ type CoverageSnapshot = {
   pages_js_render_attempted?: number;
   pages_js_render_failed?: number;
   js_render_errors?: string[];
+  js_render_launch_detail?: string | null;
   js_render_mode?: string;
 } | null;
 
@@ -91,6 +92,24 @@ export function CoverageDisclosure({
                 <dd data-testid="coverage-js-render-errors">
                   {coverage.js_render_errors!.join(', ')}
                 </dd>
+              </div>
+            ) : null}
+            {coverage.js_render_errors?.includes('PLAYWRIGHT_LAUNCH_FAILED') ? (
+              <div
+                className="oma-banner oma-banner-warning"
+                role="status"
+                data-testid="coverage-js-chromium-fix"
+              >
+                <strong>{t('brand.coverage.chromiumFixTitle')}</strong>
+                <p>{t('brand.coverage.chromiumFixBody')}</p>
+                <p className="oma-muted">
+                  <code>{t('brand.coverage.chromiumFixCommand')}</code>
+                </p>
+                {coverage.js_render_launch_detail ? (
+                  <p className="oma-muted" data-testid="coverage-js-launch-detail">
+                    {t('brand.coverage.chromiumFixDetail')}: {coverage.js_render_launch_detail}
+                  </p>
+                ) : null}
               </div>
             ) : null}
           </>

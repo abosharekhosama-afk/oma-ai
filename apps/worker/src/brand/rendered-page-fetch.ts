@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import type { Browser, Route } from 'playwright';
 import { RenderedPageFetchError } from './rendered-page-fetch.errors';
 
@@ -12,12 +13,22 @@ async function resolveChromiumExecutable(): Promise<string | undefined> {
     process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?.trim() ||
     process.env.CHROME_PATH?.trim() ||
     process.env.GOOGLE_CHROME_SHIM?.trim();
-  if (fromEnv) return fromEnv;
+  if (fromEnv) {
+    if (!existsSync(fromEnv)) {
+      browserInitError = `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH does not exist: ${fromEnv}`;
+      return undefined;
+    }
+    return fromEnv;
+  }
   try {
     const pw = await import('playwright');
     const path = pw.chromium.executablePath();
-    return path || undefined;
+    if (path && existsSync(path)) return path;
+    browserInitError =
+      'Chromium binary not found in Playwright cache; on the worker host run: pnpm --filter @oma/worker run setup:chromium';
+    return undefined;
   } catch {
+    browserInitError = 'playwright package failed to resolve chromium.executablePath()';
     return undefined;
   }
 }
@@ -32,6 +43,13 @@ async function getBrowser(): Promise<Browser> {
     browserPromise = (async () => {
       const { chromium } = await import('playwright');
       const executablePath = await resolveChromiumExecutable();
+      if (!executablePath) {
+        const hint =
+          browserInitError ??
+          'no Chromium binary; run pnpm --filter @oma/worker run setup:chromium on the worker host';
+        browserInitError = hint;
+        throw new RenderedPageFetchError('PLAYWRIGHT_LAUNCH_FAILED', hint);
+      }
       try {
         sharedBrowser = await chromium.launch({
           headless: true,
@@ -42,9 +60,7 @@ async function getBrowser(): Promise<Browser> {
         return sharedBrowser;
       } catch (cause) {
         const msg = cause instanceof Error ? cause.message : String(cause);
-        browserInitError = executablePath
-          ? `launch failed (${executablePath}): ${msg}`
-          : `launch failed (no Chromium binary; run playwright install chromium or set PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH): ${msg}`;
+        browserInitError = `launch failed (${executablePath}): ${msg}`;
         throw new RenderedPageFetchError('PLAYWRIGHT_LAUNCH_FAILED', browserInitError);
       }
     })();

@@ -47,7 +47,23 @@ When the worker has `playwright-core` and Chromium available, set:
 
 `auto` keeps static fetch first; Playwright runs only when heuristics say JS is likely required. In `always` mode, every HTML page is re-fetched with Chromium after the static response when rendering succeeds. Evidence from rendered pages is stored with `extractionMethod=RENDERED_JS`.
 
-**Worker runtime (Render/Docker):** install a Chromium binary for Playwright (`npx playwright install chromium` during image build, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`). Without a binary, coverage reports `js_render_errors` such as `PLAYWRIGHT_LAUNCH_FAILED` and `pages_js_render_failed` increments while `pages_js_rendered` stays 0.
+**Worker runtime (Render/Docker):** Chromium must exist **on the worker service only**. The API does not run Playwright.
+
+1. Add to the **worker build** (once per deploy/image):
+
+   ```bash
+   pnpm --filter @oma/worker run setup:chromium
+   ```
+
+   Equivalent: `pnpm exec playwright install --with-deps chromium` from the repo root after `pnpm install`.
+
+2. Or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to a system Chrome/Chromium binary path.
+
+3. Set `BRAND_SCANNER_JS_RENDER_MODE=auto` or `always` on **worker env** only.
+
+Without a binary, coverage reports `js_render_errors: ["PLAYWRIGHT_LAUNCH_FAILED"]`, `js_render_launch_detail` with the worker diagnostic, `pages_js_render_failed` ≈ `pages_js_render_attempted`, and `pages_js_rendered` stays **0** (static crawl may still complete as PARTIAL).
+
+After installing Chromium, **start a new scan** — previous scan rows are immutable.
 
 Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`, and up to five distinct `js_render_errors` codes for operations debugging.
 
