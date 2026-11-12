@@ -9,6 +9,8 @@ type CoverageSnapshot = {
   skipped_pages?: { url: string; reason: string }[];
   pages_fetched?: number;
   pages_failed?: number;
+  pages_js_rendered?: number;
+  js_render_mode?: string;
 } | null;
 
 /**
@@ -68,6 +70,16 @@ export function CoverageDisclosure({
               : t('brand.coverage.noneListed')}
           </dd>
         </div>
+        {coverage?.js_render_mode && coverage.js_render_mode !== 'off' ? (
+          <div>
+            <dt>{t('brand.coverage.jsRender')}</dt>
+            <dd data-testid="coverage-js-render">
+              {t('brand.coverage.jsRenderDetail')
+                .replace('{mode}', coverage.js_render_mode)
+                .replace('{count}', String(coverage.pages_js_rendered ?? 0))}
+            </dd>
+          </div>
+        ) : null}
       </dl>
     </section>
   );

@@ -13,8 +13,11 @@ import {
   isInCrawlScope,
   newId,
   parseSitemapXml,
+  resolveJsRenderMode,
+  shouldUseJsRender,
   type WebsiteConnectorPort,
 } from '@oma/domain';
+import { fetchRenderedPageHtml } from './rendered-page-fetch';
 
 type CrawlConfig = {
   max_pages?: number;
@@ -128,6 +131,8 @@ export async function runExtractionForScan(input: {
   let pagesFetched = 0;
   let pagesFailed = 0;
   let pagesSkipped = 0;
+  let pagesJsRendered = 0;
+  const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
 
   const startHost = new URL(input.startUrl).host;
   try {
@@ -230,7 +235,34 @@ export async function runExtractionForScan(input: {
         continue;
       }
 
-      const extracted = extractFromHtml(fetched.finalUrl, fetched.body);
+      let htmlBody = fetched.body;
+      let extracted = extractFromHtml(fetched.finalUrl, htmlBody);
+      let pageUsedRendered = false;
+      if (
+        shouldUseJsRender({
+          mode: jsRenderMode,
+          html: htmlBody,
+          pageUrl: normalizedUrl,
+          productCount: extracted.products.length,
+        })
+      ) {
+        try {
+          const renderedHtml = await fetchRenderedPageHtml(fetched.finalUrl);
+          const renderedExtracted = extractFromHtml(fetched.finalUrl, renderedHtml);
+          if (
+            renderedExtracted.products.length > extracted.products.length ||
+            renderedExtracted.fields.filter((f) => !f.isUnknown).length >
+              extracted.fields.filter((f) => !f.isUnknown).length
+          ) {
+            htmlBody = renderedHtml;
+            extracted = renderedExtracted;
+            pageUsedRendered = true;
+            pagesJsRendered += 1;
+          }
+        } catch {
+          // Keep static HTML extraction when Playwright is unavailable or times out.
+        }
+      }
       const pageCanonical =
         extracted.canonicalUrl && isInCrawlScope(input.startUrl, extracted.canonicalUrl)
           ? canonicalizeUrl(extracted.canonicalUrl)
@@ -265,7 +297,7 @@ export async function runExtractionForScan(input: {
           pageTitle: extracted.pageTitle,
           excerptText: extracted.excerpt,
           contentHash: contentHash(extracted.excerpt),
-          extractionMethod: 'HEURISTIC',
+          extractionMethod: pageUsedRendered ? 'RENDERED_JS' : 'HEURISTIC',
           discoveredPageId: pageId,
         },
       });
@@ -343,5 +375,5 @@ export async function runExtractionForScan(input: {
     scanAttemptId: input.scanAttemptId,
   });
 
-  return { pagesFetched, pagesFailed, pagesSkipped };
+  return { pagesFetched, pagesFailed, pagesSkipped, pagesJsRendered, jsRenderMode };
 }

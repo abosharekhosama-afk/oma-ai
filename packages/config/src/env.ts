@@ -50,6 +50,13 @@ export const envSchema = z
       .enum(['0', '1', 'true', 'false'])
       .optional()
       .transform((v) => v === '1' || v === 'true'),
+    /** off = static HTML only; auto = Playwright when SPA shell or empty catalog path; always = every page (costly). */
+    BRAND_SCANNER_JS_RENDER_MODE: z.enum(['off', 'auto', 'always']).default('off'),
+    BRAND_SCANNER_JS_RENDER_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+    BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES: z
+      .enum(['0', '1', 'true', 'false'])
+      .optional()
+      .transform((v) => v === undefined || v === '1' || v === 'true'),
     /** Feature 003: AI propose always refuses unless a future DEC enables a live adapter. */
     /** `live` proposes when AI is available; `refuse`/`not_configured` always return 503. */
     STRATEGY_AI_MODE: z.enum(['live', 'refuse', 'not_configured']).default('live'),

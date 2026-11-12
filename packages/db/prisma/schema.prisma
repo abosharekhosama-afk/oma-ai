@@ -582,6 +582,7 @@ enum ExtractionMethod {
   JSON_LD
   OG
   HEURISTIC
+  RENDERED_JS
   USER
   AI
 }

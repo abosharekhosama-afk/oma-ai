@@ -1030,6 +1030,8 @@
   "brand.coverage.failedPages": "صفحات فاشلة",
   "brand.coverage.skippedPages": "صفحات متخطاة",
   "brand.coverage.noneListed": "لا شيء مدرج",
+  "brand.coverage.jsRender": "رسم JavaScript",
+  "brand.coverage.jsRenderDetail": "الوضع: {mode}. صفحات أُعيد جلبها بمتصفح headless: {count}.",
   "home.kicker": "ذكاء موقع العلامة",
   "home.viewPortfolio": "عرض محفظة العلامات",
   "home.summaryLabel": "ملخص مساحة العمل",
