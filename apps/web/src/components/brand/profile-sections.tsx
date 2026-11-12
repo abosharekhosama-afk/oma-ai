@@ -2,6 +2,7 @@
 import { Button, TextArea } from '@oma/ui/controls';
 
 import type { InsightItem } from '../../lib/brand-types';
+import { groupInsightsByFieldAndValue } from '../../lib/brand-scan-ui';
 import { useT } from '../../lib/use-locale';
 
 type ProfileSectionsProps = {
@@ -175,6 +176,7 @@ export function ProfileSections({
         <span className="oma-muted">
           {filled}/{insights.length || 0}
         </span>
+        <p className="oma-muted">{t('brand.profile.completenessHint')}</p>
       </div>
       <div className="oma-doc-canvas oma-editor-shell">
         <nav className="oma-doc-outline" aria-label={t('brand.profile.outline')}>
@@ -196,68 +198,80 @@ export function ProfileSections({
               {key === 'visual_identity' ? <VisualIdentity value={sections[key]} /> : null}
               <SectionData label={t('brand.profile.sectionDataTitle')} value={sections[key]} />
               <ul className="oma-insight-list">
-                {(insightsBySection.get(key) ?? []).map((insight) => (
-                  <li key={insight.id} className="oma-insight-item">
-                    <div className="oma-insight-header">
-                      <strong>{fieldLabel(t, insight.field_key)}</strong>
-                      <span className="oma-badge">
-                        {t(`brand.infoState.${insight.info_state}`)}
-                      </span>
-                      <span className="oma-badge oma-badge-muted">
-                        {t(`brand.tier.${insight.discovery_tier}`)}
-                      </span>
-                      {insight.created_by === 'AI' ? (
-                        <span className="oma-badge">{t('brand.ai.generatedBadge')}</span>
-                      ) : null}
-                      {typeof insight.confidence === 'number' ? (
-                        <span className="oma-badge oma-badge-muted">
-                          {t('brand.ai.confidence').replace(
-                            '{value}',
-                            `${Math.round(insight.confidence * 100)}%`,
-                          )}
+                {groupInsightsByFieldAndValue(insightsBySection.get(key) ?? []).map((group) => {
+                  const insight = group.primary;
+                  const dupCount = group.duplicates.length;
+                  return (
+                    <li key={insight.id} className="oma-insight-item">
+                      <div className="oma-insight-header">
+                        <strong>{fieldLabel(t, insight.field_key)}</strong>
+                        <span className="oma-badge">
+                          {t(`brand.infoState.${insight.info_state}`)}
                         </span>
-                      ) : null}
-                    </div>
-                    {(() => {
-                      const empty =
-                        insight.text_value == null || String(insight.text_value).trim() === '';
-                      if (!empty) return null;
-                      const required = insight.discovery_tier === 'REQUIRED_FOR_APPROVAL';
-                      return (
-                        <p
-                          className="oma-muted"
-                          role="status"
-                          data-absence={required ? 'required-not-found' : 'optional-unknown'}
-                        >
-                          {required
-                            ? t('brand.profile.requiredNotFound')
-                            : t('brand.profile.optionalUnknown')}
+                        <span className="oma-badge oma-badge-muted">
+                          {t(`brand.tier.${insight.discovery_tier}`)}
+                        </span>
+                        {insight.created_by === 'AI' ? (
+                          <span className="oma-badge">{t('brand.ai.generatedBadge')}</span>
+                        ) : null}
+                        {typeof insight.confidence === 'number' ? (
+                          <span className="oma-badge oma-badge-muted">
+                            {t('brand.ai.confidence').replace(
+                              '{value}',
+                              `${Math.round(insight.confidence * 100)}%`,
+                            )}
+                          </span>
+                        ) : null}
+                      </div>
+                      {(() => {
+                        const empty =
+                          insight.text_value == null || String(insight.text_value).trim() === '';
+                        if (!empty) return null;
+                        const required = insight.discovery_tier === 'REQUIRED_FOR_APPROVAL';
+                        return (
+                          <p
+                            className="oma-muted"
+                            role="status"
+                            data-absence={required ? 'required-not-found' : 'optional-unknown'}
+                          >
+                            {required
+                              ? t('brand.profile.requiredNotFound')
+                              : t('brand.profile.optionalUnknown')}
+                          </p>
+                        );
+                      })()}
+                      {editable ? (
+                        <label className="oma-insight-edit">
+                          <span className="oma-sr-only">{insight.field_key}</span>
+                          <TextArea
+                            rows={2}
+                            value={insight.text_value ?? ''}
+                            onChange={(e) => onInsightChange?.(insight.id, e.target.value)}
+                          />
+                        </label>
+                      ) : (
+                        <p>{insight.text_value ?? t('brand.profile.emptyValue')}</p>
+                      )}
+                      {dupCount > 0 ? (
+                        <p className="oma-muted" style={{ fontSize: 12 }}>
+                          {t('brand.profile.duplicateEvidence').replace(
+                            '{count}',
+                            String(dupCount + 1),
+                          )}
                         </p>
-                      );
-                    })()}
-                    {editable ? (
-                      <label className="oma-insight-edit">
-                        <span className="oma-sr-only">{insight.field_key}</span>
-                        <TextArea
-                          rows={2}
-                          value={insight.text_value ?? ''}
-                          onChange={(e) => onInsightChange?.(insight.id, e.target.value)}
-                        />
-                      </label>
-                    ) : (
-                      <p>{insight.text_value ?? t('brand.profile.emptyValue')}</p>
-                    )}
-                    {insight.evidence_id ? (
-                      <Button type="link" onClick={() => onViewEvidence?.(insight.evidence_id!)}>
-                        {t('brand.evidence.view')}
-                      </Button>
-                    ) : (
-                      <p className="oma-muted" style={{ fontSize: 12 }}>
-                        {t('brand.evidence.none')}
-                      </p>
-                    )}
-                  </li>
-                ))}
+                      ) : null}
+                      {insight.evidence_id ? (
+                        <Button type="link" onClick={() => onViewEvidence?.(insight.evidence_id!)}>
+                          {t('brand.evidence.view')}
+                        </Button>
+                      ) : (
+                        <p className="oma-muted" style={{ fontSize: 12 }}>
+                          {t('brand.evidence.none')}
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ))}

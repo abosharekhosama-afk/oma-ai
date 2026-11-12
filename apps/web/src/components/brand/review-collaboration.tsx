@@ -27,7 +27,9 @@ export function ReviewCollaboration({
   onSaveNote,
 }: ReviewCollaborationProps) {
   const t = useT();
-  const needsAttention = blockingReasons.length > 0;
+  const terminalProfile = status === 'APPROVED' || status === 'SUPERSEDED' || status === 'REJECTED';
+  const activeBlocking = terminalProfile ? [] : blockingReasons;
+  const needsAttention = activeBlocking.length > 0;
   const [note, setNote] = useState(collaborationNote);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,11 +57,17 @@ export function ReviewCollaboration({
       <p>
         <span className="oma-badge">{status}</span>
       </p>
-      {needsAttention ? (
+      {terminalProfile ? (
+        <p className="oma-muted" role="status">
+          {status === 'APPROVED'
+            ? t('brand.review.approvedSnapshot')
+            : t('brand.review.historyOnly')}
+        </p>
+      ) : needsAttention ? (
         <div role="status">
           <p className="oma-muted">{t('brand.review.needsAttention')}</p>
           <ul>
-            {blockingReasons.map((reason) => (
+            {activeBlocking.map((reason) => (
               <li key={reason}>{t(`brand.blocking.${reason}`)}</li>
             ))}
           </ul>

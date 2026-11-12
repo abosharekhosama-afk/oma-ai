@@ -13,13 +13,19 @@ import {
   isPermissionDenied,
   newIdempotencyKey,
 } from '../../../../../../../lib/brand-api';
-import type { BrandDetail, InsightItem, ProfileDetail } from '../../../../../../../lib/brand-types';
+import type {
+  BrandDetail,
+  InsightItem,
+  ProfileDetail,
+  ScanDetail,
+} from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
 import { ProfileSections } from '../../../../../../../components/brand/profile-sections';
 import { ReviewCollaboration } from '../../../../../../../components/brand/review-collaboration';
 import { InsightDecisionControls } from '../../../../../../../components/brand/insight-decision-controls';
 import { ApprovalSummary } from '../../../../../../../components/brand/approval-summary';
+import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
@@ -32,6 +38,7 @@ export default function ProfileEditorPage() {
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
   const [scanStatus, setScanStatus] = useState<string | null>(null);
+  const [linkedScan, setLinkedScan] = useState<ScanDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -46,10 +53,13 @@ export default function ProfileEditorPage() {
     );
     setProfile(res.data);
     if (res.data.scan_attempt_id) {
-      const scanRes = await api<{ data: { status: string } }>(
+      const scanRes = await api<{ data: ScanDetail }>(
         `/api/v1/brands/${brandId}/scans/${res.data.scan_attempt_id}`,
       );
       setScanStatus(scanRes.data.status);
+      setLinkedScan(scanRes.data);
+    } else {
+      setLinkedScan(null);
     }
     return res.data;
   }, [brandId, versionId]);
@@ -253,6 +263,8 @@ export default function ProfileEditorPage() {
           {t('brand.profile.compare')}
         </Link>
       </header>
+
+      {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
 
       <AiUnavailableBanner
         aiAvailability={profile.ai_availability}

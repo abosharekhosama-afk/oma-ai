@@ -20,6 +20,7 @@ import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-un
 import { ConnectorModeBanner } from '../../../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip } from '../../../../../../../components/ui/status-chip';
+import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
 import { useT } from '../../../../../../../lib/use-locale';
 
 const TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
@@ -201,8 +202,11 @@ export default function ScanDetailPage() {
         </div>
       ) : null}
 
+      <ScanOutcomePanel scan={scan} />
+
       <div className="oma-panel">
         <h2>{t('brand.scan.progressTitle')}</h2>
+        <p className="oma-muted">{t('brand.scan.phasesSubtitle')}</p>
         <div
           ref={liveRef}
           className="oma-sr-only"
@@ -238,16 +242,18 @@ export default function ScanDetailPage() {
         <div className="oma-progress" aria-hidden="true">
           <div className="oma-progress-bar" style={{ width: `${scan.progress_percent}%` }} />
         </div>
-        <p aria-hidden="true">
-          {scan.progress_percent}% —{' '}
-          <span className="oma-badge" data-testid="scan-status">
-            {scan.status}
-          </span>
-          {scan.analysis_status ? (
-            <span className="oma-badge" data-testid="scan-analysis-status">
-              {scan.analysis_status}
-            </span>
-          ) : null}
+        <p className="oma-muted" role="status" data-testid="scan-status-summary">
+          {t('brand.scan.statusSummary')
+            .replace('{crawl}', t(`brand.scan.outcome.crawl.${scan.status}`))
+            .replace(
+              '{ai}',
+              (() => {
+                const aiKey = scan.analysis_status ?? 'NOT_RUN';
+                const label = t(`brand.scan.outcome.ai.${aiKey}`);
+                return label.startsWith('brand.scan.outcome.ai.') ? aiKey : label;
+              })(),
+            )
+            .replace('{percent}', String(scan.progress_percent))}
         </p>
         <div className="oma-scan-stats" aria-label={t('brand.scan.progressTitle')}>
           <div className="oma-scan-stat">
