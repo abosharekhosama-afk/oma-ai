@@ -61,6 +61,15 @@ export function brandPrimaryNextStep(
     return { href: `/app/brands/${brandId}/scans/new`, label: t('brand.scan.start') };
   }
   if (!brand.current_approved_profile_version_id) {
+    if (
+      brand.latest_scan &&
+      (brand.latest_scan.status === 'SUCCEEDED' || brand.latest_scan.status === 'PARTIAL')
+    ) {
+      return {
+        href: `/app/brands/${brandId}/discovery/products`,
+        label: t('brand.detail.discoveryCta'),
+      };
+    }
     return { href: `/app/brands/${brandId}/profiles`, label: t('brand.detail.intelligenceCta') };
   }
   if (brand.current_approved_strategy_id) {

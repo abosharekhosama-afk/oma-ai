@@ -13,6 +13,7 @@ type CoverageSnapshot = {
   pages_js_render_attempted?: number;
   pages_js_render_failed?: number;
   js_render_errors?: string[];
+  js_render_error_details?: string[];
   js_render_launch_detail?: string | null;
   js_render_mode?: string;
 } | null;
@@ -93,6 +94,23 @@ export function CoverageDisclosure({
                   {coverage.js_render_errors!.join(', ')}
                 </dd>
               </div>
+            ) : null}
+            {(coverage.js_render_error_details?.length ?? 0) > 0 ? (
+              <div>
+                <dt>{t('brand.coverage.jsRenderErrorDetails')}</dt>
+                <dd data-testid="coverage-js-render-error-details">
+                  <ul>
+                    {coverage.js_render_error_details!.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            ) : null}
+            {(coverage.pages_js_render_failed ?? 0) > 0 && (coverage.pages_js_rendered ?? 0) > 0 ? (
+              <p className="oma-muted" role="status">
+                {t('brand.coverage.jsRenderPartialHint')}
+              </p>
             ) : null}
             {coverage.js_render_errors?.includes('PLAYWRIGHT_LAUNCH_FAILED') ? (
               <div

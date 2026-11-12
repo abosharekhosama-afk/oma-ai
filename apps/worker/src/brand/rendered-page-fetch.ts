@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import type { Browser, Route } from 'playwright';
+import { classifyJsRenderError } from '@oma/domain';
 import { RenderedPageFetchError } from './rendered-page-fetch.errors';
 
 export { RenderedPageFetchError } from './rendered-page-fetch.errors';
@@ -137,6 +138,10 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
       throw new RenderedPageFetchError('RENDER_TOO_LARGE', 'Rendered HTML exceeds BRAND_MAX_BYTES');
     }
     return html;
+  } catch (err) {
+    if (err instanceof RenderedPageFetchError) throw err;
+    const classified = classifyJsRenderError(err);
+    throw new RenderedPageFetchError(classified.code, classified.message);
   } finally {
     await page.close().catch(() => undefined);
     await context.close().catch(() => undefined);
