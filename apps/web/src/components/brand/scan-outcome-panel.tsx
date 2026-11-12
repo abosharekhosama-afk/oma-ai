@@ -12,7 +12,7 @@ type Props = {
 
 function analysisLabel(t: (k: string) => string, status?: string | null): string {
   if (!status || status === 'NOT_REQUESTED' || status === 'SKIPPED') {
-    return t('brand.scan.outcome.ai.notRun');
+    return t('brand.scan.outcome.ai.NOT_RUN');
   }
   const key = `brand.scan.outcome.ai.${status}`;
   const translated = t(key);
