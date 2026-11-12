@@ -1747,6 +1747,88 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan-to-requests/preview": {
+      "get": {
+        "operationId": "StrategyController_getPlanToRequestsPreview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      },
+      "post": {
+        "operationId": "StrategyController_previewPlanToRequests",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan-to-requests/convert-tasks": {
+      "post": {
+        "operationId": "StrategyController_convertPlanRequestsToTasks",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan-to-requests/impact": {
+      "get": {
+        "operationId": "StrategyController_planRequestImpact",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan-to-requests/sync-requests": {
+      "post": {
+        "operationId": "StrategyController_syncPlanRequests",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan-to-requests/commit": {
+      "post": {
+        "operationId": "StrategyController_commitPlanToRequests",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/current-strategy": {
       "get": {
         "operationId": "StrategyController_getCurrent",
@@ -5003,6 +5085,62 @@
         "parameters": [],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/system/integrations": {
+      "get": {
+        "operationId": "PlatformAdminController_integrationsStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/system/probes/redis": {
+      "post": {
+        "operationId": "PlatformAdminController_probeRedis",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/system/probes/ai": {
+      "post": {
+        "operationId": "PlatformAdminController_probeAi",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/system/probes/website-scan": {
+      "post": {
+        "operationId": "PlatformAdminController_probeWebsiteScan",
+        "parameters": [],
+        "responses": {
+          "201": {
             "description": ""
           }
         },
