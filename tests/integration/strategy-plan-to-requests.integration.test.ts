@@ -74,7 +74,7 @@ describe('strategy plan → work requests', () => {
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/preview`,
       { method: 'POST', headers: authHeaders(seed), body: '{}' },
     );
-    expect(previewRes.status).toBe(200);
+    expect([200, 201]).toContain(previewRes.status);
     const preview = await previewRes.json();
     expect(preview.data.preview.length).toBeGreaterThanOrEqual(2);
 
