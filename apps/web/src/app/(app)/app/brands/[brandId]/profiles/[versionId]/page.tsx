@@ -31,6 +31,7 @@ import {
   ProfileStrategyHandoffBanner,
   ScanCatalogHonestyBanner,
 } from '../../../../../../../components/brand/brand-context-banners';
+import { CatalogInsightsBulkBar } from '../../../../../../../components/brand/catalog-insights-bulk-bar';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -270,6 +271,23 @@ export default function ProfileEditorPage() {
 
       {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
       {linkedScan ? <ScanCatalogHonestyBanner scan={linkedScan} /> : null}
+
+      {editable && profile.scan_attempt_id ? (
+        <div className="oma-panel" data-testid="profile-discovery-link">
+          <p className="oma-muted">{t('brand.discovery.profileCatalogHint')}</p>
+          <Link href={`/app/brands/${brandId}/discovery/products`} className="oma-text-link">
+            {t('brand.discovery.productsTitle')}
+          </Link>
+        </div>
+      ) : null}
+
+      <CatalogInsightsBulkBar
+        brandId={brandId}
+        versionId={versionId}
+        insights={profile.insights}
+        editable={editable}
+        onAccepted={() => void loadProfile()}
+      />
 
       <AiUnavailableBanner
         aiAvailability={profile.ai_availability}

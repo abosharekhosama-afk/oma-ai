@@ -94,7 +94,12 @@ function typeList(node: Record<string, unknown>): string {
 function classifyPage(url: string, root: HTMLElement): string {
   const path = new URL(url).pathname.toLowerCase();
   if (path === '/' || path === '') return 'HOME';
-  if (path.includes('product') || path.includes('shop') || path.includes('catalog'))
+  if (
+    path.includes('product') ||
+    path.includes('shop') ||
+    path.includes('catalog') ||
+    path.includes('collection')
+  )
     return 'PRODUCT';
   if (path.includes('service') || path.includes('solution') || path.includes('pricing'))
     return 'SERVICE';
