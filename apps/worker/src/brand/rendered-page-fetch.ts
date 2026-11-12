@@ -1,18 +1,52 @@
-import type { Browser } from 'playwright-core';
+import type { Browser, Route } from 'playwright';
+import { RenderedPageFetchError } from './rendered-page-fetch.errors';
+
+export { RenderedPageFetchError } from './rendered-page-fetch.errors';
 
 let sharedBrowser: Browser | null = null;
 let browserPromise: Promise<Browser> | null = null;
+let browserInitError: string | null = null;
+
+async function resolveChromiumExecutable(): Promise<string | undefined> {
+  const fromEnv =
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?.trim() ||
+    process.env.CHROME_PATH?.trim() ||
+    process.env.GOOGLE_CHROME_SHIM?.trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const pw = await import('playwright');
+    const path = pw.chromium.executablePath();
+    return path || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function lastBrowserInitError(): string | null {
+  return browserInitError;
+}
 
 async function getBrowser(): Promise<Browser> {
   if (sharedBrowser) return sharedBrowser;
   if (!browserPromise) {
     browserPromise = (async () => {
-      const { chromium } = await import('playwright-core');
-      sharedBrowser = await chromium.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      });
-      return sharedBrowser;
+      const { chromium } = await import('playwright');
+      const executablePath = await resolveChromiumExecutable();
+      try {
+        sharedBrowser = await chromium.launch({
+          headless: true,
+          executablePath,
+          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        });
+        browserInitError = null;
+        return sharedBrowser;
+      } catch (cause) {
+        const msg = cause instanceof Error ? cause.message : String(cause);
+        browserInitError = executablePath
+          ? `launch failed (${executablePath}): ${msg}`
+          : `launch failed (no Chromium binary; run playwright install chromium or set PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH): ${msg}`;
+        throw new RenderedPageFetchError('PLAYWRIGHT_LAUNCH_FAILED', browserInitError);
+      }
     })();
   }
   return browserPromise;
@@ -26,16 +60,6 @@ export async function shutdownRenderedFetchBrowser(): Promise<void> {
   }
 }
 
-export class RenderedPageFetchError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'RenderedPageFetchError';
-  }
-}
-
 export async function fetchRenderedPageHtml(url: string): Promise<string> {
   const timeoutMs = Number(process.env.BRAND_SCANNER_JS_RENDER_TIMEOUT_MS ?? 30_000);
   const blockHeavy =
@@ -43,15 +67,7 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
     process.env.BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES === '1' ||
     process.env.BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES === 'true';
 
-  let browser: Browser;
-  try {
-    browser = await getBrowser();
-  } catch (cause) {
-    throw new RenderedPageFetchError(
-      'PLAYWRIGHT_NOT_AVAILABLE',
-      cause instanceof Error ? cause.message : 'playwright-core is not available',
-    );
-  }
+  const browser = await getBrowser();
 
   const context = await browser.newContext({
     userAgent: process.env.BRAND_SCANNER_USER_AGENT,
@@ -64,7 +80,7 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
 
   try {
     if (blockHeavy) {
-      await page.route('**/*', (route) => {
+      await page.route('**/*', (route: Route) => {
         const type = route.request().resourceType();
         if (type === 'image' || type === 'font' || type === 'media') {
           void route.abort();
@@ -91,7 +107,15 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
       );
     }
 
-    await page.waitForTimeout(Math.min(2_500, Math.max(500, Math.floor(timeoutMs / 12))));
+    try {
+      await page.waitForLoadState('networkidle', {
+        timeout: Math.min(15_000, Math.max(3_000, Math.floor(timeoutMs / 2))),
+      });
+    } catch {
+      // SPAs may never reach networkidle; continue with a short settle delay.
+    }
+    await page.waitForTimeout(Math.min(4_000, Math.max(800, Math.floor(timeoutMs / 8))));
+
     const html = await page.content();
     if (html.length > Number(process.env.BRAND_MAX_BYTES ?? 1_000_000)) {
       throw new RenderedPageFetchError('RENDER_TOO_LARGE', 'Rendered HTML exceeds BRAND_MAX_BYTES');
