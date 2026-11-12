@@ -31,7 +31,9 @@ export function ScanOutcomePanel({ scan, compact }: Props) {
 
   return (
     <section
-      className={compact ? 'oma-scan-outcome oma-scan-outcome--compact' : 'oma-scan-outcome oma-panel'}
+      className={
+        compact ? 'oma-scan-outcome oma-scan-outcome--compact' : 'oma-scan-outcome oma-panel'
+      }
       data-testid="scan-outcome-panel"
       aria-labelledby="scan-outcome-title"
     >
@@ -70,7 +72,9 @@ export function ScanOutcomePanel({ scan, compact }: Props) {
           <dd>
             <strong>{scan.progress_percent}%</strong>
             <p className="oma-muted">
-              {crawlDone ? t('brand.scan.pipelineProgressDone') : t('brand.scan.pipelineProgressActive')}
+              {crawlDone
+                ? t('brand.scan.pipelineProgressDone')
+                : t('brand.scan.pipelineProgressActive')}
             </p>
           </dd>
         </div>

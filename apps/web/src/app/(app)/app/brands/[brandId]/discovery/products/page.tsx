@@ -59,7 +59,9 @@ export default function DiscoveryProductsPage() {
           api<Paginated<EvidenceItem>>(
             `/api/v1/brands/${brandId}/scans/${latest}/evidence?limit=100`,
           ),
-          api<Paginated<DiscoveredPage>>(`/api/v1/brands/${brandId}/scans/${latest}/pages?limit=100`),
+          api<Paginated<DiscoveredPage>>(
+            `/api/v1/brands/${brandId}/scans/${latest}/pages?limit=100`,
+          ),
         ]);
         setConnectorMode(scanRes.data.connector_mode);
         setProducts(productsRes.data);
