@@ -324,7 +324,7 @@ export class ProfileService {
       additions: ReturnType<typeof discoveryRowsToCatalogItems>,
     ) => {
       if (additions.length === 0) return null;
-      let insight = insights.find((i) => i.fieldKey === fieldKey);
+      const insight = insights.find((i) => i.fieldKey === fieldKey);
       const existing = parseCatalogFieldValue(
         insight?.textValue,
         insight?.valueJson ? JSON.parse(insight.valueJson) : undefined,
