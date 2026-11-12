@@ -42,7 +42,8 @@ describe('strategy plan → work requests', () => {
       'approved',
     );
     const linked = await getStrategyVersion(seed, brandId, strategyId, versionId);
-    let rv = linked.body.data.row_version as number;
+    const organicTrackRv = linked.body.data.organic?.row_version as number;
+    expect(typeof organicTrackRv).toBe('number');
 
     const organicRes = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/organic`,
@@ -50,7 +51,7 @@ describe('strategy plan → work requests', () => {
         method: 'PATCH',
         headers: authHeaders(seed),
         body: JSON.stringify({
-          row_version: rv,
+          row_version: organicTrackRv,
           pillars: ['Education content', 'Community stories'],
           channels: ['Instagram'],
           formats: ['Reel'],
@@ -58,10 +59,10 @@ describe('strategy plan → work requests', () => {
       },
     );
     expect(organicRes.status).toBe(200);
-    const organicBody = await organicRes.json();
-    rv = organicBody.data.row_version as number;
 
-    await bringToApproved(seed, brandId, strategyId, versionId, rv);
+    const afterOrganic = await getStrategyVersion(seed, brandId, strategyId, versionId);
+    const versionRv = afterOrganic.body.data.row_version as number;
+    await bringToApproved(seed, brandId, strategyId, versionId, versionRv);
 
     const previewGet = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/preview`,
