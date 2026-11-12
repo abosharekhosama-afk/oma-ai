@@ -21,9 +21,14 @@ export class OpsController {
     @Param('brandId') brandId: string,
     @Query('status') status?: string,
     @Query('q') q?: string,
+    @Query('strategy_version_id') strategyVersionId?: string,
   ) {
     this.requireTenant(req);
-    return opsService.listRequests(req.oma!.tenantId!, brandId, { status, q });
+    return opsService.listRequests(req.oma!.tenantId!, brandId, {
+      status,
+      q,
+      strategy_version_id: strategyVersionId,
+    });
   }
 
   @Post('api/v1/brands/:brandId/requests')

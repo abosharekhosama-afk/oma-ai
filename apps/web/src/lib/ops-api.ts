@@ -39,6 +39,9 @@ export type ApiWorkRequest = {
   assignee_name?: string | null;
   brand_name?: string | null;
   campaign_name?: string | null;
+  strategy_id?: string | null;
+  strategy_version_id?: string | null;
+  plan_source_key?: string | null;
 };
 
 export type ApiWorkTask = {
@@ -392,11 +395,12 @@ function mapReviewStatus(s: string): DeliverableRow['reviewStatus'] {
 // --- Requests ---
 export async function listRequests(
   brandId: string,
-  query?: { status?: string; q?: string },
+  query?: { status?: string; q?: string; strategy_version_id?: string },
 ): Promise<ApiWorkRequest[]> {
   const params = new URLSearchParams();
   if (query?.status) params.set('status', query.status);
   if (query?.q) params.set('q', query.q);
+  if (query?.strategy_version_id) params.set('strategy_version_id', query.strategy_version_id);
   const qs = params.toString();
   const res = await api<{ data: ApiWorkRequest[] }>(
     `/api/v1/brands/${brandId}/requests${qs ? `?${qs}` : ''}`,

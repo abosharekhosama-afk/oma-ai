@@ -64,9 +64,14 @@ export class OpsService {
   }
 
   // --- Requests ---
-  async listRequests(tenantId: string, brandId: string, query?: { status?: string; q?: string }) {
+  async listRequests(
+    tenantId: string,
+    brandId: string,
+    query?: { status?: string; q?: string; strategy_version_id?: string },
+  ) {
     await this.requireBrand(tenantId, brandId);
     const where: Record<string, unknown> = { tenantId, brandId };
+    if (query?.strategy_version_id) where.strategyVersionId = query.strategy_version_id;
     if (query?.status) where.status = query.status;
     if (query?.q) {
       where.OR = [
@@ -1474,6 +1479,9 @@ function mapRequest(row: {
   briefKeyMessageEn?: string;
   briefKeyMessageAr?: string;
   briefReadyAt?: Date | null;
+  strategyId?: string | null;
+  strategyVersionId?: string | null;
+  planSourceKey?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -1482,6 +1490,9 @@ function mapRequest(row: {
     id: row.id,
     tenant_id: row.tenantId,
     brand_id: row.brandId,
+    strategy_id: row.strategyId ?? null,
+    strategy_version_id: row.strategyVersionId ?? null,
+    plan_source_key: row.planSourceKey ?? null,
     campaign_id: row.campaignId,
     content_id: row.contentId,
     title: { en: row.titleEn, ar: row.titleAr },

@@ -63,6 +63,12 @@ describe('strategy plan → work requests', () => {
 
     await bringToApproved(seed, brandId, strategyId, versionId, rv);
 
+    const previewGet = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/preview`,
+      { headers: authHeaders(seed) },
+    );
+    expect(previewGet.status).toBe(200);
+
     const previewRes = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/preview`,
       { method: 'POST', headers: authHeaders(seed), body: '{}' },
@@ -92,5 +98,21 @@ describe('strategy plan → work requests', () => {
     });
     expect(rows.every((r) => r.briefObjectiveEn.length > 0)).toBe(true);
     expect(rows.every((r) => r.planSourceKey)).toBe(true);
+
+    const convertRes = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/convert-tasks`,
+      { method: 'POST', headers: authHeaders(seed), body: '{}' },
+    );
+    expect(convertRes.status).toBe(200);
+    const convert = await convertRes.json();
+    expect(convert.data.created_task_ids.length).toBeGreaterThanOrEqual(2);
+
+    const listRes = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/requests?strategy_version_id=${versionId}`,
+      { headers: authHeaders(seed) },
+    );
+    expect(listRes.status).toBe(200);
+    const listBody = await listRes.json();
+    expect(listBody.data.length).toBeGreaterThanOrEqual(2);
   });
 });

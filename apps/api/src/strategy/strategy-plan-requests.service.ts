@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError, buildPlanWorkRequestDrafts, briefReadiness, newId } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { OpsService } from '../content/ops.service';
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   if (!raw) return fallback;
@@ -14,7 +15,10 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
 
 @Injectable()
 export class StrategyPlanRequestsService {
-  constructor(private readonly audit: AuditService) {}
+  constructor(
+    private readonly audit: AuditService,
+    private readonly ops: OpsService,
+  ) {}
 
   private async loadApprovedVersion(
     tenantId: string,
@@ -184,6 +188,51 @@ export class StrategyPlanRequestsService {
       data: {
         created_request_ids: created,
         skipped_plan_source_keys: skipped,
+        strategy_version_id: versionId,
+      },
+    };
+  }
+
+  async convertLinkedRequestsToTasks(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    correlationId?: string,
+  ) {
+    await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
+    const requests = await getPrisma().workRequest.findMany({
+      where: { tenantId, brandId, strategyVersionId: versionId },
+      orderBy: { createdAt: 'asc' },
+    });
+    const created: string[] = [];
+    const skipped: Array<{ request_id: string; reason: string }> = [];
+    for (const request of requests) {
+      const existing = await getPrisma().workTask.findFirst({
+        where: { tenantId, requestId: request.id },
+      });
+      if (existing) {
+        skipped.push({ request_id: request.id, reason: 'task_exists' });
+        continue;
+      }
+      try {
+        const result = await this.ops.convertRequestToTask(
+          tenantId,
+          actorUserId,
+          request.id,
+          correlationId,
+        );
+        created.push(result.data.id);
+      } catch (err) {
+        const message = err instanceof DomainError ? err.code : 'convert_failed';
+        skipped.push({ request_id: request.id, reason: message });
+      }
+    }
+    return {
+      data: {
+        created_task_ids: created,
+        skipped,
         strategy_version_id: versionId,
       },
     };

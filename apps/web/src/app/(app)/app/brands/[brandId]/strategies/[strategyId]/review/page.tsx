@@ -21,6 +21,7 @@ import { SubmitEligibility } from '../../../../../../../../components/strategy/s
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
+import { StrategyPlanRequestsPanel } from '../../../../../../../../components/strategy/strategy-plan-requests-panel';
 
 export default function StrategyReviewPage() {
   const t = useT();
@@ -172,36 +173,14 @@ export default function StrategyReviewPage() {
             Revise
           </Button>
         ) : null}
-        {version.status === 'APPROVED' ? (
-          <Button
-            type="default"
-            data-testid="strategy-plan-to-requests"
-            onClick={async () => {
-              setError(null);
-              setMessage(null);
-              try {
-                await api(`${base}/plan-to-requests/preview`, {
-                  method: 'POST',
-                  body: JSON.stringify({}),
-                });
-                const res = await api<{ data: { created_request_ids: string[] } }>(
-                  `${base}/plan-to-requests/commit`,
-                  { method: 'POST', body: JSON.stringify({}) },
-                );
-                setMessage(
-                  res.data.created_request_ids.length > 0
-                    ? t('strategy.review.requestsCreated')
-                    : t('strategy.saved'),
-                );
-              } catch (err) {
-                setError(getApiError(err).message);
-              }
-            }}
-          >
-            {t('strategy.review.createRequests')}
-          </Button>
-        ) : null}
       </div>
+      {version.status === 'APPROVED' ? (
+        <StrategyPlanRequestsPanel
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+        />
+      ) : null}
       {error ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>
           {error}

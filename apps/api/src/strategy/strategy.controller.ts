@@ -718,6 +718,22 @@ export class StrategyController {
     );
   }
 
+  @Get('strategies/:strategyId/versions/:versionId/plan-to-requests/preview')
+  async getPlanToRequestsPreview(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanRequestsService.previewPlanToRequests(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+    );
+  }
+
   @Post('strategies/:strategyId/versions/:versionId/plan-to-requests/preview')
   async previewPlanToRequests(
     @Req() req: Request,
@@ -731,6 +747,25 @@ export class StrategyController {
       brandId,
       strategyId,
       versionId,
+    );
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/plan-to-requests/convert-tasks')
+  @UseGuards(CsrfGuard)
+  async convertPlanRequestsToTasks(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanRequestsService.convertLinkedRequestsToTasks(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      req.oma!.correlationId,
     );
   }
 
