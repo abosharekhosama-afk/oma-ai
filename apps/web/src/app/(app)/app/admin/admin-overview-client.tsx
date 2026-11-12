@@ -127,7 +127,7 @@ export default function AdminOverviewClient() {
             ? isAr
               ? `نجح — ${res.latency_ms}ms`
               : `OK — ${res.latency_ms}ms`
-            : res.error ?? 'redis_failed',
+            : (res.error ?? 'redis_failed'),
         );
       })
       .catch((err) => {
@@ -229,7 +229,9 @@ export default function AdminOverviewClient() {
                     ? 'اختبار جلب الموقع'
                     : 'Test live fetch'}
               </Button>
-              {scanProbeResult ? <p className="admin-hub__probe-result">{scanProbeResult}</p> : null}
+              {scanProbeResult ? (
+                <p className="admin-hub__probe-result">{scanProbeResult}</p>
+              ) : null}
             </div>
             <div>
               <h4>{isAr ? 'قائمة المهام (Redis)' : 'Job queue (Redis)'}</h4>

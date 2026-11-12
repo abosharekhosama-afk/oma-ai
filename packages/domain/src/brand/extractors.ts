@@ -171,9 +171,7 @@ function productFromJsonLdNode(
     type.includes('service') ||
     (type.includes('professional') && type.includes('service'));
   const isProduct =
-    kindHint === 'PRODUCT' ||
-    type.includes('product') ||
-    type.includes('individualproduct');
+    kindHint === 'PRODUCT' || type.includes('product') || type.includes('individualproduct');
   if (!isProduct && !isService) return null;
   const name = String(node.name ?? node.title ?? '').trim();
   if (!name || name === 'Unknown') return null;
@@ -229,13 +227,15 @@ function collectProductsFromJsonLd(nodes: Record<string, unknown>[]): ExtractedP
     }
     if (type.includes('offer')) {
       const item = node.itemOffered;
-      if (item && typeof item === 'object') push(productFromJsonLdNode(item as Record<string, unknown>));
+      if (item && typeof item === 'object')
+        push(productFromJsonLdNode(item as Record<string, unknown>));
     }
     if (type.includes('offerCatalog') || type.includes('productgroup')) {
       const items = node.hasVariant ?? node.hasPart ?? node.itemListElement;
       const list = Array.isArray(items) ? items : items ? [items] : [];
       for (const item of list) {
-        if (item && typeof item === 'object') push(productFromJsonLdNode(item as Record<string, unknown>));
+        if (item && typeof item === 'object')
+          push(productFromJsonLdNode(item as Record<string, unknown>));
       }
     }
   }
@@ -265,7 +265,9 @@ function collectHeuristicProducts(root: HTMLElement, pageUrl: string): Extracted
     const description = el.querySelector('[itemprop="description"]')?.text?.trim();
     push(isService ? 'SERVICE' : 'PRODUCT', name, description);
   }
-  for (const el of root.querySelectorAll('[class*="product"], [class*="service"], [data-product]')) {
+  for (const el of root.querySelectorAll(
+    '[class*="product"], [class*="service"], [data-product]',
+  )) {
     const heading = el.querySelector('h1,h2,h3,h4,a')?.text?.trim();
     if (!heading) continue;
     const cls = (el.getAttribute('class') || '').toLowerCase();
@@ -276,7 +278,12 @@ function collectHeuristicProducts(root: HTMLElement, pageUrl: string): Extracted
     const path = new URL(pageUrl).pathname.toLowerCase();
     if (path.includes('service') || path.includes('solution')) {
       const h1 = root.querySelector('h1')?.text?.trim();
-      if (h1) push('SERVICE', h1, root.querySelector('meta[name="description"]')?.getAttribute('content') ?? undefined);
+      if (h1)
+        push(
+          'SERVICE',
+          h1,
+          root.querySelector('meta[name="description"]')?.getAttribute('content') ?? undefined,
+        );
     }
   } catch {
     // ignore

@@ -46,7 +46,7 @@ JavaScript-rendered apps are not executed. Only the initial HTML response is par
 | `BRAND_MAX_SITEMAP_DOCUMENTS`       | `5`                                       | Sitemap files (including indexes) to fetch                       |
 | `BRAND_SCANNER_USER_AGENT`          | `OMA-BrandScanner/1.0 (+https://oma.ai)`  | Crawler identity                                                 |
 | `BRAND_SCANNER_ACCEPT_LANGUAGE`     | `en,ar;q=0.9`                             | `Accept-Language` header                                         |
-| `BRAND_SCANNER_IGNORE_ROBOTS_TXT`    | `true`                                    | When true, `Disallow` rules in robots.txt do not skip pages      |
+| `BRAND_SCANNER_IGNORE_ROBOTS_TXT`   | `true`                                    | When true, `Disallow` rules in robots.txt do not skip pages      |
 | `BRAND_SCANNER_TIMEOUT_MS`          | `15000`                                   | Total per-request timeout                                        |
 | `BRAND_SCANNER_CONNECT_TIMEOUT_MS`  | `5000`                                    | TCP/TLS connect timeout                                          |
 | `BRAND_SCANNER_MAX_REDIRECTS`       | `5`                                       | Redirect hop limit                                               |

@@ -45,7 +45,10 @@ export function parseExtraPathSeeds(env: NodeJS.ProcessEnv = process.env): strin
     .map((part) => (part.startsWith('/') ? part : `/${part}`));
 }
 
-export function buildMarketingSeedUrls(startUrl: string, env: NodeJS.ProcessEnv = process.env): string[] {
+export function buildMarketingSeedUrls(
+  startUrl: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string[] {
   let base: URL;
   try {
     base = new URL(startUrl);

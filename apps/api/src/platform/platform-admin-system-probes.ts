@@ -126,9 +126,10 @@ export async function probeLiveAi(): Promise<{
     };
   }
 
-  const text = result.output && typeof result.output === 'object' && 'variants' in result.output
-    ? (result.output as { variants?: Array<{ text?: string }> }).variants?.[0]?.text
-    : undefined;
+  const text =
+    result.output && typeof result.output === 'object' && 'variants' in result.output
+      ? (result.output as { variants?: Array<{ text?: string }> }).variants?.[0]?.text
+      : undefined;
 
   return {
     ok: true,
@@ -182,9 +183,7 @@ export async function probeWebsiteScan(input?: { url?: string }): Promise<{
       url: fetched.finalUrl,
       latency_ms: Date.now() - started,
       http_status: fetched.status,
-      ...(fetched.status >= 400
-        ? { code: 'HTTP_ERROR', reason: `HTTP ${fetched.status}` }
-        : {}),
+      ...(fetched.status >= 400 ? { code: 'HTTP_ERROR', reason: `HTTP ${fetched.status}` } : {}),
     };
   } catch (err) {
     return {

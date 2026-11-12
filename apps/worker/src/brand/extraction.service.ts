@@ -108,7 +108,9 @@ export async function runExtractionForScan(input: {
   const startHost = new URL(input.startUrl).host;
   try {
     const robotsInfo = await input.connector.inspectRobots(startHost);
-    const seedTargets = [...new Set([...robotsInfo.sitemaps, ...buildSitemapSeedUrls(input.startUrl)])];
+    const seedTargets = [
+      ...new Set([...robotsInfo.sitemaps, ...buildSitemapSeedUrls(input.startUrl)]),
+    ];
     const sitemapDocs = [...new Set(seedTargets)].slice(0, maxSitemapDocuments);
     let docsFetched = 0;
     while (sitemapDocs.length > 0 && docsFetched < maxSitemapDocuments && Date.now() < deadline) {
