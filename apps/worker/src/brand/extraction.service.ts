@@ -1,6 +1,7 @@
 import { getPrisma } from '@oma/db';
 import {
   buildCatalogFieldValue,
+  classifyJsRenderError,
   buildMarketingSeedUrls,
   buildSitemapSeedUrls,
   canonicalHash,
@@ -140,6 +141,7 @@ export async function runExtractionForScan(input: {
   let pagesJsRenderAttempted = 0;
   let pagesJsRenderFailed = 0;
   const jsRenderErrors: string[] = [];
+  const jsRenderErrorDetails: string[] = [];
   let jsRenderLaunchDetail: string | null = null;
   const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
 
@@ -150,8 +152,12 @@ export async function runExtractionForScan(input: {
         jsRenderLaunchDetail = launchDetail.slice(0, 500);
       }
     }
-    if (!jsRenderErrors.includes(code) && jsRenderErrors.length < 5) {
+    if (!jsRenderErrors.includes(code) && jsRenderErrors.length < 8) {
       jsRenderErrors.push(code);
+    }
+    const line = detail ? `${code}: ${detail.slice(0, 180)}` : code;
+    if (!jsRenderErrorDetails.includes(line) && jsRenderErrorDetails.length < 8) {
+      jsRenderErrorDetails.push(line);
     }
   };
 
@@ -289,16 +295,11 @@ export async function runExtractionForScan(input: {
           }
         } catch (err) {
           pagesJsRenderFailed += 1;
-          const code =
+          const classified =
             err instanceof RenderedPageFetchError
-              ? err.code
-              : err instanceof Error
-                ? err.name
-                : 'RENDER_FAILED';
-          recordJsRenderError(
-            code,
-            err instanceof RenderedPageFetchError ? err.message : undefined,
-          );
+              ? { code: err.code, message: err.message }
+              : classifyJsRenderError(err);
+          recordJsRenderError(classified.code, classified.message);
         }
       }
       const pageCanonical =
@@ -421,6 +422,7 @@ export async function runExtractionForScan(input: {
     pagesJsRenderAttempted,
     pagesJsRenderFailed,
     jsRenderErrors,
+    jsRenderErrorDetails,
     jsRenderLaunchDetail,
     jsRenderMode,
   };

@@ -21,6 +21,8 @@ import { ConnectorModeBanner } from '../../../../../../../components/brand/conne
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip } from '../../../../../../../components/ui/status-chip';
 import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
+import { BrandPipelineOutcome } from '../../../../../../../components/brand/brand-pipeline-outcome';
+import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
 import { useT } from '../../../../../../../lib/use-locale';
 
 const TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
@@ -203,6 +205,10 @@ export default function ScanDetailPage() {
       ) : null}
 
       <ScanOutcomePanel scan={scan} />
+
+      <CoverageDisclosure coverage={scan.coverage} scanStatus={scan.status} />
+
+      {brand ? <BrandPipelineOutcome brandId={brandId} brand={brand} scan={scan} /> : null}
 
       <div className="oma-panel">
         <h2>{t('brand.scan.progressTitle')}</h2>

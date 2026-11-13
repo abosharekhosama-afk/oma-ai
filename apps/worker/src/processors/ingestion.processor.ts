@@ -213,14 +213,29 @@ export function startIngestionProcessor(
       const hasEvidence = observations.some((o) => o.evidenceId);
       const usable = requiredPresent && hasEvidence;
 
+      const [pagesDiscovered, productsDiscovered, servicesDiscovered] = await Promise.all([
+        prisma.discoveredPage.count({ where: { scanAttemptId: scan.id } }),
+        prisma.discoveredProductService.count({
+          where: { scanAttemptId: scan.id, kind: 'PRODUCT' },
+        }),
+        prisma.discoveredProductService.count({
+          where: { scanAttemptId: scan.id, kind: 'SERVICE' },
+        }),
+      ]);
+
       const coverage = {
         pages_fetched: counts.pagesFetched,
         pages_failed: counts.pagesFailed,
         pages_skipped: counts.pagesSkipped,
+        scan_max_pages: data.config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50),
+        pages_discovered: pagesDiscovered,
+        products_discovered: productsDiscovered,
+        services_discovered: servicesDiscovered,
         pages_js_rendered: counts.pagesJsRendered ?? 0,
         pages_js_render_attempted: counts.pagesJsRenderAttempted ?? 0,
         pages_js_render_failed: counts.pagesJsRenderFailed ?? 0,
         js_render_errors: counts.jsRenderErrors ?? [],
+        js_render_error_details: counts.jsRenderErrorDetails ?? [],
         js_render_launch_detail: counts.jsRenderLaunchDetail ?? null,
         js_render_mode: counts.jsRenderMode ?? 'off',
         required_missing: usable

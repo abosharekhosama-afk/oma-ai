@@ -184,10 +184,24 @@ export class ScanService {
       where: tenantWhere(tenantId, { scanAttemptId: scanId }),
       orderBy: { createdAt: 'desc' },
     });
+    const [pagesDiscovered, productsDiscovered, servicesDiscovered] = await Promise.all([
+      getPrisma().discoveredPage.count({ where: tenantWhere(tenantId, { scanAttemptId: scanId }) }),
+      getPrisma().discoveredProductService.count({
+        where: tenantWhere(tenantId, { scanAttemptId: scanId, kind: 'PRODUCT' }),
+      }),
+      getPrisma().discoveredProductService.count({
+        where: tenantWhere(tenantId, { scanAttemptId: scanId, kind: 'SERVICE' }),
+      }),
+    ]);
     return {
       data: {
         ...this.serializeScan(scan),
         profile_version_id: profile?.id ?? null,
+        discovery_summary: {
+          pages: pagesDiscovered,
+          products: productsDiscovered,
+          services: servicesDiscovered,
+        },
       },
     };
   }

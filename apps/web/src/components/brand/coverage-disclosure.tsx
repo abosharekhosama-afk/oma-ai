@@ -9,10 +9,15 @@ type CoverageSnapshot = {
   skipped_pages?: { url: string; reason: string }[];
   pages_fetched?: number;
   pages_failed?: number;
+  scan_max_pages?: number;
+  pages_discovered?: number;
+  products_discovered?: number;
+  services_discovered?: number;
   pages_js_rendered?: number;
   pages_js_render_attempted?: number;
   pages_js_render_failed?: number;
   js_render_errors?: string[];
+  js_render_error_details?: string[];
   js_render_launch_detail?: string | null;
   js_render_mode?: string;
 } | null;
@@ -46,6 +51,33 @@ export function CoverageDisclosure({
         </p>
       ) : null}
       <dl className="oma-detail-dl">
+        {coverage?.pages_fetched != null && coverage.scan_max_pages != null ? (
+          <div>
+            <dt>{t('brand.coverage.pageBudget')}</dt>
+            <dd data-testid="coverage-page-budget">
+              {t('brand.coverage.pageBudgetDetail')
+                .replace('{fetched}', String(coverage.pages_fetched))
+                .replace('{max}', String(coverage.scan_max_pages))
+                .replace(
+                  '{hitLimit}',
+                  coverage.pages_fetched >= coverage.scan_max_pages
+                    ? t('brand.coverage.pageBudgetHitLimit')
+                    : t('brand.coverage.pageBudgetBelowLimit'),
+                )}
+            </dd>
+          </div>
+        ) : null}
+        {coverage?.products_discovered != null ? (
+          <div>
+            <dt>{t('brand.coverage.discoveryTotals')}</dt>
+            <dd>
+              {t('brand.coverage.discoveryTotalsDetail')
+                .replace('{products}', String(coverage.products_discovered ?? 0))
+                .replace('{services}', String(coverage.services_discovered ?? 0))
+                .replace('{pages}', String(coverage.pages_discovered ?? 0))}
+            </dd>
+          </div>
+        ) : null}
         <div>
           <dt>{t('brand.coverage.requiredMissing')}</dt>
           <dd data-testid="coverage-required-missing">
@@ -93,6 +125,23 @@ export function CoverageDisclosure({
                   {coverage.js_render_errors!.join(', ')}
                 </dd>
               </div>
+            ) : null}
+            {(coverage.js_render_error_details?.length ?? 0) > 0 ? (
+              <div>
+                <dt>{t('brand.coverage.jsRenderErrorDetails')}</dt>
+                <dd data-testid="coverage-js-render-error-details">
+                  <ul>
+                    {coverage.js_render_error_details!.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            ) : null}
+            {(coverage.pages_js_render_failed ?? 0) > 0 && (coverage.pages_js_rendered ?? 0) > 0 ? (
+              <p className="oma-muted" role="status">
+                {t('brand.coverage.jsRenderPartialHint')}
+              </p>
             ) : null}
             {coverage.js_render_errors?.includes('PLAYWRIGHT_LAUNCH_FAILED') ? (
               <div

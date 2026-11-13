@@ -119,10 +119,14 @@ export default function DiscoveryProductsPage() {
           <h2>{t('brand.discovery.productsTitle')}</h2>
           <ConnectorModeChip mode={connectorMode} />
         </div>
+        <p className="oma-muted">{t('brand.discovery.productsHint')}</p>
         {scanId ? (
-          <Link href={`/app/brands/${brandId}/discovery/pages`}>
-            {t('brand.discovery.pagesTitle')}
-          </Link>
+          <div className="oma-chip-row">
+            <Link href={`/app/brands/${brandId}/discovery`}>{t('brand.discovery.hubTitle')}</Link>
+            <Link href={`/app/brands/${brandId}/discovery/pages`}>
+              {t('brand.discovery.pagesTitle')}
+            </Link>
+          </div>
         ) : null}
       </header>
 
