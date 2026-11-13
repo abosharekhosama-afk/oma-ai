@@ -569,3 +569,324 @@
     flex-wrap: wrap;
   }
 }
+
+/* Admin subscribers refresh — social listening inspired table and controls. */
+.oma-billing__subscribers-panel {
+  padding: 24px;
+  border: 1px solid #e1e8f0;
+  border-radius: 20px;
+  background: #f8fafc;
+  box-shadow: 0 12px 32px rgba(25, 43, 65, 0.05);
+}
+.oma-billing__section-head,
+.oma-billing__plan-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.oma-billing__section-head h2,
+.oma-billing__plan-card h3 {
+  margin: 0 0 6px;
+  color: #172231;
+  font-size: 21px;
+}
+.oma-billing__eyebrow {
+  margin: 0 0 7px;
+  color: #718096;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.oma-billing__result-count {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid #dfe7ee;
+  border-radius: 999px;
+  background: #fff;
+  color: #526273;
+  font-size: 12px;
+  font-weight: 800;
+}
+.oma-billing__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+.oma-billing__stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 15px;
+  border: 1px solid #e4ebf2;
+  border-radius: 13px;
+  background: #fff;
+}
+.oma-billing__stats strong {
+  color: #172231;
+  font-size: 22px;
+}
+.oma-billing__stats span {
+  color: #718096;
+  font-size: 12px;
+}
+.oma-billing__subscriber-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(0, 3fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #e1e8f0;
+  border-radius: 15px;
+  background: #fff;
+}
+.oma-billing__search,
+.oma-billing__filter-grid {
+  min-width: 0;
+}
+.oma-billing__search {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.oma-billing__search span {
+  color: #24303d;
+  font-size: 12px;
+  font-weight: 800;
+}
+.oma-billing__search input {
+  margin: 0;
+  max-width: none;
+  height: 42px;
+}
+.oma-billing__filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  gap: 8px;
+}
+.oma-billing__filter-grid .oma-billing__field {
+  margin: 0;
+}
+.oma-billing__filter-grid select {
+  margin: 0;
+  max-width: none;
+  height: 42px;
+  padding-inline: 9px;
+  font-size: 12px;
+}
+.oma-billing__reset {
+  height: 42px;
+  padding: 0 13px;
+  border: 1px solid #d0dae4;
+  border-radius: 10px;
+  background: #fff;
+  color: #526273;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.oma-billing__reset:hover {
+  border-color: #3b82f6;
+  color: #2563eb;
+}
+.oma-billing__plan-card {
+  margin: 0 0 16px;
+  padding: 20px;
+  border: 1px solid #bcd4f5;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f7fbff 0%, #fff 62%);
+  box-shadow: 0 8px 22px rgba(38, 99, 177, 0.08);
+}
+.oma-billing__plan-card-head > div > span {
+  color: #718096;
+  font-size: 12px;
+}
+.oma-billing__current-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 18px 0;
+}
+.oma-billing__current-fields > div {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #e0ebf7;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.8);
+}
+.oma-billing__current-fields span {
+  display: block;
+  margin-bottom: 5px;
+  color: #718096;
+  font-size: 11px;
+}
+.oma-billing__current-fields strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #24303d;
+  font-size: 13px;
+}
+.oma-billing__plan-editor {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 0.8fr 1.5fr;
+  gap: 10px;
+  align-items: end;
+  padding-top: 15px;
+  border-top: 1px solid #e1ebf5;
+}
+.oma-billing__plan-editor .oma-billing__field {
+  margin: 0;
+}
+.oma-billing__plan-editor input,
+.oma-billing__plan-editor select,
+.oma-billing__plan-editor textarea {
+  max-width: none;
+  margin: 0;
+}
+.oma-billing__field--wide {
+  grid-column: span 1;
+}
+.oma-billing__selection-hint,
+.oma-billing__empty {
+  margin: 0 0 16px;
+  padding: 18px;
+  border: 1px dashed #cbd8e6;
+  border-radius: 13px;
+  color: #718096;
+  text-align: center;
+  background: #fff;
+}
+.oma-billing__table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e1e8f0;
+  border-radius: 15px;
+  background: #fff;
+}
+.oma-billing__subscribers-table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+  text-align: start;
+}
+.oma-billing__subscribers-table th {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5ebf1;
+  background: #f7f9fb;
+  color: #718096;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: start;
+  text-transform: uppercase;
+}
+.oma-billing__subscribers-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #edf1f5;
+  color: #526273;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.oma-billing__subscribers-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.oma-billing__subscribers-table tbody tr:hover,
+.oma-billing__subscribers-table tbody tr.is-selected {
+  background: #f5f9ff;
+}
+.oma-billing__subscribers-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.oma-billing__subscriber-name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #172231;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.oma-billing__subscriber-name span {
+  color: #8290a0;
+  font-size: 11px;
+}
+.oma-billing__plan-chip {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #eef5ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+}
+.oma-billing__status-pill {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef2f6;
+  color: #526273;
+  font-size: 11px;
+  font-weight: 800;
+}
+.oma-billing__status-pill.is-active {
+  background: #e9f8ef;
+  color: #14803c;
+}
+.oma-billing__status-pill.is-trialing {
+  background: #fff5dc;
+  color: #9a6700;
+}
+.oma-billing__status-pill.is-past_due,
+.oma-billing__status-pill.is-canceled {
+  background: #fff0f0;
+  color: #b42318;
+}
+@media (max-width: 1050px) {
+  .oma-billing__subscriber-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .oma-billing__filter-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .oma-billing__reset {
+    width: fit-content;
+  }
+  .oma-billing__plan-editor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .oma-billing__subscribers-panel {
+    padding: 16px;
+    border-radius: 15px;
+  }
+  .oma-billing__section-head,
+  .oma-billing__plan-card-head {
+    flex-direction: column;
+  }
+  .oma-billing__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .oma-billing__filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .oma-billing__current-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .oma-billing__plan-editor {
+    grid-template-columns: 1fr;
+  }
+  .oma-billing__field--wide {
+    grid-column: auto;
+  }
+}
