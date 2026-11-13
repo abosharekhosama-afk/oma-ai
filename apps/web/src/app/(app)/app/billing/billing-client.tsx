@@ -114,6 +114,18 @@ function money(n: number) {
   return `$${Number(n).toFixed(n % 1 === 0 ? 0 : 2)}`;
 }
 
+function planAudience(code: string, isAr: boolean) {
+  const copy: Record<string, { en: string; ar: string }> = {
+    free: { en: 'For getting started', ar: 'للبدء وتجربة الأساسيات' },
+    starter: { en: 'For small teams', ar: 'للفرق الصغيرة' },
+    pro: { en: 'For growing teams', ar: 'للفرق التي تنمو' },
+    agency: { en: 'For agencies and scale', ar: 'للوكالات والعمل المتوسع' },
+    business: { en: 'For established teams', ar: 'للفرق المتقدمة' },
+    enterprise: { en: 'For larger organizations', ar: 'للمؤسسات الأكبر' },
+  };
+  return isAr ? (copy[code]?.ar ?? '') : (copy[code]?.en ?? '');
+}
+
 export default function BillingClient() {
   const isAr = useLocale() === 'ar';
   const toast = useToast();
@@ -436,6 +448,11 @@ export default function BillingClient() {
               ? 'الأسعار قبل الضريبة، ويظهر الإجمالي شامل الضريبة بحسب النسبة الحالية من الإعدادات.'
               : 'List prices are shown before VAT. Totals including VAT follow the current rate in billing settings.'}
           </p>
+          <div className="oma-billing__trust-row">
+            <span>{isAr ? 'أسعار واضحة' : 'Clear pricing'}</span>
+            <span>{isAr ? 'تغيير مرن' : 'Flexible changes'}</span>
+            <span>{isAr ? 'دعم التحويل اليدوي' : 'Manual transfer supported'}</span>
+          </div>
         </div>
         <div className="oma-billing__header-actions">
           <Link className="oma-billing__icon-link" href="/app/subscription">
@@ -468,17 +485,37 @@ export default function BillingClient() {
         </div>
       ) : null}
 
-      <div className="oma-billing__switch" role="group">
-        <button
-          type="button"
-          className={!annual ? 'is-active' : ''}
-          onClick={() => setAnnual(false)}
+      <div className="oma-billing__pricing-toolbar">
+        <div>
+          <p className="oma-billing__eyebrow">
+            {isAr ? 'اختر الإيقاع المناسب لفريقك' : 'CHOOSE YOUR BILLING RHYTHM'}
+          </p>
+          <strong>
+            {isAr
+              ? 'ادفع شهرياً أو وفر مع الخطة السنوية'
+              : 'Pay monthly or save with yearly billing'}
+          </strong>
+        </div>
+        <div
+          className="oma-billing__switch"
+          role="group"
+          aria-label={isAr ? 'دورة الدفع' : 'Billing cycle'}
         >
-          {isAr ? 'شهري' : 'Monthly'}
-        </button>
-        <button type="button" className={annual ? 'is-active' : ''} onClick={() => setAnnual(true)}>
-          {isAr ? 'سنوي' : 'Yearly'} <span>{isAr ? 'وفر شهرين' : '2 months free'}</span>
-        </button>
+          <button
+            type="button"
+            className={!annual ? 'is-active' : ''}
+            onClick={() => setAnnual(false)}
+          >
+            {isAr ? 'شهري' : 'Monthly'}
+          </button>
+          <button
+            type="button"
+            className={annual ? 'is-active' : ''}
+            onClick={() => setAnnual(true)}
+          >
+            {isAr ? 'سنوي' : 'Yearly'} <span>{isAr ? 'وفر شهرين' : '2 months free'}</span>
+          </button>
+        </div>
       </div>
 
       <label className="oma-billing__addon">
@@ -505,25 +542,42 @@ export default function BillingClient() {
       {loading ? (
         <p className="oma-billing__desc">{isAr ? 'جاري التحميل…' : 'Loading…'}</p>
       ) : (
-        <section className="oma-billing__grid" aria-label={isAr ? 'الخطط' : 'Plans'}>
+        <section
+          className="oma-billing__grid oma-billing__pricing-grid"
+          aria-label={isAr ? 'الخطط' : 'Plans'}
+        >
           {plans.map((plan) => {
             const active = sub?.plan_code === plan.code;
             const price = annual ? plan.price_yearly_per_month_usd : plan.price_monthly_usd;
             const vatBlock = annual ? plan.yearly_vat : plan.monthly_vat;
+            const monthlyPrice = plan.price_monthly_usd;
+            const yearlyPrice = plan.price_yearly_per_month_usd;
+            const saving =
+              monthlyPrice != null && yearlyPrice != null ? monthlyPrice - yearlyPrice : 0;
             return (
               <article
                 key={plan.code}
-                className={`oma-billing__card${active ? ' is-selected' : ''}${plan.popular ? ' is-popular' : ''}`}
+                className={`oma-billing__card oma-billing__pricing-card is-${plan.code}${active ? ' is-selected' : ''}${plan.popular ? ' is-popular' : ''}`}
               >
-                {plan.popular ? (
-                  <span className="oma-billing__badge">
-                    {isAr ? 'الأكثر اختياراً' : 'Most popular'}
-                  </span>
-                ) : null}
-                <div className={`oma-billing__plan-icon is-${plan.code}`}>
-                  {planIcon(plan.code)}
+                <div className="oma-billing__card-topline">
+                  <div className={`oma-billing__plan-icon is-${plan.code}`}>
+                    {planIcon(plan.code)}
+                  </div>
+                  <div className="oma-billing__card-tags">
+                    {active ? (
+                      <span className="oma-billing__current-tag">
+                        {isAr ? 'خطتك الحالية' : 'Your plan'}
+                      </span>
+                    ) : null}
+                    {plan.popular ? (
+                      <span className="oma-billing__badge">
+                        {isAr ? 'الأكثر اختياراً' : 'Most popular'}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <h2>{isAr ? plan.name.ar : plan.name.en}</h2>
+                <p className="oma-billing__audience">{planAudience(plan.code, isAr)}</p>
                 <p className="oma-billing__desc">
                   {isAr ? plan.description.ar : plan.description.en}
                 </p>
@@ -541,14 +595,24 @@ export default function BillingClient() {
                         : 'month'}
                   </span>
                 </div>
-                <p className="oma-billing__included">{isAr ? 'قبل الضريبة' : 'Before VAT'}</p>
+                <div className="oma-billing__price-note">
+                  <span>{isAr ? 'قبل الضريبة' : 'Before VAT'}</span>
+                  {annual && saving > 0 ? (
+                    <strong>
+                      {isAr ? `وفر ${money(saving)} / شهر` : `Save ${money(saving)} / mo`}
+                    </strong>
+                  ) : null}
+                </div>
                 {vatBlock ? (
-                  <p className="oma-billing__price-vat">
+                  <p className="oma-billing__price-vat oma-billing__price-vat--prominent">
                     {isAr
                       ? `شامل الضريبة (${plan.vat_percent}): ${formatUsd(vatBlock.inc_vat_cents)}`
                       : `Including ${plan.vat_percent} VAT: ${formatUsd(vatBlock.inc_vat_cents)}`}
                   </p>
                 ) : null}
+                <div className="oma-billing__limits-heading">
+                  {isAr ? 'يتضمن' : "What's included"}
+                </div>
                 <ul>
                   {LIMIT_KEYS.map((key) => (
                     <li key={key}>
@@ -571,6 +635,19 @@ export default function BillingClient() {
                       ? 'ترقية أو تغيير'
                       : 'Upgrade or switch'}
                 </Button>
+                <p className="oma-billing__card-footnote">
+                  {active
+                    ? isAr
+                      ? 'يمكنك إدارة الفواتير والاستخدام من صفحة الاشتراك.'
+                      : 'Manage invoices and usage from your subscription page.'
+                    : canBill
+                      ? isAr
+                        ? 'يمكنك تغيير الخطة في أي وقت.'
+                        : 'You can change plans at any time.'
+                      : isAr
+                        ? 'تواصل مع مالك المساحة لتغيير الخطة.'
+                        : 'Ask the workspace owner to change the plan.'}
+                </p>
               </article>
             );
           })}

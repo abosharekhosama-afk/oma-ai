@@ -30,6 +30,33 @@ const STATUS_FILTERS = [
 
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
+type WorkspaceRow = Record<string, unknown>;
+
+const WORKSPACE_STATUSES = ['all', 'active', 'trialing', 'canceled', 'past_due'] as const;
+const WORKSPACE_PLANS = [
+  'all',
+  'free',
+  'starter',
+  'pro',
+  'agency',
+  'business',
+  'enterprise',
+] as const;
+const WORKSPACE_PROVIDERS = ['all', 'manual', 'stripe', 'lahza', '—'] as const;
+
+function textValue(value: unknown, fallback = '—') {
+  return value == null || value === '' ? fallback : String(value);
+}
+
+function dateValue(value: unknown, isAr: boolean) {
+  if (!value) return '—';
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(isAr ? 'ar' : 'en', {
+    dateStyle: 'medium',
+  }).format(date);
+}
+
 function formatUsd(cents?: number | null) {
   if (cents == null) return '—';
   return `$${(cents / 100).toFixed(2)}`;
@@ -43,7 +70,7 @@ export default function AdminBillingClient() {
     caps.can('platform.support.access') ? true : null,
   );
   const [q, setQ] = useState('');
-  const [workspaces, setWorkspaces] = useState<Array<Record<string, unknown>>>([]);
+  const [workspaces, setWorkspaces] = useState<WorkspaceRow[]>([]);
   const [orders, setOrders] = useState<ManualOrderDto[]>([]);
   const [settings, setSettings] = useState<Record<string, unknown>>({});
   const [selected, setSelected] = useState('');
@@ -56,6 +83,11 @@ export default function AdminBillingClient() {
   const [bankEn, setBankEn] = useState('');
   const [bankAr, setBankAr] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [workspaceStatusFilter, setWorkspaceStatusFilter] =
+    useState<(typeof WORKSPACE_STATUSES)[number]>('all');
+  const [planFilter, setPlanFilter] = useState<(typeof WORKSPACE_PLANS)[number]>('all');
+  const [providerFilter, setProviderFilter] = useState<(typeof WORKSPACE_PROVIDERS)[number]>('all');
+  const [addonFilter, setAddonFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [receipts, setReceipts] = useState<Record<string, string>>({});
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -103,6 +135,50 @@ export default function AdminBillingClient() {
     return orders.filter((order) => order.status === statusFilter);
   }, [orders, statusFilter]);
 
+  const filteredWorkspaces = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return workspaces.filter((workspace) => {
+      const searchable = [
+        workspace.name,
+        workspace.slug,
+        workspace.id,
+        workspace.plan_code,
+        workspace.status,
+        workspace.provider,
+      ]
+        .map((value) => textValue(value, '').toLowerCase())
+        .join(' ');
+      const matchesSearch = !needle || searchable.includes(needle);
+      const matchesStatus =
+        workspaceStatusFilter === 'all' ||
+        textValue(workspace.status, '') === workspaceStatusFilter;
+      const matchesPlan = planFilter === 'all' || textValue(workspace.plan_code, '') === planFilter;
+      const matchesProvider =
+        providerFilter === 'all' || textValue(workspace.provider, '—') === providerFilter;
+      const hasAddon = Boolean(workspace.x_api_addon);
+      const matchesAddon =
+        addonFilter === 'all' || (addonFilter === 'enabled' ? hasAddon : !hasAddon);
+      return matchesSearch && matchesStatus && matchesPlan && matchesProvider && matchesAddon;
+    });
+  }, [addonFilter, planFilter, providerFilter, q, workspaceStatusFilter, workspaces]);
+
+  const selectedWorkspace = useMemo(
+    () => workspaces.find((workspace) => String(workspace.id) === selected) ?? null,
+    [selected, workspaces],
+  );
+
+  const workspaceCounts = useMemo(
+    () => ({
+      total: workspaces.length,
+      active: workspaces.filter((workspace) => textValue(workspace.status, '') === 'active').length,
+      pending: workspaces.filter((workspace) =>
+        ['trialing', 'past_due'].includes(textValue(workspace.status, '')),
+      ).length,
+      addons: workspaces.filter((workspace) => Boolean(workspace.x_api_addon)).length,
+    }),
+    [workspaces],
+  );
+
   const statusLabel = (status: string) => {
     const map: Record<string, { en: string; ar: string }> = {
       all: { en: 'All', ar: 'الكل' },
@@ -111,6 +187,10 @@ export default function AdminBillingClient() {
       approved: { en: 'Approved', ar: 'موافق عليه' },
       rejected: { en: 'Rejected', ar: 'مرفوض' },
       cancelled: { en: 'Cancelled', ar: 'ملغى' },
+      active: { en: 'Active', ar: 'نشط' },
+      trialing: { en: 'Trialing', ar: 'تجريبي' },
+      past_due: { en: 'Past due', ar: 'متأخر الدفع' },
+      canceled: { en: 'Canceled', ar: 'ملغى' },
     };
     return isAr ? (map[status]?.ar ?? status) : (map[status]?.en ?? status);
   };
@@ -257,57 +337,196 @@ export default function AdminBillingClient() {
         </Button>
       </section>
 
-      <section className="oma-billing__card oma-billing__admin-panel">
-        <h2>{isAr ? 'مساحات العمل' : 'Workspaces'}</h2>
-        <label className="oma-billing__field">
-          <span>{isAr ? 'بحث' : 'Search'}</span>
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={isAr ? 'الاسم أو المعرف' : 'Name or slug'}
-          />
-        </label>
-        <div className="oma-billing__workspace-grid">
-          {workspaces.map((w) => (
-            <button
-              key={String(w.id)}
-              type="button"
-              className={`oma-billing__workspace-card${selected === String(w.id) ? ' is-selected' : ''}`}
-              onClick={() => setSelected(String(w.id))}
-            >
-              <strong>{String(w.name)}</strong>
-              <span>{String(w.slug)}</span>
-              <em>
-                {String(w.plan_code ?? '—')} · {String(w.status ?? '—')}
-              </em>
-            </button>
-          ))}
-        </div>
-        {selected ? (
-          <div className="oma-billing__admin-actions">
-            <p>
-              {isAr ? 'المحدد' : 'Selected'}: {selected}
+      <section className="oma-billing__admin-panel oma-billing__subscribers-panel">
+        <div className="oma-billing__section-head">
+          <div>
+            <p className="oma-billing__eyebrow">{isAr ? 'إدارة العملاء' : 'CUSTOMER MANAGEMENT'}</p>
+            <h2>{isAr ? 'المشتركون' : 'Subscribers'}</h2>
+            <p className="oma-billing__desc">
+              {isAr
+                ? 'ابحث وفلتر الاشتراكات ثم اختر مشتركاً لإدارة خطته وإجراءات حسابه.'
+                : 'Search and filter subscriptions, then select a subscriber to manage their plan and account.'}
             </p>
+          </div>
+          <span className="oma-billing__result-count">
+            {filteredWorkspaces.length} / {workspaceCounts.total}
+          </span>
+        </div>
+
+        <div
+          className="oma-billing__stats"
+          aria-label={isAr ? 'ملخص المشتركين' : 'Subscriber summary'}
+        >
+          <div>
+            <strong>{workspaceCounts.total}</strong>
+            <span>{isAr ? 'الإجمالي' : 'Total'}</span>
+          </div>
+          <div>
+            <strong>{workspaceCounts.active}</strong>
+            <span>{isAr ? 'نشط' : 'Active'}</span>
+          </div>
+          <div>
+            <strong>{workspaceCounts.pending}</strong>
+            <span>{isAr ? 'قيد المتابعة' : 'Needs attention'}</span>
+          </div>
+          <div>
+            <strong>{workspaceCounts.addons}</strong>
+            <span>{isAr ? 'إضافة X API' : 'X API add-on'}</span>
+          </div>
+        </div>
+
+        <div className="oma-billing__subscriber-toolbar">
+          <label className="oma-billing__search">
+            <span>{isAr ? 'بحث في المشتركين' : 'Search subscribers'}</span>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={
+                isAr
+                  ? 'الاسم، المعرف، الخطة، الحالة أو المزوّد'
+                  : 'Name, ID, plan, status, or provider'
+              }
+              aria-label={isAr ? 'بحث في المشتركين' : 'Search subscribers'}
+            />
+          </label>
+          <div className="oma-billing__filter-grid">
             <label className="oma-billing__field">
-              <span>{isAr ? 'الخطة' : 'Plan'}</span>
-              <select value={plan} onChange={(e) => setPlan(e.target.value)}>
-                <option value="starter">{isAr ? 'البداية' : 'Starter'}</option>
-                <option value="pro">{isAr ? 'الاحترافية' : 'Pro'}</option>
-                <option value="agency">{isAr ? 'الوكالة' : 'Agency'}</option>
+              <span>{isAr ? 'الحالة' : 'Status'}</span>
+              <select
+                value={workspaceStatusFilter}
+                onChange={(e) =>
+                  setWorkspaceStatusFilter(e.target.value as (typeof WORKSPACE_STATUSES)[number])
+                }
+              >
+                <option value="all">{isAr ? 'كل الحالات' : 'All statuses'}</option>
+                <option value="active">{isAr ? 'نشط' : 'Active'}</option>
+                <option value="trialing">{isAr ? 'تجريبي' : 'Trialing'}</option>
+                <option value="past_due">{isAr ? 'متأخر الدفع' : 'Past due'}</option>
+                <option value="canceled">{isAr ? 'ملغى' : 'Canceled'}</option>
               </select>
             </label>
             <label className="oma-billing__field">
-              <span>{isAr ? 'المرجع / الإيصال' : 'Reference / receipt'}</span>
-              <input value={reference} onChange={(e) => setReference(e.target.value)} />
+              <span>{isAr ? 'الخطة' : 'Plan'}</span>
+              <select
+                value={planFilter}
+                onChange={(e) => setPlanFilter(e.target.value as (typeof WORKSPACE_PLANS)[number])}
+              >
+                {WORKSPACE_PLANS.map((value) => (
+                  <option key={value} value={value}>
+                    {value === 'all' ? (isAr ? 'كل الخطط' : 'All plans') : value}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="oma-billing__field">
-              <span>{isAr ? 'أيام التمديد' : 'Extend days'}</span>
-              <input value={days} onChange={(e) => setDays(e.target.value)} />
+              <span>{isAr ? 'المزوّد' : 'Provider'}</span>
+              <select
+                value={providerFilter}
+                onChange={(e) =>
+                  setProviderFilter(e.target.value as (typeof WORKSPACE_PROVIDERS)[number])
+                }
+              >
+                {WORKSPACE_PROVIDERS.map((value) => (
+                  <option key={value} value={value}>
+                    {value === 'all' ? (isAr ? 'كل المزوّدين' : 'All providers') : value}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="oma-billing__field">
-              <span>{isAr ? 'ملاحظة' : 'Note'}</span>
-              <textarea value={note} onChange={(e) => setNote(e.target.value)} />
+              <span>{isAr ? 'إضافة X API' : 'X API add-on'}</span>
+              <select
+                value={addonFilter}
+                onChange={(e) => setAddonFilter(e.target.value as 'all' | 'enabled' | 'disabled')}
+              >
+                <option value="all">{isAr ? 'الكل' : 'All'}</option>
+                <option value="enabled">{isAr ? 'مفعّلة' : 'Enabled'}</option>
+                <option value="disabled">{isAr ? 'غير مفعّلة' : 'Disabled'}</option>
+              </select>
             </label>
+          </div>
+          <button
+            type="button"
+            className="oma-billing__reset"
+            onClick={() => {
+              setQ('');
+              setWorkspaceStatusFilter('all');
+              setPlanFilter('all');
+              setProviderFilter('all');
+              setAddonFilter('all');
+            }}
+          >
+            {isAr ? 'مسح الفلاتر' : 'Clear filters'}
+          </button>
+        </div>
+
+        {selectedWorkspace ? (
+          <section
+            className="oma-billing__plan-card"
+            aria-label={isAr ? 'إدارة خطة المشترك' : 'Subscriber plan management'}
+          >
+            <div className="oma-billing__plan-card-head">
+              <div>
+                <p className="oma-billing__eyebrow">{isAr ? 'الخطة المحددة' : 'SELECTED PLAN'}</p>
+                <h3>{textValue(selectedWorkspace.name)}</h3>
+                <span>
+                  {textValue(selectedWorkspace.slug)} · {textValue(selectedWorkspace.id)}
+                </span>
+              </div>
+              <span
+                className={`oma-billing__status-pill is-${textValue(selectedWorkspace.status, 'unknown')}`}
+              >
+                {statusLabel(textValue(selectedWorkspace.status))}
+              </span>
+            </div>
+            <div className="oma-billing__current-fields">
+              <div>
+                <span>{isAr ? 'الخطة الحالية' : 'Current plan'}</span>
+                <strong>{textValue(selectedWorkspace.plan_code)}</strong>
+              </div>
+              <div>
+                <span>{isAr ? 'المزوّد الحالي' : 'Current provider'}</span>
+                <strong>{textValue(selectedWorkspace.provider)}</strong>
+              </div>
+              <div>
+                <span>{isAr ? 'نهاية الفترة الحالية' : 'Current period ends'}</span>
+                <strong>{dateValue(selectedWorkspace.period_end, isAr)}</strong>
+              </div>
+              <div>
+                <span>{isAr ? 'إضافة X API' : 'X API add-on'}</span>
+                <strong>
+                  {selectedWorkspace.x_api_addon
+                    ? isAr
+                      ? 'مفعّلة'
+                      : 'Enabled'
+                    : isAr
+                      ? 'غير مفعّلة'
+                      : 'Disabled'}
+                </strong>
+              </div>
+            </div>
+            <div className="oma-billing__plan-editor">
+              <label className="oma-billing__field">
+                <span>{isAr ? 'الخطة الجديدة' : 'New plan'}</span>
+                <select value={plan} onChange={(e) => setPlan(e.target.value)}>
+                  <option value="starter">{isAr ? 'البداية' : 'Starter'}</option>
+                  <option value="pro">{isAr ? 'الاحترافية' : 'Pro'}</option>
+                  <option value="agency">{isAr ? 'الوكالة' : 'Agency'}</option>
+                </select>
+              </label>
+              <label className="oma-billing__field">
+                <span>{isAr ? 'المرجع / الإيصال' : 'Reference / receipt'}</span>
+                <input value={reference} onChange={(e) => setReference(e.target.value)} />
+              </label>
+              <label className="oma-billing__field">
+                <span>{isAr ? 'أيام التمديد' : 'Extend days'}</span>
+                <input value={days} onChange={(e) => setDays(e.target.value)} />
+              </label>
+              <label className="oma-billing__field oma-billing__field--wide">
+                <span>{isAr ? 'ملاحظة' : 'Note'}</span>
+                <textarea value={note} onChange={(e) => setNote(e.target.value)} />
+              </label>
+            </div>
             <div className="oma-billing__admin-row">
               <Button
                 type="primary"
@@ -325,7 +544,7 @@ export default function AdminBillingClient() {
                   )
                 }
               >
-                {isAr ? 'تفعيل' : 'Activate'}
+                {isAr ? 'تفعيل الخطة' : 'Activate plan'}
               </Button>
               <Button
                 disabled={busy}
@@ -347,11 +566,79 @@ export default function AdminBillingClient() {
                   )
                 }
               >
-                {isAr ? 'إلغاء' : 'Cancel'}
+                {isAr ? 'إلغاء الاشتراك' : 'Cancel subscription'}
               </Button>
             </div>
+          </section>
+        ) : (
+          <div className="oma-billing__selection-hint">
+            {isAr
+              ? 'اختر مشتركاً من الجدول لعرض الخطة الحالية وإجراءات الإدارة.'
+              : 'Select a subscriber from the table to view the current plan and management actions.'}
           </div>
-        ) : null}
+        )}
+
+        <div className="oma-billing__table-wrap">
+          <table className="oma-billing__subscribers-table">
+            <thead>
+              <tr>
+                <th>{isAr ? 'المشترك' : 'Subscriber'}</th>
+                <th>{isAr ? 'الخطة' : 'Plan'}</th>
+                <th>{isAr ? 'الحالة' : 'Status'}</th>
+                <th>{isAr ? 'المزوّد' : 'Provider'}</th>
+                <th>{isAr ? 'نهاية الفترة' : 'Period end'}</th>
+                <th>{isAr ? 'الإضافة' : 'Add-on'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredWorkspaces.map((workspace) => {
+                const id = String(workspace.id);
+                return (
+                  <tr
+                    key={id}
+                    className={selected === id ? 'is-selected' : ''}
+                    onClick={() => setSelected(id)}
+                  >
+                    <td>
+                      <button
+                        type="button"
+                        className="oma-billing__subscriber-name"
+                        onClick={() => setSelected(id)}
+                      >
+                        <strong>{textValue(workspace.name)}</strong>
+                        <span>
+                          {textValue(workspace.slug)} · {id.slice(0, 12)}
+                        </span>
+                      </button>
+                    </td>
+                    <td>
+                      <span className="oma-billing__plan-chip">
+                        {textValue(workspace.plan_code)}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        className={`oma-billing__status-pill is-${textValue(workspace.status, 'unknown')}`}
+                      >
+                        {statusLabel(textValue(workspace.status))}
+                      </span>
+                    </td>
+                    <td>{textValue(workspace.provider)}</td>
+                    <td>{dateValue(workspace.period_end, isAr)}</td>
+                    <td>{workspace.x_api_addon ? (isAr ? 'مفعّلة' : 'Enabled') : '—'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {!filteredWorkspaces.length ? (
+            <p className="oma-billing__empty">
+              {isAr
+                ? 'لا توجد نتائج مطابقة للفلاتر الحالية.'
+                : 'No subscribers match the current filters.'}
+            </p>
+          ) : null}
+        </div>
       </section>
 
       <section className="oma-billing__admin-panel">
