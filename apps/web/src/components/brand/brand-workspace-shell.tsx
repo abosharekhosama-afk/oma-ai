@@ -9,6 +9,14 @@ import { api } from '../../lib/api';
 import { useT } from '../../lib/use-locale';
 import { StatusChip } from '../ui/status-chip';
 import { BrandMark } from './workspace-card';
+import {
+  brandNavSection,
+  buildBrandEvidenceSubnav,
+  buildBrandPrimaryNav,
+  buildBrandStrategySubnav,
+  journeyStepHref,
+} from '../../lib/brand-workspace-nav';
+import { BrandWorkspaceSubnav } from './brand-workspace-subnav';
 
 type BrandWorkspaceShellProps = {
   brandId: string;
@@ -66,41 +74,11 @@ export function BrandWorkspaceShell({
       window.removeEventListener(BRAND_LOGO_EVENT, onLogo);
     };
   }, [brandId, brandLogoUrl]);
-  const base = `/app/brands/${brandId}`;
-  const scanHref = latestScanId ? `${base}/scans/${latestScanId}` : `${base}/scans/new`;
-  const links = [
-    { href: base, label: t('brand.nav.overview'), match: (p: string) => p === base },
-    {
-      href: `${base}/connect`,
-      label: t('brand.nav.website'),
-      match: (p: string) => p.includes('/connect'),
-    },
-    {
-      href: scanHref,
-      label: t('brand.nav.scan'),
-      match: (p: string) => p.includes('/scans'),
-    },
-    {
-      href: `${base}/discovery`,
-      label: t('brand.nav.discovery'),
-      match: (p: string) => p.includes('/discovery'),
-    },
-    {
-      href: `${base}/profiles`,
-      label: t('brand.nav.intelligence'),
-      match: (p: string) => p.includes('/profiles'),
-    },
-    {
-      href: `${base}/strategies`,
-      label: t('brand.nav.strategies'),
-      match: (p: string) => p.includes('/strategies'),
-    },
-    {
-      href: `${base}/settings`,
-      label: t('brand.nav.settings'),
-      match: (p: string) => p.includes('/settings'),
-    },
-  ];
+  const section = brandNavSection(pathname, brandId);
+  const primaryLinks = buildBrandPrimaryNav(brandId, t);
+  const evidenceSubnav =
+    section === 'evidence' ? buildBrandEvidenceSubnav(brandId, latestScanId, t) : null;
+  const strategySubnav = section === 'strategy' ? buildBrandStrategySubnav(brandId, t) : null;
 
   return (
     <div className="oma-plx-listening oma-plx-brand oma-brand-shell" data-testid="brand-workspace">
@@ -133,7 +111,12 @@ export function BrandWorkspaceShell({
         <ol className="oma-plx-brand-journey" aria-label={t('home.journeyTitle')}>
           {journey.map((step) => (
             <li key={step.id} data-state={step.state}>
-              {step.label}
+              <Link
+                href={journeyStepHref(brandId, step.id, latestScanId)}
+                className="oma-plx-brand-journey__link"
+              >
+                {step.label}
+              </Link>
             </li>
           ))}
         </ol>
@@ -145,21 +128,28 @@ export function BrandWorkspaceShell({
             className="oma-plx-deliv-groups oma-plx-brand-nav oma-brand-nav"
             aria-label={t('brand.nav.label')}
           >
-            {links.map((link) => {
+            {primaryLinks.map((link) => {
               const active = link.match(pathname);
               return (
                 <Link
-                  key={link.href}
+                  key={link.id}
                   href={link.href}
                   role="tab"
                   aria-current={active ? 'page' : undefined}
                   className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
+                  data-testid={`brand-nav-${link.id}`}
                 >
                   {link.label}
                 </Link>
               );
             })}
           </nav>
+          {evidenceSubnav ? (
+            <BrandWorkspaceSubnav links={evidenceSubnav} ariaLabel={t('brand.nav.evidenceSub')} />
+          ) : null}
+          {strategySubnav ? (
+            <BrandWorkspaceSubnav links={strategySubnav} ariaLabel={t('brand.nav.strategySub')} />
+          ) : null}
         </header>
         <div className="oma-plx-deliv-panel__body oma-plx-brand-panel__body">
           <div

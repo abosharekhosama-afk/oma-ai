@@ -33,10 +33,11 @@ test.describe('brand intelligence discoverability', () => {
     await page.getByRole('link', { name: new RegExp(brandName) }).click();
     await expect(page).toHaveURL(`/app/brands/${brandId}`);
 
-    await page.getByRole('link', { name: 'Intelligence', exact: true }).click();
+    await page.getByTestId('brand-nav-strategy').click();
+    await expect(page).toHaveURL(`/app/brands/${brandId}/intelligence`);
+    await page.getByTestId('brand-subnav').getByRole('link', { name: 'Profiles', exact: true }).click();
     await expect(page).toHaveURL(`/app/brands/${brandId}/profiles`);
     await expect(page.getByRole('heading', { name: 'Brand intelligence versions' })).toBeVisible();
-    await expect(page.locator('.oma-brand-nav a[aria-current="page"]')).toHaveText('Intelligence');
 
     await page.getByRole('link', { name: 'Brand intelligence', exact: true }).first().click();
     await expect(page).toHaveURL(new RegExp(`/app/brands/${brandId}/profiles/[^/]+$`));
