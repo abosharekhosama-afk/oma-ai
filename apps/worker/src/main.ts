@@ -12,6 +12,7 @@ import { startSocialJobs } from './social/social-jobs';
 import { startMediaJobs } from './media/media-jobs';
 import { startInboxProcessor } from './processors/inbox.processor';
 import { startListeningProcessor, tickListeningRules } from './processors/listening.processor';
+import { startCatalogProcessor } from './processors/catalog.processor';
 import { Queue } from 'bullmq';
 
 const log = createLogger('worker');
@@ -43,6 +44,7 @@ async function main() {
   startAiProcessor(connection);
   startInboxProcessor(connection);
   startListeningProcessor(connection);
+  startCatalogProcessor(connection);
   setInterval(() => {
     void publishPendingOutbox(connection).catch((err) => {
       // Database outages are transient in managed environments. Do not let an

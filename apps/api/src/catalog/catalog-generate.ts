@@ -10,7 +10,9 @@ import {
   workDriveSecretKey,
 } from '@oma/domain';
 
-export type CatalogGenerateKind = 'image' | 'video' | 'short_video';
+import type { CatalogGenerateKind } from '@oma/domain';
+
+export type { CatalogGenerateKind };
 
 async function loadSharp() {
   try {
@@ -43,11 +45,10 @@ export async function generateCatalogProductCreative(input: {
 }) {
   if (input.kind === 'video' || input.kind === 'short_video') {
     throw new DomainError(
-      'AI_NOT_CONFIGURED',
-      'Video generation is not available in this environment yet.',
-      503,
-      'errors.catalog_video_not_configured',
-      [{ code: 'DEFERRED_TO_FINAL_INTEGRATION_PHASE', manual_journey: true }],
+      'VALIDATION_FAILED',
+      'Use async catalog queue for video generation.',
+      400,
+      'errors.catalog_use_async_video',
     );
   }
 
@@ -183,6 +184,7 @@ export async function generateCatalogProductCreative(input: {
         discoveredProductId: product.id,
         mediaAssetId: asset.id,
         role: v.role,
+        reviewStatus: 'PENDING',
         sortOrder: 100,
       },
     });

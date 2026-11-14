@@ -572,6 +572,12 @@ enum CatalogMediaRole {
   GENERATED_SHORT_VIDEO
 }
 
+enum CatalogMediaReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum DiscoveryTier {
   REQUIRED_FOR_APPROVAL
   DISCOVER_WHEN_AVAILABLE
@@ -826,6 +832,7 @@ model CatalogProductMedia {
   discoveredProductId  String
   mediaAssetId         String
   role                 CatalogMediaRole
+  reviewStatus         CatalogMediaReviewStatus @default(APPROVED)
   sourceUrl            String?
   sortOrder            Int                   @default(0)
   createdAt            DateTime              @default(now())

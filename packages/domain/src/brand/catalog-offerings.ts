@@ -5,6 +5,10 @@ export type CatalogOfferingKind = 'product' | 'service';
 export type CatalogOffering = CatalogSummaryItem & {
   kind: CatalogOfferingKind;
   slug: string;
+  /** Discovery product id when the offering came from a brand scan. */
+  product_id?: string;
+  /** Approved catalog media preview URL for briefs and plan → requests. */
+  primary_media_view_url?: string;
 };
 
 export const DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS = 8;
@@ -77,6 +81,7 @@ export function catalogOfferingsFromProfileSections(
 
 export function catalogOfferingsFromDiscoveryRows(
   rows: Array<{
+    id?: string;
     kind: 'PRODUCT' | 'SERVICE' | string;
     name: string;
     description?: string | null;
@@ -98,6 +103,7 @@ export function catalogOfferingsFromDiscoveryRows(
         kind,
         slug: slugForCatalogName(name),
         name,
+        product_id: row.id,
         description: row.description ?? undefined,
         category: row.category ?? undefined,
         price,

@@ -16,6 +16,10 @@ type Props = {
   onUpdated: () => void;
 };
 
+function isUsableForPreview(m: CatalogProductMedia) {
+  return m.review_status !== 'REJECTED' && (m.review_status === 'APPROVED' || m.role.startsWith('SCAN_'));
+}
+
 export function CatalogProductActions({ brandId, product, profileApproved, onUpdated }: Props) {
   const t = useT();
   const [kind, setKind] = useState<GenerateKind>('image');
@@ -25,19 +29,49 @@ export function CatalogProductActions({ brandId, product, profileApproved, onUpd
 
   const media = product.media ?? [];
   const thumbnail =
-    media.find((m) => m.role === 'SCAN_THUMBNAIL') ??
-    media.find((m) => m.mime.startsWith('image/'));
+    media.find((m) => isUsableForPreview(m) && m.role === 'SCAN_THUMBNAIL') ??
+    media.find((m) => isUsableForPreview(m) && m.mime.startsWith('image/')) ??
+    media.find((m) => isUsableForPreview(m) && m.mime.startsWith('video/'));
+
+  const pendingGenerated = media.filter(
+    (m) => m.review_status === 'PENDING' && m.role.startsWith('GENERATED_'),
+  );
 
   async function generate() {
     setBusy(true);
     setError(null);
     setMessage(null);
     try {
-      const res = await api<{ data: { generated: number } }>(
-        `/api/v1/brands/${brandId}/catalog/products/${product.id}/generate`,
-        { method: 'POST', body: JSON.stringify({ kind }) },
-      );
-      setMessage(t('brand.catalog.generatedCount').replace('{count}', String(res.data.generated)));
+      const res = await api<{
+        data: { generated: number; queued?: boolean; job_id?: string };
+      }>(`/api/v1/brands/${brandId}/catalog/products/${product.id}/generate`, {
+        method: 'POST',
+        body: JSON.stringify({ kind }),
+      });
+      if (res.data.queued) {
+        setMessage(t('brand.catalog.queuedVideo'));
+        window.setTimeout(() => onUpdated(), 8000);
+      } else {
+        setMessage(
+          t('brand.catalog.generatedCount').replace('{count}', String(res.data.generated)),
+        );
+        onUpdated();
+      }
+    } catch (err) {
+      setError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function review(linkId: string, decision: 'approve' | 'reject') {
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/v1/brands/${brandId}/catalog/media/${linkId}/review`, {
+        method: 'POST',
+        body: JSON.stringify({ decision }),
+      });
       onUpdated();
     } catch (err) {
       setError(getApiError(err).message);
@@ -73,6 +107,33 @@ export function CatalogProductActions({ brandId, product, profileApproved, onUpd
         <p className="oma-muted" style={{ fontSize: 12 }}>
           {t('brand.catalog.mediaCount').replace('{count}', String(media.length))}
         </p>
+      ) : null}
+      {pendingGenerated.length > 0 ? (
+        <ul className="oma-catalog-product-media__pending" data-testid="catalog-pending-review">
+          {pendingGenerated.map((m) => (
+            <li key={m.id} className="oma-stack" style={{ marginTop: 8 }}>
+              <span className="oma-badge oma-badge-warning">{t('brand.catalog.pendingReview')}</span>
+              {m.mime.startsWith('video/') ? (
+                <video
+                  src={m.stream_url ?? m.view_url}
+                  controls
+                  playsInline
+                  className="oma-catalog-product-media__thumb"
+                />
+              ) : (
+                <img src={m.view_url} alt="" className="oma-catalog-product-media__thumb" loading="lazy" />
+              )}
+              <div className="oma-form-actions">
+                <Button type="primary" disabled={busy} onClick={() => void review(m.id, 'approve')}>
+                  {t('brand.catalog.approve')}
+                </Button>
+                <Button type="default" disabled={busy} onClick={() => void review(m.id, 'reject')}>
+                  {t('brand.catalog.reject')}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : null}
       {profileApproved ? (
         <div className="oma-catalog-product-media__actions" data-testid="catalog-generate-actions">

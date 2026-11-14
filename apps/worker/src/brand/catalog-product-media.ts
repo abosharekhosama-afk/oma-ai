@@ -187,6 +187,7 @@ export async function ingestProductMediaFromScan(input: {
           discoveredProductId: input.discoveredProductId,
           mediaAssetId: assetId,
           role,
+          reviewStatus: 'APPROVED',
           sourceUrl: item.url,
           sortOrder: sortOrder++,
         },

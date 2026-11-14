@@ -16,6 +16,7 @@ import {
   parseSitemapXml,
   resolveJsRenderMode,
   shouldAdoptRenderedExtraction,
+  productMediaUrlCount,
   shouldUseJsRender,
   type WebsiteConnectorPort,
 } from '@oma/domain';
@@ -285,8 +286,10 @@ export async function runExtractionForScan(input: {
               jsRenderMode,
               extracted.products.length,
               staticKnown,
+              productMediaUrlCount(extracted.products),
               renderedExtracted.products.length,
               renderedKnown,
+              productMediaUrlCount(renderedExtracted.products),
             )
           ) {
             htmlBody = renderedHtml;
