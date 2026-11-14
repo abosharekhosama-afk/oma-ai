@@ -18,7 +18,7 @@ async function loadSharp() {
     return mod.default;
   } catch (e) {
     throw new DomainError(
-      'INTERNAL_ERROR',
+      'STORAGE_OMA_UNAVAILABLE',
       `Image tooling unavailable: ${(e as Error).message}`,
       503,
       'errors.media_transcode_unavailable',
@@ -57,10 +57,11 @@ export async function generateCatalogProductCreative(input: {
   if (!brand) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
   if (!brand.currentApprovedProfileVersionId) {
     throw new DomainError(
-      'PROFILE_REQUIRED',
+      'APPROVAL_INELIGIBLE',
       'Approve a brand profile before generating catalog media.',
       409,
       'errors.catalog_profile_required',
+      [{ code: 'PROFILE_NOT_APPROVED' }],
     );
   }
 
@@ -94,7 +95,7 @@ export async function generateCatalogProductCreative(input: {
   const c = await clientForTenant(input.tenantId);
   if (!c) {
     throw new DomainError(
-      'NOT_CONFIGURED',
+      'WORKDRIVE_NOT_CONNECTED',
       'WorkDrive is not connected.',
       503,
       'errors.workdrive_not_configured',
@@ -105,7 +106,7 @@ export async function generateCatalogProductCreative(input: {
   const res = await fetch(signed.url);
   if (!res.ok) {
     throw new DomainError(
-      'INTERNAL_ERROR',
+      'WORKDRIVE_ERROR',
       'Failed to read source image',
       502,
       'errors.media_fetch',

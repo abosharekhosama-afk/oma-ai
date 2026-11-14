@@ -31,7 +31,9 @@ export class CatalogController {
   ) {
     const tenantId = this.requireTenant(req);
     const userId = req.oma?.userId;
-    if (!userId) throw new DomainError('UNAUTHORIZED', 'Unauthorized', 401, 'errors.unauthorized');
+    if (!userId) {
+      throw new DomainError('UNAUTHENTICATED', 'Sign in required', 401, 'errors.unauthenticated');
+    }
     const kind = body.kind;
     if (kind !== 'image' && kind !== 'video' && kind !== 'short_video') {
       throw new DomainError('VALIDATION_FAILED', 'Invalid kind', 400, 'errors.validation_failed');
