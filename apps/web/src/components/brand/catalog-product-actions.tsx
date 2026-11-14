@@ -14,6 +14,8 @@ type Props = {
   product: DiscoveredProduct;
   profileApproved: boolean;
   onUpdated: () => void;
+  /** When true, omit large preview (parent card already shows hero image). */
+  compact?: boolean;
 };
 
 function isUsableForPreview(m: CatalogProductMedia) {
@@ -22,7 +24,13 @@ function isUsableForPreview(m: CatalogProductMedia) {
   );
 }
 
-export function CatalogProductActions({ brandId, product, profileApproved, onUpdated }: Props) {
+export function CatalogProductActions({
+  brandId,
+  product,
+  profileApproved,
+  onUpdated,
+  compact = false,
+}: Props) {
   const t = useT();
   const [kind, setKind] = useState<GenerateKind>('image');
   const [busy, setBusy] = useState(false);
@@ -84,27 +92,29 @@ export function CatalogProductActions({ brandId, product, profileApproved, onUpd
 
   return (
     <div className="oma-catalog-product-media" data-testid={`catalog-product-${product.id}`}>
-      {thumbnail ? (
-        <div className="oma-catalog-product-media__preview">
-          {thumbnail.mime.startsWith('video/') ? (
-            <video
-              src={thumbnail.stream_url ?? thumbnail.view_url}
-              controls
-              playsInline
-              className="oma-catalog-product-media__thumb"
-            />
-          ) : (
-            <img
-              src={thumbnail.view_url}
-              alt=""
-              className="oma-catalog-product-media__thumb"
-              loading="lazy"
-            />
-          )}
-        </div>
-      ) : (
-        <p className="oma-muted oma-catalog-product-media__empty">{t('brand.catalog.noMedia')}</p>
-      )}
+      {!compact ? (
+        thumbnail ? (
+          <div className="oma-catalog-product-media__preview">
+            {thumbnail.mime.startsWith('video/') ? (
+              <video
+                src={thumbnail.stream_url ?? thumbnail.view_url}
+                controls
+                playsInline
+                className="oma-catalog-product-media__thumb"
+              />
+            ) : (
+              <img
+                src={thumbnail.view_url}
+                alt=""
+                className="oma-catalog-product-media__thumb"
+                loading="lazy"
+              />
+            )}
+          </div>
+        ) : (
+          <p className="oma-muted oma-catalog-product-media__empty">{t('brand.catalog.noMedia')}</p>
+        )
+      ) : null}
       {media.length > 1 ? (
         <p className="oma-muted" style={{ fontSize: 12 }}>
           {t('brand.catalog.mediaCount').replace('{count}', String(media.length))}

@@ -32,6 +32,7 @@ export function shouldUseJsRender(input: {
   html: string;
   pageUrl: string;
   productCount: number;
+  productMediaCount?: number;
 }): boolean {
   if (input.mode === 'off') return false;
   if (input.mode === 'always') return true;
@@ -41,8 +42,10 @@ export function shouldUseJsRender(input: {
   } catch {
     return looksLikeSpaShell(input.html);
   }
+  const mediaCount = input.productMediaCount ?? 0;
   if (looksLikeSpaShell(input.html)) return true;
   if (isCatalogLikePath(path) && input.productCount === 0) return true;
+  if (isCatalogLikePath(path) && input.productCount > 0 && mediaCount === 0) return true;
   return false;
 }
 

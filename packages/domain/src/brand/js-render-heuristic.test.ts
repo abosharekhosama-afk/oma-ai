@@ -35,6 +35,15 @@ describe('js-render-heuristic', () => {
         productCount: 2,
       }),
     ).toBe(false);
+    expect(
+      shouldUseJsRender({
+        mode: 'auto',
+        html: '<html><body><h1>Shoe</h1></body></html>',
+        pageUrl: 'https://shop.test/product/shoe',
+        productCount: 1,
+        productMediaCount: 0,
+      }),
+    ).toBe(true);
   });
 
   it('always mode adopts render even without product delta', () => {

@@ -61,6 +61,7 @@ export async function reimportCatalogMediaForScan(input: {
           html,
           pageUrl: page.url,
           productCount: extracted.products.length,
+          productMediaCount: productMediaUrlCount(extracted.products),
         })
       ) {
         try {
@@ -107,6 +108,17 @@ export async function reimportCatalogMediaForScan(input: {
         continue;
       }
 
+      await getPrisma().discoveredProductService.update({
+        where: { id: product.id },
+        data: {
+          ...(match.description ? { description: match.description } : {}),
+          ...(match.category ? { category: match.category } : {}),
+          ...(match.skuPublic ? { skuPublic: match.skuPublic } : {}),
+          ...(match.priceAmount ? { priceAmount: match.priceAmount } : {}),
+          ...(match.priceCurrency ? { priceCurrency: match.priceCurrency } : {}),
+          ...(match.availability ? { availability: match.availability } : {}),
+        },
+      });
       const res = await ingestProductMediaFromScan({
         tenantId: input.tenantId,
         brandId: input.brandId,

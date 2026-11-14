@@ -175,7 +175,40 @@ function jsonLdString(value: unknown): string | null {
   return null;
 }
 
-const MAX_PRODUCT_MEDIA = 6;
+const MAX_PRODUCT_MEDIA = 12;
+
+function isProductDetailPath(pageUrl: string): boolean {
+  try {
+    const path = new URL(pageUrl).pathname.toLowerCase();
+    return (
+      /\/(product|products|item|p|sku|shop)\b/.test(path) ||
+      path.includes('/product/') ||
+      path.includes('/products/')
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function enrichProductsWithPageMedia(
+  products: ExtractedProduct[],
+  pageUrl: string,
+  ogImage?: string | null,
+): ExtractedProduct[] {
+  if (!products.length || !ogImage) return products;
+  let fallback: string | null = null;
+  try {
+    fallback = new URL(ogImage, pageUrl).toString();
+  } catch {
+    return products;
+  }
+  const useForAll = products.length === 1 || isProductDetailPath(pageUrl);
+  if (!useForAll) return products;
+  return products.map((p) => {
+    if (p.media?.length) return p;
+    return { ...p, media: [{ kind: 'IMAGE', url: fallback! }] };
+  });
+}
 
 function absoluteMediaUrl(pageUrl: string, raw: string): string | null {
   try {
@@ -195,7 +228,15 @@ function collectJsonLdMedia(
     if (out.length >= MAX_PRODUCT_MEDIA) return;
     const items = Array.isArray(value) ? value : value ? [value] : [];
     for (const item of items) {
-      const resolved = jsonLdString(item);
+      let resolved = jsonLdString(item);
+      if (!resolved && item && typeof item === 'object') {
+        const rec = item as Record<string, unknown>;
+        resolved =
+          jsonLdString(rec.url) ??
+          jsonLdString(rec.contentUrl) ??
+          jsonLdString(rec.thumbnailUrl) ??
+          null;
+      }
       if (!resolved) continue;
       const url = absoluteMediaUrl(pageUrl, resolved);
       if (!url || seen.has(url)) continue;
@@ -296,6 +337,25 @@ function collectProductsFromJsonLd(
   return out;
 }
 
+function pickImgUrl(img: HTMLElement): string | null {
+  const attrs = [
+    img.getAttribute('src'),
+    img.getAttribute('data-src'),
+    img.getAttribute('data-lazy-src'),
+    img.getAttribute('data-original'),
+    img.getAttribute('data-image'),
+  ].filter(Boolean) as string[];
+  for (const raw of attrs) {
+    if (raw && !raw.startsWith('data:')) return raw;
+  }
+  const srcset = img.getAttribute('srcset');
+  if (srcset) {
+    const first = srcset.split(',')[0]?.trim().split(/\s+/)[0];
+    if (first && !first.startsWith('data:')) return first;
+  }
+  return null;
+}
+
 function mediaFromContainer(el: HTMLElement, pageUrl: string): ExtractedProductMedia[] {
   const out: ExtractedProductMedia[] = [];
   const seen = new Set<string>();
@@ -306,8 +366,12 @@ function mediaFromContainer(el: HTMLElement, pageUrl: string): ExtractedProductM
     seen.add(url);
     out.push({ kind, url });
   };
-  for (const img of el.querySelectorAll('img[src]')) {
-    push('IMAGE', img.getAttribute('src'));
+  for (const img of el.querySelectorAll('img')) {
+    push('IMAGE', pickImgUrl(img));
+  }
+  for (const pic of el.querySelectorAll('picture source[srcset], picture source[src]')) {
+    const srcset = pic.getAttribute('srcset') ?? pic.getAttribute('src');
+    if (srcset) push('IMAGE', srcset.split(',')[0]?.trim().split(/\s+/)[0]);
   }
   for (const vid of el.querySelectorAll('video[src], video source[src]')) {
     push('VIDEO', vid.getAttribute('src'));
@@ -464,7 +528,7 @@ export function extractFromHtml(
     confidence: description ? 0.8 : undefined,
   });
 
-  const products: ExtractedProduct[] = [];
+  let products: ExtractedProduct[] = [];
   const social: Array<{ network: string; url: string }> = [];
   const emails: string[] = [];
   const phones: string[] = [];
@@ -507,6 +571,7 @@ export function extractFromHtml(
   const jsonLdNodes = collectJsonLdNodes(root);
   products.push(...collectProductsFromJsonLd(jsonLdNodes, url));
   products.push(...collectHeuristicProducts(root, url));
+  products = enrichProductsWithPageMedia(products, url, ogImage);
 
   for (const node of jsonLdNodes) {
     const type = typeList(node);

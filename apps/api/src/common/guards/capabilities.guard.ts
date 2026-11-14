@@ -376,6 +376,14 @@ export function matchRequirements(method: string, path: string): string[] | null
       '/api/v1/brands/:brandId/scans/:scanId/catalog/reimport-media',
     )
     .replace(
+      /\/api\/v1\/brands\/[^/]+\/catalog\/products\/[^/]+\/generate/,
+      '/api/v1/brands/:brandId/catalog/products/:productId/generate',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/catalog\/products\/[^/]+\/media/,
+      '/api/v1/brands/:brandId/catalog/products/:productId/media',
+    )
+    .replace(
       /\/api\/v1\/brands\/[^/]+\/catalog\/media\/[^/]+\/review/,
       '/api/v1/brands/:brandId/catalog/media/:linkId/review',
     )

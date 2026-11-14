@@ -17,6 +17,20 @@ describe('extractors', () => {
     expect(r.pageTitle).toBeTruthy();
   });
 
+  it('captures lazy-loaded product images and og fallback', () => {
+    const html = `<!doctype html><html><head>
+      <meta property="og:image" content="https://brand.test/hero.jpg" />
+    </head><body>
+      <div class="product-card" data-product>
+        <h2>Lazy Sneaker</h2>
+        <img data-src="/sneaker.webp" alt="" width="1" height="1" />
+      </div>
+    </body></html>`;
+    const r = extractFromHtml('https://brand.test/product/sneaker', html);
+    const sneaker = r.products.find((p) => p.name === 'Lazy Sneaker');
+    expect(sneaker?.media?.some((m) => m.url.includes('sneaker'))).toBe(true);
+  });
+
   it('extracts json-ld products', () => {
     const productsHtml = readFileSync(join(fixtureRoot, 'products.html'), 'utf8');
     const r = extractFromHtml('https://acme.test/products', productsHtml);
