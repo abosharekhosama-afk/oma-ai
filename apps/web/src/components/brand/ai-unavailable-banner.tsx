@@ -51,7 +51,9 @@ export function AiUnavailableBanner({
         <strong>{t('brand.ai.failedTitle')}</strong>
         <p>{t('brand.ai.failedBody')}</p>
         {analysisErrorCode ? <p className="oma-muted">{analysisErrorCode}</p> : null}
-        {platformAvailability === 'AVAILABLE' && canRequestAnalysis && onRequestAnalyze(onRequestAnalysis, requestBusy, t)}
+        {platformAvailability === 'AVAILABLE' &&
+          canRequestAnalysis &&
+          onRequestAnalyze(onRequestAnalysis, requestBusy, t)}
       </div>
     );
   }
@@ -94,7 +96,9 @@ export function AiUnavailableBanner({
           : t('brand.ai.unavailableBody')}
       </p>
       <p className="oma-muted">{t('brand.ai.setupChecklist')}</p>
-      {platformAvailability === 'AVAILABLE' && canRequestAnalysis && onRequestAnalyze(onRequestAnalysis, requestBusy, t)}
+      {platformAvailability === 'AVAILABLE' &&
+        canRequestAnalysis &&
+        onRequestAnalyze(onRequestAnalysis, requestBusy, t)}
     </div>
   );
 }

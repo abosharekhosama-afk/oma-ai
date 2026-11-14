@@ -72,13 +72,7 @@ export function buildBrandPipelineStages(
         : scan
           ? `/app/brands/${brandId}/scans/${scan.id}`
           : `/app/brands/${brandId}/scans/new`,
-      state: !scanDone
-        ? 'blocked'
-        : analysisDone
-          ? 'done'
-          : scanDone
-            ? 'current'
-            : 'todo',
+      state: !scanDone ? 'blocked' : analysisDone ? 'done' : scanDone ? 'current' : 'todo',
     },
     {
       id: 'profile',

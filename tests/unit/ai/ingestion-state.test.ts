@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  brandAiAvailabilityAfterScanComplete,
-  scanAnalysisAutoEnqueueExpected,
-} from '@oma/domain';
+import { brandAiAvailabilityAfterScanComplete, scanAnalysisAutoEnqueueExpected } from '@oma/domain';
 
 describe('brandAiAvailabilityAfterScanComplete', () => {
   it('returns SKIPPED when live AI is enabled with provider key', () => {
@@ -23,7 +20,9 @@ describe('brandAiAvailabilityAfterScanComplete', () => {
   });
 
   it('returns NOT_CONFIGURED when live AI is off', () => {
-    expect(brandAiAvailabilityAfterScanComplete({ AI_LIVE_ENABLED: 'false' })).toBe('NOT_CONFIGURED');
+    expect(brandAiAvailabilityAfterScanComplete({ AI_LIVE_ENABLED: 'false' })).toBe(
+      'NOT_CONFIGURED',
+    );
     expect(scanAnalysisAutoEnqueueExpected({ AI_LIVE_ENABLED: 'false' })).toBe(false);
   });
 });
