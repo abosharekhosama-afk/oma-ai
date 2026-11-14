@@ -345,6 +345,7 @@
   "strategy.overview.setCurrent": "تعيين كاستراتيجية حالية",
   "strategy.overview.clearCurrent": "مسح الحالية",
   "strategy.overview.archive": "أرشفة الاستراتيجية",
+  "strategy.overview.actionsTitle": "إجراءات",
   "strategy.overview.summaryTitle": "ملخص الاستراتيجية",
   "strategy.overview.versionStatus": "أحدث نسخة",
   "strategy.overview.evidenceBacked": "مدعوم بأدلة",

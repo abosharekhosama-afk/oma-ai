@@ -14,6 +14,7 @@ import type {
 } from '../../../../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../../lib/use-locale';
 
@@ -79,10 +80,14 @@ export default function ProfileComparePage() {
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
-      <header className="oma-page-header">
-        <h2>{t('brand.compare.title')}</h2>
-        <Link href={`/app/brands/${brandId}/profiles/${versionId}`}>{t('brand.compare.back')}</Link>
-      </header>
+      <BrandPlxPageHead
+        title={t('brand.compare.title')}
+        actions={
+          <Link href={`/app/brands/${brandId}/profiles/${versionId}`}>
+            {t('brand.compare.back')}
+          </Link>
+        }
+      />
 
       <form className="oma-card oma-filter-bar" onSubmit={(e) => e.preventDefault()}>
         <label className="oma-field">

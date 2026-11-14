@@ -5,6 +5,7 @@ import { OmaLinkButton } from '../ui/oma-link-button';
 import { useT } from '../../lib/use-locale';
 import type { StrategyDetail } from '../../lib/strategy-types';
 import { StatusChip } from '../ui/status-chip';
+import { BrandPlxSection, BrandPlxStatGrid } from '../brand/brand-plx-section';
 
 type Props = {
   brandId: string;
@@ -17,75 +18,61 @@ export function StrategyOverviewSummary({ brandId, strategyId, strategy }: Props
   const latest = strategy.latest_version;
   if (!latest) {
     return (
-      <section className="oma-panel" data-testid="strategy-overview-summary-empty">
+      <BrandPlxSection
+        title={t('strategy.overview.summaryTitle')}
+        testId="strategy-overview-summary-empty"
+      >
         <p className="oma-muted" role="status">
           {t('strategy.overview.noVersion')}
         </p>
         <OmaLinkButton href={`/app/brands/${brandId}/strategies/${strategyId}/edit`} type="primary">
           {t('strategy.nav.foundation')}
         </OmaLinkButton>
-      </section>
+      </BrandPlxSection>
     );
   }
 
   const profileId = latest.linked_approved_profile_version_id;
+  const trackLabel =
+    [
+      latest.organic_enabled ? t('strategy.nav.organic') : null,
+      latest.paid_enabled ? t('strategy.nav.paid') : null,
+    ]
+      .filter(Boolean)
+      .join(' · ') || t('strategy.nav.paid');
 
   return (
-    <section className="oma-panel oma-stack" data-testid="strategy-overview-summary">
-      <h3 className="oma-panel-title">{t('strategy.overview.summaryTitle')}</h3>
-      <dl className="oma-detail-dl">
-        <div>
-          <dt>{t('strategy.overview.versionStatus')}</dt>
-          <dd>
-            <StatusChip status={latest.status} />
-          </dd>
-        </div>
-        <div>
-          <dt>{t('strategy.overview.evidenceBacked')}</dt>
-          <dd>
-            {latest.evidence_backed ? (
+    <BrandPlxSection title={t('strategy.overview.summaryTitle')} testId="strategy-overview-summary">
+      <BrandPlxStatGrid
+        stats={[
+          {
+            label: t('strategy.overview.versionStatus'),
+            value: <StatusChip status={latest.status} />,
+          },
+          {
+            label: t('strategy.overview.evidenceBacked'),
+            value: latest.evidence_backed ? (
               <StatusChip tone="success" label={t('strategy.overview.evidenceYes')} />
             ) : (
               <StatusChip tone="warning" label={t('strategy.overview.needsEvidence')} />
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt>{t('strategy.overview.profileSource')}</dt>
-          <dd>
-            {profileId ? (
+            ),
+          },
+          {
+            label: t('strategy.overview.profileSource'),
+            value: profileId ? (
               <Link href={`/app/brands/${brandId}/profiles/${profileId}`} className="oma-text-link">
                 {t('brand.detail.viewProfile')}
               </Link>
             ) : (
               <span className="oma-muted">{t('strategy.overview.noProfileLink')}</span>
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt>{t('strategy.overview.tracks')}</dt>
-          <dd className="oma-strategy-tracks">
-            <span
-              className={
-                latest.organic_enabled
-                  ? 'oma-track-pill oma-track-pill--organic'
-                  : 'oma-track-pill oma-track-pill--off'
-              }
-            >
-              {t('strategy.nav.organic')}
-            </span>
-            <span
-              className={
-                latest.paid_enabled
-                  ? 'oma-track-pill oma-track-pill--paid'
-                  : 'oma-track-pill oma-track-pill--off'
-              }
-            >
-              {t('strategy.nav.paid')}
-            </span>
-          </dd>
-        </div>
-      </dl>
+            ),
+          },
+          {
+            label: t('strategy.overview.tracks'),
+            value: trackLabel,
+          },
+        ]}
+      />
       <div className="oma-chip-row">
         <OmaLinkButton
           href={`/app/brands/${brandId}/strategies/${strategyId}/organic`}
@@ -109,6 +96,6 @@ export function StrategyOverviewSummary({ brandId, strategyId, strategy }: Props
           {t('strategy.nav.review')}
         </OmaLinkButton>
       </div>
-    </section>
+    </BrandPlxSection>
   );
 }

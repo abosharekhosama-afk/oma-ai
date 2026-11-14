@@ -21,6 +21,7 @@ import {
 } from '../../../../../../../components/brand/connector-mode-banner';
 import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip } from '../../../../../../../components/ui/status-chip';
@@ -121,17 +122,19 @@ export default function DiscoveryPagesPage() {
       brandName={brand.name}
       scanStatus={brand.latest_scan?.status}
     >
-      <header className="oma-page-header">
-        <div className="oma-title-row">
-          <h2>{t('brand.discovery.pagesTitle')}</h2>
-          <ConnectorModeChip mode={connectorMode} />
-        </div>
-        {scanId ? (
-          <Link href={`/app/brands/${brandId}/discovery/products`}>
-            {t('brand.discovery.productsTitle')}
-          </Link>
-        ) : null}
-      </header>
+      <BrandPlxPageHead
+        title={t('brand.discovery.pagesTitle')}
+        actions={
+          <div className="oma-chip-row">
+            <ConnectorModeChip mode={connectorMode} />
+            {scanId ? (
+              <Link href={`/app/brands/${brandId}/discovery/products`}>
+                {t('brand.discovery.productsTitle')}
+              </Link>
+            ) : null}
+          </div>
+        }
+      />
 
       {!scanId ? (
         <div className="oma-card" role="status">
@@ -206,17 +209,15 @@ export default function DiscoveryPagesPage() {
               <p>{t('brand.discovery.pagesEmpty')}</p>
             </div>
           ) : (
-            <ul className="oma-discovery-list">
+            <ul className="oma-plx-brand-data-grid" data-testid="discovery-pages-cards">
               {visiblePages.map((page) => {
                 const linkedEvidence = evidenceByPage[page.id];
                 return (
                   <li
                     key={page.id}
-                    className={
-                      linkedEvidence && evidenceId === linkedEvidence
-                        ? 'oma-discovery-item is-selected'
-                        : 'oma-discovery-item'
-                    }
+                    className={`oma-plx-listening-card oma-plx-brand-catalog-card${
+                      linkedEvidence && evidenceId === linkedEvidence ? ' is-selected' : ''
+                    }`}
                   >
                     <div className="oma-work-row" style={{ border: 0, padding: 0 }}>
                       <div>

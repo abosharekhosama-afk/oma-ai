@@ -26,7 +26,11 @@ export function StrategyDraftPreview({ brandId, strategyId, version }: Props) {
 
   if (!hasContent) {
     return (
-      <section className="oma-panel" data-testid="strategy-draft-preview-empty" role="status">
+      <section
+        className="oma-plx-listening-panel oma-plx-brand-section"
+        data-testid="strategy-draft-preview-empty"
+        role="status"
+      >
         <p className="oma-muted">{t('strategy.draftPreview.empty')}</p>
         <Link
           href={`/app/brands/${brandId}/strategies/${strategyId}/edit`}
@@ -39,35 +43,47 @@ export function StrategyDraftPreview({ brandId, strategyId, version }: Props) {
   }
 
   return (
-    <section className="oma-panel oma-stack" data-testid="strategy-draft-preview">
-      <h3>{t('strategy.draftPreview.title')}</h3>
-      <p className="oma-muted">{t('strategy.draftPreview.hint')}</p>
-      {goals ? <PreviewBlock title={t('strategy.foundation.goals')} text={goals} /> : null}
-      {positioning ? (
-        <PreviewBlock title={t('strategy.foundation.positioning')} text={positioning} />
-      ) : null}
-      {keyMessages ? (
-        <PreviewBlock title={t('strategy.draftPreview.keyMessages')} text={keyMessages} />
-      ) : null}
-      {version.organic_enabled && (pillars || channels || formats) ? (
-        <PreviewBlock
-          title={t('strategy.nav.organic')}
-          text={[pillars, channels, formats].filter(Boolean).join('\n\n')}
-        />
-      ) : null}
-      <Link
-        href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
-        className="oma-text-link"
-      >
-        {t('strategy.draftPreview.reviewCta')}
-      </Link>
+    <section
+      className="oma-plx-listening-panel oma-plx-brand-section"
+      data-testid="strategy-draft-preview"
+    >
+      <header className="oma-plx-brand-section__head">
+        <div>
+          <h3 className="oma-plx-brand-section__title">{t('strategy.draftPreview.title')}</h3>
+          <p className="oma-muted oma-plx-brand-section__desc">{t('strategy.draftPreview.hint')}</p>
+        </div>
+      </header>
+      <div className="oma-plx-brand-section__body oma-stack">
+        {goals ? <PreviewBlock title={t('strategy.foundation.goals')} text={goals} /> : null}
+        {positioning ? (
+          <PreviewBlock title={t('strategy.foundation.positioning')} text={positioning} />
+        ) : null}
+        {keyMessages ? (
+          <PreviewBlock title={t('strategy.draftPreview.keyMessages')} text={keyMessages} />
+        ) : null}
+        {version.organic_enabled && (pillars || channels || formats) ? (
+          <PreviewBlock
+            title={t('strategy.nav.organic')}
+            text={[pillars, channels, formats].filter(Boolean).join('\n\n')}
+          />
+        ) : null}
+        <Link
+          href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
+          className="oma-text-link"
+        >
+          {t('strategy.draftPreview.reviewCta')}
+        </Link>
+      </div>
     </section>
   );
 }
 
 function PreviewBlock({ title, text }: { title: string; text: string }) {
   return (
-    <div>
+    <div
+      className="oma-plx-listening-card oma-plx-brand-insight-card"
+      style={{ listStyle: 'none' }}
+    >
       <h4 className="oma-h4">{title}</h4>
       <p className="oma-muted" style={{ whiteSpace: 'pre-wrap' }}>
         {text}

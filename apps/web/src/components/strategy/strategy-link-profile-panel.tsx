@@ -94,7 +94,7 @@ export function StrategyLinkProfilePanel({
 
   return (
     <section
-      className="oma-panel oma-stack"
+      className="oma-plx-listening-panel oma-plx-brand-section oma-stack"
       data-testid="strategy-missing-profile"
       aria-label={t('strategy.linkProfile.title')}
     >

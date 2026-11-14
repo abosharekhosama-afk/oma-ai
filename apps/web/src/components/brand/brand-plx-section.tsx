@@ -11,6 +11,28 @@ type BrandPlxSectionProps = {
   actions?: ReactNode;
 };
 
+export function BrandPlxPageHead({
+  title,
+  description,
+  actions,
+  titleTestId,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  titleTestId?: string;
+}) {
+  return (
+    <header className="oma-plx-brand-page-head">
+      <div>
+        <h2 data-testid={titleTestId}>{title}</h2>
+        {description ? <p className="oma-muted">{description}</p> : null}
+      </div>
+      {actions ? <div className="oma-plx-brand-page-head__actions">{actions}</div> : null}
+    </header>
+  );
+}
+
 /** Social/listening-style section shell for brand evidence & intelligence pages. */
 export function BrandPlxSection({
   title,

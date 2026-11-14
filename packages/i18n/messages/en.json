@@ -345,6 +345,7 @@
   "strategy.overview.setCurrent": "Set as current strategy",
   "strategy.overview.clearCurrent": "Clear current",
   "strategy.overview.archive": "Archive strategy",
+  "strategy.overview.actionsTitle": "Actions",
   "strategy.overview.summaryTitle": "Strategy summary",
   "strategy.overview.versionStatus": "Latest version",
   "strategy.overview.evidenceBacked": "Evidence-backed",

@@ -14,6 +14,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../lib/use-locale';
@@ -67,10 +68,10 @@ export default function NewStrategyPage() {
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
-      <header className="oma-page-header">
-        <h2>{t('strategy.new.title')}</h2>
-        <Link href={`/app/brands/${brandId}/strategies`}>{t('brand.create.back')}</Link>
-      </header>
+      <BrandPlxPageHead
+        title={t('strategy.new.title')}
+        actions={<Link href={`/app/brands/${brandId}/strategies`}>{t('brand.create.back')}</Link>}
+      />
       <p className="oma-muted" role="note">
         {t('strategy.warning.missingProfile')}
       </p>

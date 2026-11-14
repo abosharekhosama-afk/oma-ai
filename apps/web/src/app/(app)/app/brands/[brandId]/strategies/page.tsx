@@ -16,7 +16,10 @@ import { SelectCompany } from '../../../../../../components/shell/select-company
 import { useT } from '../../../../../../lib/use-locale';
 import { StatusChip } from '../../../../../../components/ui/status-chip';
 import { EmptyState, ErrorState } from '../../../../../../components/ui/empty-state';
-import { Panel } from '../../../../../../components/ui/page-header';
+import {
+  BrandPlxPageHead,
+  BrandPlxSection,
+} from '../../../../../../components/brand/brand-plx-section';
 
 export default function StrategiesListPage() {
   const t = useT();
@@ -67,19 +70,19 @@ export default function StrategiesListPage() {
       websiteUrl={brand.website?.normalized_url}
       brandStatus={brand.status}
     >
-      <header className="oma-page-header">
-        <div>
-          <h2>{t('strategy.list.title')}</h2>
-          <p className="oma-muted">{t('strategy.list.hint')}</p>
-        </div>
-        <OmaLinkButton
-          href={`/app/brands/${brandId}/strategies/new`}
-          type="primary"
-          data-testid="strategy-create"
-        >
-          {t('strategy.list.create')}
-        </OmaLinkButton>
-      </header>
+      <BrandPlxPageHead
+        title={t('strategy.list.title')}
+        description={t('strategy.list.hint')}
+        actions={
+          <OmaLinkButton
+            href={`/app/brands/${brandId}/strategies/new`}
+            type="primary"
+            data-testid="strategy-create"
+          >
+            {t('strategy.list.create')}
+          </OmaLinkButton>
+        }
+      />
 
       {missingProfile ? (
         <div className="oma-banner-demo" role="status">
@@ -124,46 +127,33 @@ export default function StrategiesListPage() {
           />
         </div>
       ) : (
-        <Panel title={t('strategy.list.title')} labelledBy="strategy-list-heading">
-          <div className="oma-workspace-grid" data-testid="strategy-list">
+        <BrandPlxSection title={t('strategy.list.title')} testId="strategy-list">
+          <ul className="oma-plx-brand-data-grid">
             {rows.map((row) => (
-              <article key={row.id} className="oma-workspace-card">
+              <li key={row.id}>
                 <Link
                   href={`/app/brands/${brandId}/strategies/${row.id}`}
-                  className="oma-workspace-card-main"
+                  className="oma-plx-listening-card oma-plx-brand-catalog-card"
                 >
-                  <span className="oma-brand-mark" aria-hidden="true">
-                    S
-                  </span>
-                  <div className="oma-workspace-card-copy">
-                    <h3>{row.name}</h3>
-                    <div className="oma-chip-row">
-                      <StatusChip status={row.status} />
-                      {row.is_current ? (
-                        <StatusChip tone="info" label={t('strategy.list.current')} />
-                      ) : null}
-                      {row.has_approved_version ? (
-                        <StatusChip tone="success" label={t('strategy.list.hasApproved')} />
-                      ) : null}
-                    </div>
-                    <p className="oma-workspace-card-meta">
-                      <time dateTime={row.updated_at} suppressHydrationWarning>
-                        {new Date(row.updated_at).toLocaleString()}
-                      </time>
-                    </p>
+                  <strong>{row.name}</strong>
+                  <div className="oma-chip-row">
+                    <StatusChip status={row.status} />
+                    {row.is_current ? (
+                      <StatusChip tone="info" label={t('strategy.list.current')} />
+                    ) : null}
+                    {row.has_approved_version ? (
+                      <StatusChip tone="success" label={t('strategy.list.hasApproved')} />
+                    ) : null}
                   </div>
+                  <time dateTime={row.updated_at} suppressHydrationWarning className="oma-muted">
+                    {new Date(row.updated_at).toLocaleString()}
+                  </time>
+                  <span className="oma-plx-brand-hub-card__foot">{t('home.action.open')}</span>
                 </Link>
-                <OmaLinkButton
-                  href={`/app/brands/${brandId}/strategies/${row.id}`}
-                  type="primary"
-                  size="small"
-                >
-                  {t('home.action.open')}
-                </OmaLinkButton>
-              </article>
+              </li>
             ))}
-          </div>
-        </Panel>
+          </ul>
+        </BrandPlxSection>
       )}
     </BrandWorkspaceShell>
   );

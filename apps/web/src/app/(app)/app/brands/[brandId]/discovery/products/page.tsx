@@ -23,6 +23,7 @@ import {
 } from '../../../../../../../components/brand/connector-mode-banner';
 import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
@@ -114,21 +115,25 @@ export default function DiscoveryProductsPage() {
       brandName={brand.name}
       scanStatus={brand.latest_scan?.status}
     >
-      <header className="oma-page-header">
-        <div className="oma-title-row">
-          <h2>{t('brand.discovery.productsTitle')}</h2>
-          <ConnectorModeChip mode={connectorMode} />
-        </div>
-        <p className="oma-muted">{t('brand.discovery.productsHint')}</p>
-        {scanId ? (
+      <BrandPlxPageHead
+        title={t('brand.discovery.productsTitle')}
+        description={t('brand.discovery.productsHint')}
+        actions={
           <div className="oma-chip-row">
-            <Link href={`/app/brands/${brandId}/discovery`}>{t('brand.discovery.hubTitle')}</Link>
-            <Link href={`/app/brands/${brandId}/discovery/pages`}>
-              {t('brand.discovery.pagesTitle')}
-            </Link>
+            <ConnectorModeChip mode={connectorMode} />
+            {scanId ? (
+              <>
+                <Link href={`/app/brands/${brandId}/discovery`}>
+                  {t('brand.discovery.hubTitle')}
+                </Link>
+                <Link href={`/app/brands/${brandId}/discovery/pages`}>
+                  {t('brand.discovery.pagesTitle')}
+                </Link>
+              </>
+            ) : null}
           </div>
-        ) : null}
-      </header>
+        }
+      />
 
       {!scanId ? (
         <div className="oma-card" role="status">

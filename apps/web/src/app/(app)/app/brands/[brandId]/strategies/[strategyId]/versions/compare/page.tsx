@@ -11,6 +11,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../../components/shell/select-company';
@@ -55,9 +56,7 @@ export default function StrategyComparePage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <header className="oma-page-header">
-        <h2>{t('strategy.versions.compare')}</h2>
-      </header>
+      <BrandPlxPageHead title={t('strategy.versions.compare')} />
       {error ? <p role="alert">{error}</p> : null}
       <div className="oma-compare-panels" data-testid="strategy-compare-diff">
         <div className="oma-panel">

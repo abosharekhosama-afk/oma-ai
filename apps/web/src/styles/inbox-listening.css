@@ -5012,6 +5012,17 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   border-radius: 12px;
 }
 
+.oma-plx-brand-main .oma-plx-brand-page-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.oma-plx-brand-main .oma-plx-brand-page-head-meta {
+  margin: 0 0 12px;
+}
+
 .oma-plx-brand-main .oma-page-header h2 {
   margin: 0;
   font-size: 16px;
