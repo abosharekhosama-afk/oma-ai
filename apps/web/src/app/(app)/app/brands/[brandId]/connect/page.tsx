@@ -15,6 +15,7 @@ import {
 } from '../../../../../../lib/brand-api';
 import type { BrandDetail } from '../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxSection } from '../../../../../../components/brand/brand-plx-section';
 import { ConnectorModeBanner } from '../../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../lib/use-locale';
@@ -86,11 +87,13 @@ export default function ConnectWebsitePage() {
       brandStatus={brand.status}
       websiteUrl={brand.website?.normalized_url}
     >
-      <div className="oma-panel" style={{ maxWidth: 520 }}>
+      <BrandPlxSection
+        title={t('brand.connect.title')}
+        description={t('brand.connect.hint')}
+        testId="brand-connect-form"
+      >
         <ConnectorModeBanner mode={brand.next_scan_connector_mode} />
-        <h2>{t('brand.connect.title')}</h2>
-        <p className="oma-muted">{t('brand.connect.hint')}</p>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} className="oma-plx-brand-form" style={{ maxWidth: 520 }}>
           <label htmlFor="website-url">{t('brand.connect.urlLabel')}</label>
           <Input
             id="website-url"
@@ -121,7 +124,7 @@ export default function ConnectWebsitePage() {
             <Link href={`/app/brands/${brandId}`}>{t('common.cancel')}</Link>
           </div>
         </form>
-      </div>
+      </BrandPlxSection>
     </BrandWorkspaceShell>
   );
 }

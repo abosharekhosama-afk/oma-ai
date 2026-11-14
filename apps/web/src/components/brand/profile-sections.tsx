@@ -43,10 +43,25 @@ function fieldLabel(t: (key: string) => string, fieldKey: string): string {
   return humanizeKey(fieldKey.split('.').slice(1).join(' ') || fieldKey);
 }
 
-function formatValue(value: unknown): string {
+function formatValue(value: unknown, depth = 0): string {
   if (value === null || value === undefined || value === '') return '—';
-  if (Array.isArray(value)) return value.map((v) => formatValue(v)).join(', ');
-  if (typeof value === 'object') return JSON.stringify(value);
+  if (typeof value === 'string') return value.trim() || '—';
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    const parts = value.map((v) => formatValue(v, depth + 1)).filter((p) => p !== '—');
+    return parts.length ? parts.join(' · ') : '—';
+  }
+  if (typeof value === 'object' && depth < 2) {
+    const rec = value as Record<string, unknown>;
+    if (typeof rec.value === 'string') return rec.value.trim() || '—';
+    if (typeof rec.label === 'string') return rec.label.trim() || '—';
+    const entries = Object.entries(rec).filter(([, v]) => v != null && v !== '');
+    if (entries.length === 0) return '—';
+    return entries
+      .slice(0, 6)
+      .map(([k, v]) => `${humanizeKey(k)}: ${formatValue(v, depth + 1)}`)
+      .join(' · ');
+  }
   return String(value);
 }
 
@@ -176,8 +191,11 @@ export function ProfileSections({
   const pct = Math.round((filled / total) * 100);
 
   return (
-    <div className="oma-stack" data-testid="brand-intelligence-canvas">
-      <div className="oma-completeness-rail" data-testid="brand-profile-completeness">
+    <div className="oma-stack oma-plx-brand-profile-canvas" data-testid="brand-intelligence-canvas">
+      <div
+        className="oma-plx-listening-panel oma-completeness-rail"
+        data-testid="brand-profile-completeness"
+      >
         <strong>
           {t('brand.profile.completeness')}: {pct}%
         </strong>
@@ -189,7 +207,7 @@ export function ProfileSections({
         </span>
         <p className="oma-muted">{t('brand.profile.completenessHint')}</p>
       </div>
-      <div className="oma-doc-canvas oma-editor-shell">
+      <div className="oma-doc-canvas oma-editor-shell oma-plx-brand-editor">
         <nav className="oma-doc-outline" aria-label={t('brand.profile.outline')}>
           {sectionKeys.map((key) => (
             <a key={key} href={`#section-${key}`}>
@@ -202,7 +220,7 @@ export function ProfileSections({
             <section
               key={key}
               id={`section-${key}`}
-              className="oma-doc-section oma-profile-section"
+              className="oma-doc-section oma-profile-section oma-plx-listening-panel"
               aria-labelledby={`heading-${key}`}
             >
               <h3 id={`heading-${key}`}>{sectionTitle(t, key)}</h3>
@@ -213,7 +231,10 @@ export function ProfileSections({
                   const insight = group.primary;
                   const dupCount = group.duplicates.length;
                   return (
-                    <li key={insight.id} className="oma-insight-item">
+                    <li
+                      key={insight.id}
+                      className="oma-insight-item oma-plx-listening-card oma-plx-brand-insight-card"
+                    >
                       <div className="oma-insight-header">
                         <strong>{fieldLabel(t, insight.field_key)}</strong>
                         <span

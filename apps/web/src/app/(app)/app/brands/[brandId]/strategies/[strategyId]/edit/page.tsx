@@ -14,6 +14,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
@@ -101,9 +102,7 @@ export default function StrategyFoundationPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <header className="oma-page-header">
-        <h2>{t('strategy.foundation.title')}</h2>
-      </header>
+      <BrandPlxPageHead title={t('strategy.foundation.title')} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant
           brandId={brandId}

@@ -33,6 +33,10 @@ import {
 } from '../../../../../../../components/demo/demo-strategy-document';
 import { useT } from '../../../../../../../lib/use-locale';
 import { StrategyOverviewSummary } from '../../../../../../../components/strategy/strategy-overview-summary';
+import {
+  BrandPlxPageHead,
+  BrandPlxSection,
+} from '../../../../../../../components/brand/brand-plx-section';
 import { StrategyPlanRequestsPanel } from '../../../../../../../components/strategy/strategy-plan-requests-panel';
 
 export default function StrategyOverviewPage() {
@@ -132,42 +136,41 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <header className="oma-page-header">
-        <div>
-          <h2 data-testid="strategy-name-heading">{strategy.name}</h2>
-          <div className="oma-chip-row">
-            <StrategyStatusBadge status={strategy.status} />
-            {latest ? <StrategyStatusBadge status={latest.status} /> : null}
-            {strategy.is_current ? (
-              <span className="oma-badge oma-badge-muted" data-testid="strategy-current-badge">
-                {t('strategy.list.current')}
-              </span>
-            ) : null}
-            {latest ? (
-              <span className="oma-strategy-tracks">
-                <span
-                  className={
-                    latest.organic_enabled
-                      ? 'oma-track-pill oma-track-pill--organic'
-                      : 'oma-track-pill oma-track-pill--off'
-                  }
-                >
-                  {t('strategy.nav.organic')}
-                </span>
-                <span
-                  className={
-                    latest.paid_enabled
-                      ? 'oma-track-pill oma-track-pill--paid'
-                      : 'oma-track-pill oma-track-pill--off'
-                  }
-                >
-                  {t('strategy.nav.paid')}
-                </span>
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </header>
+      <BrandPlxPageHead title={strategy.name} titleTestId="strategy-name-heading" />
+      <div
+        className="oma-chip-row oma-plx-brand-page-head-meta"
+        data-testid="strategy-name-heading-wrap"
+      >
+        <StrategyStatusBadge status={strategy.status} />
+        {latest ? <StrategyStatusBadge status={latest.status} /> : null}
+        {strategy.is_current ? (
+          <span className="oma-badge oma-badge-muted" data-testid="strategy-current-badge">
+            {t('strategy.list.current')}
+          </span>
+        ) : null}
+        {latest ? (
+          <span className="oma-strategy-tracks">
+            <span
+              className={
+                latest.organic_enabled
+                  ? 'oma-track-pill oma-track-pill--organic'
+                  : 'oma-track-pill oma-track-pill--off'
+              }
+            >
+              {t('strategy.nav.organic')}
+            </span>
+            <span
+              className={
+                latest.paid_enabled
+                  ? 'oma-track-pill oma-track-pill--paid'
+                  : 'oma-track-pill oma-track-pill--off'
+              }
+            >
+              {t('strategy.nav.paid')}
+            </span>
+          </span>
+        ) : null}
+      </div>
 
       <StrategyOverviewSummary brandId={brandId} strategyId={strategyId} strategy={strategy} />
 
@@ -217,25 +220,30 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         </p>
       ) : null}
 
-      <div className="oma-panel" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <CurrentStrategyControls
-          canSet={Boolean(strategy.has_approved_version)}
-          isCurrent={Boolean(strategy.is_current)}
-          onSet={() => void setCurrent(strategyId)}
-          onClear={() => void setCurrent(null)}
-        />
-        {strategy.status === 'ACTIVE' ? (
-          <Button type="default" onClick={() => void archive()}>
-            {t('strategy.overview.archive')}
-          </Button>
-        ) : null}
-        <OmaLinkButton
-          href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
-          type="primary"
-        >
-          {t('strategy.nav.review')}
-        </OmaLinkButton>
-      </div>
+      <BrandPlxSection
+        title={t('strategy.overview.actionsTitle')}
+        testId="strategy-overview-actions"
+      >
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <CurrentStrategyControls
+            canSet={Boolean(strategy.has_approved_version)}
+            isCurrent={Boolean(strategy.is_current)}
+            onSet={() => void setCurrent(strategyId)}
+            onClear={() => void setCurrent(null)}
+          />
+          {strategy.status === 'ACTIVE' ? (
+            <Button type="default" onClick={() => void archive()}>
+              {t('strategy.overview.archive')}
+            </Button>
+          ) : null}
+          <OmaLinkButton
+            href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
+            type="primary"
+          >
+            {t('strategy.nav.review')}
+          </OmaLinkButton>
+        </div>
+      </BrandPlxSection>
     </BrandWorkspaceShell>
   );
 }

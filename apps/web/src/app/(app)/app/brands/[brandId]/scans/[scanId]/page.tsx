@@ -25,6 +25,11 @@ import { BrandPipelineOutcome } from '../../../../../../../components/brand/bran
 import { ScanContentOutlook } from '../../../../../../../components/brand/scan-content-outlook';
 import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
 import { useT } from '../../../../../../../lib/use-locale';
+import {
+  BrandPlxSection,
+  BrandPlxStatGrid,
+} from '../../../../../../../components/brand/brand-plx-section';
+import { buildBrandJourneySteps } from '../../../../../../../lib/brand-journey';
 
 const TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
 const PHASES = ['QUEUED', 'CRAWLING', 'EXTRACTING', 'ANALYZING'] as const;
@@ -187,8 +192,18 @@ export default function ScanDetailPage() {
     scan.analysis_status !== 'ANALYZING' &&
     scan.analysis_status !== 'ANALYZED';
 
+  const journey = brand ? buildBrandJourneySteps(brand, t) : [];
+
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name} scanStatus={scan.status}>
+    <BrandWorkspaceShell
+      brandId={brandId}
+      brandName={brand.name}
+      brandLogoUrl={brand.logo_url}
+      websiteUrl={brand.website?.normalized_url}
+      scanStatus={scan.status}
+      latestScanId={scan.id}
+      journey={journey}
+    >
       <AiUnavailableBanner
         aiAvailability={scan.ai_availability}
         analysisStatus={scan.analysis_status}
@@ -231,9 +246,11 @@ export default function ScanDetailPage() {
 
       {brand ? <BrandPipelineOutcome brandId={brandId} brand={brand} scan={scan} /> : null}
 
-      <div className="oma-panel">
-        <h2>{t('brand.scan.progressTitle')}</h2>
-        <p className="oma-muted">{t('brand.scan.phasesSubtitle')}</p>
+      <BrandPlxSection
+        title={t('brand.scan.progressTitle')}
+        description={t('brand.scan.phasesSubtitle')}
+        testId="scan-progress-section"
+      >
         <div
           ref={liveRef}
           className="oma-sr-only"
@@ -282,20 +299,13 @@ export default function ScanDetailPage() {
             )
             .replace('{percent}', String(scan.progress_percent))}
         </p>
-        <div className="oma-scan-stats" aria-label={t('brand.scan.progressTitle')}>
-          <div className="oma-scan-stat">
-            <strong>{scan.pages_fetched}</strong>
-            <span>{t('brand.scan.pagesFetched')}</span>
-          </div>
-          <div className="oma-scan-stat">
-            <strong>{scan.pages_failed}</strong>
-            <span>{t('brand.scan.pagesFailed')}</span>
-          </div>
-          <div className="oma-scan-stat">
-            <strong>{scan.pages_skipped}</strong>
-            <span>{t('brand.scan.pagesSkipped')}</span>
-          </div>
-        </div>
+        <BrandPlxStatGrid
+          stats={[
+            { label: t('brand.scan.pagesFetched'), value: scan.pages_fetched },
+            { label: t('brand.scan.pagesFailed'), value: scan.pages_failed },
+            { label: t('brand.scan.pagesSkipped'), value: scan.pages_skipped },
+          ]}
+        />
         {actionError ? (
           <p role="alert" style={{ color: 'var(--status-danger)' }}>
             {actionError}
@@ -333,7 +343,7 @@ export default function ScanDetailPage() {
           </Link>
           <Link href={`/app/brands/${brandId}`}>{t('brand.scan.backToBrand')}</Link>
         </div>
-      </div>
+      </BrandPlxSection>
     </BrandWorkspaceShell>
   );
 }

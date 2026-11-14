@@ -228,7 +228,10 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
 
   if (loading) {
     return (
-      <div className="oma-panel" data-testid="strategy-plan-requests-loading">
+      <div
+        className="oma-plx-listening-panel oma-plx-brand-section"
+        data-testid="strategy-plan-requests-loading"
+      >
         {t('strategy.review.planPreviewLoading')}
       </div>
     );
@@ -236,7 +239,7 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
 
   if (items.length === 0) {
     return (
-      <div className="oma-panel" role="status">
+      <div className="oma-plx-listening-panel oma-plx-brand-section" role="status">
         {t('strategy.review.planPreviewEmpty')}
       </div>
     );
@@ -245,147 +248,163 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
   const requestsHref = `/app/requests?brand=${encodeURIComponent(brandId)}&strategy_version=${encodeURIComponent(versionId)}`;
 
   return (
-    <section className="oma-panel" data-testid="strategy-plan-requests-panel">
-      <header className="oma-panel__head">
-        <h3>{t('strategy.review.planPreviewTitle')}</h3>
-        <p className="oma-muted">{t('strategy.review.planPreviewHint')}</p>
-        {catalogRequestCount > 0 ? (
-          <p className="oma-muted" data-testid="strategy-catalog-request-hint">
-            {t('strategy.review.planCatalogHint').replace('{count}', String(catalogRequestCount))}
+    <section
+      className="oma-plx-listening-panel oma-plx-brand-section"
+      data-testid="strategy-plan-requests-panel"
+    >
+      <header className="oma-plx-brand-section__head">
+        <div>
+          <h3 className="oma-plx-brand-section__title">{t('strategy.review.planPreviewTitle')}</h3>
+          <p className="oma-muted oma-plx-brand-section__desc">
+            {t('strategy.review.planPreviewHint')}
           </p>
-        ) : null}
+          {catalogRequestCount > 0 ? (
+            <p className="oma-muted" data-testid="strategy-catalog-request-hint">
+              {t('strategy.review.planCatalogHint').replace('{count}', String(catalogRequestCount))}
+            </p>
+          ) : null}
+        </div>
       </header>
-      <div className="oma-form-grid" style={{ marginBottom: '1rem' }}>
-        <strong>{t('strategy.review.commitDefaults')}</strong>
-        <label>
-          {t('strategy.review.assignee')}
-          <SelectField
-            value={assigneeUserId}
-            onChange={(e) => setAssigneeUserId(e.target.value)}
-            data-testid="strategy-plan-assignee"
-          >
-            <option value="">{t('demo.requests.unassigned')}</option>
-            {members
-              .filter((m) => m.user?.id)
-              .map((m) => (
-                <option key={m.id} value={m.user!.id}>
-                  {m.user?.name || m.user?.email}
+      <div className="oma-plx-brand-section__body">
+        <div className="oma-form-grid" style={{ marginBottom: '1rem' }}>
+          <strong>{t('strategy.review.commitDefaults')}</strong>
+          <label>
+            {t('strategy.review.assignee')}
+            <SelectField
+              value={assigneeUserId}
+              onChange={(e) => setAssigneeUserId(e.target.value)}
+              data-testid="strategy-plan-assignee"
+            >
+              <option value="">{t('demo.requests.unassigned')}</option>
+              {members
+                .filter((m) => m.user?.id)
+                .map((m) => (
+                  <option key={m.id} value={m.user!.id}>
+                    {m.user?.name || m.user?.email}
+                  </option>
+                ))}
+            </SelectField>
+          </label>
+          <label>
+            {t('strategy.review.dueDate')}
+            <DateField
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+              data-testid="strategy-plan-due"
+            />
+          </label>
+          <label>
+            {t('strategy.review.campaign')}
+            <SelectField
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value)}
+              data-testid="strategy-plan-campaign"
+            >
+              <option value="">{t('strategy.review.noCampaign')}</option>
+              {campaigns.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
                 </option>
               ))}
-          </SelectField>
-        </label>
-        <label>
-          {t('strategy.review.dueDate')}
-          <DateField
-            value={dueAt}
-            onChange={(e) => setDueAt(e.target.value)}
-            data-testid="strategy-plan-due"
-          />
-        </label>
-        <label>
-          {t('strategy.review.campaign')}
-          <SelectField
-            value={campaignId}
-            onChange={(e) => setCampaignId(e.target.value)}
-            data-testid="strategy-plan-campaign"
+            </SelectField>
+          </label>
+        </div>
+        <ul className="oma-plx-brand-data-grid">
+          {items.map((item) => (
+            <li
+              key={item.plan_source_key}
+              className="oma-plx-listening-card oma-plx-brand-catalog-card"
+            >
+              <label>
+                <CheckboxField
+                  checked={selected.has(item.plan_source_key)}
+                  disabled={item.already_created || busy}
+                  onChange={(e) => toggle(item.plan_source_key, e.target.checked)}
+                />{' '}
+                <strong>{pick(item.title)}</strong>{' '}
+                <span className="oma-muted">
+                  ({item.track}
+                  {item.already_created ? ` · ${t('strategy.review.planItemExists')}` : ''})
+                </span>
+              </label>
+              <p className="oma-muted">{pick(item.description)}</p>
+              {item.channels.length > 0 ? (
+                <p className="oma-muted">
+                  {t('strategy.review.planChannels')}: {item.channels.join(', ')}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        <div className="oma-form-actions">
+          <Button
+            type="primary"
+            disabled={busy || selected.size === 0}
+            data-testid="strategy-plan-requests-commit"
+            onClick={() => void commitSelected()}
           >
-            <option value="">{t('strategy.review.noCampaign')}</option>
-            {campaigns.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </SelectField>
-        </label>
-      </div>
-      <ul className="oma-discovery-list">
-        {items.map((item) => (
-          <li key={item.plan_source_key} className="oma-discovery-item">
-            <label>
-              <CheckboxField
-                checked={selected.has(item.plan_source_key)}
-                disabled={item.already_created || busy}
-                onChange={(e) => toggle(item.plan_source_key, e.target.checked)}
-              />{' '}
-              <strong>{pick(item.title)}</strong>{' '}
-              <span className="oma-muted">
-                ({item.track}
-                {item.already_created ? ` · ${t('strategy.review.planItemExists')}` : ''})
-              </span>
-            </label>
-            <p className="oma-muted">{pick(item.description)}</p>
-            {item.channels.length > 0 ? (
-              <p className="oma-muted">
-                {t('strategy.review.planChannels')}: {item.channels.join(', ')}
-              </p>
+            {t('strategy.review.createRequests')}
+          </Button>
+          <Button type="default" disabled={busy} onClick={() => void convertAllTasks()}>
+            {t('strategy.review.convertTasks')}
+          </Button>
+          <OmaLinkButton href={requestsHref} type="default">
+            {t('strategy.review.openRequests')}
+          </OmaLinkButton>
+        </div>
+        {impact.length > 0 ? (
+          <section style={{ marginTop: '1.5rem' }} data-testid="strategy-plan-impact">
+            <header className="oma-panel__head">
+              <h4>{t('strategy.review.impactTitle')}</h4>
+              <p className="oma-muted">{t('strategy.review.impactHint')}</p>
+            </header>
+            <ul className="oma-plx-brand-data-grid">
+              {impact.map((row) => (
+                <li
+                  key={row.request_id}
+                  className="oma-plx-listening-card oma-plx-brand-catalog-card"
+                >
+                  {row.status === 'drifted' ? (
+                    <label>
+                      <CheckboxField
+                        checked={syncSelected.has(row.request_id)}
+                        disabled={busy}
+                        onChange={(e) => toggleSync(row.request_id, e.target.checked)}
+                      />{' '}
+                    </label>
+                  ) : null}
+                  <span className="oma-muted">{row.plan_source_key}</span> ·{' '}
+                  {impactLabel(row.status)}
+                  {row.changed_fields.length > 0 ? (
+                    <span className="oma-muted"> ({row.changed_fields.join(', ')})</span>
+                  ) : null}
+                  {row.has_open_task ? (
+                    <span className="oma-muted"> · {t('strategy.review.impactHasTasks')}</span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {driftedImpact.length > 0 ? (
+              <div className="oma-form-actions">
+                <Button
+                  type="default"
+                  disabled={busy || syncSelected.size === 0}
+                  data-testid="strategy-plan-sync"
+                  onClick={() => void syncDrifted()}
+                >
+                  {t('strategy.review.syncSelected')}
+                </Button>
+              </div>
             ) : null}
-          </li>
-        ))}
-      </ul>
-      <div className="oma-form-actions">
-        <Button
-          type="primary"
-          disabled={busy || selected.size === 0}
-          data-testid="strategy-plan-requests-commit"
-          onClick={() => void commitSelected()}
-        >
-          {t('strategy.review.createRequests')}
-        </Button>
-        <Button type="default" disabled={busy} onClick={() => void convertAllTasks()}>
-          {t('strategy.review.convertTasks')}
-        </Button>
-        <OmaLinkButton href={requestsHref} type="default">
-          {t('strategy.review.openRequests')}
-        </OmaLinkButton>
+          </section>
+        ) : null}
+        {error ? (
+          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+            {error}
+          </p>
+        ) : null}
+        {message ? <p role="status">{message}</p> : null}
       </div>
-      {impact.length > 0 ? (
-        <section style={{ marginTop: '1.5rem' }} data-testid="strategy-plan-impact">
-          <header className="oma-panel__head">
-            <h4>{t('strategy.review.impactTitle')}</h4>
-            <p className="oma-muted">{t('strategy.review.impactHint')}</p>
-          </header>
-          <ul className="oma-discovery-list">
-            {impact.map((row) => (
-              <li key={row.request_id} className="oma-discovery-item">
-                {row.status === 'drifted' ? (
-                  <label>
-                    <CheckboxField
-                      checked={syncSelected.has(row.request_id)}
-                      disabled={busy}
-                      onChange={(e) => toggleSync(row.request_id, e.target.checked)}
-                    />{' '}
-                  </label>
-                ) : null}
-                <span className="oma-muted">{row.plan_source_key}</span> · {impactLabel(row.status)}
-                {row.changed_fields.length > 0 ? (
-                  <span className="oma-muted"> ({row.changed_fields.join(', ')})</span>
-                ) : null}
-                {row.has_open_task ? (
-                  <span className="oma-muted"> · {t('strategy.review.impactHasTasks')}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-          {driftedImpact.length > 0 ? (
-            <div className="oma-form-actions">
-              <Button
-                type="default"
-                disabled={busy || syncSelected.size === 0}
-                data-testid="strategy-plan-sync"
-                onClick={() => void syncDrifted()}
-              >
-                {t('strategy.review.syncSelected')}
-              </Button>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-      {error ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
-          {error}
-        </p>
-      ) : null}
-      {message ? <p role="status">{message}</p> : null}
     </section>
   );
 }

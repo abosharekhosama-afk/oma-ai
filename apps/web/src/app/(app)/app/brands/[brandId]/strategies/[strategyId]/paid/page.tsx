@@ -14,6 +14,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PaidPlanningBanner } from '../../../../../../../../components/strategy/honesty-banners';
 import { TrackTabs } from '../../../../../../../../components/strategy/track-tabs';
@@ -90,9 +91,7 @@ export default function StrategyPaidPage() {
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <TrackTabs brandId={brandId} strategyId={strategyId} />
-      <header className="oma-page-header">
-        <h2>{t('strategy.paid.title')}</h2>
-      </header>
+      <BrandPlxPageHead title={t('strategy.paid.title')} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant
           brandId={brandId}

@@ -12,6 +12,10 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import {
+  BrandPlxPageHead,
+  BrandPlxSection,
+} from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
@@ -56,9 +60,7 @@ export default function StrategyEvidencePage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <header className="oma-page-header">
-        <h2>{t('strategy.evidence.title')}</h2>
-      </header>
+      <BrandPlxPageHead title={t('strategy.evidence.title')} />
       {version.missing_source ? (
         <p role="status">{t('strategy.warning.missingProfile')}</p>
       ) : (
@@ -68,13 +70,13 @@ export default function StrategyEvidencePage() {
       )}
       {error ? <p role="alert">{error}</p> : null}
       {version.evidence_links.length === 0 ? (
-        <div className="oma-panel" data-testid="strategy-evidence-empty">
-          <p>{t('strategy.evidence.empty')}</p>
-        </div>
+        <BrandPlxSection title={t('strategy.evidence.title')} testId="strategy-evidence-empty">
+          <p className="oma-muted">{t('strategy.evidence.empty')}</p>
+        </BrandPlxSection>
       ) : (
-        <ul className="oma-discovery-list" data-testid="strategy-evidence-list">
+        <ul className="oma-plx-brand-data-grid" data-testid="strategy-evidence-list">
           {version.evidence_links.map((link) => (
-            <li key={link.id} className="oma-discovery-item">
+            <li key={link.id} className="oma-plx-listening-card oma-plx-brand-catalog-card">
               {link.label ?? link.evidence_excerpt_id ?? link.id}
             </li>
           ))}

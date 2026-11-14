@@ -20,6 +20,7 @@ import type {
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
 import { ProfileSections } from '../../../../../../../components/brand/profile-sections';
 import { ReviewCollaboration } from '../../../../../../../components/brand/review-collaboration';
@@ -270,15 +271,17 @@ export default function ProfileEditorPage() {
         />
       }
     >
-      <header className="oma-page-header">
-        <div>
-          <h2>{t('brand.profile.title')}</h2>
-          <span className="oma-badge">{profile.status}</span>
-        </div>
-        <Link href={`/app/brands/${brandId}/profiles/${versionId}/compare`}>
-          {t('brand.profile.compare')}
-        </Link>
-      </header>
+      <BrandPlxPageHead
+        title={t('brand.profile.title')}
+        actions={
+          <div className="oma-chip-row">
+            <span className="oma-badge">{profile.status}</span>
+            <Link href={`/app/brands/${brandId}/profiles/${versionId}/compare`}>
+              {t('brand.profile.compare')}
+            </Link>
+          </div>
+        }
+      />
 
       {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
       {linkedScan ? <ScanCatalogHonestyBanner scan={linkedScan} /> : null}

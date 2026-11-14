@@ -10,6 +10,7 @@ import { api } from '../../../../../../lib/api';
 import type { BrandDetail, Paginated } from '../../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../components/brand/brand-plx-section';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../components/shell/select-company';
 import { useLocale, useT } from '../../../../../../lib/use-locale';
@@ -71,10 +72,7 @@ export default function BrandProfileVersionsPage() {
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
-      <header className="oma-page-header">
-        <h2>{t('brand.versions.title')}</h2>
-        <p className="oma-muted">{t('brand.versions.hint')}</p>
-      </header>
+      <BrandPlxPageHead title={t('brand.versions.title')} description={t('brand.versions.hint')} />
 
       {error ? (
         <div className="oma-card" role="alert">
@@ -88,9 +86,9 @@ export default function BrandProfileVersionsPage() {
           </OmaLinkButton>
         </div>
       ) : (
-        <ul className="oma-discovery-list">
+        <ul className="oma-plx-brand-data-grid" data-testid="profile-version-cards">
           {versions.map((version) => (
-            <li key={version.id} className="oma-discovery-item">
+            <li key={version.id} className="oma-plx-listening-card oma-plx-brand-catalog-card">
               <div>
                 <strong>
                   <Link href={`/app/brands/${brandId}/profiles/${version.id}`}>

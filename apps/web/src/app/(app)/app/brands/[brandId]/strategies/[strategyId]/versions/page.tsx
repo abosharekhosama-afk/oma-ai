@@ -14,6 +14,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
@@ -78,22 +79,24 @@ export default function StrategyVersionsPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <header className="oma-page-header">
-        <h2>{t('strategy.versions.title')}</h2>
-        {left && right ? (
-          <OmaLinkButton
-            href={`/app/brands/${brandId}/strategies/${strategyId}/versions/compare?leftId=${left}&rightId=${right}`}
-            type="primary"
-            data-testid="strategy-compare"
-          >
-            {t('strategy.versions.compare')}
-          </OmaLinkButton>
-        ) : null}
-      </header>
+      <BrandPlxPageHead
+        title={t('strategy.versions.title')}
+        actions={
+          left && right ? (
+            <OmaLinkButton
+              href={`/app/brands/${brandId}/strategies/${strategyId}/versions/compare?leftId=${left}&rightId=${right}`}
+              type="primary"
+              data-testid="strategy-compare"
+            >
+              {t('strategy.versions.compare')}
+            </OmaLinkButton>
+          ) : undefined
+        }
+      />
       {error ? <p role="alert">{error}</p> : null}
-      <ul className="oma-discovery-list" data-testid="strategy-versions">
+      <ul className="oma-plx-brand-data-grid" data-testid="strategy-versions">
         {versions.map((v) => (
-          <li key={v.id} className="oma-discovery-item">
+          <li key={v.id} className="oma-plx-listening-card oma-plx-brand-catalog-card">
             <div>
               <strong>v{v.version_number}</strong> <StatusChip status={v.status} />
             </div>

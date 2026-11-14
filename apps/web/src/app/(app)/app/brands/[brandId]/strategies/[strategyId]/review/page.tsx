@@ -14,6 +14,10 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import {
+  BrandPlxPageHead,
+  BrandPlxSection,
+} from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyStatusBadge } from '../../../../../../../../components/strategy/status-badge';
@@ -96,10 +100,10 @@ export default function StrategyReviewPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <header className="oma-page-header">
-        <h2>{t('strategy.review.title')}</h2>
-        <StrategyStatusBadge status={version.status} />
-      </header>
+      <BrandPlxPageHead
+        title={t('strategy.review.title')}
+        actions={<StrategyStatusBadge status={version.status} />}
+      />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant
           brandId={brandId}
@@ -125,7 +129,7 @@ export default function StrategyReviewPage() {
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={version} />
       ) : null}
-      <label className="oma-panel">
+      <label className="oma-plx-listening-card oma-plx-brand-catalog-card">
         <CheckboxField
           checked={unknowns}
           onChange={(e) => setUnknowns(e.target.checked)}
@@ -133,68 +137,70 @@ export default function StrategyReviewPage() {
         />{' '}
         {t('strategy.review.unknowns')}
       </label>
-      <div className="oma-panel oma-form-actions">
-        {version.status === 'DRAFT' ? (
-          <SubmitEligibility
-            missingProfile={Boolean(version.missing_source)}
-            label={t('strategy.review.submit')}
-            onClick={() =>
-              void post(`${base}/submit`, {
-                row_version: version.row_version,
-                unknowns_acknowledged: unknowns,
-              })
-            }
-          />
-        ) : null}
-        {version.status === 'IN_REVIEW' ? (
-          <>
-            <Button
-              type="primary"
-              data-testid="strategy-approve"
+      <BrandPlxSection title={t('strategy.overview.actionsTitle')} testId="strategy-review-actions">
+        <div className="oma-form-actions">
+          {version.status === 'DRAFT' ? (
+            <SubmitEligibility
+              missingProfile={Boolean(version.missing_source)}
+              label={t('strategy.review.submit')}
               onClick={() =>
-                void post(`${base}/approve`, {
+                void post(`${base}/submit`, {
                   row_version: version.row_version,
                   unknowns_acknowledged: unknowns,
-                  comment: 'Package approved',
                 })
               }
-            >
-              {t('strategy.review.approve')}
-            </Button>
+            />
+          ) : null}
+          {version.status === 'IN_REVIEW' ? (
+            <>
+              <Button
+                type="primary"
+                data-testid="strategy-approve"
+                onClick={() =>
+                  void post(`${base}/approve`, {
+                    row_version: version.row_version,
+                    unknowns_acknowledged: unknowns,
+                    comment: 'Package approved',
+                  })
+                }
+              >
+                {t('strategy.review.approve')}
+              </Button>
+              <Button
+                type="default"
+                onClick={() =>
+                  void post(`${base}/request-changes`, {
+                    row_version: version.row_version,
+                    comment: 'Please revise',
+                  })
+                }
+              >
+                {t('strategy.review.requestChanges')}
+              </Button>
+              <Button
+                type="default"
+                onClick={() =>
+                  void post(`${base}/reject`, {
+                    row_version: version.row_version,
+                    comment: 'Rejected',
+                  })
+                }
+              >
+                {t('strategy.review.reject')}
+              </Button>
+            </>
+          ) : null}
+          {['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(version.status) ? (
             <Button
-              type="default"
-              onClick={() =>
-                void post(`${base}/request-changes`, {
-                  row_version: version.row_version,
-                  comment: 'Please revise',
-                })
-              }
+              type="primary"
+              data-testid="strategy-revise"
+              onClick={() => void post(`${base}/revise`, {})}
             >
-              {t('strategy.review.requestChanges')}
+              Revise
             </Button>
-            <Button
-              type="default"
-              onClick={() =>
-                void post(`${base}/reject`, {
-                  row_version: version.row_version,
-                  comment: 'Rejected',
-                })
-              }
-            >
-              {t('strategy.review.reject')}
-            </Button>
-          </>
-        ) : null}
-        {['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(version.status) ? (
-          <Button
-            type="primary"
-            data-testid="strategy-revise"
-            onClick={() => void post(`${base}/revise`, {})}
-          >
-            Revise
-          </Button>
-        ) : null}
-      </div>
+          ) : null}
+        </div>
+      </BrandPlxSection>
       {version.status === 'APPROVED' ? (
         <StrategyPlanRequestsPanel
           brandId={brandId}
@@ -207,27 +213,29 @@ export default function StrategyReviewPage() {
           {error}
         </p>
       ) : null}
-      <form className="oma-panel" onSubmit={onComment}>
-        <label>
-          {t('strategy.review.comment')}
-          <TextArea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            data-testid="strategy-comment"
-            rows={3}
-          />
-        </label>
-        <Button type="primary" htmlType="submit">
-          {t('strategy.review.comment')}
-        </Button>
-      </form>
-      <ul className="oma-discovery-list">
-        {version.comments.map((c) => (
-          <li key={c.id} className="oma-discovery-item">
-            {c.body}
-          </li>
-        ))}
-      </ul>
+      <BrandPlxSection title={t('strategy.review.comment')} testId="strategy-review-comment-form">
+        <form onSubmit={onComment}>
+          <label>
+            {t('strategy.review.comment')}
+            <TextArea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              data-testid="strategy-comment"
+              rows={3}
+            />
+          </label>
+          <Button type="primary" htmlType="submit">
+            {t('strategy.review.comment')}
+          </Button>
+        </form>
+        <ul className="oma-plx-brand-data-grid">
+          {version.comments.map((c) => (
+            <li key={c.id} className="oma-plx-listening-card oma-plx-brand-insight-card">
+              {c.body}
+            </li>
+          ))}
+        </ul>
+      </BrandPlxSection>
       {message ? <p role="status">{message}</p> : null}
     </BrandWorkspaceShell>
   );
