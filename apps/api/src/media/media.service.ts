@@ -48,6 +48,7 @@ export const KIND_CAPABILITY: Record<MediaKind, string> = {
   posts: 'content.create',
   logos: 'brand.create',
   deliverables: 'deliverable.write',
+  catalog: 'brand.read',
 };
 
 export function mapAsset(a: Asset) {
@@ -73,7 +74,7 @@ const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 const AVATAR_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
 
 function parseKind(v: unknown): MediaKind {
-  if (!isMediaKind(v)) throw bad('kind must be posts, logos or deliverables');
+  if (!isMediaKind(v)) throw bad('kind must be posts, logos, deliverables, or catalog');
   return v;
 }
 

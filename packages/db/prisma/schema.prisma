@@ -563,6 +563,15 @@ enum ProductServiceKind {
   SERVICE
 }
 
+enum CatalogMediaRole {
+  SCAN_THUMBNAIL
+  SCAN_IMAGE
+  SCAN_VIDEO
+  GENERATED_IMAGE
+  GENERATED_VIDEO
+  GENERATED_SHORT_VIDEO
+}
+
 enum DiscoveryTier {
   REQUIRED_FOR_APPROVAL
   DISCOVER_WHEN_AVAILABLE
@@ -804,9 +813,28 @@ model DiscoveredProductService {
   dedupeKey       String
   brand           BrandWorkspace     @relation(fields: [brandId], references: [id])
   scanAttempt     ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
+  catalogMedia    CatalogProductMedia[]
 
   @@unique([scanAttemptId, dedupeKey])
   @@index([tenantId, scanAttemptId])
+}
+
+model CatalogProductMedia {
+  id                   String                @id
+  tenantId             String
+  brandId              String
+  discoveredProductId  String
+  mediaAssetId         String
+  role                 CatalogMediaRole
+  sourceUrl            String?
+  sortOrder            Int                   @default(0)
+  createdAt            DateTime              @default(now())
+  discoveredProduct    DiscoveredProductService @relation(fields: [discoveredProductId], references: [id], onDelete: Cascade)
+  mediaAsset           MediaAsset            @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([discoveredProductId, mediaAssetId, role])
+  @@index([tenantId, brandId, discoveredProductId])
+  @@index([tenantId, mediaAssetId])
 }
 
 model ExtractedObservation {
@@ -2183,7 +2211,8 @@ model MediaAsset {
   createdBy       String
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  backupJobs      StorageBackupJob[]
+  backupJobs           StorageBackupJob[]
+  catalogProductLinks  CatalogProductMedia[]
 
   @@unique([tenantId, brandId, workdriveFileId])
   @@index([tenantId, brandId, kind, createdAt])

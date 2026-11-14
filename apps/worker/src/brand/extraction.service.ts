@@ -24,6 +24,7 @@ import {
   lastBrowserInitError,
   RenderedPageFetchError,
 } from './rendered-page-fetch';
+import { ingestProductMediaFromScan } from './catalog-product-media';
 
 type CrawlConfig = {
   max_pages?: number;
@@ -359,9 +360,13 @@ export async function runExtractionForScan(input: {
         });
       }
 
+      const brandRow = await getPrisma().brandWorkspace.findFirst({
+        where: { id: input.brandId, tenantId: input.tenantId },
+        select: { name: true },
+      });
       for (const product of extracted.products) {
         const dedupeKey = `${product.kind}:${product.name}:${product.skuPublic ?? ''}`;
-        await getPrisma().discoveredProductService.upsert({
+        const row = await getPrisma().discoveredProductService.upsert({
           where: {
             scanAttemptId_dedupeKey: {
               scanAttemptId: input.scanAttemptId,
@@ -384,8 +389,18 @@ export async function runExtractionForScan(input: {
             sourcePageId: pageId,
             dedupeKey,
           },
-          update: {},
+          update: { sourcePageId: pageId },
         });
+        if (product.media?.length && brandRow) {
+          await ingestProductMediaFromScan({
+            tenantId: input.tenantId,
+            brandId: input.brandId,
+            brandName: brandRow.name,
+            discoveredProductId: row.id,
+            productName: product.name,
+            media: product.media,
+          });
+        }
       }
 
       pagesFetched += 1;

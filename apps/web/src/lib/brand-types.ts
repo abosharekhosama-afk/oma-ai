@@ -103,6 +103,18 @@ export type DiscoveredPage = {
   locale_hint: string | null;
 };
 
+export type CatalogProductMedia = {
+  id: string;
+  role: string;
+  source_url: string | null;
+  sort_order: number;
+  mime: string;
+  name: string;
+  status: string;
+  view_url: string;
+  stream_url: string | null;
+};
+
 export type DiscoveredProduct = {
   id: string;
   kind: string;
@@ -115,6 +127,7 @@ export type DiscoveredProduct = {
   availability: string | null;
   source_page_id: string | null;
   parent_product_id: string | null;
+  media?: CatalogProductMedia[];
 };
 
 export type EvidenceItem = {

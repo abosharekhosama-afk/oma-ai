@@ -28,6 +28,7 @@ import { BrandController } from './brand/brand.controller';
 import { WebsiteController } from './brand/website.controller';
 import { ScanController } from './brand/scan.controller';
 import { DiscoveryController } from './discovery/discovery.controller';
+import { CatalogController } from './catalog/catalog.controller';
 import { ProfileController } from './intelligence/profile.controller';
 import { StrategyController } from './strategy/strategy.controller';
 import { DemoController } from './demo/demo.controller';
@@ -64,6 +65,7 @@ import { SupportController } from './platform/support.controller';
     WebsiteController,
     ScanController,
     DiscoveryController,
+    CatalogController,
     ProfileController,
     StrategyController,
     DemoController,

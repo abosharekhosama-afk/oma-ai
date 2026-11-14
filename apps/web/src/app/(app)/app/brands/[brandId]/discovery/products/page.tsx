@@ -28,6 +28,7 @@ import { EvidenceSidePanel } from '../../../../../../../components/brand/evidenc
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 import { DiscoveryCatalogMergeBar } from '../../../../../../../components/brand/discovery-catalog-merge-bar';
+import { CatalogProductActions } from '../../../../../../../components/brand/catalog-product-actions';
 import type { ProfileDetail } from '../../../../../../../lib/brand-types';
 
 export default function DiscoveryProductsPage() {
@@ -204,6 +205,20 @@ export default function DiscoveryProductsPage() {
                       </div>
                     ) : null}
                   </dl>
+                  <CatalogProductActions
+                    brandId={brandId}
+                    product={product}
+                    profileApproved={Boolean(brand.current_approved_profile_version_id)}
+                    onUpdated={() => {
+                      void (async () => {
+                        if (!scanId) return;
+                        const productsRes = await api<Paginated<DiscoveredProduct>>(
+                          `/api/v1/brands/${brandId}/scans/${scanId}/products?limit=100`,
+                        );
+                        setProducts(productsRes.data);
+                      })();
+                    }}
+                  />
                   <div className="oma-form-actions">
                     {linked ? (
                       <Button type="default" onClick={() => setEvidenceId(linked)}>

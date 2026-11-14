@@ -22,6 +22,8 @@ describe('extractors', () => {
     const r = extractFromHtml('https://acme.test/products', productsHtml);
     expect(r.products.length).toBeGreaterThan(0);
     expect(r.classification).toBe('PRODUCT');
+    const widget = r.products.find((p) => p.name === 'Acme Widget Pro');
+    expect(widget?.media?.some((m) => m.url.includes('widget-pro'))).toBe(true);
   });
 
   it('extracts itemList and service page heuristics', () => {
