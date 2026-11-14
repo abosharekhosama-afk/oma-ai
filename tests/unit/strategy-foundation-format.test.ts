@@ -7,6 +7,7 @@ import {
   trackListToText,
 } from '../../apps/web/src/lib/strategy-foundation-format';
 
+/** Display/PATCH helpers for strategy foundation JSON shapes. */
 describe('strategy-foundation-format', () => {
   it('readFoundationText joins string and object goals', () => {
     expect(readFoundationText('One')).toBe('One');
