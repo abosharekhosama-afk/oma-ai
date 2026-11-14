@@ -143,26 +143,6 @@ export default function ScanDetailPage() {
     }
   }
 
-  async function handleAnalyze() {
-    setBusy(true);
-    setActionError(null);
-    try {
-      const res = await apiMutate<{ data: ScanDetail }>(
-        `/api/v1/brands/${brandId}/scans/${scanId}/analyze`,
-        {
-          method: 'POST',
-          body: JSON.stringify({}),
-          idempotencyKey: newIdempotencyKey('brand:scan-analyze'),
-        },
-      );
-      setScan({ ...scan!, ...res.data });
-    } catch (err) {
-      setActionError(getApiError(err).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function handleRetry() {
     setBusy(true);
     setActionError(null);
