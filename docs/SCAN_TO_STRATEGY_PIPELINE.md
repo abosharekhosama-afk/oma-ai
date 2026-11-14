@@ -26,7 +26,7 @@
 | Discovery → profile catalog merge         | Discovery products UI, merge API, bulk accept catalog insights                                                                     |
 | Live AI                                   | **API + Worker** must share live flags/keys; UI polls `/api/v1/ai/status` and offers **Re-run analysis** when auto-enqueue skipped |
 | Pipeline chrome                           | Scan page + profile show intelligence stage; `STRATEGY_AI_MODE` surfaced on strategy assistant                                     |
-| Scan → content outlook                    | `GET …/scans/:id` returns `content_outlook`; plan preview adds `organic:catalog:*` / `paid:catalog:*` request drafts from catalog |
+| Scan → content outlook                    | `GET …/scans/:id` returns `content_outlook`; plan preview adds `organic:catalog:*` / `paid:catalog:*` request drafts from catalog  |
 
 ## Operations checklist (Brp / production demo)
 

@@ -193,7 +193,9 @@ export class ScanService {
     });
     const [pagesDiscovered, productsDiscovered, servicesDiscovered, catalogRows] =
       await Promise.all([
-        getPrisma().discoveredPage.count({ where: tenantWhere(tenantId, { scanAttemptId: scanId }) }),
+        getPrisma().discoveredPage.count({
+          where: tenantWhere(tenantId, { scanAttemptId: scanId }),
+        }),
         getPrisma().discoveredProductService.count({
           where: tenantWhere(tenantId, { scanAttemptId: scanId, kind: 'PRODUCT' }),
         }),
