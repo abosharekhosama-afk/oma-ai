@@ -360,7 +360,10 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
             </header>
             <ul className="oma-plx-brand-data-grid">
               {impact.map((row) => (
-                <li key={row.request_id} className="oma-plx-listening-card oma-plx-brand-catalog-card">
+                <li
+                  key={row.request_id}
+                  className="oma-plx-listening-card oma-plx-brand-catalog-card"
+                >
                   {row.status === 'drifted' ? (
                     <label>
                       <CheckboxField
