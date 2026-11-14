@@ -1,7 +1,7 @@
 'use client';
 import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
-import { Button, Input } from '@oma/ui/controls';
+import { Button, Input, TextArea } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
@@ -20,6 +20,10 @@ import { PermissionDenied } from '../../../../../../../../components/shell/permi
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
+import {
+  textToTrackList,
+  trackListToText,
+} from '../../../../../../../../lib/strategy-foundation-format';
 
 async function loadLatestVersion(brandId: string, strategyId: string) {
   const brandRes = await api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`);
@@ -41,6 +45,9 @@ export default function StrategyOrganicPage() {
   const [version, setVersion] = useState<StrategyVersionDetail | null>(null);
   const [frequency, setFrequency] = useState('');
   const [cta, setCta] = useState('');
+  const [pillars, setPillars] = useState('');
+  const [channels, setChannels] = useState('');
+  const [formats, setFormats] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -53,6 +60,9 @@ export default function StrategyOrganicPage() {
       setVersion(data.version);
       setFrequency(String(data.version.organic?.frequency ?? ''));
       setCta(String(data.version.organic?.message_cta ?? data.version.organic?.messageCta ?? ''));
+      setPillars(trackListToText(data.version.organic?.pillars));
+      setChannels(trackListToText(data.version.organic?.channels));
+      setFormats(trackListToText(data.version.organic?.formats));
     } catch (err) {
       if (isTenantRequired(err)) setTenantRequired(true);
       else if (isPermissionDenied(err)) setDenied(true);
@@ -79,6 +89,9 @@ export default function StrategyOrganicPage() {
               1,
             frequency,
             message_cta: cta,
+            pillars: textToTrackList(pillars),
+            channels: textToTrackList(channels),
+            formats: textToTrackList(formats),
           }),
         },
       );
@@ -141,6 +154,39 @@ export default function StrategyOrganicPage() {
                 onChange={(e) => setCta(e.target.value)}
                 disabled={!editable}
                 data-testid="organic-cta"
+              />
+            </label>
+            <label className="oma-field-span">
+              {t('strategy.organic.pillars')}
+              <TextArea
+                value={pillars}
+                onChange={(e) => setPillars(e.target.value)}
+                disabled={!editable}
+                rows={4}
+                data-testid="organic-pillars"
+                placeholder={t('strategy.organic.listPlaceholder')}
+              />
+            </label>
+            <label className="oma-field-span">
+              {t('strategy.organic.channels')}
+              <TextArea
+                value={channels}
+                onChange={(e) => setChannels(e.target.value)}
+                disabled={!editable}
+                rows={3}
+                data-testid="organic-channels"
+                placeholder={t('strategy.organic.listPlaceholder')}
+              />
+            </label>
+            <label className="oma-field-span">
+              {t('strategy.organic.formats')}
+              <TextArea
+                value={formats}
+                onChange={(e) => setFormats(e.target.value)}
+                disabled={!editable}
+                rows={3}
+                data-testid="organic-formats"
+                placeholder={t('strategy.organic.listPlaceholder')}
               />
             </label>
           </div>

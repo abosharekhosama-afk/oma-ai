@@ -47,7 +47,11 @@ export default function NewStrategyPage() {
     try {
       const res = await api<{ data: { id: string } }>(`/api/v1/brands/${brandId}/strategies`, {
         method: 'POST',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({
+          name,
+          linked_approved_profile_version_id:
+            brand?.current_approved_profile_version_id ?? undefined,
+        }),
       });
       router.push(`/app/brands/${brandId}/strategies/${res.data.id}`);
     } catch (err) {
