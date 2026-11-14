@@ -1,4 +1,4 @@
-export const MEDIA_KINDS = ['posts', 'logos', 'deliverables'] as const;
+export const MEDIA_KINDS = ['posts', 'logos', 'deliverables', 'catalog'] as const;
 export type MediaKind = (typeof MEDIA_KINDS)[number];
 export function isMediaKind(v: unknown): v is MediaKind {
   return typeof v === 'string' && (MEDIA_KINDS as readonly string[]).includes(v);
@@ -50,7 +50,7 @@ export const VIDEO_MIME = ['video/mp4', 'video/quicktime', 'video/webm'];
 export const DOCUMENT_MIME = ['application/pdf'];
 export function allowedMimeFor(kind: MediaKind) {
   if (kind === 'logos') return IMAGE_MIME;
-  if (kind === 'posts') return [...IMAGE_MIME, ...VIDEO_MIME];
+  if (kind === 'posts' || kind === 'catalog') return [...IMAGE_MIME, ...VIDEO_MIME];
   return [...IMAGE_MIME, ...VIDEO_MIME, ...DOCUMENT_MIME];
 }
 export const DEFAULT_MAX_VIDEO_BYTES = 500 * 1024 * 1024;

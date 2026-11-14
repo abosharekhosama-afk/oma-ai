@@ -39,6 +39,8 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/media/import': ['brand.read'],
   'POST /api/v1/brands/:brandId/media/upload-grant': ['brand.read'],
   'POST /api/v1/media/upload-complete': ['brand.read'],
+  'GET /api/v1/brands/:brandId/catalog/products/:productId/media': ['brand.read'],
+  'POST /api/v1/brands/:brandId/catalog/products/:productId/generate': ['brand.read'],
   'GET /api/v1/brands/:brandId/media/browse': ['brand.read'],
   'POST /api/v1/brands/:brandId/media/folders': ['brand.read'],
   'GET /api/v1/brands/:brandId/media/file-preview': ['brand.read'],

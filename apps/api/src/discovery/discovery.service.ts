@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError } from '@oma/domain';
+import { catalogMediaByProductIds } from '../catalog/catalog.service';
 
 @Injectable()
 export class DiscoveryService {
@@ -58,6 +59,10 @@ export class DiscoveryService {
     });
     const hasMore = rows.length > limit;
     const data = hasMore ? rows.slice(0, limit) : rows;
+    const mediaByProduct = await catalogMediaByProductIds(
+      tenantId,
+      data.map((p) => p.id),
+    );
     return {
       data: data.map((p) => ({
         id: p.id,
@@ -71,6 +76,7 @@ export class DiscoveryService {
         availability: p.availability,
         source_page_id: p.sourcePageId,
         parent_product_id: p.parentProductId,
+        media: mediaByProduct.get(p.id) ?? [],
       })),
       page: { next_cursor: hasMore ? (data[data.length - 1]?.id ?? null) : null, limit },
     };

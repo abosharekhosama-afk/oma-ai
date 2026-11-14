@@ -10,6 +10,11 @@ export type ExtractedField = {
   confidence?: number;
 };
 
+export type ExtractedProductMedia = {
+  kind: 'IMAGE' | 'VIDEO';
+  url: string;
+};
+
 export type ExtractedProduct = {
   kind: 'PRODUCT' | 'SERVICE';
   name: string;
@@ -19,6 +24,7 @@ export type ExtractedProduct = {
   priceAmount?: string;
   priceCurrency?: string;
   availability?: string;
+  media?: ExtractedProductMedia[];
 };
 
 export type ExtractedLink = {
@@ -163,11 +169,50 @@ function jsonLdString(value: unknown): string | null {
   if (value && typeof value === 'object' && 'url' in value) {
     return jsonLdString((value as { url?: unknown }).url);
   }
+  if (value && typeof value === 'object' && 'contentUrl' in value) {
+    return jsonLdString((value as { contentUrl?: unknown }).contentUrl);
+  }
   return null;
+}
+
+const MAX_PRODUCT_MEDIA = 6;
+
+function absoluteMediaUrl(pageUrl: string, raw: string): string | null {
+  try {
+    return new URL(raw, pageUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
+function collectJsonLdMedia(
+  node: Record<string, unknown>,
+  pageUrl: string,
+): ExtractedProductMedia[] {
+  const out: ExtractedProductMedia[] = [];
+  const seen = new Set<string>();
+  const push = (kind: 'IMAGE' | 'VIDEO', value: unknown) => {
+    if (out.length >= MAX_PRODUCT_MEDIA) return;
+    const items = Array.isArray(value) ? value : value ? [value] : [];
+    for (const item of items) {
+      const resolved = jsonLdString(item);
+      if (!resolved) continue;
+      const url = absoluteMediaUrl(pageUrl, resolved);
+      if (!url || seen.has(url)) continue;
+      seen.add(url);
+      out.push({ kind, url });
+      if (out.length >= MAX_PRODUCT_MEDIA) return;
+    }
+  };
+  push('IMAGE', node.image);
+  push('IMAGE', node.photo);
+  push('VIDEO', node.video);
+  return out;
 }
 
 function productFromJsonLdNode(
   node: Record<string, unknown>,
+  pageUrl: string,
   kindHint?: 'PRODUCT' | 'SERVICE',
 ): ExtractedProduct | null {
   const type = typeList(node);
@@ -193,10 +238,14 @@ function productFromJsonLdNode(
     priceAmount: offers?.price ? String(offers.price) : undefined,
     priceCurrency: offers?.priceCurrency ? String(offers.priceCurrency) : undefined,
     availability: offers?.availability ? String(offers.availability) : undefined,
+    media: collectJsonLdMedia(node, pageUrl),
   };
 }
 
-function collectProductsFromJsonLd(nodes: Record<string, unknown>[]): ExtractedProduct[] {
+function collectProductsFromJsonLd(
+  nodes: Record<string, unknown>[],
+  pageUrl: string,
+): ExtractedProduct[] {
   const out: ExtractedProduct[] = [];
   const seen = new Set<string>();
   const push = (product: ExtractedProduct | null) => {
@@ -207,7 +256,7 @@ function collectProductsFromJsonLd(nodes: Record<string, unknown>[]): ExtractedP
     out.push(product);
   };
   for (const node of nodes) {
-    push(productFromJsonLdNode(node));
+    push(productFromJsonLdNode(node, pageUrl));
     const type = typeList(node);
     if (type.includes('itemlist')) {
       const elements = node.itemListElement;
@@ -217,7 +266,7 @@ function collectProductsFromJsonLd(nodes: Record<string, unknown>[]): ExtractedP
         const record = el as Record<string, unknown>;
         const nested = record.item;
         if (nested && typeof nested === 'object') {
-          push(productFromJsonLdNode(nested as Record<string, unknown>));
+          push(productFromJsonLdNode(nested as Record<string, unknown>, pageUrl));
         }
         const name = jsonLdString(record.name);
         if (name) {
@@ -233,30 +282,61 @@ function collectProductsFromJsonLd(nodes: Record<string, unknown>[]): ExtractedP
     if (type.includes('offer')) {
       const item = node.itemOffered;
       if (item && typeof item === 'object')
-        push(productFromJsonLdNode(item as Record<string, unknown>));
+        push(productFromJsonLdNode(item as Record<string, unknown>, pageUrl));
     }
     if (type.includes('offerCatalog') || type.includes('productgroup')) {
       const items = node.hasVariant ?? node.hasPart ?? node.itemListElement;
       const list = Array.isArray(items) ? items : items ? [items] : [];
       for (const item of list) {
         if (item && typeof item === 'object')
-          push(productFromJsonLdNode(item as Record<string, unknown>));
+          push(productFromJsonLdNode(item as Record<string, unknown>, pageUrl));
       }
     }
   }
   return out;
 }
 
+function mediaFromContainer(el: HTMLElement, pageUrl: string): ExtractedProductMedia[] {
+  const out: ExtractedProductMedia[] = [];
+  const seen = new Set<string>();
+  const push = (kind: 'IMAGE' | 'VIDEO', raw: string | null | undefined) => {
+    if (!raw || out.length >= MAX_PRODUCT_MEDIA) return;
+    const url = absoluteMediaUrl(pageUrl, raw);
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    out.push({ kind, url });
+  };
+  for (const img of el.querySelectorAll('img[src]')) {
+    push('IMAGE', img.getAttribute('src'));
+  }
+  for (const vid of el.querySelectorAll('video[src], video source[src]')) {
+    push('VIDEO', vid.getAttribute('src'));
+  }
+  const og = el.querySelector('meta[property="og:image"]');
+  if (og) push('IMAGE', og.getAttribute('content'));
+  return out;
+}
+
 function collectHeuristicProducts(root: HTMLElement, pageUrl: string): ExtractedProduct[] {
   const out: ExtractedProduct[] = [];
   const seen = new Set<string>();
-  const push = (kind: 'PRODUCT' | 'SERVICE', name: string, description?: string) => {
+  const push = (
+    kind: 'PRODUCT' | 'SERVICE',
+    name: string,
+    description?: string,
+    container?: HTMLElement,
+  ) => {
     const trimmed = name.trim();
     if (trimmed.length < 2 || trimmed.length > 200) return;
     const key = `${kind}:${trimmed.toLowerCase()}`;
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ kind, name: trimmed, description: description?.slice(0, 500) });
+    out.push({
+      kind,
+      name: trimmed,
+      description: description?.slice(0, 500),
+      media: container ? mediaFromContainer(container, pageUrl) : undefined,
+    });
   };
   for (const el of root.querySelectorAll('[itemtype]')) {
     const itemtype = (el.getAttribute('itemtype') || '').toLowerCase();
@@ -268,7 +348,7 @@ function collectHeuristicProducts(root: HTMLElement, pageUrl: string): Extracted
       el.querySelector('h1,h2,h3')?.text?.trim() ||
       '';
     const description = el.querySelector('[itemprop="description"]')?.text?.trim();
-    push(isService ? 'SERVICE' : 'PRODUCT', name, description);
+    push(isService ? 'SERVICE' : 'PRODUCT', name, description, el);
   }
   for (const el of root.querySelectorAll(
     '[class*="product"], [class*="service"], [data-product]',
@@ -277,7 +357,7 @@ function collectHeuristicProducts(root: HTMLElement, pageUrl: string): Extracted
     if (!heading) continue;
     const cls = (el.getAttribute('class') || '').toLowerCase();
     const kind = cls.includes('service') ? 'SERVICE' : 'PRODUCT';
-    push(kind, heading);
+    push(kind, heading, undefined, el);
   }
   try {
     const path = new URL(pageUrl).pathname.toLowerCase();
@@ -425,7 +505,7 @@ export function extractFromHtml(
   }
 
   const jsonLdNodes = collectJsonLdNodes(root);
-  products.push(...collectProductsFromJsonLd(jsonLdNodes));
+  products.push(...collectProductsFromJsonLd(jsonLdNodes, url));
   products.push(...collectHeuristicProducts(root, url));
 
   for (const node of jsonLdNodes) {
