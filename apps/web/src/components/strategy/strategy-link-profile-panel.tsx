@@ -93,7 +93,11 @@ export function StrategyLinkProfilePanel({
   const approvedId = brand?.current_approved_profile_version_id;
 
   return (
-    <section className="oma-panel oma-stack" data-testid="strategy-link-profile-panel">
+    <section
+      className="oma-panel oma-stack"
+      data-testid="strategy-missing-profile"
+      aria-label={t('strategy.linkProfile.title')}
+    >
       <h3>{t('strategy.linkProfile.title')}</h3>
       <p className="oma-muted">{t('strategy.linkProfile.body')}</p>
       {approvedId ? (
