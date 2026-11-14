@@ -273,6 +273,7 @@ export async function runExtractionForScan(input: {
           html: htmlBody,
           pageUrl: normalizedUrl,
           productCount: extracted.products.length,
+          productMediaCount: productMediaUrlCount(extracted.products),
         })
       ) {
         pagesJsRenderAttempted += 1;
@@ -392,7 +393,15 @@ export async function runExtractionForScan(input: {
             sourcePageId: pageId,
             dedupeKey,
           },
-          update: { sourcePageId: pageId },
+          update: {
+            sourcePageId: pageId,
+            ...(product.description ? { description: product.description } : {}),
+            ...(product.category ? { category: product.category } : {}),
+            ...(product.skuPublic ? { skuPublic: product.skuPublic } : {}),
+            ...(product.priceAmount ? { priceAmount: product.priceAmount } : {}),
+            ...(product.priceCurrency ? { priceCurrency: product.priceCurrency } : {}),
+            ...(product.availability ? { availability: product.availability } : {}),
+          },
         });
         if (product.media?.length && brandRow) {
           await ingestProductMediaFromScan({

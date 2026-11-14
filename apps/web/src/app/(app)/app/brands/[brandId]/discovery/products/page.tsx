@@ -28,7 +28,7 @@ import { EvidenceSidePanel } from '../../../../../../../components/brand/evidenc
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 import { DiscoveryCatalogMergeBar } from '../../../../../../../components/brand/discovery-catalog-merge-bar';
-import { CatalogProductActions } from '../../../../../../../components/brand/catalog-product-actions';
+import { DiscoveryProductCard } from '../../../../../../../components/brand/discovery-product-card';
 import type { ProfileDetail } from '../../../../../../../lib/brand-types';
 
 export default function DiscoveryProductsPage() {
@@ -215,54 +215,25 @@ export default function DiscoveryProductsPage() {
               })();
             }}
           />
-          <ul className="oma-plx-brand-data-grid" data-testid="discovery-products-cards">
+          <ul
+            className="oma-plx-brand-data-grid oma-discovery-products-grid"
+            data-testid="discovery-products-cards"
+          >
             {products.map((product) => {
               const linked =
                 product.source_page_id != null ? evidenceByPage[product.source_page_id] : undefined;
               return (
-                <li key={product.id} className="oma-plx-listening-card oma-plx-brand-catalog-card">
-                  <div>
-                    <strong>{product.name}</strong>
-                    <span className="oma-badge oma-badge-muted">{product.kind}</span>
-                  </div>
-                  {product.description ? (
-                    <p className="oma-muted" style={{ margin: '0.25rem 0', fontSize: 14 }}>
-                      {product.description}
-                    </p>
-                  ) : null}
-                  <dl className="oma-detail-dl oma-detail-dl-inline">
-                    {product.category ? (
-                      <div>
-                        <dt>{t('brand.discovery.category')}</dt>
-                        <dd>{product.category}</dd>
-                      </div>
-                    ) : null}
-                    {product.price_amount ? (
-                      <div>
-                        <dt>{t('brand.discovery.price')}</dt>
-                        <dd>
-                          {product.price_amount} {product.price_currency}
-                        </dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                  <CatalogProductActions
+                <li key={product.id}>
+                  <DiscoveryProductCard
                     brandId={brandId}
                     product={product}
                     profileApproved={Boolean(brand.current_approved_profile_version_id)}
+                    evidenceId={linked}
+                    onEvidence={() => setEvidenceId(linked!)}
                     onUpdated={() => {
                       if (scanId) void reloadProducts(scanId);
                     }}
                   />
-                  <div className="oma-form-actions">
-                    {linked ? (
-                      <Button type="default" onClick={() => setEvidenceId(linked)}>
-                        {t('brand.evidence.view')}
-                      </Button>
-                    ) : (
-                      <span className="oma-muted">{t('brand.evidence.none')}</span>
-                    )}
-                  </div>
                 </li>
               );
             })}
