@@ -1,5 +1,6 @@
 import { getPrisma } from '@oma/db';
 import {
+  brandAiAvailabilityAfterScanComplete,
   brandConnectorMode,
   createWebsiteConnector,
   isRequiredForApproval,
@@ -272,7 +273,7 @@ export function startIngestionProcessor(
       }
 
       const finalStatus = usable ? 'PARTIAL' : counts.pagesFetched > 0 ? 'PARTIAL' : 'FAILED';
-      const aiAvailability = 'NOT_CONFIGURED';
+      const aiAvailability = brandAiAvailabilityAfterScanComplete();
 
       if (
         !(await advanceScanIfActive(prisma, scan.id, {

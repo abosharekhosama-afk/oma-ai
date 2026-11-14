@@ -83,6 +83,13 @@ export type ScanDetail = {
     products: number;
     services: number;
   };
+  content_outlook?: {
+    catalog_items: number;
+    product_names: string[];
+    service_names: string[];
+    estimated_organic_requests: number;
+    estimated_paid_requests: number;
+  };
 };
 
 export type DiscoveredPage = {

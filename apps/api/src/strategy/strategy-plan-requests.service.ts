@@ -4,9 +4,12 @@ import {
   DomainError,
   buildPlanWorkRequestDrafts,
   briefReadiness,
+  catalogOfferingsFromDiscoveryRows,
+  catalogOfferingsFromProfileSections,
   newId,
   buildPlanRequestImpactReport,
   comparableFromStored,
+  type CatalogOffering,
   type PlanWorkRequestDraft,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
@@ -58,7 +61,49 @@ export class StrategyPlanRequestsService {
     return version;
   }
 
-  private buildDrafts(version: Awaited<ReturnType<typeof this.loadApprovedVersion>>) {
+  private async loadCatalogOfferings(
+    tenantId: string,
+    brandId: string,
+    version: Awaited<ReturnType<typeof this.loadApprovedVersion>>,
+  ): Promise<CatalogOffering[]> {
+    const tryProfile = async (profileVersionId: string | null | undefined) => {
+      if (!profileVersionId) return [] as CatalogOffering[];
+      const profile = await getPrisma().profileVersion.findFirst({
+        where: tenantWhere(tenantId, { id: profileVersionId, brandId }),
+      });
+      if (!profile?.sectionsJson) return [];
+      const sections = parseJson<Record<string, unknown>>(profile.sectionsJson, {});
+      return catalogOfferingsFromProfileSections(sections);
+    };
+
+    const linked = await tryProfile(version.linkedApprovedProfileVersionId);
+    if (linked.length > 0) return linked;
+
+    const brand = await getPrisma().brandWorkspace.findFirst({
+      where: tenantWhere(tenantId, { id: brandId }),
+    });
+    const approved = await tryProfile(brand?.currentApprovedProfileVersionId ?? null);
+    if (approved.length > 0) return approved;
+
+    const latestScan = await getPrisma().scanAttempt.findFirst({
+      where: tenantWhere(tenantId, {
+        brandId,
+        status: { in: ['SUCCEEDED', 'PARTIAL'] },
+      }),
+      orderBy: [{ finishedAt: 'desc' }, { createdAt: 'desc' }],
+    });
+    if (!latestScan) return [];
+    const rows = await getPrisma().discoveredProductService.findMany({
+      where: { tenantId, scanAttemptId: latestScan.id },
+      orderBy: { name: 'asc' },
+    });
+    return catalogOfferingsFromDiscoveryRows(rows);
+  }
+
+  private buildDrafts(
+    version: Awaited<ReturnType<typeof this.loadApprovedVersion>>,
+    catalogOfferings: CatalogOffering[],
+  ) {
     const organic = version.organicTrack;
     const paid = version.paidTrack;
     return buildPlanWorkRequestDrafts({
@@ -83,6 +128,7 @@ export class StrategyPlanRequestsService {
           }
         : null,
       audiences: version.audiences.map((a) => ({ name: a.name, description: a.description })),
+      catalogOfferings,
     });
   }
 
@@ -93,7 +139,8 @@ export class StrategyPlanRequestsService {
     versionId: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const drafts = this.buildDrafts(version);
+    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const drafts = this.buildDrafts(version, catalogOfferings);
     const existing = await getPrisma().workRequest.findMany({
       where: { tenantId, strategyVersionId: versionId },
       select: { planSourceKey: true },
@@ -101,10 +148,13 @@ export class StrategyPlanRequestsService {
     const existingKeys = new Set(
       existing.map((row) => row.planSourceKey).filter(Boolean) as string[],
     );
+    const catalogAnchored = drafts.filter((draft) => draft.plan_source_key.includes(':catalog:'));
     return {
       data: {
         strategy_version_id: versionId,
         strategy_id: strategyId,
+        catalog_offerings_count: catalogOfferings.length,
+        catalog_request_count: catalogAnchored.length,
         preview: drafts.map((draft) => ({
           ...draft,
           already_created: existingKeys.has(draft.plan_source_key),
@@ -217,7 +267,8 @@ export class StrategyPlanRequestsService {
     correlationId?: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const drafts = this.buildDrafts(version);
+    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const drafts = this.buildDrafts(version, catalogOfferings);
     const defaults = await this.resolveCommitDefaults(tenantId, brandId, input.defaults);
     const selected =
       input.plan_source_keys && input.plan_source_keys.length > 0
@@ -319,7 +370,8 @@ export class StrategyPlanRequestsService {
     versionId: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const drafts = this.buildDrafts(version);
+    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const drafts = this.buildDrafts(version, catalogOfferings);
     const prior = await getPrisma().workRequest.findMany({
       where: {
         tenantId,
@@ -377,7 +429,8 @@ export class StrategyPlanRequestsService {
       throw new DomainError('VALIDATION_FAILED', 'request_ids required', 400, 'errors.validation');
     }
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const drafts = this.buildDrafts(version);
+    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const drafts = this.buildDrafts(version, catalogOfferings);
     const draftByKey = new Map(drafts.map((d) => [d.plan_source_key, d]));
     const impact = await this.planRequestImpact(tenantId, brandId, strategyId, versionId);
     const driftedIds = new Set(

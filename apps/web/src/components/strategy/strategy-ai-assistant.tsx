@@ -42,6 +42,7 @@ export function StrategyAiAssistant({
 }: Props) {
   const t = useT();
   const [aiAvailability, setAiAvailability] = useState<string>('NOT_CONFIGURED');
+  const [strategyAiMode, setStrategyAiMode] = useState<string>('live');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +54,11 @@ export function StrategyAiAssistant({
   const editable = versionStatus === 'DRAFT' || versionStatus === 'IN_REVIEW';
 
   useEffect(() => {
-    void api<{ data?: { availability?: string } }>('/api/v1/ai/status')
-      .then((res) => setAiAvailability(res.data?.availability ?? 'NOT_CONFIGURED'))
+    void api<{ data?: { availability?: string; strategy_ai_mode?: string } }>('/api/v1/ai/status')
+      .then((res) => {
+        setAiAvailability(res.data?.availability ?? 'NOT_CONFIGURED');
+        setStrategyAiMode(res.data?.strategy_ai_mode ?? 'live');
+      })
       .catch(() => setAiAvailability('NOT_CONFIGURED'));
   }, []);
 
@@ -135,6 +139,12 @@ export function StrategyAiAssistant({
 
       <AiHonestyBanner availability={aiAvailability} />
 
+      {strategyAiMode !== 'live' ? (
+        <p className="oma-banner oma-banner-warning" role="status">
+          {t('strategy.ai.modeBlocked').replace('{mode}', strategyAiMode)}
+        </p>
+      ) : null}
+
       <dl className="oma-detail-dl">
         <div>
           <dt>{t('strategy.ai.sourceProfile')}</dt>
@@ -162,7 +172,11 @@ export function StrategyAiAssistant({
           {t('strategy.ai.readOnlyVersion')}
         </p>
       ) : (
-        <Button type="default" disabled={busy} onClick={() => void propose()}>
+        <Button
+          type="default"
+          disabled={busy || aiAvailability !== 'AVAILABLE' || strategyAiMode !== 'live'}
+          onClick={() => void propose()}
+        >
           {busy ? t('strategy.ai.proposing') : t('strategy.ai.propose')}
         </Button>
       )}

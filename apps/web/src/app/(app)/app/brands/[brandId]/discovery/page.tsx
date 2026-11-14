@@ -9,6 +9,7 @@ import type { BrandDetail, ScanDetail } from '../../../../../../lib/brand-types'
 import { getApiError, isPermissionDenied } from '../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
 import { BrandPipelineOutcome } from '../../../../../../components/brand/brand-pipeline-outcome';
+import { ScanContentOutlook } from '../../../../../../components/brand/scan-content-outlook';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../lib/use-locale';
 
@@ -105,6 +106,7 @@ export default function DiscoveryHubPage() {
             </Link>
           </div>
 
+          {scan ? <ScanContentOutlook brandId={brandId} brand={brand} scan={scan} /> : null}
           <BrandPipelineOutcome brandId={brandId} brand={brand} scan={scan} />
         </>
       )}

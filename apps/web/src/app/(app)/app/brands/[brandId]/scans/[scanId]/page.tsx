@@ -22,6 +22,7 @@ import { PermissionDenied } from '../../../../../../../components/shell/permissi
 import { StatusChip } from '../../../../../../../components/ui/status-chip';
 import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
 import { BrandPipelineOutcome } from '../../../../../../../components/brand/brand-pipeline-outcome';
+import { ScanContentOutlook } from '../../../../../../../components/brand/scan-content-outlook';
 import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -51,6 +52,9 @@ export default function ScanDetailPage() {
   const [denied, setDenied] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [platformAiAvailability, setPlatformAiAvailability] = useState<
+    'AVAILABLE' | 'NOT_CONFIGURED' | 'BUDGET_EXHAUSTED' | null
+  >(null);
   const liveRef = useRef<HTMLDivElement>(null);
   const lastAnnounced = useRef('');
 
@@ -69,6 +73,14 @@ export default function ScanDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [brandId, loadScan]);
+
+  useEffect(() => {
+    void api<{ data?: { availability?: 'AVAILABLE' | 'NOT_CONFIGURED' | 'BUDGET_EXHAUSTED' } }>(
+      '/api/v1/ai/status',
+    )
+      .then((res) => setPlatformAiAvailability(res.data?.availability ?? 'NOT_CONFIGURED'))
+      .catch(() => setPlatformAiAvailability('NOT_CONFIGURED'));
+  }, []);
 
   useEffect(() => {
     if (
@@ -95,6 +107,23 @@ export default function ScanDetailPage() {
     }
   }, [scan, t]);
 
+  async function handleAnalyze() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      await apiMutate(`/api/v1/brands/${brandId}/scans/${scanId}/analyze`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+        idempotencyKey: newIdempotencyKey('brand:scan-analyze'),
+      });
+      await loadScan();
+    } catch (err) {
+      setActionError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleCancel() {
     setBusy(true);
     setActionError(null);
@@ -110,26 +139,6 @@ export default function ScanDetailPage() {
     } catch (err) {
       setActionError(getApiError(err).message);
       await loadScan().catch(() => undefined);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleAnalyze() {
-    setBusy(true);
-    setActionError(null);
-    try {
-      const res = await apiMutate<{ data: ScanDetail }>(
-        `/api/v1/brands/${brandId}/scans/${scanId}/analyze`,
-        {
-          method: 'POST',
-          body: JSON.stringify({}),
-          idempotencyKey: newIdempotencyKey('brand:scan-analyze'),
-        },
-      );
-      setScan({ ...scan!, ...res.data });
-    } catch (err) {
-      setActionError(getApiError(err).message);
     } finally {
       setBusy(false);
     }
@@ -171,6 +180,12 @@ export default function ScanDetailPage() {
   const canRetry = ['FAILED', 'PARTIAL', 'CANCELLED'].includes(scan.status);
   const inProgress = !TERMINAL.has(scan.status);
   const activePhase = phaseIndex(scan.status);
+  const scanComplete = TERMINAL.has(scan.status) && scan.status !== 'CANCELLED';
+  const canRequestAnalysis =
+    scanComplete &&
+    scan.analysis_status !== 'QUEUED' &&
+    scan.analysis_status !== 'ANALYZING' &&
+    scan.analysis_status !== 'ANALYZED';
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name} scanStatus={scan.status}>
@@ -178,6 +193,10 @@ export default function ScanDetailPage() {
         aiAvailability={scan.ai_availability}
         analysisStatus={scan.analysis_status}
         analysisErrorCode={scan.analysis_error_code}
+        platformAvailability={platformAiAvailability}
+        canRequestAnalysis={canRequestAnalysis}
+        onRequestAnalysis={canRequestAnalysis ? () => void handleAnalyze() : undefined}
+        requestBusy={busy}
       />
 
       <ConnectorModeBanner mode={scan.connector_mode} />
@@ -205,6 +224,8 @@ export default function ScanDetailPage() {
       ) : null}
 
       <ScanOutcomePanel scan={scan} />
+
+      <ScanContentOutlook brandId={brandId} brand={brand} scan={scan} />
 
       <CoverageDisclosure coverage={scan.coverage} scanStatus={scan.status} />
 

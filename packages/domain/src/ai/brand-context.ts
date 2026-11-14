@@ -1,3 +1,4 @@
+import { catalogOfferingsFromProfileSections } from '../brand/catalog-offerings';
 import { estimateTokens } from './pricing';
 
 export const DEFAULT_BRAND_CONTEXT_TOKEN_BUDGET = 1200;
@@ -178,8 +179,18 @@ export function buildBrandContext(input: BrandContextSource): BrandContext {
     toneOfVoice: readString(sections.tone) || readString(overview.tone),
     audiences: readString(sections.audiences),
     messaging: readString(sections.messaging),
-    products: readString(catalog.products),
-    services: readString(catalog.services),
+    products:
+      readString(catalog.products) ||
+      catalogOfferingsFromProfileSections(sections)
+        .filter((item) => item.kind === 'product')
+        .map((item) => item.name)
+        .join('; '),
+    services:
+      readString(catalog.services) ||
+      catalogOfferingsFromProfileSections(sections)
+        .filter((item) => item.kind === 'service')
+        .map((item) => item.name)
+        .join('; '),
     languages: detectLanguages(sections.languages ?? overview.languages),
     visualIdentity: {
       colors: [...new Set(colors)].slice(0, 12),

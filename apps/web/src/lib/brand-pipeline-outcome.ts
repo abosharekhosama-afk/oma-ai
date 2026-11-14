@@ -18,7 +18,10 @@ export function buildBrandPipelineStages(
     scan && (scan.status === 'SUCCEEDED' || scan.status === 'PARTIAL' || scan.status === 'FAILED');
   const summary = scan?.discovery_summary;
   const profileId = scan?.profile_version_id ?? brand.latest_profile_version_id ?? null;
-  const analysisOk = scan?.analysis_status === 'ANALYZED' || scan?.analysis_status === 'SKIPPED';
+  const analysisDone = scan?.analysis_status === 'ANALYZED';
+  const analysisActive =
+    scan?.analysis_status === 'QUEUED' || scan?.analysis_status === 'ANALYZING';
+  const analysisOk = analysisDone || scan?.analysis_status === 'SKIPPED';
   const profileApproved = Boolean(brand.current_approved_profile_version_id);
   const strategyReady = Boolean(brand.current_approved_strategy_id);
 
@@ -55,19 +58,38 @@ export function buildBrandPipelineStages(
       state: scanDone ? (profileApproved ? 'done' : 'current') : 'todo',
     },
     {
+      id: 'intelligence',
+      label: t('brand.pipeline.intelligence'),
+      detail: analysisDone
+        ? t('brand.pipeline.intelligenceDone')
+        : analysisActive
+          ? t('brand.pipeline.intelligenceRunning')
+          : scanDone
+            ? t('brand.pipeline.intelligenceTodo')
+            : t('brand.pipeline.intelligenceBlocked'),
+      href: profileId
+        ? `/app/brands/${brandId}/profiles/${profileId}`
+        : scan
+          ? `/app/brands/${brandId}/scans/${scan.id}`
+          : `/app/brands/${brandId}/scans/new`,
+      state: !scanDone ? 'blocked' : analysisDone ? 'done' : scanDone ? 'current' : 'todo',
+    },
+    {
       id: 'profile',
       label: t('brand.pipeline.profile'),
       detail: profileApproved
         ? t('brand.pipeline.profileApproved')
-        : analysisOk
+        : analysisDone
           ? t('brand.pipeline.profileReview')
           : profileId
-            ? t('brand.pipeline.profileDraft')
+            ? analysisOk
+              ? t('brand.pipeline.profileDraft')
+              : t('brand.pipeline.profileAwaitAnalysis')
             : t('brand.pipeline.profileTodo'),
       href: profileId
         ? `/app/brands/${brandId}/profiles/${profileId}`
         : `/app/brands/${brandId}/profiles`,
-      state: profileApproved ? 'done' : scanDone ? 'current' : 'todo',
+      state: profileApproved ? 'done' : analysisDone ? 'current' : scanDone ? 'todo' : 'blocked',
     },
     {
       id: 'strategy',
@@ -82,12 +104,27 @@ export function buildBrandPipelineStages(
         : `/app/brands/${brandId}/strategies/new`,
       state: strategyReady ? 'done' : profileApproved ? 'current' : 'blocked',
     },
+    {
+      id: 'production',
+      label: t('brand.pipeline.production'),
+      detail: strategyReady
+        ? summary && (summary.products > 0 || summary.services > 0)
+          ? t('brand.pipeline.productionCatalog')
+              .replace('{products}', String(summary.products))
+              .replace('{services}', String(summary.services))
+          : t('brand.pipeline.productionReady')
+        : t('brand.pipeline.productionBlocked'),
+      href: brand.current_approved_strategy_id
+        ? `/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}/review`
+        : `/app/brands/${brandId}/strategies/new`,
+      state: strategyReady ? 'current' : 'blocked',
+    },
   ];
 }
 
 export function pipelineEndGoal(t: (key: string) => string, brand: BrandDetail): string {
   if (brand.current_approved_strategy_id) {
-    return t('brand.pipeline.endGoalStrategyReady');
+    return t('brand.pipeline.endGoalProduction');
   }
   if (brand.current_approved_profile_version_id) {
     return t('brand.pipeline.endGoalBuildStrategy');
