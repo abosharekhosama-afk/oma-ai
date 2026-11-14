@@ -72,7 +72,9 @@ test.describe('P2 Planable brand and strategy surfaces', () => {
     await page.goto(`/app/brands/${brandId}`);
     await expect(brandNav).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('brand-nav-evidence').click();
-    await expect(page).toHaveURL(new RegExp(`/app/brands/${brandId}/evidence`), { timeout: 15_000 });
+    await expect(page).toHaveURL(new RegExp(`/app/brands/${brandId}/evidence`), {
+      timeout: 15_000,
+    });
     await Promise.all([
       page.waitForURL(new RegExp(`/app/brands/${brandId}/connect`), { timeout: 15_000 }),
       page

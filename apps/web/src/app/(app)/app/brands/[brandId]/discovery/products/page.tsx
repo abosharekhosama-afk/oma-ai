@@ -168,12 +168,12 @@ export default function DiscoveryProductsPage() {
               })();
             }}
           />
-          <ul className="oma-discovery-list">
+          <ul className="oma-plx-brand-data-grid" data-testid="discovery-products-cards">
             {products.map((product) => {
               const linked =
                 product.source_page_id != null ? evidenceByPage[product.source_page_id] : undefined;
               return (
-                <li key={product.id} className="oma-discovery-item">
+                <li key={product.id} className="oma-plx-listening-card oma-plx-brand-catalog-card">
                   <div>
                     <strong>{product.name}</strong>
                     <span className="oma-badge oma-badge-muted">{product.kind}</span>

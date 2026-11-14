@@ -35,7 +35,10 @@ test.describe('brand intelligence discoverability', () => {
 
     await page.getByTestId('brand-nav-strategy').click();
     await expect(page).toHaveURL(`/app/brands/${brandId}/intelligence`);
-    await page.getByTestId('brand-subnav').getByRole('link', { name: 'Profiles', exact: true }).click();
+    await page
+      .getByTestId('brand-subnav')
+      .getByRole('link', { name: 'Profiles', exact: true })
+      .click();
     await expect(page).toHaveURL(`/app/brands/${brandId}/profiles`);
     await expect(page.getByRole('heading', { name: 'Brand intelligence versions' })).toBeVisible();
 

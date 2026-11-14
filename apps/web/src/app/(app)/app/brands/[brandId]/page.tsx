@@ -212,24 +212,27 @@ export default function BrandDetailPage() {
                 {t('brand.scan.historyEmpty')}
               </p>
             ) : (
-              <ul className="oma-dense-list">
+              <ul className="oma-plx-brand-data-grid">
                 {scanHistory.map((item) => (
                   <li key={item.id}>
-                    <Link href={`/app/brands/${brandId}/scans/${item.id}`} className="oma-work-row">
-                      <div>
-                        <strong>
-                          {item.progress_percent}% · {statusLabel(t, item.status)}
-                        </strong>
-                        <div className="oma-work-row-meta">
-                          <StatusChip status={item.status} />
-                          {item.started_at ? (
-                            <time dateTime={item.started_at} suppressHydrationWarning>
-                              {new Date(item.started_at).toLocaleString()}
-                            </time>
-                          ) : null}
-                        </div>
+                    <Link
+                      href={`/app/brands/${brandId}/scans/${item.id}`}
+                      className="oma-plx-listening-card oma-plx-brand-catalog-card"
+                    >
+                      <strong>
+                        {item.progress_percent}% · {statusLabel(t, item.status)}
+                      </strong>
+                      <div className="oma-work-row-meta">
+                        <StatusChip status={item.status} />
+                        {item.started_at ? (
+                          <time dateTime={item.started_at} suppressHydrationWarning>
+                            {new Date(item.started_at).toLocaleString()}
+                          </time>
+                        ) : null}
                       </div>
-                      <span className="oma-work-row-cta">{t('brand.scan.historyOpen')}</span>
+                      <span className="oma-plx-brand-hub-card__foot">
+                        {t('brand.scan.historyOpen')}
+                      </span>
                     </Link>
                   </li>
                 ))}
