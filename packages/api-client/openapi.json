@@ -1087,6 +1087,20 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/scans/{scanId}/catalog/reimport-media": {
+      "post": {
+        "operationId": "DiscoveryController_reimportCatalogMedia",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/scans/{scanId}/evidence": {
       "get": {
         "operationId": "DiscoveryController_evidenceList",
@@ -1112,6 +1126,48 @@
         },
         "tags": [
           "Discovery"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/catalog/products/{productId}/media": {
+      "get": {
+        "operationId": "CatalogController_listMedia",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/catalog/products/{productId}/generate": {
+      "post": {
+        "operationId": "CatalogController_generate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/catalog/media/{linkId}/review": {
+      "post": {
+        "operationId": "CatalogController_reviewMedia",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
         ]
       }
     },
