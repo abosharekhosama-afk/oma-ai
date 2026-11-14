@@ -398,11 +398,29 @@ export default function AdminBillingClient() {
                   setWorkspaceStatusFilter(e.target.value as (typeof WORKSPACE_STATUSES)[number])
                 }
               >
-                <option value="all">{isAr ? 'كل الحالات' : 'All statuses'}</option>
-                <option value="active">{isAr ? 'نشط' : 'Active'}</option>
-                <option value="trialing">{isAr ? 'تجريبي' : 'Trialing'}</option>
-                <option value="past_due">{isAr ? 'متأخر الدفع' : 'Past due'}</option>
-                <option value="canceled">{isAr ? 'ملغى' : 'Canceled'}</option>
+                {WORKSPACE_STATUSES.map((value) => (
+                  <option key={value} value={value}>
+                    {value === 'all'
+                      ? isAr
+                        ? 'كل الحالات'
+                        : 'All statuses'
+                      : value === 'active'
+                        ? isAr
+                          ? 'نشط'
+                          : 'Active'
+                        : value === 'trialing'
+                          ? isAr
+                            ? 'تجريبي'
+                            : 'Trialing'
+                          : value === 'past_due'
+                            ? isAr
+                              ? 'متأخر الدفع'
+                              : 'Past due'
+                            : isAr
+                              ? 'ملغى'
+                              : 'Canceled'}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="oma-billing__field">
