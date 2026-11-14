@@ -17,7 +17,9 @@ type Props = {
 };
 
 function isUsableForPreview(m: CatalogProductMedia) {
-  return m.review_status !== 'REJECTED' && (m.review_status === 'APPROVED' || m.role.startsWith('SCAN_'));
+  return (
+    m.review_status !== 'REJECTED' && (m.review_status === 'APPROVED' || m.role.startsWith('SCAN_'))
+  );
 }
 
 export function CatalogProductActions({ brandId, product, profileApproved, onUpdated }: Props) {
@@ -112,7 +114,9 @@ export function CatalogProductActions({ brandId, product, profileApproved, onUpd
         <ul className="oma-catalog-product-media__pending" data-testid="catalog-pending-review">
           {pendingGenerated.map((m) => (
             <li key={m.id} className="oma-stack" style={{ marginTop: 8 }}>
-              <span className="oma-badge oma-badge-warning">{t('brand.catalog.pendingReview')}</span>
+              <span className="oma-badge oma-badge-warning">
+                {t('brand.catalog.pendingReview')}
+              </span>
               {m.mime.startsWith('video/') ? (
                 <video
                   src={m.stream_url ?? m.view_url}
@@ -121,7 +125,12 @@ export function CatalogProductActions({ brandId, product, profileApproved, onUpd
                   className="oma-catalog-product-media__thumb"
                 />
               ) : (
-                <img src={m.view_url} alt="" className="oma-catalog-product-media__thumb" loading="lazy" />
+                <img
+                  src={m.view_url}
+                  alt=""
+                  className="oma-catalog-product-media__thumb"
+                  loading="lazy"
+                />
               )}
               <div className="oma-form-actions">
                 <Button type="primary" disabled={busy} onClick={() => void review(m.id, 'approve')}>
