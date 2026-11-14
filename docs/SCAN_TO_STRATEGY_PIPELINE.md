@@ -24,7 +24,8 @@
 | AI strategy propose API                   | Implemented (`oma.strategy_propose` prompt)                                     |
 | AI strategy assistant UI                  | Overview, foundation, organic, paid, review                                     |
 | Discovery → profile catalog merge         | Discovery products UI, merge API, bulk accept catalog insights                  |
-| Live AI                                   | Needs `AI_LIVE_ENABLED` + provider key on **API**; brand analysis on **Worker** |
+| Live AI                                   | **API + Worker** must share live flags/keys; UI polls `/api/v1/ai/status` and offers **Re-run analysis** when auto-enqueue skipped |
+| Pipeline chrome                           | Scan page + profile show intelligence stage; `STRATEGY_AI_MODE` surfaced on strategy assistant |
 
 ## Operations checklist (Brp / production demo)
 

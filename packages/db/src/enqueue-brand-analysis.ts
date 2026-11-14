@@ -34,12 +34,15 @@ export async function enqueueBrandAnalysis(input: {
       data: {
         analysisStatus: 'SKIPPED',
         aiAvailability: 'NOT_CONFIGURED',
-        analysisErrorCode: null,
+        analysisErrorCode: 'AI_NOT_CONFIGURED',
       },
     });
     await getPrisma().profileVersion.updateMany({
       where: { id: input.profileVersionId, tenantId: input.tenantId },
-      data: { analysisStatus: 'SKIPPED', aiAvailability: 'NOT_CONFIGURED' },
+      data: {
+        analysisStatus: 'SKIPPED',
+        aiAvailability: 'NOT_CONFIGURED',
+      },
     });
     return { queued: false, reason: 'NOT_CONFIGURED' };
   }
@@ -85,11 +88,15 @@ export async function enqueueBrandAnalysis(input: {
     });
     await tx.scanAttempt.updateMany({
       where: { id: input.scanAttemptId, tenantId: input.tenantId },
-      data: { analysisStatus: 'QUEUED', analysisErrorCode: null },
+      data: {
+        analysisStatus: 'QUEUED',
+        aiAvailability: 'SKIPPED',
+        analysisErrorCode: null,
+      },
     });
     await tx.profileVersion.updateMany({
       where: { id: input.profileVersionId, tenantId: input.tenantId },
-      data: { analysisStatus: 'QUEUED' },
+      data: { analysisStatus: 'QUEUED', aiAvailability: 'SKIPPED' },
     });
     await writeOutbox(tx, {
       tenantId: input.tenantId,

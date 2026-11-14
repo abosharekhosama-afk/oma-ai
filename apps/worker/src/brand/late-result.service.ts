@@ -1,5 +1,5 @@
 import { getPrisma } from '@oma/db';
-import { shouldCreateLateDraft } from '@oma/domain';
+import { brandAiAvailabilityAfterScanComplete, shouldCreateLateDraft } from '@oma/domain';
 import { createProfileDraftFromScan } from './profile-draft.service';
 
 export async function handleLateScanResult(input: {
@@ -28,7 +28,7 @@ export async function handleLateScanResult(input: {
     tenantId: input.tenantId,
     brandId: input.brandId,
     scanAttemptId: input.scanAttemptId,
-    aiAvailability: 'NOT_CONFIGURED',
+    aiAvailability: brandAiAvailabilityAfterScanComplete(),
     coverageSnapshot: input.coverageSnapshot,
   });
 

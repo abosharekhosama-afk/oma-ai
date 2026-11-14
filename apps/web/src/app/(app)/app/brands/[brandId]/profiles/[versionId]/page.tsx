@@ -51,6 +51,9 @@ export default function ProfileEditorPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [pendingEdits, setPendingEdits] = useState<Record<string, string>>({});
+  const [platformAiAvailability, setPlatformAiAvailability] = useState<
+    'AVAILABLE' | 'NOT_CONFIGURED' | 'BUDGET_EXHAUSTED' | null
+  >(null);
 
   const loadProfile = useCallback(async () => {
     const res = await api<{ data: ProfileDetail }>(
@@ -78,6 +81,14 @@ export default function ProfileEditorPage() {
       })
       .finally(() => setLoading(false));
   }, [brandId, loadProfile]);
+
+  useEffect(() => {
+    void api<{ data?: { availability?: 'AVAILABLE' | 'NOT_CONFIGURED' | 'BUDGET_EXHAUSTED' } }>(
+      '/api/v1/ai/status',
+    )
+      .then((res) => setPlatformAiAvailability(res.data?.availability ?? 'NOT_CONFIGURED'))
+      .catch(() => setPlatformAiAvailability('NOT_CONFIGURED'));
+  }, []);
 
   const editable = profile?.status === 'DRAFT' || profile?.status === 'NEEDS_REVIEW';
 
@@ -292,6 +303,17 @@ export default function ProfileEditorPage() {
       <AiUnavailableBanner
         aiAvailability={profile.ai_availability}
         analysisStatus={profile.analysis_status}
+        analysisErrorCode={linkedScan?.analysis_error_code}
+        platformAvailability={platformAiAvailability}
+        canRequestAnalysis={
+          editable &&
+          Boolean(profile.scan_attempt_id) &&
+          profile.analysis_status !== 'QUEUED' &&
+          profile.analysis_status !== 'ANALYZING' &&
+          profile.analysis_status !== 'ANALYZED'
+        }
+        onRequestAnalysis={profile.scan_attempt_id ? () => void handleAnalyze() : undefined}
+        requestBusy={busy}
       />
 
       {profile.status === 'APPROVED' || profile.status === 'SUPERSEDED' ? (

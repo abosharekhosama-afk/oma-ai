@@ -33,6 +33,7 @@ export * from './ai/status';
 export * from './ai/test-adapter';
 export * from './ai/ledger';
 export * from './ai/availability';
+export * from './ai/ingestion-state';
 export * from './ai/pricing';
 export * from './ai/apply-proposal';
 export * from './ai/generation';

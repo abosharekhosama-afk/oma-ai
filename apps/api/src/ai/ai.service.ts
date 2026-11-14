@@ -19,6 +19,7 @@ import {
   routeModel,
   settleReservation,
   snapshotLedger,
+  strategyAiMode,
   testAdapterAllowed,
   validateProposal,
   type AiUseCase,
@@ -75,6 +76,7 @@ export function aiStatus() {
         }),
     manual_journey: !live && !testAdapter,
     banner: 'AI GENERATED PROPOSAL — REQUIRES HUMAN REVIEW',
+    strategy_ai_mode: strategyAiMode(),
   };
 }
 
