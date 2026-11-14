@@ -41,6 +41,8 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/media/upload-complete': ['brand.read'],
   'GET /api/v1/brands/:brandId/catalog/products/:productId/media': ['brand.read'],
   'POST /api/v1/brands/:brandId/catalog/products/:productId/generate': ['brand.read'],
+  'POST /api/v1/brands/:brandId/catalog/media/:linkId/review': ['brand.read'],
+  'POST /api/v1/brands/:brandId/scans/:scanId/catalog/reimport-media': ['brand.read'],
   'GET /api/v1/brands/:brandId/media/browse': ['brand.read'],
   'POST /api/v1/brands/:brandId/media/folders': ['brand.read'],
   'GET /api/v1/brands/:brandId/media/file-preview': ['brand.read'],
@@ -368,6 +370,14 @@ export function matchRequirements(method: string, path: string): string[] | null
     .replace(
       /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/evidence/,
       '/api/v1/brands/:brandId/scans/:scanId/evidence',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/catalog\/reimport-media/,
+      '/api/v1/brands/:brandId/scans/:scanId/catalog/reimport-media',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/catalog\/media\/[^/]+\/review/,
+      '/api/v1/brands/:brandId/catalog/media/:linkId/review',
     )
     .replace(/\/api\/v1\/brands\/[^/]+\/scans\/[^/]+/, '/api/v1/brands/:brandId/scans/:scanId')
     .replace(/\/api\/v1\/brands\/[^/]+\/scans/, '/api/v1/brands/:brandId/scans')

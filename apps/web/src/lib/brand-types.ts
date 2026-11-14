@@ -106,6 +106,7 @@ export type DiscoveredPage = {
 export type CatalogProductMedia = {
   id: string;
   role: string;
+  review_status: string;
   source_url: string | null;
   sort_order: number;
   mime: string;

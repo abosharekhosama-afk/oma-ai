@@ -1,5 +1,6 @@
 import { parse as parseHtml } from 'node-html-parser';
 import { isCatalogLikePath } from './crawl-seeds';
+import type { ExtractedProduct } from './extractors';
 
 export type JsRenderMode = 'off' | 'auto' | 'always';
 
@@ -45,14 +46,21 @@ export function shouldUseJsRender(input: {
   return false;
 }
 
+export function productMediaUrlCount(products: ExtractedProduct[]): number {
+  return products.reduce((n, p) => n + (p.media?.length ?? 0), 0);
+}
+
 export function renderedExtractImprovesStatic(input: {
   staticProductCount: number;
   staticKnownFieldCount: number;
+  staticProductMediaCount: number;
   renderedProductCount: number;
   renderedKnownFieldCount: number;
+  renderedProductMediaCount: number;
 }): boolean {
   return (
     input.renderedProductCount > input.staticProductCount ||
+    input.renderedProductMediaCount > input.staticProductMediaCount ||
     input.renderedKnownFieldCount > input.staticKnownFieldCount
   );
 }
@@ -61,14 +69,18 @@ export function shouldAdoptRenderedExtraction(
   mode: JsRenderMode,
   staticProductCount: number,
   staticKnownFieldCount: number,
+  staticProductMediaCount: number,
   renderedProductCount: number,
   renderedKnownFieldCount: number,
+  renderedProductMediaCount: number,
 ): boolean {
   if (mode === 'always') return true;
   return renderedExtractImprovesStatic({
     staticProductCount,
     staticKnownFieldCount,
+    staticProductMediaCount,
     renderedProductCount,
     renderedKnownFieldCount,
+    renderedProductMediaCount,
   });
 }

@@ -38,7 +38,8 @@ describe('js-render-heuristic', () => {
   });
 
   it('always mode adopts render even without product delta', () => {
-    expect(shouldAdoptRenderedExtraction('always', 0, 2, 0, 2)).toBe(true);
-    expect(shouldAdoptRenderedExtraction('auto', 0, 2, 0, 2)).toBe(false);
+    expect(shouldAdoptRenderedExtraction('always', 0, 2, 0, 0, 2, 0)).toBe(true);
+    expect(shouldAdoptRenderedExtraction('auto', 0, 2, 0, 0, 2, 0)).toBe(false);
+    expect(shouldAdoptRenderedExtraction('auto', 1, 2, 0, 1, 2, 3)).toBe(true);
   });
 });

@@ -46,6 +46,15 @@ export default function DiscoveryProductsPage() {
   const [evidenceByPage, setEvidenceByPage] = useState<Record<string, string>>({});
   const [spaLikely, setSpaLikely] = useState(false);
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
+  const [reimportBusy, setReimportBusy] = useState(false);
+  const [reimportMessage, setReimportMessage] = useState<string | null>(null);
+
+  async function reloadProducts(activeScanId: string) {
+    const productsRes = await api<Paginated<DiscoveredProduct>>(
+      `/api/v1/brands/${brandId}/scans/${activeScanId}/products?limit=100`,
+    );
+    setProducts(productsRes.data);
+  }
 
   useEffect(() => {
     async function load() {
@@ -124,6 +133,33 @@ export default function DiscoveryProductsPage() {
             <ConnectorModeChip mode={connectorMode} />
             {scanId ? (
               <>
+                <Button
+                  type="default"
+                  disabled={reimportBusy}
+                  data-testid="catalog-reimport-media"
+                  onClick={() => {
+                    void (async () => {
+                      setReimportBusy(true);
+                      setReimportMessage(null);
+                      try {
+                        await api(
+                          `/api/v1/brands/${brandId}/scans/${scanId}/catalog/reimport-media`,
+                          { method: 'POST' },
+                        );
+                        setReimportMessage(t('brand.catalog.reimportQueued'));
+                        window.setTimeout(() => {
+                          void reloadProducts(scanId);
+                        }, 12000);
+                      } catch (err) {
+                        setError(getApiError(err).message);
+                      } finally {
+                        setReimportBusy(false);
+                      }
+                    })();
+                  }}
+                >
+                  {t('brand.catalog.reimportMedia')}
+                </Button>
                 <Link href={`/app/brands/${brandId}/discovery`}>
                   {t('brand.discovery.hubTitle')}
                 </Link>
@@ -136,6 +172,11 @@ export default function DiscoveryProductsPage() {
         }
       />
 
+      {reimportMessage ? (
+        <p className="oma-muted" role="status" data-testid="catalog-reimport-status">
+          {reimportMessage}
+        </p>
+      ) : null}
       {!scanId ? (
         <div className="oma-card" role="status">
           <p>{t('brand.discovery.noScan')}</p>
@@ -210,13 +251,7 @@ export default function DiscoveryProductsPage() {
                     product={product}
                     profileApproved={Boolean(brand.current_approved_profile_version_id)}
                     onUpdated={() => {
-                      void (async () => {
-                        if (!scanId) return;
-                        const productsRes = await api<Paginated<DiscoveredProduct>>(
-                          `/api/v1/brands/${brandId}/scans/${scanId}/products?limit=100`,
-                        );
-                        setProducts(productsRes.data);
-                      })();
+                      if (scanId) void reloadProducts(scanId);
                     }}
                   />
                   <div className="oma-form-actions">

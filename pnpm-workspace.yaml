@@ -22,5 +22,6 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - argon2
   - esbuild
+  - ffmpeg-static
   - msgpackr-extract
   - prisma

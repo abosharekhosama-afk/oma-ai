@@ -106,9 +106,12 @@ export function buildPlanWorkRequestDrafts(input: {
     const formats = input.organic?.formats?.map(readLabel).filter(Boolean) ?? ['Post', 'Story'];
     for (const product of catalogProducts.slice(0, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS)) {
       const focus = product.category ? `${product.name} (${product.category})` : product.name;
+      const mediaNote = product.primary_media_view_url
+        ? ` Use approved catalog product media in WorkDrive as the visual anchor.`
+        : '';
       const desc =
-        product.description?.trim() ||
-        `Organic content anchored on scanned catalog product “${product.name}”.`;
+        (product.description?.trim() ||
+          `Organic content anchored on scanned catalog product “${product.name}”.`) + mediaNote;
       out.push({
         plan_source_key: `organic:catalog:product:${product.slug}`,
         track: 'organic',
@@ -150,12 +153,16 @@ export function buildPlanWorkRequestDrafts(input: {
     const formats = (input.paid.formats ?? []).map(readLabel).filter(Boolean);
     const offer = input.paid.offer_angle?.trim() || primaryMessage;
     for (const product of catalogProducts.slice(0, DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS)) {
+      const paidMediaNote = product.primary_media_view_url
+        ? ' Feature approved catalog product creative (image or video) from the brand scan.'
+        : '';
       out.push({
         plan_source_key: `paid:catalog:product:${product.slug}`,
         track: 'paid',
         title: pair(`${input.strategyName} — Paid: ${product.name}`),
         description: pair(
-          product.description?.trim() || `Paid promotion for catalog product ${product.name}.`,
+          (product.description?.trim() || `Paid promotion for catalog product ${product.name}.`) +
+            paidMediaNote,
         ),
         channels: [],
         formats,

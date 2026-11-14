@@ -18,6 +18,7 @@ export default tseslint.config(
       'scripts/capture-*.mjs',
       'scripts/verify-sidebar-footer.mjs',
       'scripts/r2-r6-capture.cjs',
+      'apps/web/mocked-google-fonts.cjs',
       'scripts/reference/measure-planable-ui-ux.mjs',
       'scripts/reference/measure-planable-components.mjs',
       'scripts/ui/inventory-visual-primitives.mjs',

@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
+import { CsrfGuard } from '../common/guards/csrf.guard';
 import { DomainError } from '@oma/domain';
-import { discoveryService, evidenceService } from '../container';
+import { catalogService, discoveryService, evidenceService } from '../container';
 
 @Controller('api/v1/brands/:brandId')
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -42,6 +43,17 @@ export class DiscoveryController {
       limit: limit ? Number(limit) : undefined,
       kind,
     });
+  }
+
+  @Post('scans/:scanId/catalog/reimport-media')
+  @UseGuards(CsrfGuard)
+  async reimportCatalogMedia(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('scanId') scanId: string,
+  ) {
+    this.requireTenant(req);
+    return catalogService.reimportScanMedia(req.oma!.tenantId!, brandId, scanId);
   }
 
   @Get('scans/:scanId/evidence')

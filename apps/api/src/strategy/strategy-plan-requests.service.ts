@@ -12,6 +12,7 @@ import {
   type CatalogOffering,
   type PlanWorkRequestDraft,
 } from '@oma/domain';
+import { enrichCatalogOfferingsWithApprovedMedia } from '../catalog/catalog.service';
 import { AuditService } from '../audit/audit.service';
 import { OpsService } from '../content/ops.service';
 import { parseOptionalDate } from '../content/content.service';
@@ -97,7 +98,8 @@ export class StrategyPlanRequestsService {
       where: { tenantId, scanAttemptId: latestScan.id },
       orderBy: { name: 'asc' },
     });
-    return catalogOfferingsFromDiscoveryRows(rows);
+    const offerings = catalogOfferingsFromDiscoveryRows(rows);
+    return enrichCatalogOfferingsWithApprovedMedia(tenantId, offerings);
   }
 
   private buildDrafts(
