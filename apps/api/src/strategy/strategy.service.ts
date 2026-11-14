@@ -2028,7 +2028,7 @@ export class StrategyService {
     const foundation = parseJson<Record<string, unknown>>(version.foundationJson, {});
     const goals = split(pick('foundation.goals'));
     if (goals.length && (!Array.isArray(foundation.goals) || foundation.goals.length === 0)) {
-      foundation.goals = goals;
+      foundation.goals = goals.map((value) => ({ value, infoClass: 'AI_PROPOSED' }));
     }
     const positioning = pick('foundation.positioning');
     const currentPos =
@@ -2043,14 +2043,20 @@ export class StrategyService {
       keyMessages.length &&
       (!Array.isArray(foundation.keyMessages) || foundation.keyMessages.length === 0)
     ) {
-      foundation.keyMessages = keyMessages;
+      foundation.keyMessages = keyMessages.map((value) => ({
+        value,
+        infoClass: 'AI_PROPOSED',
+      }));
     }
     const constraints = split(pick('foundation.constraints'));
     if (
       constraints.length &&
       (!Array.isArray(foundation.constraints) || foundation.constraints.length === 0)
     ) {
-      foundation.constraints = constraints;
+      foundation.constraints = constraints.map((value) => ({
+        value,
+        infoClass: 'AI_PROPOSED',
+      }));
     }
     foundation.ai_proposal_run_id = runId;
     foundation.ai_proposal_accepted = true;

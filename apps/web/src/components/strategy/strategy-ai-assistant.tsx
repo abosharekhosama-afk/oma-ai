@@ -82,8 +82,8 @@ export function StrategyAiAssistant({
       });
       setMessage(
         res.data?.used_approved_profile
-          ? t('strategy.ai.usedProfile')
-          : t('strategy.ai.noApprovedProfile'),
+          ? 'strategy.ai.usedProfile'
+          : 'strategy.ai.noApprovedProfile',
       );
     } catch (err) {
       setError(getApiError(err).message);
@@ -101,7 +101,7 @@ export function StrategyAiAssistant({
         `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/ai/propose/accept`,
         { method: 'POST', body: JSON.stringify({ run_id: proposal.run_id }) },
       );
-      setMessage(t('strategy.ai.accepted'));
+      setMessage('strategy.ai.accepted');
       setProposal(null);
       onApplied?.();
     } catch (err) {
@@ -120,7 +120,7 @@ export function StrategyAiAssistant({
         { method: 'POST', body: JSON.stringify({ run_id: proposal.run_id }) },
       );
       setProposal(null);
-      setMessage(t('strategy.ai.rejected'));
+      setMessage('strategy.ai.rejected');
     } catch (err) {
       setError(getApiError(err).message);
     } finally {
@@ -181,7 +181,36 @@ export function StrategyAiAssistant({
         </Button>
       )}
 
-      {message ? <p role="status">{message}</p> : null}
+      {message ? (
+        <div role="status" className="oma-stack">
+          <p>{message.startsWith('strategy.') ? t(message) : message}</p>
+          {message === 'strategy.ai.accepted' ? (
+            <div className="oma-banner oma-banner-info" data-testid="strategy-ai-next-steps">
+              <p>{t('strategy.ai.nextStepsAfterAccept')}</p>
+              <div className="oma-chip-row">
+                <Link
+                  href={`/app/brands/${brandId}/strategies/${strategyId}/edit`}
+                  className="oma-text-link"
+                >
+                  {t('strategy.nav.foundation')}
+                </Link>
+                <Link
+                  href={`/app/brands/${brandId}/strategies/${strategyId}/organic`}
+                  className="oma-text-link"
+                >
+                  {t('strategy.nav.organic')}
+                </Link>
+                <Link
+                  href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
+                  className="oma-text-link"
+                >
+                  {t('strategy.nav.review')}
+                </Link>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {error ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>
           {error}

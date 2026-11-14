@@ -8,7 +8,12 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../lib/brand-types';
-import type { StrategyDetail } from '../../../../../../../lib/strategy-types';
+import type {
+  StrategyDetail,
+  StrategyVersionDetail,
+} from '../../../../../../../lib/strategy-types';
+import { StrategyLinkProfilePanel } from '../../../../../../../components/strategy/strategy-link-profile-panel';
+import { StrategyDraftPreview } from '../../../../../../../components/strategy/strategy-draft-preview';
 import {
   getApiError,
   isPermissionDenied,
@@ -50,6 +55,7 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
+  const [versionDetail, setVersionDetail] = useState<StrategyVersionDetail | null>(null);
   const load = useCallback(async () => {
     try {
       const [brandRes, stratRes, currentRes] = await Promise.all([
@@ -60,6 +66,15 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
       setBrand(brandRes.data);
       setStrategy(stratRes.data);
       setBrandVersion(currentRes.data.brand_version);
+      const latestId = stratRes.data.latest_version?.id;
+      if (latestId) {
+        const ver = await api<{ data: StrategyVersionDetail }>(
+          `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${latestId}`,
+        );
+        setVersionDetail(ver.data);
+      } else {
+        setVersionDetail(null);
+      }
     } catch (err) {
       if (isTenantRequired(err)) setTenantRequired(true);
       else if (isPermissionDenied(err)) setDenied(true);
@@ -156,16 +171,21 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
 
       <StrategyOverviewSummary brandId={brandId} strategyId={strategyId} strategy={strategy} />
 
-      {latest?.missing_source ? (
-        <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
-          <p>{t('strategy.warning.missingProfile')}</p>
-          <OmaLinkButton
-            href={`/app/brands/${brandId}/strategies/${strategyId}/edit`}
-            type="primary"
-          >
-            {t('strategy.nav.foundation')}
-          </OmaLinkButton>
-        </div>
+      {latest ? (
+        <StrategyLinkProfilePanel
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={latest.id}
+          rowVersion={latest.row_version}
+          linkedProfileVersionId={latest.linked_approved_profile_version_id}
+          missingSource={latest.missing_source}
+          versionEditable={latest.status === 'DRAFT' || latest.status === 'IN_REVIEW'}
+          onLinked={() => void load()}
+        />
+      ) : null}
+
+      {versionDetail && latest && (latest.status === 'DRAFT' || latest.status === 'IN_REVIEW') ? (
+        <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={versionDetail} />
       ) : null}
 
       {latest?.status === 'APPROVED' && !latest.missing_source ? (

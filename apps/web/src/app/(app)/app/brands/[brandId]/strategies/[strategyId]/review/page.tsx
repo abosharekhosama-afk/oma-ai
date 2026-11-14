@@ -22,6 +22,8 @@ import { PermissionDenied } from '../../../../../../../../components/shell/permi
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyPlanRequestsPanel } from '../../../../../../../../components/strategy/strategy-plan-requests-panel';
+import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
+import { StrategyDraftPreview } from '../../../../../../../../components/strategy/strategy-draft-preview';
 
 export default function StrategyReviewPage() {
   const t = useT();
@@ -110,10 +112,18 @@ export default function StrategyReviewPage() {
           onApplied={() => void load()}
         />
       ) : null}
-      {version.missing_source ? (
-        <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
-          {t('strategy.warning.missingProfile')}
-        </div>
+      <StrategyLinkProfilePanel
+        brandId={brandId}
+        strategyId={strategyId}
+        versionId={version.id}
+        rowVersion={version.row_version}
+        linkedProfileVersionId={version.linked_approved_profile_version_id}
+        missingSource={version.missing_source}
+        versionEditable={version.status === 'DRAFT' || version.status === 'IN_REVIEW'}
+        onLinked={() => void load()}
+      />
+      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
+        <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={version} />
       ) : null}
       <label className="oma-panel">
         <CheckboxField

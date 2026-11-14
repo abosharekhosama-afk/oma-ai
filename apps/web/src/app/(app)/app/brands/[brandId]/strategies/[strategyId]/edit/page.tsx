@@ -19,6 +19,11 @@ import { PermissionDenied } from '../../../../../../../../components/shell/permi
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
+import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
+import {
+  readFoundationText,
+  textToFoundationGoals,
+} from '../../../../../../../../lib/strategy-foundation-format';
 
 export default function StrategyFoundationPage() {
   const t = useT();
@@ -46,10 +51,8 @@ export default function StrategyFoundationPage() {
       setBrand(brandRes.data);
       setVersion(ver.data);
       const f = ver.data.foundation ?? {};
-      const g = f.goals as Array<{ value?: string }> | undefined;
-      const p = f.positioning as { value?: string } | string | undefined;
-      setGoals(Array.isArray(g) ? (g[0]?.value ?? '') : '');
-      setPositioning(typeof p === 'string' ? p : (p?.value ?? ''));
+      setGoals(readFoundationText(f.goals));
+      setPositioning(readFoundationText(f.positioning));
     } catch (err) {
       if (isTenantRequired(err)) setTenantRequired(true);
       else if (isPermissionDenied(err)) setDenied(true);
@@ -75,7 +78,7 @@ export default function StrategyFoundationPage() {
             row_version: version.row_version,
             foundation: {
               ...version.foundation,
-              goals: [{ value: goals, infoClass: 'USER_AUTHORED' }],
+              goals: textToFoundationGoals(goals),
               positioning: { value: positioning, infoClass: 'USER_AUTHORED' },
             },
           }),
@@ -113,11 +116,16 @@ export default function StrategyFoundationPage() {
           onApplied={() => void load()}
         />
       ) : null}
-      {version.missing_source ? (
-        <p className="oma-muted" role="status">
-          {t('strategy.warning.missingProfile')}
-        </p>
-      ) : null}
+      <StrategyLinkProfilePanel
+        brandId={brandId}
+        strategyId={strategyId}
+        versionId={version.id}
+        rowVersion={version.row_version}
+        linkedProfileVersionId={version.linked_approved_profile_version_id}
+        missingSource={version.missing_source}
+        versionEditable={editable}
+        onLinked={() => void load()}
+      />
       {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
       <div className="oma-doc-canvas oma-editor-shell" data-testid="strategy-document-canvas">
         <nav className="oma-doc-outline" aria-label={t('strategy.foundation.title')}>

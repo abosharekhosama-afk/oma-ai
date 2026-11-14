@@ -189,7 +189,8 @@ describe('P2 Planable brand/strategy surfaces', () => {
       ),
       'utf8',
     );
-    expect(review).toContain('strategy-missing-profile');
+    expect(review).toContain('StrategyLinkProfilePanel');
+    expect(review).toContain('missingSource');
     expect(review).toContain('SubmitEligibility');
     expect(review).toContain('missingProfile');
   });

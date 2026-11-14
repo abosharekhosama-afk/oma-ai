@@ -55,10 +55,17 @@ describe('buildPlanWorkRequestDrafts', () => {
       paid: null,
       audiences: [{ name: 'Shoppers' }],
       catalogOfferings: [
-        { kind: 'product', slug: 'velvet-sofa', name: 'Velvet Sofa', description: 'Premium seating' },
+        {
+          kind: 'product',
+          slug: 'velvet-sofa',
+          name: 'Velvet Sofa',
+          description: 'Premium seating',
+        },
       ],
     });
-    const catalogDraft = drafts.find((d) => d.plan_source_key === 'organic:catalog:product:velvet-sofa');
+    const catalogDraft = drafts.find(
+      (d) => d.plan_source_key === 'organic:catalog:product:velvet-sofa',
+    );
     expect(catalogDraft?.brief.objective.en).toContain('Velvet Sofa');
     expect(catalogDraft?.channels).toEqual(['Instagram']);
   });
