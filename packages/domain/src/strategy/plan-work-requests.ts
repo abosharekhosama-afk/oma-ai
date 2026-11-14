@@ -1,3 +1,10 @@
+import {
+  DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS,
+  DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS,
+  DEFAULT_MAX_CATALOG_SERVICE_REQUESTS,
+  type CatalogOffering,
+} from '../brand/catalog-offerings';
+
 export type PlanWorkRequestDraft = {
   plan_source_key: string;
   track: 'organic' | 'paid';
@@ -46,6 +53,7 @@ export function buildPlanWorkRequestDrafts(input: {
     offer_angle?: string | null;
   } | null;
   audiences: Array<{ name: string; description?: string | null }>;
+  catalogOfferings?: CatalogOffering[];
 }): PlanWorkRequestDraft[] {
   const goals = Array.isArray(input.foundation.goals) ? input.foundation.goals : [];
   const keyMessages = Array.isArray(input.foundation.keyMessages)
@@ -82,6 +90,79 @@ export function buildPlanWorkRequestDrafts(input: {
           objective: pair(primaryGoal),
           audience: pair(audienceText),
           keyMessage: pair(pillar || primaryMessage),
+        },
+      });
+    }
+  }
+
+  const catalog = input.catalogOfferings ?? [];
+  const catalogProducts = catalog.filter((item) => item.kind === 'product');
+  const catalogServices = catalog.filter((item) => item.kind === 'service');
+
+  if (input.organicEnabled && catalog.length > 0) {
+    const channels =
+      input.organic?.channels?.map(readLabel).filter(Boolean) ??
+      (input.organic ? [] : ['Social', 'Web']);
+    const formats = input.organic?.formats?.map(readLabel).filter(Boolean) ?? ['Post', 'Story'];
+    for (const product of catalogProducts.slice(0, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS)) {
+      const focus = product.category ? `${product.name} (${product.category})` : product.name;
+      const desc =
+        product.description?.trim() ||
+        `Organic content anchored on scanned catalog product “${product.name}”.`;
+      out.push({
+        plan_source_key: `organic:catalog:product:${product.slug}`,
+        track: 'organic',
+        title: pair(`${input.strategyName} — Product: ${product.name}`),
+        description: pair(desc),
+        channels,
+        formats,
+        brief: {
+          objective: pair(`Spotlight catalog product: ${focus}`),
+          audience: pair(audienceText),
+          keyMessage: pair(
+            product.description?.trim() ||
+              `${primaryMessage} — feature ${product.name} with evidence-backed claims only.`,
+          ),
+        },
+      });
+    }
+    for (const service of catalogServices.slice(0, DEFAULT_MAX_CATALOG_SERVICE_REQUESTS)) {
+      const desc =
+        service.description?.trim() ||
+        `Organic content explaining scanned service “${service.name}”.`;
+      out.push({
+        plan_source_key: `organic:catalog:service:${service.slug}`,
+        track: 'organic',
+        title: pair(`${input.strategyName} — Service: ${service.name}`),
+        description: pair(desc),
+        channels,
+        formats,
+        brief: {
+          objective: pair(`Explain service offering: ${service.name}`),
+          audience: pair(audienceText),
+          keyMessage: pair(service.description?.trim() || `${primaryMessage} — ${service.name}`),
+        },
+      });
+    }
+  }
+
+  if (input.paidEnabled && input.paid && catalogProducts.length > 0) {
+    const formats = (input.paid.formats ?? []).map(readLabel).filter(Boolean);
+    const offer = input.paid.offer_angle?.trim() || primaryMessage;
+    for (const product of catalogProducts.slice(0, DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS)) {
+      out.push({
+        plan_source_key: `paid:catalog:product:${product.slug}`,
+        track: 'paid',
+        title: pair(`${input.strategyName} — Paid: ${product.name}`),
+        description: pair(
+          product.description?.trim() || `Paid promotion for catalog product ${product.name}.`,
+        ),
+        channels: [],
+        formats,
+        brief: {
+          objective: pair(`Drive conversions for ${product.name}`),
+          audience: pair(audienceText),
+          keyMessage: pair(offer),
         },
       });
     }

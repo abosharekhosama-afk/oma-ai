@@ -104,12 +104,27 @@ export function buildBrandPipelineStages(
         : `/app/brands/${brandId}/strategies/new`,
       state: strategyReady ? 'done' : profileApproved ? 'current' : 'blocked',
     },
+    {
+      id: 'production',
+      label: t('brand.pipeline.production'),
+      detail: strategyReady
+        ? summary && (summary.products > 0 || summary.services > 0)
+          ? t('brand.pipeline.productionCatalog')
+              .replace('{products}', String(summary.products))
+              .replace('{services}', String(summary.services))
+          : t('brand.pipeline.productionReady')
+        : t('brand.pipeline.productionBlocked'),
+      href: brand.current_approved_strategy_id
+        ? `/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}/review`
+        : `/app/brands/${brandId}/strategies/new`,
+      state: strategyReady ? 'current' : 'blocked',
+    },
   ];
 }
 
 export function pipelineEndGoal(t: (key: string) => string, brand: BrandDetail): string {
   if (brand.current_approved_strategy_id) {
-    return t('brand.pipeline.endGoalStrategyReady');
+    return t('brand.pipeline.endGoalProduction');
   }
   if (brand.current_approved_profile_version_id) {
     return t('brand.pipeline.endGoalBuildStrategy');

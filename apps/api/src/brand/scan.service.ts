@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { enqueueBrandAnalysis, getPrisma, tenantWhere, writeOutbox } from '@oma/db';
-import { DomainError, canRetryScan, isTerminalScanStatus, newId } from '@oma/domain';
+import {
+  DomainError,
+  canRetryScan,
+  catalogOfferingsFromDiscoveryRows,
+  estimateCatalogContentRequests,
+  isTerminalScanStatus,
+  newId,
+} from '@oma/domain';
 import { billingService } from '../billing/billing.service';
 import { AuditService } from '../audit/audit.service';
 import { BrandService } from './brand.service';
@@ -184,15 +191,21 @@ export class ScanService {
       where: tenantWhere(tenantId, { scanAttemptId: scanId }),
       orderBy: { createdAt: 'desc' },
     });
-    const [pagesDiscovered, productsDiscovered, servicesDiscovered] = await Promise.all([
-      getPrisma().discoveredPage.count({ where: tenantWhere(tenantId, { scanAttemptId: scanId }) }),
-      getPrisma().discoveredProductService.count({
-        where: tenantWhere(tenantId, { scanAttemptId: scanId, kind: 'PRODUCT' }),
-      }),
-      getPrisma().discoveredProductService.count({
-        where: tenantWhere(tenantId, { scanAttemptId: scanId, kind: 'SERVICE' }),
-      }),
-    ]);
+    const [pagesDiscovered, productsDiscovered, servicesDiscovered, catalogRows] =
+      await Promise.all([
+        getPrisma().discoveredPage.count({ where: tenantWhere(tenantId, { scanAttemptId: scanId }) }),
+        getPrisma().discoveredProductService.count({
+          where: tenantWhere(tenantId, { scanAttemptId: scanId, kind: 'PRODUCT' }),
+        }),
+        getPrisma().discoveredProductService.count({
+          where: tenantWhere(tenantId, { scanAttemptId: scanId, kind: 'SERVICE' }),
+        }),
+        getPrisma().discoveredProductService.findMany({
+          where: tenantWhere(tenantId, { scanAttemptId: scanId }),
+          orderBy: { name: 'asc' },
+        }),
+      ]);
+    const catalogOfferings = catalogOfferingsFromDiscoveryRows(catalogRows);
     return {
       data: {
         ...this.serializeScan(scan),
@@ -201,6 +214,25 @@ export class ScanService {
           pages: pagesDiscovered,
           products: productsDiscovered,
           services: servicesDiscovered,
+        },
+        content_outlook: {
+          catalog_items: catalogOfferings.length,
+          product_names: catalogOfferings
+            .filter((item) => item.kind === 'product')
+            .slice(0, 12)
+            .map((item) => item.name),
+          service_names: catalogOfferings
+            .filter((item) => item.kind === 'service')
+            .slice(0, 8)
+            .map((item) => item.name),
+          estimated_organic_requests: estimateCatalogContentRequests(catalogOfferings, {
+            organicEnabled: true,
+            paidEnabled: false,
+          }),
+          estimated_paid_requests: estimateCatalogContentRequests(catalogOfferings, {
+            organicEnabled: false,
+            paidEnabled: true,
+          }),
         },
       },
     };

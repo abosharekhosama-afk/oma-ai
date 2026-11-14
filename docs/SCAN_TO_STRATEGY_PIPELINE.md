@@ -11,7 +11,7 @@
 3. **Profile** — review insights, approve immutable version.
 4. **Strategy** — foundation + organic/paid tracks, evidence links.
 5. **AI propose** — `POST .../ai/propose` fills empty draft fields only after accept.
-6. **Approve strategy** → plan-to-requests → production (US-003).
+6. **Approve strategy** → plan-to-requests (pillars + **catalog product/service** lines) → tasks → content.
 
 ## What is implemented on `004`
 
@@ -26,6 +26,7 @@
 | Discovery → profile catalog merge         | Discovery products UI, merge API, bulk accept catalog insights                                                                     |
 | Live AI                                   | **API + Worker** must share live flags/keys; UI polls `/api/v1/ai/status` and offers **Re-run analysis** when auto-enqueue skipped |
 | Pipeline chrome                           | Scan page + profile show intelligence stage; `STRATEGY_AI_MODE` surfaced on strategy assistant                                     |
+| Scan → content outlook                    | `GET …/scans/:id` returns `content_outlook`; plan preview adds `organic:catalog:*` / `paid:catalog:*` request drafts from catalog |
 
 ## Operations checklist (Brp / production demo)
 

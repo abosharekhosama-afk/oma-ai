@@ -58,6 +58,7 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [catalogRequestCount, setCatalogRequestCount] = useState(0);
 
   const pick = useCallback(
     (pair: { en: string; ar: string }) =>
@@ -72,11 +73,18 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
     setError(null);
     try {
       const [previewRes, impactRes] = await Promise.all([
-        api<{ data: { preview: PreviewItem[] } }>(`${base}/plan-to-requests/preview`),
+        api<{
+          data: {
+            preview: PreviewItem[];
+            catalog_request_count?: number;
+            catalog_offerings_count?: number;
+          };
+        }>(`${base}/plan-to-requests/preview`),
         api<{ data: { impact: ImpactItem[] } }>(`${base}/plan-to-requests/impact`),
       ]);
       const preview = previewRes.data.preview;
       setItems(preview);
+      setCatalogRequestCount(previewRes.data.catalog_request_count ?? 0);
       setImpact(impactRes.data.impact ?? []);
       setSelected(
         new Set(
@@ -241,6 +249,11 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
       <header className="oma-panel__head">
         <h3>{t('strategy.review.planPreviewTitle')}</h3>
         <p className="oma-muted">{t('strategy.review.planPreviewHint')}</p>
+        {catalogRequestCount > 0 ? (
+          <p className="oma-muted" data-testid="strategy-catalog-request-hint">
+            {t('strategy.review.planCatalogHint').replace('{count}', String(catalogRequestCount))}
+          </p>
+        ) : null}
       </header>
       <div className="oma-form-grid" style={{ marginBottom: '1rem' }}>
         <strong>{t('strategy.review.commitDefaults')}</strong>

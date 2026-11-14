@@ -44,4 +44,22 @@ describe('buildPlanWorkRequestDrafts', () => {
     expect(drafts[0]?.track).toBe('paid');
     expect(drafts[0]?.plan_source_key).toBe('paid:objective:0');
   });
+
+  it('adds catalog-anchored organic requests for scanned products', () => {
+    const drafts = buildPlanWorkRequestDrafts({
+      strategyName: 'Catalog launch',
+      foundation: { goals: [{ value: 'Sales' }] },
+      organicEnabled: true,
+      paidEnabled: false,
+      organic: { channels: ['Instagram'], formats: ['Post'] },
+      paid: null,
+      audiences: [{ name: 'Shoppers' }],
+      catalogOfferings: [
+        { kind: 'product', slug: 'velvet-sofa', name: 'Velvet Sofa', description: 'Premium seating' },
+      ],
+    });
+    const catalogDraft = drafts.find((d) => d.plan_source_key === 'organic:catalog:product:velvet-sofa');
+    expect(catalogDraft?.brief.objective.en).toContain('Velvet Sofa');
+    expect(catalogDraft?.channels).toEqual(['Instagram']);
+  });
 });

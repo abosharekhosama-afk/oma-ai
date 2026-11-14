@@ -22,6 +22,7 @@ import { PermissionDenied } from '../../../../../../../components/shell/permissi
 import { StatusChip } from '../../../../../../../components/ui/status-chip';
 import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
 import { BrandPipelineOutcome } from '../../../../../../../components/brand/brand-pipeline-outcome';
+import { ScanContentOutlook } from '../../../../../../../components/brand/scan-content-outlook';
 import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -223,6 +224,8 @@ export default function ScanDetailPage() {
       ) : null}
 
       <ScanOutcomePanel scan={scan} />
+
+      <ScanContentOutlook brandId={brandId} brand={brand} scan={scan} />
 
       <CoverageDisclosure coverage={scan.coverage} scanStatus={scan.status} />
 
