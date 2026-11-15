@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   looksLikeSpaShell,
+  resolveJsRenderMode,
   shouldAdoptRenderedExtraction,
   shouldUseJsRender,
 } from './js-render-heuristic';
@@ -9,6 +10,11 @@ const SPA_SHELL = `<!DOCTYPE html><html><head><title>VELVET</title></head><body>
 <div id="root"></div><script type="module" src="/assets/index.js"></script></body></html>`;
 
 describe('js-render-heuristic', () => {
+  it('defaults to auto rendering when no explicit mode is configured', () => {
+    expect(resolveJsRenderMode(undefined)).toBe('auto');
+    expect(resolveJsRenderMode('off')).toBe('off');
+  });
+
   it('detects empty root + module script', () => {
     expect(looksLikeSpaShell(SPA_SHELL)).toBe(true);
   });
