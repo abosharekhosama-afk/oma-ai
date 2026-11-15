@@ -1,6 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
-import { DomainError } from '@oma/domain';
+import { catalogCoverage, DomainError } from '@oma/domain';
+
+function parseAttributes(raw: string | null): Array<{ label: string; value: string }> {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (a): a is { label: string; value: string } =>
+          Boolean(a) && typeof a.label === 'string' && typeof a.value === 'string',
+      )
+      .slice(0, 30);
+  } catch {
+    return [];
+  }
+}
 import { catalogMediaByProductIds } from '../catalog/catalog.service';
 
 @Injectable()
@@ -47,15 +63,24 @@ export class DiscoveryService {
     query: { cursor?: string; limit?: number; kind?: string },
   ) {
     await this.assertScan(tenantId, brandId, scanId);
-    const limit = Math.min(query.limit ?? 25, 100);
+    const limit = Math.min(Math.max(query.limit ?? 25, 1), 100);
+    const where = tenantWhere(tenantId, {
+      scanAttemptId: scanId,
+      ...(query.kind ? { kind: query.kind as never } : {}),
+    });
+    if (query.cursor) {
+      const anchor = await getPrisma().discoveredProductService.findFirst({
+        where: { ...where, id: query.cursor },
+        select: { id: true },
+      });
+      if (!anchor) return { data: [], page: { next_cursor: null, limit } };
+    }
+    // Keyset pagination over (name, id) — stable even when names repeat.
     const rows = await getPrisma().discoveredProductService.findMany({
-      where: tenantWhere(tenantId, {
-        scanAttemptId: scanId,
-        ...(query.kind ? { kind: query.kind as never } : {}),
-        ...(query.cursor ? { id: { lt: query.cursor } } : {}),
-      }),
-      orderBy: { name: 'asc' },
+      where,
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
       take: limit + 1,
+      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     });
     const hasMore = rows.length > limit;
     const data = hasMore ? rows.slice(0, limit) : rows;
@@ -73,12 +98,59 @@ export class DiscoveryService {
         sku_public: p.skuPublic,
         price_amount: p.priceAmount,
         price_currency: p.priceCurrency,
+        compare_at_price: p.compareAtPrice,
         availability: p.availability,
         source_page_id: p.sourcePageId,
+        source_url: p.sourceUrl,
         parent_product_id: p.parentProductId,
+        variant_count: p.variantCount,
+        attributes: parseAttributes(p.attributesJson),
+        extraction_source: p.extractionSource,
+        confidence: p.confidence,
         media: mediaByProduct.get(p.id) ?? [],
       })),
       page: { next_cursor: hasMore ? (data[data.length - 1]?.id ?? null) : null, limit },
+      summary: query.cursor ? undefined : await this.catalogSummary(tenantId, scanId),
+    };
+  }
+
+  /** Whole-scan coverage so the UI can show what is missing without loading every page. */
+  private async catalogSummary(tenantId: string, scanId: string) {
+    const prisma = getPrisma();
+    const rows = await prisma.discoveredProductService.findMany({
+      where: tenantWhere(tenantId, { scanAttemptId: scanId }),
+      select: {
+        id: true,
+        kind: true,
+        description: true,
+        priceAmount: true,
+        category: true,
+        availability: true,
+      },
+    });
+    const mediaCounts = await prisma.catalogProductMedia.groupBy({
+      by: ['discoveredProductId'],
+      where: {
+        tenantId,
+        discoveredProductId: { in: rows.map((r) => r.id) },
+        role: { in: ['SCAN_THUMBNAIL', 'SCAN_IMAGE', 'SCAN_VIDEO'] },
+      },
+      _count: { _all: true },
+    });
+    const countBy = new Map(mediaCounts.map((m) => [m.discoveredProductId, m._count._all]));
+    const coverage = catalogCoverage(
+      rows.map((r) => ({ ...r, mediaCount: countBy.get(r.id) ?? 0 })),
+    );
+    return {
+      total: coverage.total,
+      products: coverage.products,
+      services: coverage.services,
+      with_media: coverage.withMedia,
+      with_description: coverage.withDescription,
+      with_price: coverage.withPrice,
+      with_category: coverage.withCategory,
+      with_availability: coverage.withAvailability,
+      scan_media_total: coverage.mediaTotal,
     };
   }
 

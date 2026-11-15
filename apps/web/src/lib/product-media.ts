@@ -134,6 +134,16 @@ export function formatProductPrice(
 }
 
 /**
+ * True when a photo is so much taller/wider than the square card frame that cropping it
+ * (object-fit: cover) would cut the product; such photos are letterboxed instead.
+ */
+export function needsLetterbox(width: number, height: number): boolean {
+  if (!width || !height) return false;
+  const ratio = width / height;
+  return ratio < 0.72 || ratio > 1.4;
+}
+
+/**
  * Carousel keyboard handling. ArrowRight means "next" in LTR and "previous" in RTL so the
  * key always moves in the direction it points.
  */

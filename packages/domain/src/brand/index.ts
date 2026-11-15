@@ -21,3 +21,8 @@ export * from './catalog-summary';
 export * from './catalog-offerings';
 export * from './merge-discovery-catalog';
 export * from './website-connector-factory';
+export * from './product-values';
+export * from './product-media-url';
+export * from './product-detection';
+export * from './platform-catalog';
+export * from './product-catalog';

@@ -547,6 +547,7 @@ enum PageClassification {
   FAQ
   CONTACT
   LEGAL
+  COLLECTION
   OTHER
   UNKNOWN
 }
@@ -817,6 +818,18 @@ model DiscoveredProductService {
   sourcePageId    String?
   parentProductId String?
   dedupeKey       String
+  /// The product's own page (absolute URL) when known.
+  sourceUrl       String?
+  /// Regular price when the product is on sale.
+  compareAtPrice  String?
+  /// Platform identifier, e.g. `shopify:123`.
+  platformId      String?
+  variantCount    Int?
+  /// JSON array of { label, value } facts published by the store.
+  attributesJson  String?
+  /// PLATFORM_API | JSON_LD | MICRODATA | OPEN_GRAPH | DOM_DETAIL
+  extractionSource String?
+  confidence      Float?
   brand           BrandWorkspace     @relation(fields: [brandId], references: [id])
   scanAttempt     ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
   catalogMedia    CatalogProductMedia[]

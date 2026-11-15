@@ -2,7 +2,11 @@ import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import iconv from 'iconv-lite';
 import { afterEach, describe, expect, it } from 'vitest';
-import { LiveWebsiteFetchError, createLiveWebsiteConnector } from './live-website-connector';
+import {
+  LiveWebsiteFetchError,
+  createLiveWebsiteConnector,
+  sanitizeExtraHeaders,
+} from './live-website-connector';
 
 type Handler = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
@@ -270,5 +274,23 @@ describe('live-website-connector', () => {
     } finally {
       process.env.NODE_ENV = previous;
     }
+  });
+});
+
+describe('sanitizeExtraHeaders', () => {
+  it('keeps only harmless x-* tenant headers', () => {
+    expect(
+      sanitizeExtraHeaders({
+        'X-Company-Id': 'c1',
+        'x-site-id': 's1',
+        Authorization: 'Bearer nope',
+        Cookie: 'a=b',
+        'x-forwarded-for': '1.2.3.4',
+        'x-api-key': 'k',
+        'x-evil': 'a\r\nInjected: 1',
+        'x-long': 'v'.repeat(500),
+      }),
+    ).toEqual({ 'x-company-id': 'c1', 'x-site-id': 's1' });
+    expect(sanitizeExtraHeaders(undefined)).toEqual({});
   });
 });

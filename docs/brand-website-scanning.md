@@ -30,7 +30,7 @@ When the connector is `disabled`, the URL can still be saved so a profile can ex
 - Seeds additional URLs from sitemap indexes and common locations (`/sitemap.xml`, `/wp-sitemap.xml`, …), plus default marketing paths (`/products`, `/services`, `/shop`, …) and optional `BRAND_SCANNER_PATH_SEEDS`.
 - Prioritizes catalog-like paths in the crawl queue when link budget is tight.
 - Canonicalizes URLs (fragments and tracking parameters such as `utm_*` are stripped) and respects `link rel=canonical` plus `meta robots` `nofollow` when discovering links.
-- Extracts title, description, JSON-LD and heuristic **products/services**, organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
+- Extracts title, description, JSON-LD, **products/services** (see below), organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
 - After the crawl, aggregates discovered products/services into scan-level `catalog.products` / `catalog.services` observations for profile draft and AI analysis.
 
 ### JavaScript rendering (optional)
@@ -67,6 +67,61 @@ After installing Chromium, **start a new scan** — previous scan rows are immut
 
 Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`, and up to five distinct `js_render_errors` codes for operations debugging.
 
+## Product catalog extraction
+
+Products are only created from **product detail pages** or a store's **public catalog API**.
+Category, collection, and home sections are classified as `COLLECTION` / `OTHER` and never
+become products. Badge labels (`مميز`, `New`, `Sale`, …) are never product names.
+
+Sources, in order of trust (stored per product as `extractionSource` + `confidence`):
+
+| Source         | Confidence | How                                                                                                                                                      |
+| -------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PLATFORM_API` | 0.97       | Shopify `/products.json`, WooCommerce Store API `/wp-json/wc/store/v1/products`, iGroup storefront content API (config read from the first-party bundle) |
+| `JSON_LD`      | 0.92       | `Product` / `ProductGroup` (also inside `@graph`), `Offer` / `AggregateOffer` arrays (lowest price), variants. Salla/Zid stores are covered here.        |
+| `MICRODATA`    | 0.85       | `itemscope` Product, scoped to its own item (nested related products ignored)                                                                            |
+| `OPEN_GRAPH`   | 0.75       | `og:type=product` pages: multiple `og:image`, `product:price:*`                                                                                          |
+| `DOM_DETAIL`   | 0.70       | Rendered product page: title, price / compare-at, availability, spec lists (SKU, brand, category › subcategory, attributes), description, own gallery    |
+
+Platform APIs are only called for detected storefronts, always respect `robots.txt`, send no
+credentials (only whitelisted `x-*` tenant headers), and are size/page bounded. When a
+platform catalog is found, page crawling still runs (for brand data) but products come from
+the catalog first and are merged with page data by identity.
+
+**Identity / dedupe:** platform id → canonical product URL (locale prefix, query, and
+`/collections/x/products/y` nesting removed) → SKU → name. Records with different URLs or
+platform ids are never merged, so media can't be pooled onto one item.
+
+**Media attribution:** only the product's own gallery (focal image, thumbnails, `og:image`,
+API images in their sort order). Header/footer/nav, hero/category banners, logos, payment
+badges, related / "you may also like" grids, other product cards, SVG/ICO, and images declared
+smaller than 80px are excluded. URLs are normalized to CDN originals (`_200x`, `-300x300`)
+and de-duplicated ignoring resize parameters; at most `BRAND_MAX_PRODUCT_MEDIA` per product.
+
+**Coverage:** scan coverage reports `catalog_platform`, `catalog_platform_products`,
+`catalog_platform_error`, `products_with_media`, and `product_media_imported`. The products
+API returns a `summary` (with media / description / price / category / availability counts)
+shown above the product grid.
+
+### Re-importing media for an existing scan (reconciliation)
+
+`POST /api/v1/brands/:brandId/scans/:scanId/catalog/reimport-media` (the "re-import media" button) re-reads
+the catalog and reconciles the scan **in place**, idempotently:
+
+1. Loads the platform catalog when available, then re-extracts each row's own page (JS render
+   honors `BRAND_SCANNER_JS_RENDER_MODE`).
+2. Rows that match a real product get fresh fields (price, compare-at, description, category,
+   availability, attributes, source) and exactly that product's media: wrongly attributed
+   `SCAN_*` links are unlinked, missing ones imported, order and thumbnail rewritten.
+3. Rows that are positively **not** products (the page was re-read, or the platform catalog is
+   complete, and the row is not there) and duplicate rows are deleted — **unless** they carry
+   generated / human-reviewed media (`GENERATED_*`), in which case only their `SCAN_*` media is
+   removed and the row is kept (`retained`).
+4. Products the catalog lists that the scan missed are added.
+
+Network failures never delete anything (`skipped`). `GENERATED_*` media is never touched.
+Running it twice yields the same rows and links. Media import needs a connected WorkDrive.
+
 ## Environment variables
 
 | Variable                            | Default                                   | Purpose                                                          |
@@ -78,6 +133,13 @@ Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`
 | `BRAND_MAX_DURATION_SECONDS`        | `600`                                     | Scan wall-clock limit                                            |
 | `BRAND_MAX_BYTES`                   | `1000000`                                 | Maximum response body size                                       |
 | `BRAND_MAX_SITEMAP_DOCUMENTS`       | `5`                                       | Sitemap files (including indexes) to fetch                       |
+| `BRAND_MAX_PRODUCTS`                | `1000`                                    | Maximum products/services stored per scan                        |
+| `BRAND_MAX_PRODUCT_MEDIA`           | `20`                                      | Images/videos kept per product (max 50)                          |
+| `BRAND_PLATFORM_ADAPTERS`           | on                                        | `0` disables platform catalog APIs (pages only)                  |
+| `BRAND_PLATFORM_API_MAX_BYTES`      | `16000000`                                | Max body of one catalog API response                             |
+| `BRAND_PLATFORM_API_MAX_PAGES`      | `8`                                       | Max paginated catalog API requests (Shopify/WooCommerce)         |
+| `BRAND_PLATFORM_SCRIPT_MAX_BYTES`   | `6000000`                                 | Max first-party bundle read to detect storefront config          |
+| `BRAND_REIMPORT_MAX_SECONDS`        | `900`                                     | Time budget of one media re-import / reconciliation              |
 | `BRAND_SCANNER_USER_AGENT`          | `OMA-BrandScanner/1.0 (+https://oma.ai)`  | Crawler identity                                                 |
 | `BRAND_SCANNER_ACCEPT_LANGUAGE`     | `en,ar;q=0.9`                             | `Accept-Language` header                                         |
 | `BRAND_SCANNER_IGNORE_ROBOTS_TXT`   | `true`                                    | When true, `Disallow` rules in robots.txt do not skip pages      |
