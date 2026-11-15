@@ -78,6 +78,40 @@ export function isPrivateHostOverrideEnabled(env: NodeJS.ProcessEnv = process.en
   );
 }
 
+const JSON_TYPES = new Set(['application/json', 'text/json', 'application/ld+json']);
+const SCRIPT_TYPES = new Set([
+  'application/javascript',
+  'text/javascript',
+  'application/x-javascript',
+  'application/ecmascript',
+  'text/ecmascript',
+]);
+
+const ACCEPT_HEADER: Record<NonNullable<FetchPublicInput['accept']>, string> = {
+  html: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+  text: 'text/plain,*/*;q=0.8',
+  xml: 'application/xml,text/xml;q=0.9,*/*;q=0.8',
+  json: 'application/json,*/*;q=0.5',
+  script: 'application/javascript,text/javascript;q=0.9,*/*;q=0.5',
+};
+
+/** Only custom `x-*` headers (no credentials / forwarding headers) may be added by callers. */
+export function sanitizeExtraHeaders(
+  headers: Record<string, string> | undefined,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [rawName, rawValue] of Object.entries(headers ?? {})) {
+    const name = rawName.trim().toLowerCase();
+    if (!/^x-[a-z0-9-]{1,60}$/.test(name)) continue;
+    if (/^x-(forwarded|real-ip|original|rewrite|http-method|amz|csrf|xsrf|api-key|auth)/.test(name))
+      continue;
+    const value = String(rawValue ?? '');
+    if (!value || value.length > 200 || /[\r\n]/.test(value)) continue;
+    out[name] = value;
+  }
+  return out;
+}
+
 function mimeFromContentType(contentType: string | null): string | null {
   if (!contentType) return null;
   return contentType.split(';')[0]?.trim().toLowerCase() || null;
@@ -90,6 +124,8 @@ function contentTypeAllowed(
   const mime = mimeFromContentType(contentType);
   if (!mime) return true;
   if (accept === 'xml') return XML_TYPES.has(mime) || mime.endsWith('+xml');
+  if (accept === 'json') return JSON_TYPES.has(mime) || mime.endsWith('+json');
+  if (accept === 'script') return SCRIPT_TYPES.has(mime);
   if (accept === 'text') return TEXT_TYPES.has(mime) || mime.startsWith('text/');
   return HTML_TYPES.has(mime);
 }
@@ -295,7 +331,14 @@ export function createLiveWebsiteConnector(
     'accept-encoding': 'gzip, br',
   };
 
-  async function rawFetch(url: URL, method: 'GET' | 'HEAD', maxBytes: number, timeoutMs: number) {
+  async function rawFetch(
+    url: URL,
+    method: 'GET' | 'HEAD',
+    maxBytes: number,
+    timeoutMs: number,
+    accept: FetchPublicInput['accept'] = 'html',
+    extraHeaders: Record<string, string> = {},
+  ) {
     const hostCheck = checkSsrfHost(url.hostname, ssrf);
     if (!hostCheck.ok) {
       throw new LiveWebsiteFetchError('URL_SSRF_DENIED', hostCheck.reason);
@@ -327,11 +370,12 @@ export function createLiveWebsiteConnector(
         redirect: 'manual',
         signal: controller.signal,
         headers: {
+          ...extraHeaders,
           ...requestHeaders,
           accept:
             method === 'HEAD'
               ? 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-              : 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+              : ACCEPT_HEADER[accept ?? 'html'],
         },
       });
       const contentType = response.headers.get('content-type');
@@ -363,8 +407,10 @@ export function createLiveWebsiteConnector(
       maxBytes: number;
       timeoutMs: number;
       accept: FetchPublicInput['accept'];
+      headers?: Record<string, string>;
     },
   ): Promise<FetchPublicResult> {
+    const extraHeaders = sanitizeExtraHeaders(init.headers);
     const chain: string[] = [];
     let current = inputUrl;
     for (let hop = 0; hop <= options.maxRedirects; hop += 1) {
@@ -382,6 +428,8 @@ export function createLiveWebsiteConnector(
             init.method ?? 'GET',
             init.maxBytes,
             init.timeoutMs,
+            init.accept,
+            extraHeaders,
           );
           if ((fetched.status === 429 || fetched.status === 503) && attempt < options.maxRetries) {
             const wait = parseRetryAfter(fetched.retryAfter) ?? Math.min(500 * 2 ** attempt, 8_000);
@@ -551,6 +599,7 @@ export function createLiveWebsiteConnector(
         maxBytes: input.maxBytes ?? options.maxBytes,
         timeoutMs: input.timeoutMs ?? options.timeoutMs,
         accept: input.accept ?? 'html',
+        headers: input.headers,
       });
     },
     async resolveRedirectTarget(url: string): Promise<string | null> {

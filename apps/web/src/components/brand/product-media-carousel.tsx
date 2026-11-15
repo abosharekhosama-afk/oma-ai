@@ -1,8 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+} from 'react';
 import { resolveDir } from '@oma/i18n';
-import { carouselKeyTarget, type GalleryItem } from '../../lib/product-media';
+import { carouselKeyTarget, needsLetterbox, type GalleryItem } from '../../lib/product-media';
 import { useLocale, useT } from '../../lib/use-locale';
 
 type Props = {
@@ -51,10 +58,15 @@ function Chevron({ direction }: { direction: 'prev' | 'next' }) {
   );
 }
 
-export function MediaPlaceholder({ text }: { text: string }) {
+export function MediaPlaceholder({ text, compact = false }: { text: string; compact?: boolean }) {
+  const size = compact ? 20 : 32;
   return (
-    <div className="oma-media-carousel__placeholder" role="img" aria-label={text}>
-      <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" focusable="false">
+    <div
+      className={`oma-media-carousel__placeholder${compact ? ' oma-media-carousel__placeholder--compact' : ''}`}
+      role="img"
+      aria-label={text}
+    >
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" focusable="false">
         <path
           d="M4 5h16v14H4zM4 15l4.5-4.5 4 4 2.5-2.5L20 17M15.5 9.5h.01"
           fill="none"
@@ -83,6 +95,9 @@ export function ProductMediaCarousel({ items, label, onOpen, testId }: Props) {
   const trackRef = useRef<HTMLUListElement>(null);
   const [active, setActive] = useState(0);
   const [broken, setBroken] = useState<Record<string, true>>({});
+  // Square frame: photos fill it (cover); unusually tall/wide shots are shown whole
+  // (contain) over a blurred copy of themselves so the card never shows empty bands.
+  const [letterbox, setLetterbox] = useState<Record<string, true>>({});
   const count = items.length;
 
   useEffect(() => {
@@ -136,7 +151,7 @@ export function ProductMediaCarousel({ items, label, onOpen, testId }: Props) {
         data-testid={testId}
         data-count={0}
       >
-        <MediaPlaceholder text={t('brand.catalog.noMedia')} />
+        <MediaPlaceholder text={t('brand.catalog.noMedia')} compact />
       </div>
     );
   }
@@ -166,11 +181,18 @@ export function ProductMediaCarousel({ items, label, onOpen, testId }: Props) {
             count,
           });
           const isBroken = Boolean(broken[item.id]);
+          const contained = Boolean(letterbox[item.id]) && item.kind === 'image';
           return (
             <li
               key={item.id}
               className="oma-media-carousel__slide"
               data-index={index}
+              data-fit={contained ? 'contain' : 'cover'}
+              style={
+                contained
+                  ? ({ '--oma-slide-bg': `url(${JSON.stringify(item.src)})` } as CSSProperties)
+                  : undefined
+              }
               role="group"
               aria-roledescription={t('brand.catalog.carousel.slide')}
               aria-label={slideLabel}
@@ -206,6 +228,12 @@ export function ProductMediaCarousel({ items, label, onOpen, testId }: Props) {
                     loading={index === 0 ? 'eager' : 'lazy'}
                     decoding="async"
                     draggable={false}
+                    onLoad={(event) => {
+                      const img = event.currentTarget;
+                      if (needsLetterbox(img.naturalWidth, img.naturalHeight)) {
+                        setLetterbox((l) => (l[item.id] ? l : { ...l, [item.id]: true }));
+                      }
+                    }}
                     onError={() => setBroken((b) => ({ ...b, [item.id]: true }))}
                   />
                 </button>

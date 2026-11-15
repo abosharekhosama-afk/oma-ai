@@ -7941,3 +7941,16 @@ button.oma-breadcrumb-workspace:hover {
     line-height: 1 !important;
   }
 }
+
+/* Choice-select menu portalled to <body>: positioned against the viewport so it always
+   renders above cards, sticky bars, and overflow-clipped containers. */
+.oma-choice-select__menu.oma-choice-select__menu--floating {
+  position: fixed !important;
+  top: var(--oma-menu-top, auto) !important;
+  bottom: var(--oma-menu-bottom, auto) !important;
+  left: var(--oma-menu-left, 0) !important;
+  right: auto !important;
+  width: var(--oma-menu-width, auto) !important;
+  max-height: var(--oma-menu-max-height, 260px) !important;
+  z-index: 1100 !important;
+}

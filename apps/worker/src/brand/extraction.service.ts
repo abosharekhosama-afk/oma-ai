@@ -12,7 +12,13 @@ import {
   isBrandFixtureConnectorEnabled,
   isCatalogLikePath,
   isInCrawlScope,
+  isProductDetailUrl,
+  maxProductMediaFromEnv,
   newId,
+  productDedupeKey,
+  ProductCatalogAccumulator,
+  productUrlKey,
+  type ExtractedProduct,
   parseSitemapXml,
   resolveJsRenderMode,
   shouldAdoptRenderedExtraction,
@@ -25,7 +31,8 @@ import {
   lastBrowserInitError,
   RenderedPageFetchError,
 } from './rendered-page-fetch';
-import { ingestProductMediaFromScan } from './catalog-product-media';
+import { syncProductScanMedia } from './catalog-product-media';
+import { fetchPlatformCatalog } from './platform-catalog';
 
 type CrawlConfig = {
   max_pages?: number;
@@ -43,6 +50,7 @@ function enqueueCrawlUrl(
   url: string,
   depth: number,
   priority = false,
+  productPagesFirst = true,
 ) {
   const entry = { url, depth };
   if (priority) {
@@ -50,12 +58,110 @@ function enqueueCrawlUrl(
     return;
   }
   try {
+    // Single-product pages carry the product's own gallery and facts — crawl them first.
+    if (productPagesFirst && isProductDetailUrl(url)) {
+      queue.unshift(entry);
+      return;
+    }
     const path = new URL(url).pathname;
-    if (isCatalogLikePath(path)) queue.unshift(entry);
-    else queue.push(entry);
+    if (isCatalogLikePath(path)) {
+      // After product pages, before everything else.
+      const firstOther = queue.findIndex((q) => !isProductDetailUrl(q.url));
+      if (firstOther < 0) queue.push(entry);
+      else queue.splice(firstOther, 0, entry);
+    } else queue.push(entry);
   } catch {
     queue.push(entry);
   }
+}
+
+export type CatalogScanStats = {
+  platform: string | null;
+  platformEvidence: string | null;
+  platformProducts: number;
+  platformError: string | null;
+  productsPersisted: number;
+  productsWithMedia: number;
+  productMediaImported: number;
+  productMediaSkipped: number;
+};
+
+/** Persists the merged catalog once per scan and attaches each product's own media. */
+async function persistCatalog(input: {
+  tenantId: string;
+  brandId: string;
+  scanAttemptId: string;
+  catalog: ProductCatalogAccumulator;
+  pageIdByKey: Map<string, string>;
+}): Promise<
+  Pick<
+    CatalogScanStats,
+    'productsPersisted' | 'productsWithMedia' | 'productMediaImported' | 'productMediaSkipped'
+  >
+> {
+  const prisma = getPrisma();
+  const brandRow = await prisma.brandWorkspace.findFirst({
+    where: { id: input.brandId, tenantId: input.tenantId },
+    select: { name: true },
+  });
+  let productsPersisted = 0;
+  let productsWithMedia = 0;
+  let productMediaImported = 0;
+  let productMediaSkipped = 0;
+  for (const entry of input.catalog.list()) {
+    const product: ExtractedProduct = entry.product;
+    const dedupeKey = productDedupeKey(product);
+    const ownKey = productUrlKey(product.sourceUrl);
+    const sourcePageId =
+      (ownKey ? input.pageIdByKey.get(ownKey) : undefined) ??
+      entry.pageUrls.map((u) => input.pageIdByKey.get(productUrlKey(u) ?? '')).find(Boolean) ??
+      null;
+    const data = {
+      kind: product.kind,
+      name: product.name,
+      description: product.description ?? null,
+      category: product.category ?? null,
+      skuPublic: product.skuPublic ?? null,
+      priceAmount: product.priceAmount ?? null,
+      priceCurrency: product.priceCurrency ?? null,
+      compareAtPrice: product.compareAtPrice ?? null,
+      availability: product.availability ?? null,
+      sourcePageId,
+      sourceUrl: product.sourceUrl ?? null,
+      platformId: product.platformId ?? null,
+      variantCount: product.variantCount ?? null,
+      attributesJson: product.attributes?.length ? JSON.stringify(product.attributes) : null,
+      extractionSource: product.extractionSource ?? null,
+      confidence: product.confidence ?? null,
+    };
+    const row = await prisma.discoveredProductService.upsert({
+      where: { scanAttemptId_dedupeKey: { scanAttemptId: input.scanAttemptId, dedupeKey } },
+      create: {
+        id: newId(),
+        tenantId: input.tenantId,
+        brandId: input.brandId,
+        scanAttemptId: input.scanAttemptId,
+        dedupeKey,
+        ...data,
+      },
+      update: data,
+    });
+    productsPersisted += 1;
+    if (product.media?.length && brandRow) {
+      const synced = await syncProductScanMedia({
+        tenantId: input.tenantId,
+        brandId: input.brandId,
+        brandName: brandRow.name,
+        discoveredProductId: row.id,
+        productName: product.name,
+        media: product.media,
+      });
+      productMediaImported += synced.imported;
+      productMediaSkipped += synced.skipped;
+      if (synced.imported + synced.kept > 0) productsWithMedia += 1;
+    }
+  }
+  return { productsPersisted, productsWithMedia, productMediaImported, productMediaSkipped };
 }
 
 async function persistCatalogObservations(input: {
@@ -124,6 +230,23 @@ export async function runExtractionForScan(input: {
   const maxBytes = Number(process.env.BRAND_MAX_BYTES ?? 1_000_000);
   const maxSitemapDocuments = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 5);
   const deadline = Date.now() + (input.config?.max_duration_seconds ?? 600) * 1000;
+
+  const mediaCap = maxProductMediaFromEnv();
+  const maxProducts = Math.max(1, Number(process.env.BRAND_MAX_PRODUCTS ?? 1000) || 1000);
+  const catalog = new ProductCatalogAccumulator(maxProducts);
+  const pageIdByKey = new Map<string, string>();
+  let platformChecked = false;
+  let productPagesFirst = true;
+  const catalogStats: CatalogScanStats = {
+    platform: null,
+    platformEvidence: null,
+    platformProducts: 0,
+    platformError: null,
+    productsPersisted: 0,
+    productsWithMedia: 0,
+    productMediaImported: 0,
+    productMediaSkipped: 0,
+  };
 
   const visited = new Set<string>();
   const queue: { url: string; depth: number }[] = [];
@@ -265,6 +388,24 @@ export async function runExtractionForScan(input: {
       }
 
       let htmlBody = fetched.body;
+      if (!platformChecked && !fixtureCrawl) {
+        platformChecked = true;
+        const platform = await fetchPlatformCatalog({
+          startUrl: fetched.finalUrl,
+          homeHtml: htmlBody,
+          connector: input.connector,
+          deadline,
+          maxProducts,
+          mediaCap,
+        });
+        catalogStats.platform = platform.detection?.platform ?? null;
+        catalogStats.platformEvidence = platform.detection?.evidence ?? null;
+        catalogStats.platformError = platform.error;
+        catalogStats.platformProducts = platform.products.length;
+        for (const product of platform.products) catalog.add(product);
+        // The platform already gave us every product; crawl pages in the normal order.
+        if (platform.products.length > 0) productPagesFirst = false;
+      }
       let extracted = extractFromHtml(fetched.finalUrl, htmlBody);
       let pageUsedRendered = false;
       if (
@@ -364,55 +505,11 @@ export async function runExtractionForScan(input: {
         });
       }
 
-      const brandRow = await getPrisma().brandWorkspace.findFirst({
-        where: { id: input.brandId, tenantId: input.tenantId },
-        select: { name: true },
-      });
+      for (const key of [productUrlKey(normalizedUrl), productUrlKey(pageCanonical)]) {
+        if (key && !pageIdByKey.has(key)) pageIdByKey.set(key, pageId);
+      }
       for (const product of extracted.products) {
-        const dedupeKey = `${product.kind}:${product.name}:${product.skuPublic ?? ''}`;
-        const row = await getPrisma().discoveredProductService.upsert({
-          where: {
-            scanAttemptId_dedupeKey: {
-              scanAttemptId: input.scanAttemptId,
-              dedupeKey,
-            },
-          },
-          create: {
-            id: newId(),
-            tenantId: input.tenantId,
-            brandId: input.brandId,
-            scanAttemptId: input.scanAttemptId,
-            kind: product.kind,
-            name: product.name,
-            description: product.description,
-            category: product.category,
-            skuPublic: product.skuPublic,
-            priceAmount: product.priceAmount,
-            priceCurrency: product.priceCurrency,
-            availability: product.availability,
-            sourcePageId: pageId,
-            dedupeKey,
-          },
-          update: {
-            sourcePageId: pageId,
-            ...(product.description ? { description: product.description } : {}),
-            ...(product.category ? { category: product.category } : {}),
-            ...(product.skuPublic ? { skuPublic: product.skuPublic } : {}),
-            ...(product.priceAmount ? { priceAmount: product.priceAmount } : {}),
-            ...(product.priceCurrency ? { priceCurrency: product.priceCurrency } : {}),
-            ...(product.availability ? { availability: product.availability } : {}),
-          },
-        });
-        if (product.media?.length && brandRow) {
-          await ingestProductMediaFromScan({
-            tenantId: input.tenantId,
-            brandId: input.brandId,
-            brandName: brandRow.name,
-            discoveredProductId: row.id,
-            productName: product.name,
-            media: product.media,
-          });
-        }
+        catalog.add(product, normalizedUrl);
       }
 
       pagesFetched += 1;
@@ -423,7 +520,7 @@ export async function runExtractionForScan(input: {
           try {
             const next = canonicalizeUrl(new URL(link.href, fetched.finalUrl).toString());
             if (isInCrawlScope(input.startUrl, next)) {
-              enqueueCrawlUrl(queue, next, current.depth + 1);
+              enqueueCrawlUrl(queue, next, current.depth + 1, false, productPagesFirst);
             }
           } catch {
             // skip bad links
@@ -434,6 +531,17 @@ export async function runExtractionForScan(input: {
       pagesFailed += 1;
     }
   }
+
+  Object.assign(
+    catalogStats,
+    await persistCatalog({
+      tenantId: input.tenantId,
+      brandId: input.brandId,
+      scanAttemptId: input.scanAttemptId,
+      catalog,
+      pageIdByKey,
+    }),
+  );
 
   await persistCatalogObservations({
     tenantId: input.tenantId,
@@ -452,5 +560,6 @@ export async function runExtractionForScan(input: {
     jsRenderErrorDetails,
     jsRenderLaunchDetail,
     jsRenderMode,
+    catalog: catalogStats,
   };
 }

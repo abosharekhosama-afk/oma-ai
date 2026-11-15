@@ -9,10 +9,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, invalidateApiCache } from '../../../../../../../lib/api';
 import type {
   BrandDetail,
+  CatalogCoverageSummary,
   DiscoveredPage,
   DiscoveredProduct,
   EvidenceItem,
   Paginated,
+  ProductsPage,
   ProfileDetail,
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
@@ -41,6 +43,31 @@ import {
 
 const REIMPORT_POLL_MS = 6000;
 const REIMPORT_POLL_TRIES = 6;
+/** Safety bound: 20 pages × 100 = 2000 catalog items. */
+const MAX_PRODUCT_PAGES = 20;
+
+/** Loads every product of a scan (cursor pages of 100) plus the whole-scan coverage summary. */
+async function fetchAllProducts(
+  brandId: string,
+  scanId: string,
+  fresh = false,
+): Promise<{ products: DiscoveredProduct[]; summary: CatalogCoverageSummary | null }> {
+  const products: DiscoveredProduct[] = [];
+  let summary: CatalogCoverageSummary | null = null;
+  let cursor: string | null = null;
+  for (let page = 0; page < MAX_PRODUCT_PAGES; page++) {
+    const qs = new URLSearchParams({ limit: '100' });
+    if (cursor) qs.set('cursor', cursor);
+    const path = `/api/v1/brands/${brandId}/scans/${scanId}/products?${qs.toString()}`;
+    if (fresh) invalidateApiCache(path);
+    const res: ProductsPage = await api<ProductsPage>(path);
+    products.push(...res.data);
+    if (page === 0) summary = res.summary ?? null;
+    cursor = res.page.next_cursor;
+    if (!cursor) break;
+  }
+  return { products, summary };
+}
 
 export default function DiscoveryProductsPage() {
   const t = useT();
@@ -49,6 +76,7 @@ export default function DiscoveryProductsPage() {
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [scan, setScan] = useState<ScanDetail | null>(null);
   const [products, setProducts] = useState<DiscoveredProduct[]>([]);
+  const [coverage, setCoverage] = useState<CatalogCoverageSummary | null>(null);
   const [scanId, setScanId] = useState<string | null>(null);
   const [connectorMode, setConnectorMode] = useState<ConnectorMode | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,11 +97,10 @@ export default function DiscoveryProductsPage() {
 
   const reloadProducts = useCallback(
     async (activeScanId: string) => {
-      const path = `/api/v1/brands/${brandId}/scans/${activeScanId}/products?limit=100`;
-      invalidateApiCache(path);
-      const productsRes = await api<Paginated<DiscoveredProduct>>(path);
-      setProducts(productsRes.data);
-      return productsRes.data;
+      const res = await fetchAllProducts(brandId, activeScanId, true);
+      setProducts(res.products);
+      setCoverage(res.summary);
+      return res.products;
     },
     [brandId],
   );
@@ -106,9 +133,7 @@ export default function DiscoveryProductsPage() {
             : Promise.resolve(null);
         const [scanRes, productsRes, evidenceRes, pagesRes, profileRes] = await Promise.all([
           api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${latest}`),
-          api<Paginated<DiscoveredProduct>>(
-            `/api/v1/brands/${brandId}/scans/${latest}/products?limit=100`,
-          ),
+          fetchAllProducts(brandId, latest),
           api<Paginated<EvidenceItem>>(
             `/api/v1/brands/${brandId}/scans/${latest}/evidence?limit=100`,
           ),
@@ -119,9 +144,10 @@ export default function DiscoveryProductsPage() {
         ]);
         setScan(scanRes.data);
         setConnectorMode(scanRes.data.connector_mode);
-        setProducts(productsRes.data);
+        setProducts(productsRes.products);
+        setCoverage(productsRes.summary);
         setProfile(profileRes?.data ?? null);
-        setSpaLikely(productsRes.data.length === 0 && likelySpaShell(pagesRes.data));
+        setSpaLikely(productsRes.products.length === 0 && likelySpaShell(pagesRes.data));
         const map: Record<string, string> = {};
         for (const item of evidenceRes.data) {
           if (item.discovered_page_id && !map[item.discovered_page_id]) {
@@ -277,6 +303,35 @@ export default function DiscoveryProductsPage() {
               { label: t('brand.catalog.statsPendingReview'), value: stats.pendingReview },
             ]}
           />
+
+          {coverage && coverage.total > 0 ? (
+            <ul
+              className="oma-discovery-coverage"
+              data-testid="discovery-products-coverage"
+              aria-label={t('brand.discovery.coverageTitle')}
+            >
+              {(
+                [
+                  ['coverageDescription', coverage.with_description],
+                  ['coveragePrice', coverage.with_price],
+                  ['coverageCategory', coverage.with_category],
+                  ['coverageAvailability', coverage.with_availability],
+                ] as const
+              ).map(([key, value]) => (
+                <li
+                  key={key}
+                  className={`oma-discovery-coverage__item${
+                    value < coverage.total ? ' is-partial' : ''
+                  }`}
+                >
+                  <span>{t(`brand.discovery.${key}`)}</span>
+                  <strong className="oma-ltr">
+                    {value}/{coverage.total}
+                  </strong>
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <DiscoveryCatalogMergeBar
             brandId={brandId}

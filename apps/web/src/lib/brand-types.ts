@@ -128,8 +128,30 @@ export type DiscoveredProduct = {
   availability: string | null;
   source_page_id: string | null;
   parent_product_id: string | null;
+  compare_at_price?: string | null;
+  source_url?: string | null;
+  variant_count?: number | null;
+  attributes?: Array<{ label: string; value: string }>;
+  /** PLATFORM_API | JSON_LD | MICRODATA | OPEN_GRAPH | DOM_DETAIL */
+  extraction_source?: string | null;
+  confidence?: number | null;
   media?: CatalogProductMedia[];
 };
+
+/** Whole-scan catalog coverage returned with the first products page. */
+export type CatalogCoverageSummary = {
+  total: number;
+  products: number;
+  services: number;
+  with_media: number;
+  with_description: number;
+  with_price: number;
+  with_category: number;
+  with_availability: number;
+  scan_media_total: number;
+};
+
+export type ProductsPage = Paginated<DiscoveredProduct> & { summary?: CatalogCoverageSummary };
 
 export type EvidenceItem = {
   id: string;

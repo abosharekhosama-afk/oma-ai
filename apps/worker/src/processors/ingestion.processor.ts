@@ -239,6 +239,11 @@ export function startIngestionProcessor(
         js_render_error_details: counts.jsRenderErrorDetails ?? [],
         js_render_launch_detail: counts.jsRenderLaunchDetail ?? null,
         js_render_mode: counts.jsRenderMode ?? 'off',
+        catalog_platform: counts.catalog?.platform ?? null,
+        catalog_platform_products: counts.catalog?.platformProducts ?? 0,
+        catalog_platform_error: counts.catalog?.platformError ?? null,
+        products_with_media: counts.catalog?.productsWithMedia ?? 0,
+        product_media_imported: counts.catalog?.productMediaImported ?? 0,
         required_missing: usable
           ? []
           : observations
