@@ -3,8 +3,16 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import type { DiscoveredProduct } from '../../lib/brand-types';
-import { useT } from '../../lib/use-locale';
+import {
+  availabilityKey,
+  availabilityTone,
+  formatProductPrice,
+  productGallery,
+} from '../../lib/product-media';
+import { useLocale, useT } from '../../lib/use-locale';
+import { StatusChip, statusLabel } from '../ui/status-chip';
 import { CatalogProductActions } from './catalog-product-actions';
+import { ProductMediaCarousel, ProductMediaLightbox } from './product-media-carousel';
 
 type Props = {
   brandId: string;
@@ -15,21 +23,7 @@ type Props = {
   onUpdated: () => void;
 };
 
-function primaryMedia(product: DiscoveredProduct) {
-  const media = product.media ?? [];
-  const usable = media.filter(
-    (m) =>
-      m.review_status !== 'REJECTED' &&
-      (m.review_status === 'APPROVED' || m.role.startsWith('SCAN_')),
-  );
-  return (
-    usable.find((m) => m.role === 'SCAN_THUMBNAIL') ??
-    usable.find((m) => m.mime.startsWith('image/')) ??
-    usable.find((m) => m.mime.startsWith('video/')) ??
-    null
-  );
-}
-
+/** Social-post style catalog card: media carousel first, then the facts the scan captured. */
 export function DiscoveryProductCard({
   brandId,
   product,
@@ -39,115 +33,120 @@ export function DiscoveryProductCard({
   onUpdated,
 }: Props) {
   const t = useT();
-  const [zoomOpen, setZoomOpen] = useState(false);
-  const hero = useMemo(() => primaryMedia(product), [product]);
+  const locale = useLocale();
+  const gallery = useMemo(() => productGallery(product.media), [product.media]);
+  const [viewer, setViewer] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const price = formatProductPrice(product.price_amount, product.price_currency, locale);
+  const availKey = availabilityKey(product.availability);
+  const availability = availKey ? t(availKey) : (product.availability?.trim() ?? null);
+  const description = product.description?.trim() ?? '';
+  const longDescription = description.length > 180;
 
   return (
-    <article className="oma-plx-listening-card oma-plx-brand-catalog-card oma-discovery-product-card">
-      <header className="oma-discovery-product-card__head">
-        <h3 className="oma-discovery-product-card__title">{product.name}</h3>
-        <span className="oma-badge oma-badge-muted">{product.kind}</span>
-      </header>
-
-      {hero ? (
-        <button
-          type="button"
-          className="oma-discovery-product-card__hero"
-          onClick={() => setZoomOpen(true)}
-          aria-label={t('brand.catalog.zoomImage')}
-        >
-          {hero.mime.startsWith('video/') ? (
-            <video
-              src={hero.stream_url ?? hero.view_url}
-              playsInline
-              muted
-              className="oma-discovery-product-card__hero-media"
-            />
-          ) : (
-            <img
-              src={hero.view_url}
-              alt=""
-              className="oma-discovery-product-card__hero-media"
-              loading="lazy"
-            />
-          )}
-          <span className="oma-discovery-product-card__zoom-hint">
-            {t('brand.catalog.tapToZoom')}
-          </span>
-        </button>
-      ) : (
-        <p className="oma-muted oma-discovery-product-card__no-media">
-          {t('brand.catalog.noMedia')}
-        </p>
-      )}
-
-      {product.description ? (
-        <p className="oma-discovery-product-card__description">{product.description}</p>
-      ) : (
-        <p className="oma-muted oma-discovery-product-card__description">
-          {t('brand.discovery.noDescription')}
-        </p>
-      )}
-
-      <dl className="oma-detail-dl oma-discovery-product-card__meta">
-        {product.category ? (
-          <div>
-            <dt>{t('brand.discovery.category')}</dt>
-            <dd>{product.category}</dd>
-          </div>
-        ) : null}
-        {product.sku_public ? (
-          <div>
-            <dt>{t('brand.discovery.sku')}</dt>
-            <dd>{product.sku_public}</dd>
-          </div>
-        ) : null}
-        {product.price_amount ? (
-          <div>
-            <dt>{t('brand.discovery.price')}</dt>
-            <dd>
-              {product.price_amount} {product.price_currency}
-            </dd>
-          </div>
-        ) : null}
-        {product.availability ? (
-          <div>
-            <dt>{t('brand.discovery.availability')}</dt>
-            <dd>{product.availability}</dd>
-          </div>
-        ) : null}
-      </dl>
-
-      <CatalogProductActions
-        brandId={brandId}
-        product={product}
-        profileApproved={profileApproved}
-        onUpdated={onUpdated}
-        compact
+    <article
+      className="oma-plx-listening-card oma-discovery-product-card"
+      aria-labelledby={`product-${product.id}-title`}
+      data-testid={`discovery-product-${product.id}`}
+    >
+      <ProductMediaCarousel
+        items={gallery}
+        label={product.name}
+        onOpen={(index) => setViewer(index)}
+        testId={`product-carousel-${product.id}`}
       />
 
-      <div className="oma-form-actions">
-        {evidenceId ? (
-          <Button type="default" onClick={onEvidence}>
-            {t('brand.evidence.view')}
-          </Button>
+      <div className="oma-discovery-product-card__body">
+        <header className="oma-discovery-product-card__head">
+          <h3 id={`product-${product.id}-title`} className="oma-discovery-product-card__title">
+            {product.name}
+          </h3>
+          <StatusChip status={product.kind} label={statusLabel(t, product.kind)} />
+        </header>
+
+        {price || availability ? (
+          <div className="oma-discovery-product-card__commerce">
+            {price ? (
+              <strong className="oma-discovery-product-card__price" dir="auto">
+                {price}
+              </strong>
+            ) : null}
+            {availability ? (
+              <StatusChip tone={availabilityTone(product.availability)} label={availability} />
+            ) : null}
+          </div>
+        ) : null}
+
+        {description ? (
+          <div className="oma-discovery-product-card__description-wrap">
+            <p
+              className={`oma-discovery-product-card__description${
+                longDescription && !expanded ? ' is-clamped' : ''
+              }`}
+              dir="auto"
+            >
+              {description}
+            </p>
+            {longDescription ? (
+              <button
+                type="button"
+                className="oma-text-link oma-discovery-product-card__more"
+                aria-expanded={expanded}
+                onClick={() => setExpanded((v) => !v)}
+              >
+                {expanded ? t('brand.discovery.showLess') : t('brand.discovery.showMore')}
+              </button>
+            ) : null}
+          </div>
         ) : (
-          <span className="oma-muted">{t('brand.evidence.none')}</span>
+          <p className="oma-muted oma-discovery-product-card__description">
+            {t('brand.discovery.noDescription')}
+          </p>
         )}
+
+        {product.category || product.sku_public ? (
+          <ul className="oma-discovery-product-card__facts">
+            {product.category ? (
+              <li>
+                <span className="oma-muted">{t('brand.discovery.category')}</span>{' '}
+                <span dir="auto">{product.category}</span>
+              </li>
+            ) : null}
+            {product.sku_public ? (
+              <li>
+                <span className="oma-muted">{t('brand.discovery.sku')}</span>{' '}
+                <span className="oma-ltr">{product.sku_public}</span>
+              </li>
+            ) : null}
+          </ul>
+        ) : null}
       </div>
 
-      {zoomOpen && hero && !hero.mime.startsWith('video/') ? (
-        <dialog
-          open
-          className="oma-catalog-lightbox"
-          data-testid="catalog-image-lightbox"
-          onClick={() => setZoomOpen(false)}
-          onKeyDown={(e) => e.key === 'Escape' && setZoomOpen(false)}
-        >
-          <img src={hero.view_url} alt="" className="oma-catalog-lightbox__img" />
-          <p className="oma-catalog-lightbox__caption">{product.name}</p>
-        </dialog>
-      ) : null}
+      <footer className="oma-discovery-product-card__foot">
+        <CatalogProductActions
+          brandId={brandId}
+          product={product}
+          profileApproved={profileApproved}
+          onUpdated={onUpdated}
+          compact
+          trailing={
+            evidenceId ? (
+              <Button type="default" onClick={onEvidence}>
+                {t('brand.evidence.view')}
+              </Button>
+            ) : null
+          }
+        />
+      </footer>
+
+      <ProductMediaLightbox
+        items={gallery}
+        index={viewer}
+        caption={product.name}
+        onIndexChange={setViewer}
+        onClose={() => setViewer(null)}
+      />
     </article>
   );
 }

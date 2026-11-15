@@ -1,7 +1,6 @@
 'use client';
 import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 
-import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
@@ -134,7 +133,13 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
   const latest = strategy.latest_version;
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <BrandWorkspaceShell
+      brandId={brandId}
+      brandName={brand.name}
+      brandLogoUrl={brand.logo_url}
+      websiteUrl={brand.website?.normalized_url}
+      latestScanId={brand.latest_scan?.id}
+    >
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={strategy.name} titleTestId="strategy-name-heading" />
       <div
@@ -142,14 +147,13 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         data-testid="strategy-name-heading-wrap"
       >
         <StrategyStatusBadge status={strategy.status} />
-        {latest ? <StrategyStatusBadge status={latest.status} /> : null}
         {strategy.is_current ? (
           <span className="oma-badge oma-badge-muted" data-testid="strategy-current-badge">
             {t('strategy.list.current')}
           </span>
         ) : null}
         {latest ? (
-          <span className="oma-strategy-tracks">
+          <span className="oma-strategy-tracks" aria-label={t('strategy.overview.tracks')}>
             <span
               className={
                 latest.organic_enabled
@@ -215,7 +219,7 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
       {message ? <p role="status">{message}</p> : null}
       <ConflictBanner show={Boolean(error && error === t('strategy.conflict'))} />
       {error && error !== t('strategy.conflict') ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
+        <p role="alert" className="oma-brand-inline-error">
           {error}
         </p>
       ) : null}
@@ -224,7 +228,7 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         title={t('strategy.overview.actionsTitle')}
         testId="strategy-overview-actions"
       >
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="oma-form-actions">
           <CurrentStrategyControls
             canSet={Boolean(strategy.has_approved_version)}
             isCurrent={Boolean(strategy.is_current)}
@@ -236,12 +240,6 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
               {t('strategy.overview.archive')}
             </Button>
           ) : null}
-          <OmaLinkButton
-            href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
-            type="primary"
-          >
-            {t('strategy.nav.review')}
-          </OmaLinkButton>
         </div>
       </BrandPlxSection>
     </BrandWorkspaceShell>

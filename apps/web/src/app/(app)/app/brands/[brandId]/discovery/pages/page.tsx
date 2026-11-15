@@ -4,7 +4,6 @@ import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button, CheckboxField, SearchInput, SelectField } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
@@ -24,9 +23,24 @@ import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand
 import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
-import { StatusChip } from '../../../../../../../components/ui/status-chip';
+import { StatusChip, statusLabel } from '../../../../../../../components/ui/status-chip';
+import { DiscoveryTabs } from '../../../../../../../components/brand/discovery-tabs';
 import { filterDiscoveryPages } from '../../../../../../../lib/discovery-filter';
 import { useT } from '../../../../../../../lib/use-locale';
+
+/** Mirrors Prisma `PageClassification` / `PageFetchStatus` — the API filters on these exact values. */
+const PAGE_CLASSIFICATIONS = [
+  'HOME',
+  'PRODUCT',
+  'SERVICE',
+  'ABOUT',
+  'FAQ',
+  'CONTACT',
+  'LEGAL',
+  'OTHER',
+  'UNKNOWN',
+] as const;
+const PAGE_FETCH_STATUSES = ['FETCHED', 'FAILED', 'SKIPPED_ROBOTS', 'SKIPPED_LIMIT'] as const;
 
 export default function DiscoveryPagesPage() {
   const t = useT();
@@ -36,6 +50,7 @@ export default function DiscoveryPagesPage() {
   const [pages, setPages] = useState<DiscoveredPage[]>([]);
   const [scanId, setScanId] = useState<string | null>(null);
   const [connectorMode, setConnectorMode] = useState<ConnectorMode | null>(null);
+  const [summary, setSummary] = useState<ScanDetail['discovery_summary'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -58,6 +73,7 @@ export default function DiscoveryPagesPage() {
         }
         setScanId(latest);
         const qs = new URLSearchParams();
+        qs.set('limit', '100');
         if (classification) qs.set('classification', classification);
         if (fetchStatus) qs.set('fetch_status', fetchStatus);
         const pagesPath = `/api/v1/brands/${brandId}/scans/${latest}/pages${
@@ -71,6 +87,7 @@ export default function DiscoveryPagesPage() {
           ),
         ]);
         setConnectorMode(scanRes.data.connector_mode);
+        setSummary(scanRes.data.discovery_summary ?? null);
         setPages(pagesRes.data);
         const map: Record<string, string> = {};
         for (const item of evidenceRes.data) {
@@ -120,20 +137,19 @@ export default function DiscoveryPagesPage() {
     <BrandWorkspaceShell
       brandId={brandId}
       brandName={brand.name}
+      brandLogoUrl={brand.logo_url}
+      websiteUrl={brand.website?.normalized_url}
       scanStatus={brand.latest_scan?.status}
+      latestScanId={brand.latest_scan?.id}
     >
+      <DiscoveryTabs
+        brandId={brandId}
+        counts={{ pages: summary?.pages ?? null, products: summary?.products ?? null }}
+      />
       <BrandPlxPageHead
         title={t('brand.discovery.pagesTitle')}
-        actions={
-          <div className="oma-chip-row">
-            <ConnectorModeChip mode={connectorMode} />
-            {scanId ? (
-              <Link href={`/app/brands/${brandId}/discovery/products`}>
-                {t('brand.discovery.productsTitle')}
-              </Link>
-            ) : null}
-          </div>
-        }
+        description={t('brand.evidence.discoveryHint')}
+        actions={scanId ? <ConnectorModeChip mode={connectorMode} /> : null}
       />
 
       {!scanId ? (
@@ -165,19 +181,22 @@ export default function DiscoveryPagesPage() {
                 onChange={(e) => setClassification(e.target.value)}
               >
                 <option value="">{t('brand.discovery.filterAll')}</option>
-                <option value="HOME">HOME</option>
-                <option value="PRODUCT">PRODUCT</option>
-                <option value="ABOUT">ABOUT</option>
-                <option value="OTHER">OTHER</option>
+                {PAGE_CLASSIFICATIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {statusLabel(t, value)}
+                  </option>
+                ))}
               </SelectField>
             </label>
             <label className="oma-field">
               <span>{t('brand.discovery.filterFetchStatus')}</span>
               <SelectField value={fetchStatus} onChange={(e) => setFetchStatus(e.target.value)}>
                 <option value="">{t('brand.discovery.filterAll')}</option>
-                <option value="FETCHED">FETCHED</option>
-                <option value="FAILED">FAILED</option>
-                <option value="SKIPPED">SKIPPED</option>
+                {PAGE_FETCH_STATUSES.map((value) => (
+                  <option key={value} value={value}>
+                    {statusLabel(t, value)}
+                  </option>
+                ))}
               </SelectField>
             </label>
             <label className="oma-checkbox-label">
@@ -190,8 +209,12 @@ export default function DiscoveryPagesPage() {
             {filterHint ? (
               <div className="oma-filter-chips">
                 {query ? <span className="oma-filter-chip">{query}</span> : null}
-                {classification ? <span className="oma-filter-chip">{classification}</span> : null}
-                {fetchStatus ? <span className="oma-filter-chip">{fetchStatus}</span> : null}
+                {classification ? (
+                  <span className="oma-filter-chip">{statusLabel(t, classification)}</span>
+                ) : null}
+                {fetchStatus ? (
+                  <span className="oma-filter-chip">{statusLabel(t, fetchStatus)}</span>
+                ) : null}
                 {evidenceOnly ? (
                   <span className="oma-filter-chip">{t('brand.discovery.evidenceAvailable')}</span>
                 ) : null}
@@ -221,7 +244,7 @@ export default function DiscoveryPagesPage() {
                   >
                     <div className="oma-work-row" style={{ border: 0, padding: 0 }}>
                       <div>
-                        <strong>{page.title ?? page.url}</strong>
+                        <strong dir="auto">{page.title ?? page.url}</strong>
                         <div className="oma-work-row-meta">
                           <StatusChip status={page.classification} />
                           <StatusChip status={page.fetch_status} />

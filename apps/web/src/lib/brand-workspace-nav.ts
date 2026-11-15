@@ -1,11 +1,41 @@
 export type BrandNavSection = 'overview' | 'evidence' | 'strategy' | 'settings';
 
+export type JourneyState = 'done' | 'current' | 'todo';
+
 export type BrandNavLink = {
   id: string;
   href: string;
   label: string;
   match: (pathname: string) => boolean;
+  /** Journey progress for this destination (shown as a dot on the sub-nav tab). */
+  state?: JourneyState;
 };
+
+/** Sub-nav tab id → brand journey step id (see buildBrandJourneySteps). */
+const SUBNAV_JOURNEY_STEP: Record<string, string> = {
+  website: 'connect',
+  scan: 'scan',
+  discovery: 'discover',
+  profiles: 'intel',
+  strategies: 'strategy',
+};
+
+/**
+ * Folds journey progress into the sub-nav so the workspace shows one navigation row
+ * instead of a separate journey strip that links to the same pages.
+ */
+export function withJourneyState(
+  links: BrandNavLink[],
+  journey: Array<{ id: string; state: JourneyState }> | undefined,
+): BrandNavLink[] {
+  if (!journey?.length) return links;
+  const byStep = new Map(journey.map((step) => [step.id, step.state]));
+  return links.map((link) => {
+    const step = SUBNAV_JOURNEY_STEP[link.id];
+    const state = step ? byStep.get(step) : undefined;
+    return state ? { ...link, state } : link;
+  });
+}
 
 export function brandNavSection(pathname: string, brandId: string): BrandNavSection {
   const base = `/app/brands/${brandId}`;

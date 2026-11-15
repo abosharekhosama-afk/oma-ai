@@ -141,7 +141,13 @@ export function StrategyAiAssistant({
 
       {strategyAiMode !== 'live' ? (
         <p className="oma-banner oma-banner-warning" role="status">
-          {t('strategy.ai.modeBlocked').replace('{mode}', strategyAiMode)}
+          {t('strategy.ai.modeBlocked').replace(
+            '{mode}',
+            t(`brand.intelligence.aiMode.${strategyAiMode}`) !==
+              `brand.intelligence.aiMode.${strategyAiMode}`
+              ? t(`brand.intelligence.aiMode.${strategyAiMode}`)
+              : strategyAiMode,
+          )}
         </p>
       ) : null}
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { BrandDetail, ScanDetail } from '../../lib/brand-types';
 import { useT } from '../../lib/use-locale';
+import { BrandPlxSection, BrandPlxStatGrid } from './brand-plx-section';
 
 type Props = {
   brandId: string;
@@ -10,6 +11,7 @@ type Props = {
   scan: ScanDetail;
 };
 
+/** What the scanned catalog can turn into (counts come from the scan's content_outlook). */
 export function ScanContentOutlook({ brandId, brand, scan }: Props) {
   const t = useT();
   const outlook = scan.content_outlook;
@@ -21,43 +23,41 @@ export function ScanContentOutlook({ brandId, brand, scan }: Props) {
       ? `/app/brands/${brandId}/strategies/new`
       : `/app/brands/${brandId}/profiles`;
 
+  const names = [...outlook.product_names, ...outlook.service_names];
+
   return (
-    <section className="oma-panel oma-stack" data-testid="scan-content-outlook">
-      <h2>{t('brand.scan.contentOutlookTitle')}</h2>
-      <p className="oma-muted">{t('brand.scan.contentOutlookBody')}</p>
-      <dl className="oma-detail-dl">
+    <BrandPlxSection
+      title={t('brand.scan.contentOutlookTitle')}
+      description={t('brand.scan.contentOutlookBody')}
+      testId="scan-content-outlook"
+      actions={
+        <Link href={strategyHref} className="oma-text-link">
+          {t('brand.scan.contentNextStrategy')}
+        </Link>
+      }
+    >
+      <BrandPlxStatGrid
+        stats={[
+          { label: t('brand.scan.contentCatalogCount'), value: outlook.catalog_items },
+          {
+            label: t('brand.scan.contentOrganicEstimate'),
+            value: outlook.estimated_organic_requests,
+          },
+          { label: t('brand.scan.contentPaidEstimate'), value: outlook.estimated_paid_requests },
+        ]}
+      />
+      {names.length > 0 ? (
         <div>
-          <dt>{t('brand.scan.contentCatalogCount')}</dt>
-          <dd>{outlook.catalog_items}</dd>
-        </div>
-        <div>
-          <dt>{t('brand.scan.contentRequestEstimate')}</dt>
-          <dd>
-            {t('brand.scan.contentRequestEstimateDetail')
-              .replace('{organic}', String(outlook.estimated_organic_requests))
-              .replace('{paid}', String(outlook.estimated_paid_requests))}
-          </dd>
-        </div>
-      </dl>
-      {outlook.product_names.length > 0 ? (
-        <div>
-          <h3 className="oma-h4">{t('brand.scan.contentProductSample')}</h3>
-          <ul className="oma-list-compact">
-            {outlook.product_names.map((name) => (
-              <li key={name}>{name}</li>
+          <h4 className="oma-brand-subheading">{t('brand.scan.contentProductSample')}</h4>
+          <ul className="oma-brand-tag-list">
+            {names.map((name) => (
+              <li key={name} dir="auto">
+                {name}
+              </li>
             ))}
           </ul>
         </div>
       ) : null}
-      <p>
-        <Link href={`/app/brands/${brandId}/discovery/products`} className="oma-text-link">
-          {t('brand.scan.contentReviewDiscovery')}
-        </Link>
-        {' · '}
-        <Link href={strategyHref} className="oma-text-link">
-          {t('brand.scan.contentNextStrategy')}
-        </Link>
-      </p>
-    </section>
+    </BrandPlxSection>
   );
 }

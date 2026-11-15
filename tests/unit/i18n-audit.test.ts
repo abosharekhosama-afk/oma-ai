@@ -44,6 +44,7 @@ function usedKeys(): Map<string, string> {
 /** Values legitimately identical in both languages (formats, brand names). */
 const SAME_ALLOW = new Set([
   'content.hhmm',
+  'brand.catalog.carousel.counter',
   'landing.mega.storage.title',
   'landing.platforms.facebook',
   'landing.platforms.instagram',
@@ -106,6 +107,18 @@ describe('i18n audit (EN/AR)', () => {
     'components/shell/notifications-bell.tsx',
     'components/shell/user-menu.tsx',
     'components/shell/shell-popover.tsx',
+    'components/brand/product-media-carousel.tsx',
+    'components/brand/discovery-product-card.tsx',
+    'components/brand/catalog-product-actions.tsx',
+    'components/brand/discovery-tabs.tsx',
+    'components/brand/scan-content-outlook.tsx',
+    'app/(app)/app/brands/[brandId]/discovery/page.tsx',
+    'app/(app)/app/brands/[brandId]/discovery/products/page.tsx',
+    'app/(app)/app/brands/[brandId]/discovery/pages/page.tsx',
+    'app/(app)/app/brands/[brandId]/scans/[scanId]/page.tsx',
+    'app/(app)/app/brands/[brandId]/evidence/page.tsx',
+    'app/(app)/app/brands/[brandId]/intelligence/page.tsx',
+    'app/(app)/app/brands/[brandId]/strategies/page.tsx',
   ];
 
   it('audited surfaces have no hardcoded English UI strings', () => {

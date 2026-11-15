@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button, SelectField } from '@oma/ui/controls';
 import { api } from '../../lib/api';
 import { getApiError } from '../../lib/brand-api';
-import type { CatalogProductMedia, DiscoveredProduct } from '../../lib/brand-types';
+import type { DiscoveredProduct } from '../../lib/brand-types';
+import { pendingGeneratedMedia, productGallery } from '../../lib/product-media';
 import { useT } from '../../lib/use-locale';
 
 type GenerateKind = 'image' | 'video' | 'short_video';
@@ -14,22 +15,19 @@ type Props = {
   product: DiscoveredProduct;
   profileApproved: boolean;
   onUpdated: () => void;
-  /** When true, omit large preview (parent card already shows hero image). */
+  /** Kept for call-site compatibility; the card always renders media in its carousel. */
   compact?: boolean;
+  /** Extra action rendered at the end of the action row (e.g. "View evidence"). */
+  trailing?: ReactNode;
 };
 
-function isUsableForPreview(m: CatalogProductMedia) {
-  return (
-    m.review_status !== 'REJECTED' && (m.review_status === 'APPROVED' || m.role.startsWith('SCAN_'))
-  );
-}
-
+/** Generate-from-product + human review of generated media. Media itself lives in the card carousel. */
 export function CatalogProductActions({
   brandId,
   product,
   profileApproved,
   onUpdated,
-  compact = false,
+  trailing,
 }: Props) {
   const t = useT();
   const [kind, setKind] = useState<GenerateKind>('image');
@@ -37,15 +35,8 @@ export function CatalogProductActions({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const media = product.media ?? [];
-  const thumbnail =
-    media.find((m) => isUsableForPreview(m) && m.role === 'SCAN_THUMBNAIL') ??
-    media.find((m) => isUsableForPreview(m) && m.mime.startsWith('image/')) ??
-    media.find((m) => isUsableForPreview(m) && m.mime.startsWith('video/'));
-
-  const pendingGenerated = media.filter(
-    (m) => m.review_status === 'PENDING' && m.role.startsWith('GENERATED_'),
-  );
+  const hasSourceMedia = productGallery(product.media).some((m) => !m.generated);
+  const pendingGenerated = pendingGeneratedMedia(product.media);
 
   async function generate() {
     setBusy(true);
@@ -92,116 +83,105 @@ export function CatalogProductActions({
 
   return (
     <div className="oma-catalog-product-media" data-testid={`catalog-product-${product.id}`}>
-      {!compact ? (
-        thumbnail ? (
-          <div className="oma-catalog-product-media__preview">
-            {thumbnail.mime.startsWith('video/') ? (
-              <video
-                src={thumbnail.stream_url ?? thumbnail.view_url}
-                controls
-                playsInline
-                className="oma-catalog-product-media__thumb"
-              />
-            ) : (
-              <img
-                src={thumbnail.view_url}
-                alt=""
-                className="oma-catalog-product-media__thumb"
-                loading="lazy"
-              />
-            )}
-          </div>
-        ) : (
-          <p className="oma-muted oma-catalog-product-media__empty">{t('brand.catalog.noMedia')}</p>
-        )
-      ) : null}
-      {media.length > 1 ? (
-        <p className="oma-muted" style={{ fontSize: 12 }}>
-          {t('brand.catalog.mediaCount').replace('{count}', String(media.length))}
-        </p>
-      ) : null}
       {pendingGenerated.length > 0 ? (
-        <ul className="oma-catalog-product-media__pending" data-testid="catalog-pending-review">
-          {pendingGenerated.map((m) => (
-            <li key={m.id} className="oma-stack" style={{ marginTop: 8 }}>
-              <span className="oma-badge oma-badge-warning">
-                {t('brand.catalog.pendingReview')}
-              </span>
-              {m.mime.startsWith('video/') ? (
-                <video
-                  src={m.stream_url ?? m.view_url}
-                  controls
-                  playsInline
-                  className="oma-catalog-product-media__thumb"
-                />
-              ) : (
-                <img
-                  src={m.view_url}
-                  alt=""
-                  className="oma-catalog-product-media__thumb"
-                  loading="lazy"
-                />
-              )}
-              <div className="oma-form-actions">
-                <Button type="primary" disabled={busy} onClick={() => void review(m.id, 'approve')}>
-                  {t('brand.catalog.approve')}
-                </Button>
-                <Button type="default" disabled={busy} onClick={() => void review(m.id, 'reject')}>
-                  {t('brand.catalog.reject')}
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <section
+          className="oma-catalog-product-media__pending"
+          data-testid="catalog-pending-review"
+          aria-label={t('brand.catalog.pendingReview')}
+        >
+          <span className="oma-badge oma-badge-warning">
+            {t('brand.catalog.pendingReviewCount').replace(
+              '{count}',
+              String(pendingGenerated.length),
+            )}
+          </span>
+          <ul className="oma-catalog-product-media__pending-list">
+            {pendingGenerated.map((m) => (
+              <li key={m.id} className="oma-catalog-product-media__pending-item">
+                {m.mime.startsWith('video/') ? (
+                  <video
+                    src={m.stream_url ?? m.view_url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="oma-catalog-product-media__thumb"
+                  />
+                ) : (
+                  <img
+                    src={m.view_url}
+                    alt={`${product.name} — ${t('brand.catalog.pendingReview')}`}
+                    className="oma-catalog-product-media__thumb"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                <div className="oma-catalog-product-media__pending-actions">
+                  <Button
+                    type="primary"
+                    size="small"
+                    disabled={busy}
+                    onClick={() => void review(m.id, 'approve')}
+                  >
+                    {t('brand.catalog.approve')}
+                  </Button>
+                  <Button
+                    type="default"
+                    size="small"
+                    disabled={busy}
+                    onClick={() => void review(m.id, 'reject')}
+                  >
+                    {t('brand.catalog.reject')}
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
-      {profileApproved ? (
-        <div className="oma-catalog-product-media__actions" data-testid="catalog-generate-actions">
-          <label className="oma-field oma-field-inline">
-            <span>{t('brand.catalog.generateKind')}</span>
-            <SelectField
-              value={kind}
-              onChange={(e) => setKind(e.target.value as GenerateKind)}
-              disabled={busy}
-              data-testid="catalog-generate-kind"
+
+      <div className="oma-catalog-product-media__actions" data-testid="catalog-generate-actions">
+        {profileApproved ? (
+          <>
+            <label className="oma-catalog-product-media__kind">
+              <span className="oma-sr-only">{t('brand.catalog.generateKind')}</span>
+              <SelectField
+                value={kind}
+                onChange={(e) => setKind(e.target.value as GenerateKind)}
+                disabled={busy}
+                data-testid="catalog-generate-kind"
+                aria-label={t('brand.catalog.generateKind')}
+              >
+                <option value="image">{t('brand.catalog.kindImage')}</option>
+                <option value="video">{t('brand.catalog.kindVideo')}</option>
+                <option value="short_video">{t('brand.catalog.kindShortVideo')}</option>
+              </SelectField>
+            </label>
+            <Button
+              type="primary"
+              disabled={busy || !hasSourceMedia}
+              title={hasSourceMedia ? undefined : t('brand.catalog.generateNeedsMedia')}
+              onClick={() => void generate()}
             >
-              <option value="image">{t('brand.catalog.kindImage')}</option>
-              <option value="video">{t('brand.catalog.kindVideo')}</option>
-              <option value="short_video">{t('brand.catalog.kindShortVideo')}</option>
-            </SelectField>
-          </label>
-          <Button type="primary" disabled={busy || !thumbnail} onClick={() => void generate()}>
-            {t('brand.catalog.generate')}
-          </Button>
-        </div>
-      ) : (
-        <p className="oma-muted" role="status">
-          {t('brand.catalog.generateAfterProfile')}
+              {t('brand.catalog.generate')}
+            </Button>
+          </>
+        ) : (
+          <p className="oma-muted oma-catalog-product-media__hint" role="status">
+            {t('brand.catalog.generateAfterProfile')}
+          </p>
+        )}
+        {trailing}
+      </div>
+      {message ? (
+        <p className="oma-catalog-product-media__message" role="status">
+          {message}
         </p>
-      )}
-      {message ? <p role="status">{message}</p> : null}
+      ) : null}
       {error ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
+        <p className="oma-catalog-product-media__error" role="alert">
           {error}
         </p>
       ) : null}
     </div>
-  );
-}
-
-export function CatalogMediaGallery({ media }: { media: CatalogProductMedia[] }) {
-  if (!media.length) return null;
-  return (
-    <ul className="oma-catalog-product-media__gallery">
-      {media.map((m) => (
-        <li key={m.id} className="oma-catalog-product-media__gallery-item">
-          {m.mime.startsWith('video/') ? (
-            <video src={m.stream_url ?? m.view_url} controls playsInline />
-          ) : (
-            <img src={m.view_url} alt="" loading="lazy" />
-          )}
-          <span className="oma-badge oma-badge-muted">{m.role}</span>
-        </li>
-      ))}
-    </ul>
   );
 }

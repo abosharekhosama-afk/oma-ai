@@ -19,12 +19,10 @@ import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
 import { ConnectorModeBanner } from '../../../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
-import { StatusChip } from '../../../../../../../components/ui/status-chip';
-import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
-import { BrandPipelineOutcome } from '../../../../../../../components/brand/brand-pipeline-outcome';
-import { ScanContentOutlook } from '../../../../../../../components/brand/scan-content-outlook';
+import { StatusChip, statusLabel } from '../../../../../../../components/ui/status-chip';
 import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
-import { useT } from '../../../../../../../lib/use-locale';
+import { useLocale, useT } from '../../../../../../../lib/use-locale';
+import { errorCodeLabel, formatBrandDateTime } from '../../../../../../../lib/brand-format';
 import {
   BrandPlxSection,
   BrandPlxStatGrid,
@@ -47,6 +45,7 @@ function phaseIndex(status: string): number {
 
 export default function ScanDetailPage() {
   const t = useT();
+  const locale = useLocale();
   const router = useRouter();
   const params = useParams<{ brandId: string; scanId: string }>();
   const { brandId, scanId } = params;
@@ -104,7 +103,7 @@ export default function ScanDetailPage() {
   useEffect(() => {
     if (!scan || !liveRef.current) return;
     const msg = t('brand.scan.progressLive')
-      .replace('{status}', scan.status)
+      .replace('{status}', statusLabel(t, scan.status))
       .replace('{percent}', String(scan.progress_percent));
     if (msg !== lastAnnounced.current) {
       lastAnnounced.current = msg;
@@ -173,8 +172,8 @@ export default function ScanDetailPage() {
   if (loading) return <DetailShimmer />;
   if (error || !brand || !scan) {
     return (
-      <div className="oma-card" role="alert">
-        <p style={{ color: 'var(--status-danger)' }}>{error ?? t('common.notFound')}</p>
+      <div className="oma-banner oma-banner-danger" role="alert">
+        <p>{error ?? t('common.notFound')}</p>
       </div>
     );
   }
@@ -186,13 +185,24 @@ export default function ScanDetailPage() {
   const inProgress = !TERMINAL.has(scan.status);
   const activePhase = phaseIndex(scan.status);
   const scanComplete = TERMINAL.has(scan.status) && scan.status !== 'CANCELLED';
+  const analysisRunning = scan.analysis_status === 'QUEUED' || scan.analysis_status === 'ANALYZING';
   const canRequestAnalysis =
-    scanComplete &&
-    scan.analysis_status !== 'QUEUED' &&
-    scan.analysis_status !== 'ANALYZING' &&
-    scan.analysis_status !== 'ANALYZED';
+    scanComplete && !analysisRunning && scan.analysis_status !== 'ANALYZED';
+  const crawlLabel = translated(t, `brand.scan.outcome.crawl.${scan.status}`, scan.status);
+  const aiKey =
+    !scan.analysis_status ||
+    scan.analysis_status === 'NOT_REQUESTED' ||
+    scan.analysis_status === 'SKIPPED'
+      ? 'NOT_RUN'
+      : scan.analysis_status;
+  const aiLabel = translated(t, `brand.scan.outcome.ai.${aiKey}`, statusLabel(t, aiKey));
+  const failure = errorCodeLabel(t, scan.error_code);
+  const summary = scan.discovery_summary;
+  const productsFound = summary
+    ? summary.products + summary.services
+    : (scan.coverage?.products_discovered ?? 0) + (scan.coverage?.services_discovered ?? 0);
 
-  const journey = brand ? buildBrandJourneySteps(brand, t) : [];
+  const journey = buildBrandJourneySteps(brand, t);
 
   return (
     <BrandWorkspaceShell
@@ -216,36 +226,6 @@ export default function ScanDetailPage() {
 
       <ConnectorModeBanner mode={scan.connector_mode} />
 
-      {isPartial ? (
-        <div className="oma-banner oma-banner-warning" role="alert">
-          <strong>{t('brand.scan.partialTitle')}</strong>
-          <p>{t('brand.scan.partialBody')}</p>
-        </div>
-      ) : null}
-
-      {isFailed ? (
-        <div className="oma-banner oma-banner-danger" role="alert">
-          <strong>{t('brand.scan.failedTitle')}</strong>
-          <p>{t('brand.scan.failedBody')}</p>
-          {scan.error_code ? <p className="oma-muted">{scan.error_code}</p> : null}
-        </div>
-      ) : null}
-
-      {isCancelled ? (
-        <div className="oma-banner oma-banner-warning" role="status">
-          <strong>{t('brand.scan.cancelledTitle')}</strong>
-          <p>{t('brand.scan.cancelledBody')}</p>
-        </div>
-      ) : null}
-
-      <ScanOutcomePanel scan={scan} />
-
-      <ScanContentOutlook brandId={brandId} brand={brand} scan={scan} />
-
-      <CoverageDisclosure coverage={scan.coverage} scanStatus={scan.status} />
-
-      {brand ? <BrandPipelineOutcome brandId={brandId} brand={brand} scan={scan} /> : null}
-
       <BrandPlxSection
         title={t('brand.scan.progressTitle')}
         description={t('brand.scan.phasesSubtitle')}
@@ -258,6 +238,44 @@ export default function ScanDetailPage() {
           aria-live="polite"
           aria-atomic="true"
         />
+        <data value={scan.status} data-testid="scan-status" hidden>
+          {scan.status}
+        </data>
+
+        <div className="oma-scan-hero">
+          <div className="oma-scan-hero__percent" aria-hidden="true">
+            {scan.progress_percent}%
+          </div>
+          <dl className="oma-scan-hero__facts">
+            <div>
+              <dt>{t('brand.scan.crawlOutcomeLabel')}</dt>
+              <dd>
+                <StatusChip status={scan.status} label={crawlLabel} />
+              </dd>
+            </div>
+            <div>
+              <dt>{t('brand.scan.aiOutcomeLabel')}</dt>
+              <dd>
+                <StatusChip status={aiKey === 'NOT_RUN' ? null : aiKey} label={aiLabel} />
+                <span className="oma-sr-only" data-testid="scan-analysis-status-readable">
+                  {aiLabel}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>{t('brand.scan.startedAt')}</dt>
+              <dd>{formatBrandDateTime(scan.started_at, locale)}</dd>
+            </div>
+            <div>
+              <dt>{t('brand.scan.finishedAt')}</dt>
+              <dd>
+                {scan.finished_at
+                  ? formatBrandDateTime(scan.finished_at, locale)
+                  : t('brand.scan.stillRunning')}
+              </dd>
+            </div>
+          </dl>
+        </div>
 
         <ol className="oma-scan-phases" aria-label={t('brand.scan.phasesTitle')}>
           {PHASES.map((phase, index) => {
@@ -273,6 +291,7 @@ export default function ScanDetailPage() {
                       ? 'oma-scan-phase is-done'
                       : 'oma-scan-phase'
                 }
+                aria-current={current ? 'step' : undefined}
               >
                 <StatusChip
                   status={current ? scan.status : done ? 'SUCCEEDED' : 'QUEUED'}
@@ -283,35 +302,62 @@ export default function ScanDetailPage() {
           })}
         </ol>
 
-        <div className="oma-progress" aria-hidden="true">
+        <div
+          className="oma-progress"
+          role="progressbar"
+          aria-label={t('brand.scan.pipelineProgressLabel')}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={scan.progress_percent}
+        >
           <div className="oma-progress-bar" style={{ width: `${scan.progress_percent}%` }} />
         </div>
-        <p className="oma-muted" role="status" data-testid="scan-status-summary">
+        <p className="oma-sr-only" role="status" data-testid="scan-status-summary">
           {t('brand.scan.statusSummary')
-            .replace('{crawl}', t(`brand.scan.outcome.crawl.${scan.status}`))
-            .replace(
-              '{ai}',
-              (() => {
-                const aiKey = scan.analysis_status ?? 'NOT_RUN';
-                const label = t(`brand.scan.outcome.ai.${aiKey}`);
-                return label.startsWith('brand.scan.outcome.ai.') ? aiKey : label;
-              })(),
-            )
+            .replace('{crawl}', crawlLabel)
+            .replace('{ai}', aiLabel)
             .replace('{percent}', String(scan.progress_percent))}
         </p>
+
+        {isPartial ? (
+          <div className="oma-banner oma-banner-warning" role="alert">
+            <strong>{t('brand.scan.partialTitle')}</strong>
+            <p>{t('brand.scan.partialBody')}</p>
+          </div>
+        ) : null}
+        {isFailed ? (
+          <div className="oma-banner oma-banner-danger" role="alert">
+            <strong>{t('brand.scan.failedTitle')}</strong>
+            <p>{failure ?? t('brand.scan.failedBody')}</p>
+            {scan.error_code ? (
+              <details className="oma-brand-tech-details">
+                <summary>{t('brand.common.technicalDetails')}</summary>
+                <code className="oma-ltr">{scan.error_code}</code>
+              </details>
+            ) : null}
+          </div>
+        ) : null}
+        {isCancelled ? (
+          <div className="oma-banner oma-banner-warning" role="status">
+            <strong>{t('brand.scan.cancelledTitle')}</strong>
+            <p>{t('brand.scan.cancelledBody')}</p>
+          </div>
+        ) : null}
+
         <BrandPlxStatGrid
           stats={[
             { label: t('brand.scan.pagesFetched'), value: scan.pages_fetched },
             { label: t('brand.scan.pagesFailed'), value: scan.pages_failed },
             { label: t('brand.scan.pagesSkipped'), value: scan.pages_skipped },
+            { label: t('brand.scan.catalogFound'), value: productsFound },
           ]}
         />
         {actionError ? (
-          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          <p role="alert" className="oma-brand-inline-error">
             {actionError}
           </p>
         ) : null}
-        <div className="oma-form-actions">
+        <div className="oma-form-actions oma-scan-actions">
           {inProgress ? (
             <Button type="default" disabled={busy} onClick={() => void handleCancel()}>
               {t('brand.scan.cancel')}
@@ -322,10 +368,7 @@ export default function ScanDetailPage() {
               {t('brand.scan.retry')}
             </Button>
           ) : null}
-          {scan.profile_version_id &&
-          ['SUCCEEDED', 'PARTIAL'].includes(scan.status) &&
-          scan.analysis_status !== 'QUEUED' &&
-          scan.analysis_status !== 'ANALYZING' ? (
+          {scan.profile_version_id && scanComplete && !analysisRunning ? (
             <Button type="default" disabled={busy} onClick={() => void handleAnalyze()}>
               {t('brand.ai.rerun')}
             </Button>
@@ -338,12 +381,35 @@ export default function ScanDetailPage() {
               {t('brand.scan.viewProfile')}
             </OmaLinkButton>
           ) : null}
-          <Link href={`/app/brands/${brandId}/discovery/pages`}>
-            {t('brand.discovery.pagesTitle')}
-          </Link>
-          <Link href={`/app/brands/${brandId}`}>{t('brand.scan.backToBrand')}</Link>
         </div>
       </BrandPlxSection>
+
+      {scanComplete ? (
+        <Link
+          href={`/app/brands/${brandId}/discovery${productsFound > 0 ? '/products' : ''}`}
+          className="oma-plx-listening-card oma-scan-next"
+          data-testid="scan-next-discovery"
+        >
+          <div>
+            <strong>{t('brand.scan.nextDiscoveryTitle')}</strong>
+            <p className="oma-muted">
+              {t('brand.scan.nextDiscoveryBody')
+                .replace('{pages}', String(summary?.pages ?? scan.pages_fetched))
+                .replace('{products}', String(productsFound))}
+            </p>
+          </div>
+          <span className="oma-plx-brand-hub-card__foot" aria-hidden="true">
+            {t('home.action.open')}
+          </span>
+        </Link>
+      ) : null}
+
+      <CoverageDisclosure coverage={scan.coverage} />
     </BrandWorkspaceShell>
   );
+}
+
+function translated(t: (key: string) => string, key: string, fallback: string): string {
+  const value = t(key);
+  return value && value !== key ? value : fallback;
 }

@@ -2,18 +2,18 @@
 import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 
 import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
-import { Button } from '@oma/ui/controls';
+import { Button, CheckboxField, SearchInput, SelectField } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { api } from '../../../../../../../lib/api';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { api, invalidateApiCache } from '../../../../../../../lib/api';
 import type {
   BrandDetail,
   DiscoveredPage,
   DiscoveredProduct,
   EvidenceItem,
   Paginated,
+  ProfileDetail,
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
 import { likelySpaShell } from '../../../../../../../lib/brand-scan-ui';
@@ -23,19 +23,31 @@ import {
 } from '../../../../../../../components/brand/connector-mode-banner';
 import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
-import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
+import {
+  BrandPlxPageHead,
+  BrandPlxStatGrid,
+} from '../../../../../../../components/brand/brand-plx-section';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 import { DiscoveryCatalogMergeBar } from '../../../../../../../components/brand/discovery-catalog-merge-bar';
 import { DiscoveryProductCard } from '../../../../../../../components/brand/discovery-product-card';
-import type { ProfileDetail } from '../../../../../../../lib/brand-types';
+import { DiscoveryTabs } from '../../../../../../../components/brand/discovery-tabs';
+import {
+  catalogStats,
+  filterProducts,
+  type ProductFilter,
+} from '../../../../../../../lib/product-media';
+
+const REIMPORT_POLL_MS = 6000;
+const REIMPORT_POLL_TRIES = 6;
 
 export default function DiscoveryProductsPage() {
   const t = useT();
   const params = useParams<{ brandId: string }>();
   const brandId = params.brandId;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
+  const [scan, setScan] = useState<ScanDetail | null>(null);
   const [products, setProducts] = useState<DiscoveredProduct[]>([]);
   const [scanId, setScanId] = useState<string | null>(null);
   const [connectorMode, setConnectorMode] = useState<ConnectorMode | null>(null);
@@ -48,13 +60,30 @@ export default function DiscoveryProductsPage() {
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
   const [reimportBusy, setReimportBusy] = useState(false);
   const [reimportMessage, setReimportMessage] = useState<string | null>(null);
+  const [filter, setFilter] = useState<ProductFilter>({
+    query: '',
+    kind: '',
+    withMediaOnly: false,
+  });
+  const pollTimer = useRef<number | null>(null);
 
-  async function reloadProducts(activeScanId: string) {
-    const productsRes = await api<Paginated<DiscoveredProduct>>(
-      `/api/v1/brands/${brandId}/scans/${activeScanId}/products?limit=100`,
-    );
-    setProducts(productsRes.data);
-  }
+  const reloadProducts = useCallback(
+    async (activeScanId: string) => {
+      const path = `/api/v1/brands/${brandId}/scans/${activeScanId}/products?limit=100`;
+      invalidateApiCache(path);
+      const productsRes = await api<Paginated<DiscoveredProduct>>(path);
+      setProducts(productsRes.data);
+      return productsRes.data;
+    },
+    [brandId],
+  );
+
+  useEffect(
+    () => () => {
+      if (pollTimer.current) window.clearTimeout(pollTimer.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     async function load() {
@@ -88,6 +117,7 @@ export default function DiscoveryProductsPage() {
           ),
           profilePromise,
         ]);
+        setScan(scanRes.data);
         setConnectorMode(scanRes.data.connector_mode);
         setProducts(productsRes.data);
         setProfile(profileRes?.data ?? null);
@@ -109,12 +139,54 @@ export default function DiscoveryProductsPage() {
     void load();
   }, [brandId]);
 
+  const stats = useMemo(() => catalogStats(products), [products]);
+  const visible = useMemo(() => filterProducts(products, filter), [products, filter]);
+  const filtersActive = Boolean(filter.query.trim() || filter.kind || filter.withMediaOnly);
+
+  async function reimport() {
+    if (!scanId) return;
+    setReimportBusy(true);
+    setReimportMessage(null);
+    setError(null);
+    try {
+      await api(`/api/v1/brands/${brandId}/scans/${scanId}/catalog/reimport-media`, {
+        method: 'POST',
+      });
+      setReimportMessage(t('brand.catalog.reimportQueued'));
+      const baseline = catalogStats(products).mediaTotal;
+      let tries = 0;
+      const poll = async () => {
+        tries += 1;
+        try {
+          const next = await reloadProducts(scanId);
+          const now = catalogStats(next).mediaTotal;
+          if (now !== baseline) {
+            setReimportMessage(t('brand.catalog.reimportUpdated').replace('{count}', String(now)));
+            return;
+          }
+        } catch {
+          /* transient — keep polling */
+        }
+        if (tries < REIMPORT_POLL_TRIES) {
+          pollTimer.current = window.setTimeout(() => void poll(), REIMPORT_POLL_MS);
+        } else {
+          setReimportMessage(t('brand.catalog.reimportStillRunning'));
+        }
+      };
+      pollTimer.current = window.setTimeout(() => void poll(), REIMPORT_POLL_MS);
+    } catch (err) {
+      setError(getApiError(err).message);
+    } finally {
+      setReimportBusy(false);
+    }
+  }
+
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (loading) return <DetailShimmer />;
   if (!brand) {
     return (
-      <div className="oma-card" role="alert">
-        <p style={{ color: 'var(--status-danger)' }}>{error ?? t('common.notFound')}</p>
+      <div className="oma-banner oma-banner-danger" role="alert">
+        <p>{error ?? t('common.notFound')}</p>
       </div>
     );
   }
@@ -123,73 +195,62 @@ export default function DiscoveryProductsPage() {
     <BrandWorkspaceShell
       brandId={brandId}
       brandName={brand.name}
+      brandLogoUrl={brand.logo_url}
+      websiteUrl={brand.website?.normalized_url}
       scanStatus={brand.latest_scan?.status}
+      latestScanId={brand.latest_scan?.id}
     >
+      <DiscoveryTabs
+        brandId={brandId}
+        counts={{
+          pages: scan?.discovery_summary?.pages ?? null,
+          products: scanId ? products.length : null,
+        }}
+      />
       <BrandPlxPageHead
         title={t('brand.discovery.productsTitle')}
         description={t('brand.discovery.productsHint')}
         actions={
-          <div className="oma-chip-row">
-            <ConnectorModeChip mode={connectorMode} />
-            {scanId ? (
-              <>
-                <Button
-                  type="default"
-                  disabled={reimportBusy}
-                  data-testid="catalog-reimport-media"
-                  onClick={() => {
-                    void (async () => {
-                      setReimportBusy(true);
-                      setReimportMessage(null);
-                      try {
-                        await api(
-                          `/api/v1/brands/${brandId}/scans/${scanId}/catalog/reimport-media`,
-                          { method: 'POST' },
-                        );
-                        setReimportMessage(t('brand.catalog.reimportQueued'));
-                        window.setTimeout(() => {
-                          void reloadProducts(scanId);
-                        }, 12000);
-                      } catch (err) {
-                        setError(getApiError(err).message);
-                      } finally {
-                        setReimportBusy(false);
-                      }
-                    })();
-                  }}
-                >
-                  {t('brand.catalog.reimportMedia')}
-                </Button>
-                <Link href={`/app/brands/${brandId}/discovery`}>
-                  {t('brand.discovery.hubTitle')}
-                </Link>
-                <Link href={`/app/brands/${brandId}/discovery/pages`}>
-                  {t('brand.discovery.pagesTitle')}
-                </Link>
-              </>
-            ) : null}
-          </div>
+          scanId ? (
+            <div className="oma-chip-row">
+              <ConnectorModeChip mode={connectorMode} />
+              <Button
+                type="default"
+                loading={reimportBusy}
+                disabled={reimportBusy}
+                data-testid="catalog-reimport-media"
+                onClick={() => void reimport()}
+              >
+                {t('brand.catalog.reimportMedia')}
+              </Button>
+            </div>
+          ) : null
         }
       />
 
       {reimportMessage ? (
-        <p className="oma-muted" role="status" data-testid="catalog-reimport-status">
+        <p
+          className="oma-plx-listening__next-check"
+          role="status"
+          data-testid="catalog-reimport-status"
+        >
           {reimportMessage}
         </p>
       ) : null}
+
       {!scanId ? (
-        <div className="oma-card" role="status">
+        <div className="oma-plx-listening-card oma-brand-empty" role="status">
           <p>{t('brand.discovery.noScan')}</p>
           <OmaLinkButton href={`/app/brands/${brandId}/scans/new`} type="primary">
             {t('brand.scan.start')}
           </OmaLinkButton>
         </div>
       ) : error ? (
-        <div className="oma-card" role="alert">
-          <p style={{ color: 'var(--status-danger)' }}>{error}</p>
+        <div className="oma-banner oma-banner-danger" role="alert">
+          <p>{error}</p>
         </div>
       ) : products.length === 0 ? (
-        <div className="oma-card oma-stack" role="status">
+        <div className="oma-plx-listening-card oma-brand-empty" role="status">
           <p>{t('brand.discovery.productsEmpty')}</p>
           {spaLikely ? (
             <div className="oma-banner oma-banner-warning" data-testid="discovery-spa-hint">
@@ -200,6 +261,23 @@ export default function DiscoveryProductsPage() {
         </div>
       ) : (
         <>
+          <BrandPlxStatGrid
+            testId="discovery-products-stats"
+            stats={[
+              { label: t('brand.discovery.statsProducts'), value: stats.products },
+              { label: t('brand.discovery.statsServices'), value: stats.services },
+              {
+                label: t('brand.catalog.statsWithMedia'),
+                value: `${stats.withMedia}/${stats.total}`,
+                hint: t('brand.catalog.statsMediaTotal').replace(
+                  '{count}',
+                  String(stats.mediaTotal),
+                ),
+              },
+              { label: t('brand.catalog.statsPendingReview'), value: stats.pendingReview },
+            ]}
+          />
+
           <DiscoveryCatalogMergeBar
             brandId={brandId}
             scanId={scanId}
@@ -215,29 +293,88 @@ export default function DiscoveryProductsPage() {
               })();
             }}
           />
-          <ul
-            className="oma-plx-brand-data-grid oma-discovery-products-grid"
-            data-testid="discovery-products-cards"
+
+          <form
+            className="oma-discovery-toolbar"
+            role="search"
+            onSubmit={(e) => e.preventDefault()}
+            aria-label={t('brand.discovery.filtersTitle')}
           >
-            {products.map((product) => {
-              const linked =
-                product.source_page_id != null ? evidenceByPage[product.source_page_id] : undefined;
-              return (
-                <li key={product.id}>
-                  <DiscoveryProductCard
-                    brandId={brandId}
-                    product={product}
-                    profileApproved={Boolean(brand.current_approved_profile_version_id)}
-                    evidenceId={linked}
-                    onEvidence={() => setEvidenceId(linked!)}
-                    onUpdated={() => {
-                      if (scanId) void reloadProducts(scanId);
-                    }}
-                  />
-                </li>
-              );
-            })}
-          </ul>
+            <label className="oma-discovery-toolbar__search">
+              <span className="oma-sr-only">{t('brand.discovery.searchLabel')}</span>
+              <SearchInput
+                value={filter.query}
+                onChange={(e) => setFilter((f) => ({ ...f, query: e.target.value }))}
+                placeholder={t('brand.discovery.productSearchPlaceholder')}
+                aria-label={t('brand.discovery.searchLabel')}
+                allowClear
+              />
+            </label>
+            <label className="oma-discovery-toolbar__field">
+              <span className="oma-sr-only">{t('brand.discovery.filterKind')}</span>
+              <SelectField
+                value={filter.kind}
+                aria-label={t('brand.discovery.filterKind')}
+                onChange={(e) =>
+                  setFilter((f) => ({ ...f, kind: e.target.value as ProductFilter['kind'] }))
+                }
+              >
+                <option value="">{t('brand.discovery.filterAllKinds')}</option>
+                <option value="PRODUCT">{t('brand.discovery.statsProducts')}</option>
+                <option value="SERVICE">{t('brand.discovery.statsServices')}</option>
+              </SelectField>
+            </label>
+            <div className="oma-discovery-toolbar__check">
+              <CheckboxField
+                checked={filter.withMediaOnly}
+                onChange={(e) => setFilter((f) => ({ ...f, withMediaOnly: e.target.checked }))}
+              >
+                {t('brand.catalog.filterWithMedia')}
+              </CheckboxField>
+            </div>
+            <p className="oma-muted oma-discovery-toolbar__count" role="status" aria-live="polite">
+              {t('brand.discovery.resultCount')
+                .replace('{shown}', String(visible.length))
+                .replace('{total}', String(products.length))}
+            </p>
+          </form>
+
+          {visible.length === 0 ? (
+            <div className="oma-plx-listening-card oma-brand-empty" role="status">
+              <p>{t('brand.discovery.noMatches')}</p>
+              {filtersActive ? (
+                <Button
+                  type="default"
+                  onClick={() => setFilter({ query: '', kind: '', withMediaOnly: false })}
+                >
+                  {t('brand.discovery.clearFilters')}
+                </Button>
+              ) : null}
+            </div>
+          ) : (
+            <ul className="oma-discovery-products-grid" data-testid="discovery-products-cards">
+              {visible.map((product) => {
+                const linked =
+                  product.source_page_id != null
+                    ? evidenceByPage[product.source_page_id]
+                    : undefined;
+                return (
+                  <li key={product.id}>
+                    <DiscoveryProductCard
+                      brandId={brandId}
+                      product={product}
+                      profileApproved={Boolean(brand.current_approved_profile_version_id)}
+                      evidenceId={linked}
+                      onEvidence={() => (linked ? setEvidenceId(linked) : undefined)}
+                      onUpdated={() => {
+                        if (scanId) void reloadProducts(scanId);
+                      }}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </>
       )}
 
