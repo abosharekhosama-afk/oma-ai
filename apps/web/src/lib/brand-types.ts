@@ -75,6 +75,7 @@ export type ScanDetail = {
   } | null;
   job_run_id: string;
   error_code: string | null;
+  error_detail?: string | null;
   started_at: string | null;
   finished_at: string | null;
   profile_version_id: string | null;

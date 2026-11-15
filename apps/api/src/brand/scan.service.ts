@@ -51,6 +51,7 @@ export class ScanService {
     errorCode: string | null;
     startedAt: Date | null;
     finishedAt: Date | null;
+    errorDetail?: string | null;
   }) {
     return {
       id: scan.id,
@@ -66,6 +67,7 @@ export class ScanService {
       coverage: scan.coverageJson ? JSON.parse(scan.coverageJson) : null,
       job_run_id: scan.jobRunId,
       error_code: scan.errorCode,
+      error_detail: scan.errorDetail ?? null,
       started_at: scan.startedAt?.toISOString() ?? null,
       finished_at: scan.finishedAt?.toISOString() ?? null,
     };
