@@ -83,6 +83,9 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
     process.env.BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES === undefined ||
     process.env.BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES === '1' ||
     process.env.BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES === 'true';
+  const blockImages =
+    process.env.BRAND_SCANNER_JS_BLOCK_IMAGES === '1' ||
+    process.env.BRAND_SCANNER_JS_BLOCK_IMAGES === 'true';
 
   const browser = await getBrowser();
 
@@ -99,7 +102,7 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
     if (blockHeavy) {
       await page.route('**/*', (route: Route) => {
         const type = route.request().resourceType();
-        if (type === 'image' || type === 'font' || type === 'media') {
+        if (type === 'image' ? blockImages : blockHeavy && (type === 'font' || type === 'media')) {
           void route.abort();
           return;
         }
