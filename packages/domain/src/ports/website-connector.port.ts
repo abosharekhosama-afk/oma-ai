@@ -2,7 +2,12 @@ export type FetchPublicInput = {
   url: string;
   timeoutMs?: number;
   maxBytes?: number;
-  accept?: 'html' | 'text' | 'xml';
+  accept?: 'html' | 'text' | 'xml' | 'json' | 'script';
+  /**
+   * Extra request headers for public storefront APIs (e.g. tenant headers). Only `x-*`
+   * names are sent; credentials and hop-by-hop headers are never forwarded.
+   */
+  headers?: Record<string, string>;
 };
 
 export type FetchPublicResult = {

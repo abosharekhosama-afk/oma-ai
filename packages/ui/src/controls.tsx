@@ -3,13 +3,17 @@
 import {
   Children,
   isValidElement,
+  useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ComponentProps,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import {
   App,
@@ -227,6 +231,38 @@ function readControlValue(event: { target: unknown }): string {
 type CheckEvent = { target: { value: string; checked: boolean } };
 
 /** Card-style select (Planable choice card) — replaces native <select>. */
+export type MenuPlacement = {
+  left: number;
+  width: number;
+  maxHeight: number;
+  /** Fixed `top` when the menu opens downward, else null. */
+  top: number | null;
+  /** Fixed `bottom` when the menu flips upward, else null. */
+  bottom: number | null;
+};
+
+/**
+ * Viewport-fixed placement for a floating select menu: opens below the trigger, flips above
+ * when there is clearly more room there, and is clamped horizontally inside the viewport.
+ */
+export function computeMenuPlacement(
+  rect: { top: number; bottom: number; left: number; width: number },
+  viewport: { width: number; height: number },
+  contentHeight = 260,
+): MenuPlacement {
+  const gap = 4;
+  const desired = Math.min(260, contentHeight);
+  const below = viewport.height - rect.bottom - gap - 8;
+  const above = rect.top - gap - 8;
+  const openUp = below < Math.min(desired, 160) && above > below;
+  const maxHeight = Math.max(120, Math.min(260, openUp ? above : below));
+  const width = Math.min(Math.max(rect.width, 160), Math.max(160, viewport.width - 16));
+  const left = Math.min(Math.max(8, rect.left), Math.max(8, viewport.width - width - 8));
+  return openUp
+    ? { left, width, maxHeight, top: null, bottom: viewport.height - rect.top + gap }
+    : { left, width, maxHeight, top: rect.bottom + gap, bottom: null };
+}
+
 export function SelectField({
   value,
   onChange,
@@ -248,6 +284,9 @@ export function SelectField({
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLUListElement | null>(null);
+  const [menuStyle, setMenuStyle] = useState<CSSProperties | null>(null);
 
   const options = useMemo(() => {
     const list: Array<{ value: string; label: string; disabled?: boolean }> = [];
@@ -271,11 +310,49 @@ export function SelectField({
   const selected = options.find((o) => o.value === value) ?? options[0];
   const display = selected?.label ?? '';
 
+  // The menu is portalled to <body> with fixed coordinates so cards, grids, and
+  // `overflow: hidden` containers can never clip it or paint over it.
+  const placeMenu = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger || typeof window === 'undefined') return;
+    const placement = computeMenuPlacement(
+      trigger.getBoundingClientRect(),
+      { width: window.innerWidth, height: window.innerHeight },
+      menuRef.current?.scrollHeight ?? 260,
+    );
+    setMenuStyle({
+      '--oma-menu-left': `${placement.left}px`,
+      '--oma-menu-width': `${placement.width}px`,
+      '--oma-menu-max-height': `${placement.maxHeight}px`,
+      '--oma-menu-top': placement.top == null ? 'auto' : `${placement.top}px`,
+      '--oma-menu-bottom': placement.bottom == null ? 'auto' : `${placement.bottom}px`,
+    } as CSSProperties);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setMenuStyle(null);
+      return;
+    }
+    placeMenu();
+    const onMove = () => placeMenu();
+    window.addEventListener('resize', onMove);
+    window.addEventListener('scroll', onMove, true);
+    return () => {
+      window.removeEventListener('resize', onMove);
+      window.removeEventListener('scroll', onMove, true);
+    };
+  }, [open, placeMenu]);
+
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
       if (!rootRef.current) return;
-      if (e.target instanceof Node && !rootRef.current.contains(e.target)) {
+      if (
+        e.target instanceof Node &&
+        !rootRef.current.contains(e.target) &&
+        !menuRef.current?.contains(e.target)
+      ) {
         setOpen(false);
       }
     };
@@ -301,6 +378,7 @@ export function SelectField({
       <button
         type="button"
         id={id}
+        ref={triggerRef}
         className="oma-choice-select__trigger"
         aria-label={ariaLabel}
         aria-expanded={open}
@@ -317,36 +395,41 @@ export function SelectField({
           ▾
         </span>
       </button>
-      {open ? (
-        <ul
-          className="oma-choice-select__menu"
-          role="listbox"
-          data-testid={testId ? `${testId}-menu` : undefined}
-        >
-          {options.map((opt) => (
-            <li key={opt.value || '__empty'} role="none">
-              <button
-                type="button"
-                role="option"
-                aria-selected={opt.value === value}
-                data-selected={opt.value === value ? 'true' : 'false'}
-                disabled={opt.disabled}
-                className="oma-choice-select__option"
-                onClick={() => {
-                  if (opt.disabled) return;
-                  onChange?.({ target: { value: opt.value } });
-                  setOpen(false);
-                }}
-              >
-                <span>{opt.label}</span>
-                <span className="oma-choice-select__check" aria-hidden>
-                  {opt.value === value ? '✓' : ''}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      {open && typeof document !== 'undefined'
+        ? createPortal(
+            <ul
+              ref={menuRef}
+              className="oma-choice-select__menu oma-choice-select__menu--floating"
+              role="listbox"
+              data-testid={testId ? `${testId}-menu` : undefined}
+              style={menuStyle ?? { visibility: 'hidden' }}
+            >
+              {options.map((opt) => (
+                <li key={opt.value || '__empty'} role="none">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={opt.value === value}
+                    data-selected={opt.value === value ? 'true' : 'false'}
+                    disabled={opt.disabled}
+                    className="oma-choice-select__option"
+                    onClick={() => {
+                      if (opt.disabled) return;
+                      onChange?.({ target: { value: opt.value } });
+                      setOpen(false);
+                    }}
+                  >
+                    <span>{opt.label}</span>
+                    <span className="oma-choice-select__check" aria-hidden>
+                      {opt.value === value ? '✓' : ''}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>,
+            document.body,
+          )
+        : null}
       {/* Keep a hidden native select for form / a11y fallbacks when needed */}
       <select
         className="oma-choice-select__native"

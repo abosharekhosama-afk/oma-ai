@@ -32,6 +32,7 @@ import { useT } from '../../../../../../../lib/use-locale';
 const PAGE_CLASSIFICATIONS = [
   'HOME',
   'PRODUCT',
+  'COLLECTION',
   'SERVICE',
   'ABOUT',
   'FAQ',

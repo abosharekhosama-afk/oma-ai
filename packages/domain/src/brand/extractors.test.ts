@@ -17,18 +17,36 @@ describe('extractors', () => {
     expect(r.pageTitle).toBeTruthy();
   });
 
-  it('captures lazy-loaded product images and og fallback', () => {
+  it('captures lazy-loaded gallery images on a product detail page', () => {
     const html = `<!doctype html><html><head>
       <meta property="og:image" content="https://brand.test/hero.jpg" />
     </head><body>
-      <div class="product-card" data-product>
-        <h2>Lazy Sneaker</h2>
-        <img data-src="/sneaker.webp" alt="" width="1" height="1" />
-      </div>
+      <main class="product-page">
+        <div class="product-gallery">
+          <img data-src="/sneaker.webp" alt="" />
+        </div>
+        <h1 class="product-title">Lazy Sneaker</h1>
+        <span class="price">$59.00</span>
+        <button>Add to cart</button>
+      </main>
     </body></html>`;
-    const r = extractFromHtml('https://brand.test/product/sneaker', html);
+    const r = extractFromHtml('https://brand.test/products/sneaker', html);
     const sneaker = r.products.find((p) => p.name === 'Lazy Sneaker');
-    expect(sneaker?.media?.some((m) => m.url.includes('sneaker'))).toBe(true);
+    expect(sneaker?.media?.map((m) => m.url)).toEqual(['https://brand.test/sneaker.webp']);
+    expect(sneaker?.priceAmount).toBe('59');
+    expect(r.classification).toBe('PRODUCT');
+  });
+
+  it('does not turn listing cards or section headings into products', () => {
+    const html = `<!doctype html><html><body>
+      <section class="featured-products"><h2>Featured</h2>
+        <div class="product-card"><h3>Lazy Sneaker</h3><img src="/a.webp" /></div>
+        <div class="product-card"><h3>Trail Boot</h3><img src="/b.webp" /></div>
+      </section>
+    </body></html>`;
+    const r = extractFromHtml('https://brand.test/collections/shoes', html);
+    expect(r.products).toEqual([]);
+    expect(r.classification).toBe('COLLECTION');
   });
 
   it('extracts json-ld products', () => {

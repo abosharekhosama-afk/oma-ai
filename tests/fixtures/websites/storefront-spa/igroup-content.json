@@ -1,0 +1,49 @@
+{
+  "site": { "id": "site-1", "companyId": "company-1", "currency": "ILS" },
+  "categories": [
+    { "id": "cat-books", "name": { "ar": "كتب تفاعلية", "en": "Interactive books" } },
+    { "id": "cat-sound", "name": { "ar": "صوت", "en": "Sound" } },
+    { "id": "cat-motion", "name": { "ar": "ألعاب الحركة", "en": "Motion toys" } }
+  ],
+  "brands": [{ "id": "brand-1", "name": { "ar": "TOY BOOKS", "en": "TOY BOOKS" } }],
+  "products": [
+    {
+      "id": "p-101",
+      "slug": "item-101",
+      "sku": "toy-src-101",
+      "name": { "ar": "كتاب الأصوات التفاعلي", "en": "Interactive sound book" },
+      "description": { "ar": "", "en": "" },
+      "shortDescription": { "ar": "<p>كتاب بأزرار <b>صوتية</b> للأطفال.</p>", "en": "" },
+      "price": 55,
+      "originalPrice": 70,
+      "stock": 4,
+      "mainCategoryId": "cat-books",
+      "subcategoryId": "cat-sound",
+      "brandId": "brand-1",
+      "image": "https://cdn.example/media/p101-a.webp",
+      "galleryItems": [
+        { "url": "https://cdn.example/media/p101-c.webp", "sortOrder": 2 },
+        { "url": "https://cdn.example/media/p101-b.webp", "sortOrder": 1 },
+        { "url": "https://cdn.example/media/p101-a.webp", "sortOrder": 0 }
+      ],
+      "filterAttributes": {
+        "age": [{ "label": { "ar": "3-5 سنوات", "en": "3-5 years" } }],
+        "skills": [
+          { "label": { "ar": "اللغة", "en": "Language" } },
+          { "label": { "ar": "الاستماع", "en": "Listening" } }
+        ]
+      }
+    },
+    {
+      "id": "p-103",
+      "slug": "item-103",
+      "sku": "toy-src-103",
+      "name": { "ar": "سيارة التحكم عن بعد", "en": "Remote control car" },
+      "price": "120.00",
+      "stock": 0,
+      "mainCategoryId": "cat-motion",
+      "image": "https://cdn.example/media/p103-a.webp",
+      "galleryItems": []
+    }
+  ]
+}

@@ -529,6 +529,65 @@
   font-size: 12px;
 }
 
+.oma-discovery-product-card__compare {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.oma-discovery-product-card__attrs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.oma-discovery-product-card__attr {
+  min-width: 0;
+}
+
+.oma-discovery-product-card__attr dt {
+  margin: 0;
+  font-size: 11px;
+}
+
+.oma-discovery-product-card__attr dd {
+  margin: 0;
+  color: #374151;
+  overflow-wrap: anywhere;
+}
+
+/* Field coverage across the whole scan */
+.oma-discovery-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.oma-discovery-coverage__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.oma-discovery-coverage__item strong {
+  color: #047857;
+  font-weight: 600;
+}
+
+.oma-discovery-coverage__item.is-partial strong {
+  color: #b45309;
+}
+
 .oma-discovery-product-card__foot {
   padding: 10px 14px 14px;
   border-top: 1px solid #f3f4f6;
@@ -606,12 +665,21 @@
 }
 
 /* ---------- media carousel ---------- */
+/* Square frame on every breakpoint so cards in a row line up; photos fill it edge to edge. */
 .oma-media-carousel {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
+  width: 100%;
   background: #f4f5f7;
   overflow: hidden;
   isolation: isolate;
+}
+
+/* No captured media: a slim hint row instead of a large empty frame. */
+.oma-media-carousel.oma-media-carousel--empty {
+  aspect-ratio: auto;
+  min-height: 0;
+  border-block-end: 1px solid #f0f1f3;
 }
 
 .oma-media-carousel__track {
@@ -642,8 +710,27 @@
   position: relative;
   flex: 0 0 100%;
   height: 100%;
+  overflow: hidden;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+/* Very tall/wide photos: show the whole picture over a soft blurred copy of itself. */
+.oma-media-carousel__slide[data-fit='contain']::before {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  background-image: var(--oma-slide-bg);
+  background-position: center;
+  background-size: cover;
+  filter: blur(22px) saturate(1.1);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.oma-media-carousel__slide[data-fit='contain'] .oma-media-carousel__media {
+  position: relative;
+  object-fit: contain;
 }
 
 .oma-media-carousel__open {
@@ -669,9 +756,15 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center;
   background: transparent;
   user-select: none;
+}
+
+video.oma-media-carousel__media {
+  object-fit: contain;
+  background: #0f172a;
 }
 
 .oma-media-carousel__placeholder {
@@ -686,6 +779,20 @@
   color: #9ca3af;
   font-size: 12px;
   text-align: center;
+}
+
+.oma-media-carousel__placeholder--compact {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 8px;
+  height: auto;
+  padding: 10px 14px;
+  text-align: start;
+  line-height: 1.4;
+}
+
+.oma-media-carousel__placeholder--compact svg {
+  flex: none;
 }
 
 .oma-media-carousel__tag {
@@ -1070,9 +1177,5 @@
   .oma-scan-next {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .oma-media-carousel {
-    aspect-ratio: 1 / 1;
   }
 }
