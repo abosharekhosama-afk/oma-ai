@@ -333,6 +333,9 @@ export default function ScanDetailPage() {
               <details className="oma-brand-tech-details">
                 <summary>{t('brand.common.technicalDetails')}</summary>
                 <code className="oma-ltr">{scan.error_code}</code>
+                {scan.error_detail ? (
+                  <pre className="oma-ltr oma-brand-tech-details__detail">{scan.error_detail}</pre>
+                ) : null}
               </details>
             ) : null}
           </div>
