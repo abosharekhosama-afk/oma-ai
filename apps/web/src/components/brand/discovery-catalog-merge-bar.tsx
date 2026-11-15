@@ -7,6 +7,7 @@ import { api } from '../../lib/api';
 import { getApiError } from '../../lib/brand-api';
 import type { DiscoveredProduct, ProfileDetail } from '../../lib/brand-types';
 import { useT } from '../../lib/use-locale';
+import { statusLabel } from '../ui/status-chip';
 
 const EDITABLE_PROFILE = new Set(['DRAFT', 'NEEDS_REVIEW']);
 
@@ -82,66 +83,74 @@ export function DiscoveryCatalogMergeBar({
   }
 
   return (
-    <div className="oma-panel oma-stack" data-testid="discovery-catalog-merge">
-      <div className="oma-title-row">
+    <details className="oma-discovery-merge" data-testid="discovery-catalog-merge">
+      <summary className="oma-discovery-merge__summary">
         <strong>{t('brand.discovery.mergeTitle')}</strong>
-        <span className="oma-muted">{selectionLabel}</span>
+        {editableProfile ? <span className="oma-muted">{selectionLabel}</span> : null}
+      </summary>
+      <div className="oma-discovery-merge__body">
+        <p className="oma-muted">{t('brand.discovery.mergeHint')}</p>
+
+        {!profile ? (
+          <p role="status">{t('brand.discovery.mergeNoProfile')}</p>
+        ) : !editableProfile ? (
+          <p role="status">{t('brand.discovery.mergeProfileLocked')}</p>
+        ) : (
+          <>
+            <label className="oma-chip-row">
+              <CheckboxField checked={allSelected} onChange={() => toggleAll()} />
+              {t('brand.discovery.selectAll')}
+            </label>
+            <ul className="oma-discovery-list">
+              {products.map((product) => (
+                <li key={product.id} className="oma-discovery-item">
+                  <label className="oma-chip-row">
+                    <CheckboxField
+                      checked={selected.has(product.id)}
+                      onChange={() => toggleOne(product.id)}
+                    />
+                    <span>
+                      {product.name}{' '}
+                      <span className="oma-badge oma-badge-muted">
+                        {statusLabel(t, product.kind)}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+            <label className="oma-chip-row">
+              <CheckboxField
+                checked={acceptInsights}
+                onChange={(e) => setAcceptInsights(e.target.checked)}
+              />
+              {t('brand.discovery.mergeAcceptCatalog')}
+            </label>
+            <div className="oma-form-actions">
+              <Button
+                type="primary"
+                disabled={busy || selected.size === 0}
+                onClick={() => void merge()}
+              >
+                {busy ? t('brand.discovery.merging') : t('brand.discovery.mergeCta')}
+              </Button>
+              <Link
+                href={`/app/brands/${brandId}/profiles/${profile.id}`}
+                className="oma-text-link"
+              >
+                {t('brand.discovery.openProfile')}
+              </Link>
+            </div>
+          </>
+        )}
+
+        {message ? <p role="status">{message}</p> : null}
+        {error ? (
+          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+            {error}
+          </p>
+        ) : null}
       </div>
-      <p className="oma-muted">{t('brand.discovery.mergeHint')}</p>
-
-      {!profile ? (
-        <p role="status">{t('brand.discovery.mergeNoProfile')}</p>
-      ) : !editableProfile ? (
-        <p role="status">{t('brand.discovery.mergeProfileLocked')}</p>
-      ) : (
-        <>
-          <label className="oma-chip-row">
-            <CheckboxField checked={allSelected} onChange={() => toggleAll()} />
-            {t('brand.discovery.selectAll')}
-          </label>
-          <ul className="oma-discovery-list">
-            {products.map((product) => (
-              <li key={product.id} className="oma-discovery-item">
-                <label className="oma-chip-row">
-                  <CheckboxField
-                    checked={selected.has(product.id)}
-                    onChange={() => toggleOne(product.id)}
-                  />
-                  <span>
-                    {product.name} <span className="oma-badge oma-badge-muted">{product.kind}</span>
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-          <label className="oma-chip-row">
-            <CheckboxField
-              checked={acceptInsights}
-              onChange={(e) => setAcceptInsights(e.target.checked)}
-            />
-            {t('brand.discovery.mergeAcceptCatalog')}
-          </label>
-          <div className="oma-form-actions">
-            <Button
-              type="primary"
-              disabled={busy || selected.size === 0}
-              onClick={() => void merge()}
-            >
-              {busy ? t('brand.discovery.merging') : t('brand.discovery.mergeCta')}
-            </Button>
-            <Link href={`/app/brands/${brandId}/profiles/${profile.id}`} className="oma-text-link">
-              {t('brand.discovery.openProfile')}
-            </Link>
-          </div>
-        </>
-      )}
-
-      {message ? <p role="status">{message}</p> : null}
-      {error ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
-          {error}
-        </p>
-      ) : null}
-    </div>
+    </details>
   );
 }

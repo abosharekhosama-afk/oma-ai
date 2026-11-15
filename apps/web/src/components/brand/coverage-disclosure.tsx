@@ -1,6 +1,39 @@
 'use client';
 
 import { useT } from '../../lib/use-locale';
+import { statusLabel } from '../ui/status-chip';
+import { fieldLabel } from './profile-sections';
+
+const MAX_LISTED_PAGES = 8;
+
+function PageList({
+  pages,
+  t,
+  testId,
+}: {
+  pages: { url: string; reason: string }[];
+  t: (key: string) => string;
+  testId?: string;
+}) {
+  if (!pages.length) return <span data-testid={testId}>{t('brand.coverage.noneListed')}</span>;
+  const shown = pages.slice(0, MAX_LISTED_PAGES);
+  const rest = pages.length - shown.length;
+  return (
+    <ul className="oma-coverage-pages" data-testid={testId}>
+      {shown.map((p) => (
+        <li key={`${p.url}-${p.reason}`}>
+          <span className="oma-ltr">{p.url}</span>{' '}
+          <span className="oma-muted">({statusLabel(t, p.reason)})</span>
+        </li>
+      ))}
+      {rest > 0 ? (
+        <li className="oma-muted">
+          {t('brand.coverage.moreItems').replace('{count}', String(rest))}
+        </li>
+      ) : null}
+    </ul>
+  );
+}
 
 type CoverageSnapshot = {
   required_missing?: string[];
@@ -42,14 +75,12 @@ export function CoverageDisclosure({
   const skipped = coverage?.skipped_pages ?? [];
 
   return (
-    <section className="oma-card" aria-labelledby="coverage-disclosure-title">
+    <section
+      className="oma-plx-listening-panel oma-coverage-disclosure"
+      aria-labelledby="coverage-disclosure-title"
+    >
       <h3 id="coverage-disclosure-title">{t('brand.coverage.title')}</h3>
       <p className="oma-muted">{t('brand.coverage.subsetBody')}</p>
-      {scanStatus ? (
-        <p>
-          <span className="oma-badge">{scanStatus}</span>
-        </p>
-      ) : null}
       <dl className="oma-detail-dl">
         {coverage?.pages_fetched != null && coverage.scan_max_pages != null ? (
           <div>
@@ -81,29 +112,41 @@ export function CoverageDisclosure({
         <div>
           <dt>{t('brand.coverage.requiredMissing')}</dt>
           <dd data-testid="coverage-required-missing">
-            {requiredMissing.length ? requiredMissing.join(', ') : t('brand.coverage.noneListed')}
+            {requiredMissing.length ? (
+              <ul className="oma-brand-tag-list">
+                {requiredMissing.map((k) => (
+                  <li key={k}>{fieldLabel(t, k)}</li>
+                ))}
+              </ul>
+            ) : (
+              t('brand.coverage.noneListed')
+            )}
           </dd>
         </div>
         <div>
           <dt>{t('brand.coverage.unknownFields')}</dt>
           <dd data-testid="coverage-unknown-fields">
-            {unknownFields.length ? unknownFields.join(', ') : t('brand.coverage.noneListed')}
+            {unknownFields.length ? (
+              <ul className="oma-brand-tag-list">
+                {unknownFields.map((k) => (
+                  <li key={k}>{fieldLabel(t, k)}</li>
+                ))}
+              </ul>
+            ) : (
+              t('brand.coverage.noneListed')
+            )}
           </dd>
         </div>
         <div>
           <dt>{t('brand.coverage.failedPages')}</dt>
-          <dd data-testid="coverage-failed-pages">
-            {failed.length
-              ? failed.map((p) => `${p.url} (${p.reason})`).join('; ')
-              : t('brand.coverage.noneListed')}
+          <dd>
+            <PageList pages={failed} t={t} testId="coverage-failed-pages" />
           </dd>
         </div>
         <div>
           <dt>{t('brand.coverage.skippedPages')}</dt>
           <dd>
-            {skipped.length
-              ? skipped.map((p) => `${p.url} (${p.reason})`).join('; ')
-              : t('brand.coverage.noneListed')}
+            <PageList pages={skipped} t={t} />
           </dd>
         </div>
         {coverage?.js_render_mode && coverage.js_render_mode !== 'off' ? (
@@ -112,7 +155,7 @@ export function CoverageDisclosure({
               <dt>{t('brand.coverage.jsRender')}</dt>
               <dd data-testid="coverage-js-render">
                 {t('brand.coverage.jsRenderDetail')
-                  .replace('{mode}', coverage.js_render_mode)
+                  .replace('{mode}', statusLabel(t, coverage.js_render_mode))
                   .replace('{rendered}', String(coverage.pages_js_rendered ?? 0))
                   .replace('{attempted}', String(coverage.pages_js_render_attempted ?? 0))
                   .replace('{failed}', String(coverage.pages_js_render_failed ?? 0))}

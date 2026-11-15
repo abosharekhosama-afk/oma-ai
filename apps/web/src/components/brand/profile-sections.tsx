@@ -37,7 +37,7 @@ function humanizeKey(key: string) {
     .replace(/^./, (c) => c.toUpperCase());
 }
 
-function fieldLabel(t: (key: string) => string, fieldKey: string): string {
+export function fieldLabel(t: (key: string) => string, fieldKey: string): string {
   const translated = t(`brand.field.${fieldKey}`);
   if (translated !== `brand.field.${fieldKey}`) return translated;
   return humanizeKey(fieldKey.split('.').slice(1).join(' ') || fieldKey);
