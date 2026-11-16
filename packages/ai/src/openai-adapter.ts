@@ -3,15 +3,21 @@ import {
   isAiUseCase,
   proposalJsonSchema,
   routeModel,
-  validateProposal,
   type AiGenerateRequest,
   type AiGenerateResult,
   type AiModelConfig,
-  type AiProposal,
   type AiProviderPort,
   type AiUseCase,
 } from '@oma/domain';
-import { mapProviderError, type AiStructuredErrorCode } from './provider-errors';
+import { structuredOutputMode } from './capabilities';
+import {
+  repairAttemptsFromEnv,
+  runStructuredCore,
+  type AiStructuredFailure,
+  type AiStructuredSuccess,
+  type CoreTransport,
+  type StructuredValidate,
+} from './structured-core';
 
 export type ResponsesClient = {
   responses: {
@@ -37,34 +43,13 @@ export type OpenAiAdapterOptions = AiModelConfig & {
   baseUrl?: string;
   timeoutMs?: number;
   maxRetries?: number;
+  /** Repair rounds on invalid JSON/schema (default AI_REPAIR_ATTEMPTS or 1). */
+  repairAttempts?: number;
   /** Injected only in tests. Production constructs the official SDK client. */
   client?: ResponsesClient;
 };
 
-export type AiStructuredSuccess = {
-  ok: true;
-  proposal: AiProposal;
-  output: unknown;
-  model: string;
-  inputTokens: number;
-  outputTokens: number;
-};
-
-export type AiStructuredFailure = {
-  ok: false;
-  code: AiStructuredErrorCode;
-  message?: string;
-  /** parse = not JSON; schema = JSON that failed the contract. */
-  stage?: 'parse' | 'schema';
-  /** Contract issues, when the validator reported them. */
-  issues?: string[];
-  /** Usage of the call that produced this failure (it is still billed). */
-  model?: string;
-  inputTokens?: number;
-  outputTokens?: number;
-};
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export type { AiStructuredFailure, AiStructuredSuccess };
 
 function extractRefusal(response: {
   output?: Array<{
@@ -120,7 +105,7 @@ export class OpenAiProviderAdapter implements AiProviderPort {
     userPrompt?: string;
     schema?: Record<string, unknown>;
     abortSignal?: AbortSignal;
-    validate?: (parsed: unknown) => { ok: true; value: unknown } | { ok: false; issues?: string[] };
+    validate?: StructuredValidate;
   }): Promise<AiStructuredSuccess | AiStructuredFailure> {
     const routed = routeModel(input.useCase, this.options);
     if (!this.options.liveEnabled) return { ok: false, code: 'AI_DISABLED' };
@@ -141,86 +126,46 @@ export class OpenAiProviderAdapter implements AiProviderPort {
 
     const maxRetries = this.options.maxRetries ?? Number(process.env.AI_MAX_RETRIES || 2);
     const timeoutMs = this.options.timeoutMs ?? Number(process.env.AI_REQUEST_TIMEOUT_MS || 60_000);
-    const userPrompt =
-      input.userPrompt ?? JSON.stringify({ useCase: input.useCase, payload: input.payload });
-    const systemPrompt = input.systemPrompt ?? 'Return only JSON matching the provided schema.';
-    const schema = input.schema ?? proposalJsonSchema();
-    const body = {
-      model: routed.model,
-      input: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'oma_text_proposal',
-          strict: true,
-          schema,
+    const responses = client;
+    const transport: CoreTransport = async (messages, format, signal) => {
+      const response = await responses.responses.create(
+        {
+          model: routed.model,
+          input: messages,
+          text: {
+            format:
+              format.mode === 'json_schema_strict'
+                ? {
+                    type: 'json_schema',
+                    name: 'oma_text_proposal',
+                    strict: true,
+                    schema: format.schema,
+                  }
+                : { type: 'json_object' },
+          },
         },
-      },
+        { signal },
+      );
+      return {
+        text: response.output_text || '',
+        refusal: extractRefusal(response),
+        inputTokens: response.usage?.input_tokens ?? 0,
+        outputTokens: response.usage?.output_tokens ?? 0,
+      };
     };
-
-    let lastError: AiStructuredFailure = { ok: false, code: 'PROVIDER_ERROR' };
-    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const controller = new AbortController();
-      const onAbort = () => controller.abort();
-      input.abortSignal?.addEventListener('abort', onAbort);
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const response = await client.responses.create(body, { signal: controller.signal });
-        const usage = {
-          model: routed.model,
-          inputTokens: response.usage?.input_tokens ?? 0,
-          outputTokens: response.usage?.output_tokens ?? 0,
-        };
-        const refusal = extractRefusal(response);
-        if (refusal) return { ok: false, code: 'REFUSAL', message: refusal, ...usage };
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(response.output_text || '');
-        } catch {
-          return { ok: false, code: 'SCHEMA_INVALID', stage: 'parse', ...usage };
-        }
-        let output: unknown = parsed;
-        let proposal: AiProposal | null = null;
-        if (input.validate) {
-          const checked = input.validate(parsed);
-          if (!checked.ok)
-            return {
-              ok: false,
-              code: 'SCHEMA_INVALID',
-              stage: 'schema',
-              issues: checked.issues,
-              ...usage,
-            };
-          output = checked.value;
-        } else {
-          const checked = validateProposal(parsed);
-          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID', stage: 'schema', ...usage };
-          proposal = checked.proposal;
-          output = checked.proposal;
-        }
-        return {
-          ok: true,
-          proposal: proposal ?? (output as AiProposal),
-          output,
-          model: routed.model,
-          inputTokens: response.usage?.input_tokens ?? 0,
-          outputTokens: response.usage?.output_tokens ?? 0,
-        };
-      } catch (err) {
-        const mapped = mapProviderError(err);
-        lastError = { ok: false, code: mapped.code, message: mapped.message };
-        const canRetry = mapped.retryable && attempt < maxRetries && !input.abortSignal?.aborted;
-        if (!canRetry) return lastError;
-        await sleep(250 * 2 ** attempt);
-      } finally {
-        clearTimeout(timer);
-        input.abortSignal?.removeEventListener('abort', onAbort);
-      }
-    }
-    return lastError;
+    return runStructuredCore({
+      transport,
+      model: routed.model,
+      system: input.systemPrompt ?? 'Return only JSON matching the provided schema.',
+      user: input.userPrompt ?? JSON.stringify({ useCase: input.useCase, payload: input.payload }),
+      schema: input.schema ?? proposalJsonSchema(),
+      mode: structuredOutputMode('openai', routed.model),
+      validate: input.validate,
+      maxRetries,
+      timeoutMs,
+      repairAttempts: this.options.repairAttempts ?? repairAttemptsFromEnv(),
+      abortSignal: input.abortSignal,
+    });
   }
 }
 

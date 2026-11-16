@@ -60,3 +60,19 @@ not always recorded, and the generic `POST /ai/runs` endpoint accepted any use c
   the same run (`Date.now()` keys removed); a duplicate while running returns 409
   `AI_RUN_IN_PROGRESS`.
 - Platform admin provider probes are not tenant runs and stay unlogged.
+
+## PR 3.3: repair loop and provider capabilities
+
+- `@oma/ai` `runStructuredCore` is the single structured-output loop for every provider
+  (OpenAI Responses and Chat Completions transports). On invalid JSON or a contract
+  failure it sends **one** repair round (`AI_REPAIR_ATTEMPTS`, default 1, max 2): the
+  previous reply plus the validator's issues. A refusal is never repaired. Usage from all
+  calls is summed, and `AiRun.attemptCount` records how many calls were made.
+- Capability matrix (`PROVIDER_CAPABILITIES`): OpenAI and Grok use strict `json_schema`;
+  Groq uses strict only on `openai/gpt-oss-20b|120b`, otherwise `json_object`; Gemini uses
+  `json_object`. In `json_object` mode the schema is sent in the system prompt and Zod
+  validates the output. `AI_STRUCTURED_OUTPUT_MODE` overrides the mode.
+- If a provider rejects the schema itself (HTTP 400 mentioning `response_format`/schema),
+  the call falls back once to `json_object`.
+- The Groq/Gemini defaults come from provider documentation, not live calls, and should be
+  confirmed with a live smoke run (PR 3.7 script).

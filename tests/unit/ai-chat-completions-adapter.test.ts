@@ -58,10 +58,17 @@ describe('Chat Completions AI provider adapter', () => {
         expect(result.outputTokens).toBe(9);
       }
       const body = create.mock.calls[0]?.[0] as {
-        response_format?: { json_schema?: { strict?: boolean; schema?: unknown } };
+        response_format?: { type?: string; json_schema?: { strict?: boolean; schema?: unknown } };
+        messages?: Array<{ role: string; content: string }>;
       };
-      expect(body.response_format?.json_schema?.strict).toBe(true);
-      expect(body.response_format?.json_schema?.schema).toBeTruthy();
+      if (provider === 'grok') {
+        expect(body.response_format?.json_schema?.strict).toBe(true);
+        expect(body.response_format?.json_schema?.schema).toBeTruthy();
+      } else {
+        // DEC-027 #2: models without strict json_schema use json_object + schema in the prompt.
+        expect(body.response_format).toEqual({ type: 'json_object' });
+        expect(body.messages?.[0]?.content).toContain('JSON Schema');
+      }
     },
   );
 
