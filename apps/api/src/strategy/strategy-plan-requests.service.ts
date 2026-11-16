@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
   DomainError,
@@ -73,12 +73,13 @@ export class StrategyPlanRequestsService {
         })
       : null;
     if (!approvedProfile) {
-      throw new ForbiddenException({
-        code: 'BRAND_PROFILE_NOT_APPROVED',
-        message: 'لا يمكن بناء طلبات الخطة قبل اعتماد ملف العلامة التجارية بحالة APPROVED.',
-        brand_id: brandId,
-        required_status: 'APPROVED',
-      });
+      throw new DomainError(
+        'BRAND_PROFILE_NOT_APPROVED',
+        'Plan requests can only be built after the brand profile is APPROVED.',
+        403,
+        'errors.brand_profile_not_approved',
+        [{ brand_id: brandId, required_status: 'APPROVED' }],
+      );
     }
     if (version.linkedApprovedProfileVersionId) {
       const linked = await getPrisma().profileVersion.findFirst({
@@ -90,12 +91,18 @@ export class StrategyPlanRequestsService {
         select: { id: true },
       });
       if (!linked) {
-        throw new ForbiddenException({
-          code: 'LINKED_PROFILE_NOT_APPROVED',
-          message: 'الاستراتيجية تشير إلى ملف علامة تجارية غير معتمد.',
-          profile_version_id: version.linkedApprovedProfileVersionId,
-          required_status: 'APPROVED',
-        });
+        throw new DomainError(
+          'LINKED_PROFILE_NOT_APPROVED',
+          'The strategy is linked to a brand profile that is not APPROVED.',
+          403,
+          'errors.linked_profile_not_approved',
+          [
+            {
+              profile_version_id: version.linkedApprovedProfileVersionId,
+              required_status: 'APPROVED',
+            },
+          ],
+        );
       }
     }
     return version;
