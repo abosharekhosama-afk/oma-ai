@@ -2005,7 +2005,7 @@
   "errors.approved_immutable": "Approved versions can’t be edited. Create a new version instead.",
   "errors.billing_not_enabled": "Billing isn’t enabled for this workspace.",
   "errors.brand_archived": "This brand is archived. Restore it to make changes.",
-  "errors.brief_not_ready": "Complete the brief before continuing.",
+  "errors.brief_not_ready": "Add an objective, audience, key message and at least one deliverable before sending for review.",
   "errors.budget_exceeded": "The usage limit for this workspace has been reached.",
   "errors.conflict_state": "This action isn’t available in the item’s current state.",
   "errors.conflict_version": "Someone else changed this item. Reload and try again.",
@@ -3368,5 +3368,10 @@
   "strategy.overview.noTracks": "No tracks enabled",
   "errors.strategy_plan_invalid": "Some plan rows are invalid. Check the highlighted fields and try again.",
   "errors.strategy_track_disabled": "This track is turned off for this strategy version. Turn it on first.",
-  "errors.brand_profile_not_approved": "Approve the brand profile first. Strategies and plans are built only from an APPROVED profile."
+  "errors.brand_profile_not_approved": "Approve the brand profile first. Strategies and plans are built only from an APPROVED profile.",
+  "errors.brief_invalid": "Some brief fields are invalid. Check the highlighted fields.",
+  "errors.brief_request_taken": "This request already has a brief. Open the existing brief instead.",
+  "errors.brief_strategy_not_approved": "Briefs can only be created from an APPROVED strategy version.",
+  "errors.brief_invalid_transition": "This action isn’t available for the brief’s current status.",
+  "errors.brief_self_approval": "Another approver must approve a brief you wrote."
 }

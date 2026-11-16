@@ -2009,6 +2009,170 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/briefs": {
+      "get": {
+        "operationId": "BriefController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      },
+      "post": {
+        "operationId": "BriefController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/from-strategy": {
+      "post": {
+        "operationId": "BriefController_fromStrategy",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}": {
+      "get": {
+        "operationId": "BriefController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      },
+      "patch": {
+        "operationId": "BriefController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}/submit": {
+      "post": {
+        "operationId": "BriefController_submit",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}/approve": {
+      "post": {
+        "operationId": "BriefController_approve",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}/request-changes": {
+      "post": {
+        "operationId": "BriefController_requestChanges",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}/revise": {
+      "post": {
+        "operationId": "BriefController_revise",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}/cancel": {
+      "post": {
+        "operationId": "BriefController_cancel",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}/convert": {
+      "post": {
+        "operationId": "BriefController_convert",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/briefs/{briefId}/comments": {
+      "post": {
+        "operationId": "BriefController_comment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brief"
+        ]
+      }
+    },
     "/api/v1/demo/status": {
       "get": {
         "operationId": "DemoController_status",
