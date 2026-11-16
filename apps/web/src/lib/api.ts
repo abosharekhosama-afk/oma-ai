@@ -46,6 +46,7 @@ const CODE_KEYS: Record<string, string> = {
   RATE_LIMITED: 'errors.rate_limited',
   SCHEDULE_BLOCKED: 'error.schedule_blocked',
   CONTENT_REJECTED: 'error.content_rejected',
+  CONTENT_LOCKED: 'error.content_locked',
   BRAND_ARCHIVED: 'errors.brand_archived',
   CAMPAIGN_ARCHIVED: 'error.campaign_archived',
   PLAN_LIMIT_REACHED: 'errors.plan_limit_reached',

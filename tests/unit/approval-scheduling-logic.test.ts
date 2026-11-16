@@ -63,14 +63,17 @@ describe('workspace approval policy (server-side)', () => {
 
   it('content service applies lock-after-approve and schedule-on-approve', () => {
     const svc = read('apps/api/src/content/content.service.ts');
-    expect(svc).toContain('lockAfterApproval');
-    expect(svc).toContain('error.content_locked');
+    const lock = read('apps/api/src/content/content-lock.ts');
+    expect(lock).toContain('lockAfterApproval');
+    expect(svc).toContain('enforceContentMutation');
+    expect(read('packages/domain/src/content/content-lock.ts')).toContain('error.content_locked');
     expect(svc).toContain('scheduleOnApproval');
   });
 
   it('inherits workspace approval mode unless a brand override is explicitly set', () => {
     const svc = read('apps/api/src/content/content.service.ts');
-    expect(svc).toContain('resolveApprovalSettings');
+    expect(read('apps/api/src/content/content-lock.ts')).toContain('resolveApprovalSettings');
+    expect(svc).toContain('loadApprovalConfig');
     expect(svc).toContain('approvalMode');
     expect(svc).toContain('scheduleOnApproval');
     expect(svc).toContain('lockAfterApproval');

@@ -15,7 +15,6 @@ import {
   assertCanPublish,
   applyContentApprovalTransition,
   nextApproverCount,
-  resolveApprovalSettings,
   parseApprovalMode,
   policyToApprovalMode,
   workspaceModeToPolicy,
@@ -26,7 +25,9 @@ import {
   parseAiRunIds,
   applyAiOutput,
   aiProvenanceForCopy,
+  parseReopenReason,
   type ApprovalPolicy,
+  type LockedContentField,
   type ReadinessTarget,
   type ScheduleReadiness,
   type ApprovalState,
@@ -39,6 +40,13 @@ import { mediaPlaybackUrl } from '../media/media.service';
 import { syncContentPublishRollup } from '../social/publish-target-sync';
 import { buildChannelAnalyticsView, parseInsights } from './channel-analytics';
 import { maybeRefreshPublishTargetInsights } from './refresh-post-insights';
+import {
+  enforceContentMutation,
+  loadApprovalConfig,
+  offScheduleData,
+  resetPendingTargets,
+  type ApprovalReset,
+} from './content-lock';
 import { rollupToLegacyPublishState } from '@oma/domain';
 
 function mapComment(c: {
@@ -108,6 +116,10 @@ async function resolvePreviewAssets(tenantId: string, brandId: string, value: un
 }
 
 type LocaleInput = { en: string; ar?: string } | string;
+
+function withReset(reset: ApprovalReset | null): { approval_reset?: ApprovalReset } {
+  return reset ? { approval_reset: reset } : {};
+}
 
 function localePair(input: LocaleInput | undefined, fallback = ''): { en: string; ar: string } {
   if (input == null) return { en: fallback, ar: fallback };
@@ -455,32 +467,7 @@ export class ContentService {
     reminderPendingApprovals: boolean;
     source: 'brand' | 'workspace';
   }> {
-    const prisma = getPrisma();
-    const [prefs, ws] = await Promise.all([
-      prisma.contentPreferences.findUnique({ where: { brandId } }),
-      prisma.workspaceSetting.findUnique({ where: { tenantId } }).catch(() => null),
-    ]);
-    const brand =
-      prefs && prefs.tenantId === tenantId
-        ? {
-            approvalMode: prefs.approvalMode,
-            approvalPolicy: prefs.approvalPolicy as ApprovalPolicy | null,
-            requiredApprovers: prefs.requiredApprovers,
-            scheduleOnApproval: prefs.scheduleOnApproval,
-            lockAfterApproval: prefs.lockAfterApproval,
-            reminderPendingApprovals: prefs.reminderPendingApprovals,
-          }
-        : null;
-    return resolveApprovalSettings(
-      {
-        approvalMode: ws?.approvalMode,
-        requiredApprovers: ws?.requiredApprovers,
-        scheduleOnApproval: ws?.scheduleOnApproval,
-        lockAfterApproval: ws?.lockAfterApproval,
-        reminderPendingApprovals: ws?.reminderPendingApprovals,
-      },
-      brand,
-    );
+    return loadApprovalConfig(tenantId, brandId);
   }
 
   private async requireActiveBrand(tenantId: string, brandId: string) {
@@ -831,17 +818,6 @@ export class ContentService {
     if (current.archivedAt) {
       throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
     }
-    if (current.approvalState === 'APPROVED') {
-      const cfg = await this.approvalConfig(tenantId, current.brandId);
-      if (cfg.lockAfterApproval) {
-        throw new DomainError(
-          'CONFLICT_STATE',
-          'Approved content is locked. Request changes before editing.',
-          409,
-          'error.content_locked',
-        );
-      }
-    }
     await this.requireActiveBrand(tenantId, current.brandId);
     if (aiRunIds) await assertAiRunsUsable(tenantId, aiRunIds);
 
@@ -871,6 +847,31 @@ export class ContentService {
           ? localePair(patch.caption)
           : null;
 
+    const touched: LockedContentField[] = [];
+    // Only real changes count, so re-saving an unchanged form never trips the lock.
+    if (title && (title.en !== current.titleEn || title.ar !== current.titleAr)) {
+      touched.push('title');
+    }
+    if (
+      aiRunIds ||
+      (caption && (caption.en !== current.captionEn || caption.ar !== current.captionAr))
+    ) {
+      touched.push('caption');
+    }
+    if (media && media.mediaAssetIds.join(',') !== (current.mediaAssetIds ?? []).join(',')) {
+      touched.push('media');
+    }
+    if (patch.channel && patch.channel !== current.channel) touched.push('channel');
+    // One gate for every publishable change (DEC-025); planning metadata is never locked.
+    const approvalReset = await enforceContentMutation({
+      tenantId,
+      actorUserId,
+      row: current,
+      fields: touched,
+      audit: this.audit,
+      correlationId,
+    });
+
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {
@@ -899,7 +900,8 @@ export class ContentService {
       ...(aiRunIds ? { afterRef: `ai_runs:${aiRunIds.join(',')}`.slice(0, 500) } : {}),
     });
 
-    return this.get(tenantId, contentId);
+    const result = await this.get(tenantId, contentId);
+    return { ...result, ...withReset(approvalReset) };
   }
 
   private async writeEvent(
@@ -1008,8 +1010,9 @@ export class ContentService {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     }
     if (current.approverRequired > 1) {
+      // A new round starts at the last request or at an approval reset on edit (DEC-025).
       const lastRequest = await getPrisma().contentApprovalEvent.findFirst({
-        where: { tenantId, contentId, action: 'REQUEST' },
+        where: { tenantId, contentId, action: { in: ['REQUEST', 'APPROVAL_RESET'] } },
         orderBy: { at: 'desc' },
       });
       const already = await getPrisma().contentApprovalEvent.findFirst({
@@ -1217,15 +1220,32 @@ export class ContentService {
         'error.conflict_state',
       );
     }
+    // From APPROVED this is an explicit unlock (DEC-025): the post leaves the
+    // publish schedule but stays Planned on the calendar.
+    const unlock = current.approvalState === 'APPROVED';
+    const unschedule = unlock && current.scheduleState === 'SCHEDULED';
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {
         approvalState: next.approvalState,
         status: next.status,
         approverApproved: 0,
+        ...(unschedule ? offScheduleData(current) : {}),
       },
     });
+    if (unschedule) await resetPendingTargets(current);
     await this.writeEvent(tenantId, contentId, actorUserId, 'REQUEST_CHANGES', note);
+    if (unlock) {
+      await this.audit.write({
+        actorUserId,
+        tenantId,
+        action: 'content.unlocked',
+        targetType: 'ContentItem',
+        targetId: contentId,
+        correlationId,
+        afterRef: `via:request_changes${unschedule ? ';unscheduled' : ''}`,
+      });
+    }
     await this.audit.write({
       actorUserId,
       tenantId,
@@ -1233,6 +1253,68 @@ export class ContentService {
       targetType: 'ContentItem',
       targetId: contentId,
       correlationId,
+    });
+    const policy = await this.policyForBrand(tenantId, row.brandId);
+    return { data: mapContent(row, policy) };
+  }
+
+  /**
+   * Reopen approved content for editing (DEC-025). The only unlock path besides
+   * request-changes: requires a reason, resets the approval round, takes the
+   * post off the publish schedule (it stays Planned) and is fully audited.
+   */
+  async reopen(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    reasonInput: unknown,
+    correlationId?: string,
+  ) {
+    const reason = parseReopenReason(reasonInput);
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    if (current.archivedAt) {
+      throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
+    }
+    let next;
+    try {
+      next = applyContentApprovalTransition({
+        command: 'reopen',
+        approvalState: current.approvalState as ApprovalState,
+        status: current.status as ContentStatus,
+        approverApproved: current.approverApproved,
+        approverRequired: current.approverRequired,
+      });
+    } catch {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Only approved content can be reopened',
+        409,
+        'error.reopen_not_approved',
+      );
+    }
+    const unschedule = current.scheduleState === 'SCHEDULED';
+    const row = await getPrisma().contentItem.update({
+      where: { id: contentId },
+      data: {
+        approvalState: next.approvalState,
+        status: next.status,
+        approverApproved: 0,
+        ...(unschedule ? offScheduleData(current) : {}),
+      },
+    });
+    if (unschedule) await resetPendingTargets(current);
+    await this.writeEvent(tenantId, contentId, actorUserId, 'REOPEN', reason);
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.unlocked',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      correlationId,
+      afterRef: `via:reopen${unschedule ? ';unscheduled' : ''};reason:${reason}`.slice(0, 500),
     });
     const policy = await this.policyForBrand(tenantId, row.brandId);
     return { data: mapContent(row, policy) };
@@ -2099,9 +2181,18 @@ export class ContentService {
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     await this.requireActiveBrand(tenantId, current.brandId);
+    const nextAudience = audience?.trim() || null;
+    const approvalReset = await enforceContentMutation({
+      tenantId,
+      actorUserId,
+      row: current,
+      fields: nextAudience !== current.preferredAudience ? ['preferred_audience'] : [],
+      audit: this.audit,
+      correlationId,
+    });
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
-      data: { preferredAudience: audience?.trim() || null },
+      data: { preferredAudience: nextAudience },
     });
     await this.audit.write({
       actorUserId,
@@ -2112,7 +2203,7 @@ export class ContentService {
       correlationId,
     });
     const policy = await this.policyForBrand(tenantId, row.brandId);
-    return { data: mapContent(row, policy) };
+    return { data: mapContent(row, policy), ...withReset(approvalReset) };
   }
 
   /** Detach one social page into its own post (Planable detach from group). */
@@ -2122,6 +2213,7 @@ export class ContentService {
     contentId: string,
     socialPageId: string,
     correlationId?: string,
+    opts?: { skipLockCheck?: boolean },
   ) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
@@ -2140,6 +2232,17 @@ export class ContentService {
         409,
         'error.conflict_state',
       );
+    }
+    // Detaching changes where the source post publishes (DEC-025).
+    if (!opts?.skipLockCheck) {
+      await enforceContentMutation({
+        tenantId,
+        actorUserId,
+        row: current,
+        fields: ['publish_targets', 'sync_group'],
+        audit: this.audit,
+        correlationId,
+      });
     }
     const page = await getPrisma().socialPage.findFirst({
       where: { id: socialPageId, tenantId },
@@ -2219,6 +2322,14 @@ export class ContentService {
       const policy = await this.policyForBrand(tenantId, current.brandId);
       return { data: [mapContent(current, policy)] };
     }
+    await enforceContentMutation({
+      tenantId,
+      actorUserId,
+      row: current,
+      fields: ['publish_targets', 'sync_group'],
+      audit: this.audit,
+      correlationId,
+    });
     const created: string[] = [];
     const keep = targets[0]!;
     for (const t of targets.slice(1)) {
@@ -2228,6 +2339,7 @@ export class ContentService {
         contentId,
         t.socialPageId,
         correlationId,
+        { skipLockCheck: true },
       );
       created.push((res.data as { id: string }).id);
     }

@@ -18,6 +18,7 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { syncContentPublishRollup } from './publish-target-sync';
+import { enforceContentMutation } from '../content/content-lock';
 import { billingService } from '../billing/billing.service';
 import { subscribeMetaPageWebhooks, subscribeWhatsAppWaba } from '../inbox/meta-subscribe';
 import { enqueueInboxSync } from '../inbox/enqueue-inbox';
@@ -328,7 +329,13 @@ export class SocialService {
     return { data: { id: pageId, removed: true } };
   }
 
-  async setPublishTarget(tenantId: string, contentId: string, body: unknown) {
+  async setPublishTarget(
+    tenantId: string,
+    contentId: string,
+    body: unknown,
+    actorUserId?: string,
+    correlationId?: string,
+  ) {
     const prisma = getPrisma();
     const raw =
       (body as {
@@ -391,7 +398,25 @@ export class SocialService {
         );
       }
     }
-    const queueOnSchedule = item.scheduleState === 'SCHEDULED';
+    // Changing the channel set of an approved post goes through the lock (DEC-025).
+    const currentIds = (
+      await prisma.contentPublishTarget.findMany({
+        where: { contentItemId: contentId },
+        select: { socialPageId: true },
+      })
+    )
+      .map((t) => t.socialPageId)
+      .sort();
+    const nextIds = [...(pageIds ?? [])].sort();
+    const approvalReset = await enforceContentMutation({
+      tenantId,
+      actorUserId: actorUserId ?? item.createdBy,
+      row: item,
+      fields: currentIds.join(',') !== nextIds.join(',') ? ['publish_targets'] : [],
+      audit: this.audit,
+      correlationId,
+    });
+    const queueOnSchedule = item.scheduleState === 'SCHEDULED' && !approvalReset?.unscheduled;
     await prisma.$transaction(async (tx) => {
       const existing = await tx.contentPublishTarget.findMany({
         where: { contentItemId: contentId },
@@ -444,6 +469,8 @@ export class SocialService {
         social_page_id: row.socialPageId,
         social_page_ids: targets.map((t) => t.socialPageId),
         publish_state: row.publishState,
+        approval_state: row.approvalState,
+        ...(approvalReset ? { approval_reset: approvalReset } : {}),
         publish_targets: targets.map((t) => ({
           id: t.id,
           social_page_id: t.socialPageId,

@@ -195,6 +195,24 @@ export class ContentController {
     );
   }
 
+  /** Explicit unlock of approved content (DEC-025). Body: `{ reason }` (required). */
+  @Post('api/v1/content/:contentId/reopen')
+  @UseGuards(CsrfGuard)
+  async reopen(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Body() body: { reason?: string } | undefined,
+  ) {
+    this.requireTenant(req);
+    return contentService.reopen(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      body?.reason,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post('api/v1/content/:contentId/reject')
   @UseGuards(CsrfGuard)
   async reject(
