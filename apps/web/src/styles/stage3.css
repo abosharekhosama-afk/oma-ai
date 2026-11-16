@@ -607,7 +607,8 @@
   border-color: #ffe7ba; /* INTENTIONAL_EXCEPTION: pending tone */
 }
 
-.oma-status-mark--FAILED_SAMPLE {
+.oma-status-mark--FAILED_SAMPLE,
+.oma-status-mark--CANNOT_SCHEDULE {
   color: #a8071a; /* INTENTIONAL_EXCEPTION: failed sample tone, paired with an x glyph */
   background: #fff1f0; /* INTENTIONAL_EXCEPTION: failed sample tone */
   border-color: #ffccc7; /* INTENTIONAL_EXCEPTION: failed sample tone */
@@ -8087,4 +8088,174 @@ label.oma-compose-media {
   .oma-cal-note-modal {
     display: none !important;
   }
+}
+
+/* Phase 2 approval workflow block (lock banner, stepper, schedule checklist). */
+.oma-approval-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.oma-approval-flow__banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--oma-radius-control);
+  border: 1px solid var(--oma-border);
+  background: var(--oma-canvas);
+}
+
+.oma-approval-flow__banner[data-tone='locked'] {
+  color: #237804; /* INTENTIONAL_EXCEPTION: approved tone */
+  background: #f6ffed; /* INTENTIONAL_EXCEPTION: approved tone */
+  border-color: #d9f7be; /* INTENTIONAL_EXCEPTION: approved tone */
+}
+
+.oma-approval-flow__reopen,
+.oma-approval-flow__checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.oma-approval-flow__row {
+  display: flex;
+  gap: 6px;
+}
+
+.oma-approval-flow__checklist ul,
+.oma-approval-flow__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oma-approval-flow__checklist li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.oma-approval-flow__checklist li[data-state='blocked'] {
+  color: #a8071a; /* INTENTIONAL_EXCEPTION: blocker tone, paired with a ! glyph */
+}
+
+.oma-approval-flow__step {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.oma-approval-flow__step-index {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px; /* INTENTIONAL_EXCEPTION: step dot */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: step dot border */
+}
+
+.oma-approval-flow__step[data-status='done'] .oma-approval-flow__step-index {
+  color: #237804; /* INTENTIONAL_EXCEPTION: approved tone */
+  border-color: #b7eb8f; /* INTENTIONAL_EXCEPTION: approved tone */
+}
+
+.oma-approval-flow__step[data-status='current'] .oma-approval-flow__step-index {
+  color: #874d00; /* INTENTIONAL_EXCEPTION: pending tone */
+  border-color: #ffd591; /* INTENTIONAL_EXCEPTION: pending tone */
+}
+
+.oma-approval-flow__step[data-status='changes_requested'] .oma-approval-flow__step-index,
+.oma-approval-flow__step[data-status='rejected'] .oma-approval-flow__step-index {
+  color: #a8071a; /* INTENTIONAL_EXCEPTION: blocker tone */
+  border-color: #ffccc7; /* INTENTIONAL_EXCEPTION: blocker tone */
+}
+
+.oma-approval-flow__step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Multi-level approval editor (DEC-026). */
+.oma-ws-levels__list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oma-ws-levels__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+}
+
+.oma-ws-levels__head,
+.oma-ws-levels__approvers,
+.oma-ws-levels__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.oma-ws-levels__index {
+  font-weight: 600;
+  min-width: 16px;
+}
+
+.oma-ws-levels__min {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.oma-ws-levels__icon {
+  border: 1px solid var(--oma-border);
+  background: var(--oma-surface);
+  border-radius: var(--oma-radius-control);
+  min-width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.oma-ws-levels__chip {
+  border: 1px solid var(--oma-border);
+  background: var(--oma-surface);
+  border-radius: 9999px; /* INTENTIONAL_EXCEPTION: Planable approver chip */
+  padding: 2px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.oma-ws-levels__chip.is-on {
+  border-color: var(--oma-primary);
+  background: var(--oma-primary-soft);
+}
+
+.oma-ws-levels__input {
+  flex: 1 1 140px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
 }

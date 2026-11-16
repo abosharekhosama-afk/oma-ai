@@ -1,7 +1,7 @@
 /**
  * Production Content API client + adapter to stage3 ContentRow shape.
  */
-import { api } from './api';
+import { api, invalidateApiCache } from './api';
 import { mapLimit } from './map-limit';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ApiLocale } from './campaign-api';
@@ -80,7 +80,57 @@ export type ApiContent = {
   media_asset_ids?: string[];
   workflow: ApiContentWorkflow;
   publishing?: ApiContentPublishing;
+  /** Schedule checklist (DEC-023/024). */
+  schedule_readiness?: ApiScheduleReadiness | null;
+  /** Planned vs Scheduled placement (DEC-023). */
+  calendar?: { state: string; at: string | null };
+  /** AI provenance + human-review gate (DEC-024). */
+  ai?: ApiContentAi;
+  /** Multi-level approval summary (DEC-026); null in counter mode. */
+  approval_levels?: ApiApprovalLevelsSummary | null;
 };
+
+export type ApiScheduleBlocker = {
+  code:
+    | 'ARCHIVED'
+    | 'REJECTED'
+    | 'APPROVAL_REQUIRED'
+    | 'AI_REVIEW_REQUIRED'
+    | 'NO_CONNECTED_ACCOUNT'
+    | 'ACCOUNT_NOT_CONNECTED'
+    | 'CHANNEL_NOT_CONNECTED'
+    | string;
+  social_page_id?: string;
+  network?: string;
+  account_status?: string;
+};
+
+export type ApiScheduleReadiness = { ready: boolean; blockers: ApiScheduleBlocker[] };
+
+export type ApiContentAi = {
+  assisted: boolean;
+  run_ids: string[];
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  review_required: boolean;
+};
+
+export type ApiApprovalLevelsSummary = {
+  total: number;
+  completed: number;
+  current: { position: number; name: ApiLocale } | null;
+};
+
+/** Returned when an edit reset an approval instead of being blocked (DEC-025). */
+export type ApiApprovalReset = { from: string; fields: string[]; unscheduled: boolean };
+
+export const APPROVAL_RESET_EVENT = 'oma:approval-reset';
+
+/** Tell the editor that an edit reset the approval so it can explain why (DEC-025). */
+function notifyApprovalReset(contentId: string, reset: ApiApprovalReset | undefined) {
+  if (!reset || typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(APPROVAL_RESET_EVENT, { detail: { contentId, ...reset } }));
+}
 
 export type ContentPublishTargetRow = {
   id: string;
@@ -114,6 +164,10 @@ export type ContentRowExtra = ContentRow & {
   syncGroupId?: string | null;
   preferredAudience?: string | null;
   mediaAssetIds?: string[];
+  scheduleReadiness?: ApiScheduleReadiness | null;
+  calendarState?: string | null;
+  ai?: ApiContentAi | null;
+  approvalLevels?: ApiApprovalLevelsSummary | null;
 };
 
 export function toContentRow(c: ApiContent): ContentRowExtra {
@@ -166,6 +220,10 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     mediaAssetIds: c.media_asset_ids ?? [],
     approvalPolicy: c.workflow?.policy,
     scheduleBlocked: c.workflow?.scheduleBlocked,
+    scheduleReadiness: c.schedule_readiness ?? null,
+    calendarState: c.calendar?.state ?? null,
+    ai: c.ai ?? null,
+    approvalLevels: c.approval_levels ?? null,
   };
 }
 
@@ -243,8 +301,9 @@ export async function setContentPublishTarget(
   socialPageIds?: string[],
 ) {
   const body = socialPageIds !== undefined ? { socialPageIds } : { socialPageId };
-  return api<{
+  const res = await api<{
     data: {
+      approval_reset?: ApiApprovalReset;
       id: string;
       social_page_id: string | null;
       social_page_ids?: string[];
@@ -261,16 +320,19 @@ export async function setContentPublishTarget(
     method: 'POST',
     body: JSON.stringify(body),
   });
+  notifyApprovalReset(contentId, res.data.approval_reset);
+  return res;
 }
 
 export async function updateContentProduction(
   contentId: string,
   patch: Record<string, unknown>,
 ): Promise<ApiContent> {
-  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}`, {
-    method: 'PATCH',
-    body: JSON.stringify(patch),
-  });
+  const res = await api<{ data: ApiContent; approval_reset?: ApiApprovalReset }>(
+    `/api/v1/content/${contentId}`,
+    { method: 'PATCH', body: JSON.stringify(patch) },
+  );
+  notifyApprovalReset(contentId, res.approval_reset);
   return res.data;
 }
 
@@ -282,12 +344,91 @@ export async function requestContentApproval(contentId: string, note?: ApiLocale
   return res.data;
 }
 
-export async function approveContent(contentId: string, note?: ApiLocale | string) {
+export async function approveContent(contentId: string, note?: ApiLocale | string, level?: number) {
   const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/approve`, {
     method: 'POST',
-    body: JSON.stringify({ note }),
+    body: JSON.stringify({ note, ...(level ? { level } : {}) }),
   });
   return res.data;
+}
+
+/** Explicit unlock of approved content; a reason is required (DEC-025). */
+export async function reopenContent(contentId: string, reason: string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/reopen`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+  return res.data;
+}
+
+/** Human confirmation that AI-generated copy was reviewed (DEC-024). */
+export async function confirmAiReview(contentId: string, note?: string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/ai-review`, {
+    method: 'POST',
+    body: JSON.stringify(note ? { note } : {}),
+  });
+  return res.data;
+}
+
+export type ApiApprovalDecision = {
+  user_id: string;
+  user_name: string | null;
+  decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED' | string;
+  note: ApiLocale | null;
+  at: string;
+};
+
+export type ApiApprovalLevel = {
+  position: number;
+  name: ApiLocale;
+  min_approvals: number;
+  approver_user_ids: string[];
+  approvers: Array<{ id: string; name: string | null; email: string | null }>;
+};
+
+export type ApiApprovalProgress = {
+  mode: 'levels' | 'counter';
+  approval_state: string;
+  round_started_at: string | null;
+  approver_required: number;
+  approver_approved: number;
+  levels: Array<
+    ApiApprovalLevel & {
+      status: 'done' | 'current' | 'waiting' | 'changes_requested' | 'rejected';
+      approvals: number;
+      decisions: ApiApprovalDecision[];
+    }
+  >;
+  decisions: ApiApprovalDecision[];
+};
+
+export async function getApprovalProgress(contentId: string) {
+  const path = `/api/v1/content/${contentId}/approval`;
+  invalidateApiCache(path);
+  const res = await api<{ data: ApiApprovalProgress }>(path);
+  return res.data;
+}
+
+export type ApprovalLevelInput = {
+  name: ApiLocale;
+  min_approvals: number;
+  approver_user_ids: string[];
+};
+
+export async function getWorkspaceApprovalLevels() {
+  invalidateApiCache('/api/v1/workspace/approval-levels');
+  const res = await api<{ data: { levels: ApiApprovalLevel[] } }>(
+    '/api/v1/workspace/approval-levels',
+  );
+  return res.data.levels;
+}
+
+export async function saveWorkspaceApprovalLevels(levels: ApprovalLevelInput[]) {
+  const res = await api<{ data: { levels: ApiApprovalLevel[] } }>(
+    '/api/v1/workspace/approval-levels',
+    { method: 'PUT', body: JSON.stringify({ levels }) },
+  );
+  return res.data.levels;
 }
 
 export async function enqueueContent(contentId: string) {
@@ -757,10 +898,11 @@ export async function copyContentTo(
 }
 
 export async function setPreferredAudience(contentId: string, audience: string | null) {
-  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/preferred-audience`, {
-    method: 'POST',
-    body: JSON.stringify({ audience }),
-  });
+  const res = await api<{ data: ApiContent; approval_reset?: ApiApprovalReset }>(
+    `/api/v1/content/${contentId}/preferred-audience`,
+    { method: 'POST', body: JSON.stringify({ audience }) },
+  );
+  notifyApprovalReset(contentId, res.approval_reset);
   return res.data;
 }
 

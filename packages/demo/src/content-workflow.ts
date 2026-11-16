@@ -8,6 +8,8 @@ export type PublishDisplay =
   | 'APPROVED'
   | 'PLANNED_DATE'
   | 'SCHEDULED_LOCAL'
+  /** Scheduled, but the schedule checklist has a blocker (DEC-023). */
+  | 'CANNOT_SCHEDULE'
   | 'PUBLISHING_NOT_CONNECTED'
   | 'PUBLISHED_SAMPLE'
   | 'FAILED_SAMPLE';
@@ -21,6 +23,8 @@ export type WorkflowSource = {
   approverApproved?: number;
   approverRequired?: number;
   publishSample?: 'PUBLISHED_SAMPLE' | 'FAILED_SAMPLE';
+  /** Server schedule checklist result; `false` turns a scheduled post into CANNOT_SCHEDULE. */
+  scheduleReady?: boolean | null;
 };
 
 export type ContentWorkflow = {
@@ -72,8 +76,9 @@ export function resolveContentWorkflow(
   if (item.publishSample === 'FAILED_SAMPLE') publishDisplay = 'FAILED_SAMPLE';
   else if (item.publishSample === 'PUBLISHED_SAMPLE' || item.status === 'PUBLISHED_DEMO') {
     publishDisplay = 'PUBLISHED_SAMPLE';
-  } else if (scheduleState === 'SCHEDULED') publishDisplay = 'SCHEDULED_LOCAL';
-  else if (approvalState === 'PARTIALLY_APPROVED') publishDisplay = 'PARTIALLY_APPROVED';
+  } else if (scheduleState === 'SCHEDULED') {
+    publishDisplay = item.scheduleReady === false ? 'CANNOT_SCHEDULE' : 'SCHEDULED_LOCAL';
+  } else if (approvalState === 'PARTIALLY_APPROVED') publishDisplay = 'PARTIALLY_APPROVED';
   else if (approvalState === 'PENDING') publishDisplay = 'APPROVAL_PENDING';
   else if (approvalState === 'APPROVED') publishDisplay = 'APPROVED';
   else if (plannedAt) publishDisplay = 'PLANNED_DATE';
