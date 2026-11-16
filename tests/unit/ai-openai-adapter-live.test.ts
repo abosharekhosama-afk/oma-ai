@@ -6,7 +6,7 @@ function validProposal() {
   return {
     promptId: 'oma.brand_profile_synthesis',
     promptVersion: '2',
-    schemaVersion: '1',
+    schemaVersion: '2',
     language: 'en',
     sourceVersion: 'v1',
     evidenceRefs: ['e1'],
@@ -52,7 +52,9 @@ describe('live OpenAI adapter', () => {
       expect(result.model).toBe('gpt-4.1');
       expect(result.inputTokens).toBe(11);
       expect(result.outputTokens).toBe(7);
-      expect(result.proposal.items[0]?.field).toBe('brand.description');
+      expect((result.output as { items: Array<{ field: string }> }).items[0]?.field).toBe(
+        'brand.description',
+      );
     }
     expect(create).toHaveBeenCalledTimes(1);
     const body = create.mock.calls[0]?.[0] as { text?: { format?: { schema?: unknown } } };

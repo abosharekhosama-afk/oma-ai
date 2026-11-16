@@ -1,4 +1,4 @@
-import { validateProposal, type AiProposal } from '@oma/domain';
+import { AI_OUTPUT_CONTRACTS, parseAiOutput } from '@oma/domain';
 import { isSchemaRejection, type StructuredOutputMode } from './capabilities';
 import { mapProviderError, type AiStructuredErrorCode } from './provider-errors';
 
@@ -19,7 +19,7 @@ export type CoreTransport = (
 
 export type AiStructuredSuccess = {
   ok: true;
-  proposal: AiProposal;
+  /** Output that passed the call's contract validator. */
   output: unknown;
   model: string;
   inputTokens: number;
@@ -48,6 +48,24 @@ export type AiStructuredFailure = {
 export type StructuredValidate = (
   parsed: unknown,
 ) => { ok: true; value: unknown } | { ok: false; issues?: string[] };
+
+/**
+ * Default contract when a caller passes no schema/validator: the v2
+ * `brand.analysis` contract (the v1 hand-written proposal schema is gone).
+ */
+export function defaultStructuredContract(): {
+  schema: Record<string, unknown>;
+  validate: StructuredValidate;
+} {
+  const contract = AI_OUTPUT_CONTRACTS['brand.analysis'];
+  return {
+    schema: contract.jsonSchema(),
+    validate: (parsed) => {
+      const r = parseAiOutput(contract.schema, parsed);
+      return r.ok ? { ok: true, value: r.value } : { ok: false, issues: r.issues };
+    },
+  };
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const MAX_ECHO_CHARS = 8000;
@@ -101,7 +119,7 @@ export async function runStructuredCore(opts: {
   user: string;
   schema: Record<string, unknown>;
   mode: StructuredOutputMode;
-  validate?: StructuredValidate;
+  validate: StructuredValidate;
   maxRetries: number;
   timeoutMs: number;
   repairAttempts: number;
@@ -160,26 +178,10 @@ export async function runStructuredCore(opts: {
       parsedOk = false;
     }
     if (parsedOk) {
-      if (opts.validate) {
-        const checked = opts.validate(parsed);
-        if (checked.ok) {
-          return {
-            ok: true,
-            proposal: checked.value as AiProposal,
-            output: checked.value,
-            ...usage(),
-          };
-        }
-        stage = 'schema';
-        issues = checked.issues ?? [];
-      } else {
-        const checked = validateProposal(parsed);
-        if (checked.ok) {
-          return { ok: true, proposal: checked.proposal, output: checked.proposal, ...usage() };
-        }
-        stage = 'schema';
-        issues = [];
-      }
+      const checked = opts.validate(parsed);
+      if (checked.ok) return { ok: true, output: checked.value, ...usage() };
+      stage = 'schema';
+      issues = checked.issues ?? [];
     } else {
       stage = 'parse';
       issues = ['The reply was not valid JSON.'];

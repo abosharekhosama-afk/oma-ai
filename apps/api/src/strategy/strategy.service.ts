@@ -11,11 +11,11 @@ import {
   isAiAnalysisAvailable,
   mustRefuseAiPropose,
   newId,
-  proposalJsonSchema,
   shouldClearCurrentOnArchive,
   strategyAiMode,
-  validateProposal,
-  deterministicProposal,
+  deterministicStrategyFoundationV2,
+  storedProposalVersion,
+  strategyFoundationContractFor,
 } from '@oma/domain';
 import { buildStrategyProposePrompt } from '@oma/ai';
 import { loadBrandContext } from '../ai/brand-context.service';
@@ -1981,6 +1981,8 @@ export class StrategyService {
       kpis: detail.data.kpis,
     });
 
+    const tracks = { organic: version.organicEnabled, paid: version.paidEnabled };
+    const foundationContract = strategyFoundationContractFor(tracks);
     const run = await runStructuredGeneration({
       tenantId,
       actorUserId,
@@ -1991,17 +1993,18 @@ export class StrategyService {
       idempotencyKey: opts?.idempotencyKey,
       correlationId: opts?.correlationId,
       prompt,
-      schema: proposalJsonSchema(),
-      parse: (raw) => {
-        const checked = validateProposal(raw);
-        return checked.ok ? { ok: true as const, value: checked.proposal } : { ok: false as const };
-      },
+      schema: foundationContract.jsonSchema(),
+      contractId: foundationContract.contractId,
+      schemaVersion: foundationContract.schemaVersion,
+      parse: foundationContract.parse,
       testValue: () =>
-        deterministicProposal({
-          useCase: prompt.useCase,
-          evidenceRefs: brand.profileVersionId ? [brand.profileVersionId] : [],
+        deterministicStrategyFoundationV2({
+          promptId: prompt.promptId,
+          promptVersion: prompt.promptVersion,
           sourceVersion: version.id,
+          tracks,
           language,
+          brandName: brand.brandName,
         }),
       serialize: (value) => value,
       brandProfileVersionId: brand.profileVersionId,
@@ -2051,29 +2054,37 @@ export class StrategyService {
     if (!run?.proposalJson) {
       throw new DomainError('NOT_FOUND', 'AI proposal not found', 404, 'errors.not_found');
     }
-    const checked = validateProposal(JSON.parse(run.proposalJson));
+    if (storedProposalVersion(run.proposalJson) !== '2') {
+      // DEC-027 #9: v1 proposals are display-only; regenerate to accept.
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'This AI proposal uses a legacy format. Generate a new proposal to accept it.',
+        409,
+        'errors.conflict_state',
+        [{ code: 'LEGACY_PROPOSAL', regenerate: true }],
+      );
+    }
+    const checked = strategyFoundationContractFor({
+      organic: version.organicEnabled,
+      paid: version.paidEnabled,
+    }).parse(JSON.parse(run.proposalJson));
     if (!checked.ok) {
       throw new DomainError(
         'SCHEMA_INVALID',
         'Proposal failed validation',
         422,
         'errors.schema_invalid',
+        [{ issues: checked.issues.slice(0, 10) }],
       );
     }
-    const proposal = checked.proposal;
-    const pick = (field: string) => proposal.items.find((item) => item.field === field)?.value;
-    const split = (value?: string) =>
-      (value ?? '')
-        .split(/\n|;|\||(?<=\.)\s+/)
-        .map((part) => part.trim())
-        .filter(Boolean);
+    const proposal = checked.value;
 
     const foundation = parseJson<Record<string, unknown>>(version.foundationJson, {});
-    const goals = split(pick('foundation.goals'));
+    const goals = proposal.foundation.goals;
     if (goals.length && (!Array.isArray(foundation.goals) || foundation.goals.length === 0)) {
       foundation.goals = goals.map((value) => ({ value, infoClass: 'AI_PROPOSED' }));
     }
-    const positioning = pick('foundation.positioning');
+    const positioning = proposal.foundation.positioning;
     const currentPos =
       typeof foundation.positioning === 'string'
         ? foundation.positioning
@@ -2081,7 +2092,7 @@ export class StrategyService {
     if (positioning && !String(currentPos).trim()) {
       foundation.positioning = { value: positioning, infoClass: 'AI_PROPOSED' };
     }
-    const keyMessages = split(pick('foundation.keyMessages'));
+    const keyMessages = proposal.foundation.keyMessages;
     if (
       keyMessages.length &&
       (!Array.isArray(foundation.keyMessages) || foundation.keyMessages.length === 0)
@@ -2091,7 +2102,7 @@ export class StrategyService {
         infoClass: 'AI_PROPOSED',
       }));
     }
-    const constraints = split(pick('foundation.constraints'));
+    const constraints = proposal.foundation.constraints;
     if (
       constraints.length &&
       (!Array.isArray(foundation.constraints) || foundation.constraints.length === 0)
@@ -2117,9 +2128,9 @@ export class StrategyService {
           where: { strategyVersionId: version.id },
         });
         if (organic) {
-          const pillars = split(pick('organic.pillars'));
-          const channels = split(pick('organic.channels'));
-          const formats = split(pick('organic.formats'));
+          const pillars = proposal.organic?.pillars ?? [];
+          const channels = proposal.organic?.channels ?? [];
+          const formats = proposal.organic?.formats ?? [];
           const existingPillars = parseJson<unknown[]>(organic.pillarsJson, []);
           await tx.strategyOrganicTrack.update({
             where: { id: organic.id },
@@ -2136,7 +2147,7 @@ export class StrategyService {
                 formats.length && parseJson<unknown[]>(organic.formatsJson, []).length === 0
                   ? JSON.stringify(formats)
                   : organic.formatsJson,
-              frequency: pick('organic.frequency') || organic.frequency,
+              frequency: proposal.organic?.frequency || organic.frequency,
             },
           });
         }
@@ -2146,7 +2157,7 @@ export class StrategyService {
           where: { strategyVersionId: version.id },
         });
         if (paid) {
-          const objectives = split(pick('paid.campaign_objectives'));
+          const objectives = proposal.paid?.campaignObjectives ?? [];
           await tx.strategyPaidTrack.update({
             where: { id: paid.id },
             data: {
@@ -2155,7 +2166,7 @@ export class StrategyService {
                 parseJson<unknown[]>(paid.campaignObjectivesJson, []).length === 0
                   ? JSON.stringify(objectives)
                   : paid.campaignObjectivesJson,
-              offerAngle: pick('paid.offer_angle') || paid.offerAngle,
+              offerAngle: proposal.paid?.offerAngle || paid.offerAngle,
             },
           });
         }

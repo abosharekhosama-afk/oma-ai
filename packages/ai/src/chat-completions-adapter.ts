@@ -1,7 +1,7 @@
 import {
   AiProviderNotConfiguredError,
   isAiUseCase,
-  proposalJsonSchema,
+  type BrandAnalysisV2,
   routeModel,
   type AiGenerateRequest,
   type AiGenerateResult,
@@ -11,6 +11,7 @@ import {
 } from '@oma/domain';
 import { structuredOutputMode } from './capabilities';
 import {
+  defaultStructuredContract,
   repairAttemptsFromEnv,
   runStructuredCore,
   type AiStructuredFailure,
@@ -69,8 +70,10 @@ export class ChatCompletionsProviderAdapter implements AiProviderPort {
       outputRef: `proposal:${useCase}`,
       providerCode: this.options.provider,
       modelCode: result.model,
-      confidence: result.proposal.items[0]?.confidence,
-      unknowns: result.proposal.items.filter((item) => !item.value).map((item) => item.field),
+      confidence: (result.output as BrandAnalysisV2).items[0]?.confidence,
+      unknowns: (result.output as BrandAnalysisV2).items
+        .filter((item) => !item.value)
+        .map((item) => item.field),
     };
   }
 
@@ -124,14 +127,15 @@ export class ChatCompletionsProviderAdapter implements AiProviderPort {
         outputTokens: response.usage?.completion_tokens ?? 0,
       };
     };
+    const fallback = defaultStructuredContract();
     return runStructuredCore({
       transport,
       model: routed.model,
       system: input.systemPrompt ?? 'Return only JSON matching the provided schema.',
       user: input.userPrompt ?? JSON.stringify({ useCase: input.useCase, payload: input.payload }),
-      schema: input.schema ?? proposalJsonSchema(),
+      schema: input.schema ?? fallback.schema,
       mode: structuredOutputMode(this.options.provider, routed.model),
-      validate: input.validate,
+      validate: input.validate ?? fallback.validate,
       maxRetries,
       timeoutMs,
       repairAttempts: this.options.repairAttempts ?? repairAttemptsFromEnv(),

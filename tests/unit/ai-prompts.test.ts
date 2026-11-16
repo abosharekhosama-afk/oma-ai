@@ -23,7 +23,7 @@ describe('brand analysis prompts', () => {
       ],
     });
     expect(prompt.promptId).toBe('oma.brand_profile_synthesis');
-    expect(prompt.promptVersion).toBe('2');
+    expect(prompt.promptVersion).toBe('3');
     expect(prompt.user).toContain(UNTRUSTED_OPEN);
     expect(prompt.user).toContain(UNTRUSTED_CLOSE);
     expect(prompt.user).toContain('(e1)');

@@ -79,47 +79,6 @@ export function validateContentGeneration(
   return { ok: true, result: parsed.data };
 }
 
-/** @deprecated v1, hand-written. Use the `content.*` contracts (ai/contracts) instead; removed in PR 3.5. */
-export function contentGenerationJsonSchema(): Record<string, unknown> {
-  return {
-    type: 'object',
-    additionalProperties: false,
-    required: [
-      'promptId',
-      'promptVersion',
-      'schemaVersion',
-      'language',
-      'sourceVersion',
-      'banner',
-      'variants',
-      'hashtags',
-      'warnings',
-    ],
-    properties: {
-      promptId: { type: 'string' },
-      promptVersion: { type: 'string' },
-      schemaVersion: { type: 'string', enum: ['1'] },
-      language: { type: 'string', enum: ['en', 'ar'] },
-      sourceVersion: { type: 'string' },
-      banner: { type: 'string', enum: [AI_PROPOSAL_BANNER] },
-      variants: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['text', 'rationale'],
-          properties: {
-            text: { type: 'string' },
-            rationale: { type: 'string' },
-          },
-        },
-      },
-      hashtags: { type: 'array', items: { type: 'string' } },
-      warnings: { type: 'array', items: { type: 'string' } },
-    },
-  };
-}
-
 export function kindToUseCase(
   kind: ContentGenerationKind,
 ): 'caption_generation' | 'caption_rewrite' | 'alt_text' | 'content_ideas' | 'hashtag_suggestion' {

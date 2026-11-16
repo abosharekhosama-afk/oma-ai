@@ -106,3 +106,27 @@ not always recorded, and the generic `POST /ai/runs` endpoint accepted any use c
   `contractId` and `schemaVersion: '2'`. Prompt versions are bumped to `2`.
 - Known risk: thin profiles give few refs, so factual copy is refused more often. That
   is intended (no invented facts), and PR 3.7 evals measure it.
+
+## PR 3.5: typed call sites
+
+- **Brand analysis** (the worker and generic `/ai/runs`) uses the v2 `brand.analysis`
+  contract per call (`brandAnalysisContractFor(evidenceIds)`). Fields come from a closed
+  list, confidence is required, facts must cite evidence, and any evidence id the model was
+  not given is rejected (repaired once). Runs record `contractId: brand.analysis` and
+  `schemaVersion: '2'`. Prompt versions: synthesis 3, summary/contradiction 2.
+- **Legacy strategy propose** uses `strategy.foundation` v2 with the version's tracks:
+  a disabled track must be `null`. Accept copies the typed lists (`foundation.goals`,
+  `keyMessages`, `constraints`, `organic.pillars/channels/formats`,
+  `paid.campaignObjectives`) directly. The old `pick()` + sentence-splitting regex is
+  gone. The endpoint stays deprecated in favour of the strategy plan generator.
+- **v1 runs are display-only** (#9): accepting a stored v1 proposal (strategy propose or
+  generic runs) returns `409 CONFLICT_STATE` with `LEGACY_PROPOSAL, regenerate: true`.
+  v1 rows are still readable.
+- **Removed** the hand-written v1 JSON schemas `proposalJsonSchema()` and
+  `contentGenerationJsonSchema()`. The v1 Zod `proposalSchema` stays only to read legacy
+  rows. `@oma/ai` no longer defaults to v1 validation: with no explicit contract it uses
+  `brand.analysis` v2 (`defaultStructuredContract`), and the success result exposes
+  `output` only.
+- The admin AI probe uses the v2 `content.variants` contract.
+- `apps/worker/src/processors/ai.processor.ts` is untouched and kept (owner override).
+  Its `adapter.generate()` path now validates against `brand.analysis` v2.

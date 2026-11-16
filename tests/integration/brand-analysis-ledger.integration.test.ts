@@ -117,7 +117,7 @@ describe('brand analysis worker: unified run ledger', () => {
     const proposal = {
       promptId: 'oma.brand_profile_synthesis',
       promptVersion: '2',
-      schemaVersion: '1',
+      schemaVersion: '2',
       language: 'en',
       sourceVersion: 'x',
       evidenceRefs: [],
