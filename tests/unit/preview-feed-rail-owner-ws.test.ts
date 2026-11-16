@@ -25,7 +25,7 @@ describe('Content Preview Feed-style circular rail, clean preview card, per-plat
 
   it('resolves per-channel external post URLs using publishTargets network and external_post_id', () => {
     const contentService = readFileSync(resolve('apps/api/src/content/content.service.ts'), 'utf8');
-    expect(contentService).toContain('socialPage: { select: { network: true } }');
+    expect(contentService).toContain('socialPage: { select: { network: true, status: true } }');
     expect(contentService).toContain('external_post_id: t.externalPostId ?? null');
 
     const contentClient = readFileSync(

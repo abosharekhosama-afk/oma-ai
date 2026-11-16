@@ -205,7 +205,8 @@ export function humanizePublishError(
     : `${base}\nProvider details: ${detail}`;
 }
 
-export type PublishSkipCode = 'NOT_APPROVED' | 'NO_ACCOUNT' | 'ENCRYPTION_KEY' | 'OTHER';
+export type PublishSkipCode =
+  'NOT_APPROVED' | 'NO_ACCOUNT' | 'ACCOUNT_NOT_CONNECTED' | 'ENCRYPTION_KEY' | 'OTHER';
 
 export function skipReasonMessage(code: PublishSkipCode, detail?: string): string {
   switch (code) {
@@ -213,6 +214,10 @@ export function skipReasonMessage(code: PublishSkipCode, detail?: string): strin
       return 'Skipped: post is not fully approved (policy requires approval before publish)';
     case 'NO_ACCOUNT':
       return 'Skipped: no publishing account attached';
+    case 'ACCOUNT_NOT_CONNECTED':
+      return detail
+        ? `Skipped: publishing account is not connected (${detail})`
+        : 'Skipped: publishing account is not connected';
     case 'ENCRYPTION_KEY':
       return 'Skipped: SOCIAL_TOKEN_ENCRYPTION_KEY is not configured on the worker';
     default:

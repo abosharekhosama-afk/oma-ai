@@ -1,5 +1,12 @@
 import { getPrisma } from '@oma/db';
-import { effectiveApprovalPolicy, resolveApprovalSettings, skipReasonMessage } from '@oma/domain';
+import {
+  accountBlockers,
+  effectiveApprovalPolicy,
+  evaluateScheduleReadiness,
+  resolveApprovalSettings,
+  scheduleRequiresConnectedAccount,
+  skipReasonMessage,
+} from '@oma/domain';
 
 export async function findDuePublishTargetIds(
   now: Date,
@@ -44,19 +51,61 @@ export async function findDuePublishTargetIds(
       archivedAt: null,
       scheduleState: 'SCHEDULED',
       scheduledAt: { lte: now },
-      publishTargets: { some: {} },
+      // Items with publish targets, or none at all: a scheduled post without an account
+      // must surface CANNOT_SCHEDULE instead of waiting silently (DEC-023).
+      OR: [{ publishTargets: { some: {} } }, { publishState: 'NONE' }],
     },
     orderBy: { scheduledAt: 'asc' },
     take: 50,
     select: {
       id: true,
       brandId: true,
+      channel: true,
+      socialPageId: true,
       approvalState: true,
       lastPublishSkipReason: true,
+      publishTargets: {
+        select: { socialPageId: true, socialPage: { select: { network: true, status: true } } },
+      },
     },
   });
 
+  const requireAccount = scheduleRequiresConnectedAccount();
+  const blockedItemIds: string[] = [];
   for (const row of dueItems) {
+    const accounts = accountBlockers(
+      evaluateScheduleReadiness({
+        // Approval is evaluated separately below; only account readiness here.
+        workflow: { status: 'APPROVED', scheduledAt: null, approvalState: 'APPROVED' },
+        policy: 'NONE',
+        channel: row.channel,
+        targets: row.publishTargets.map((t) => ({
+          socialPageId: t.socialPageId,
+          network: t.socialPage.network,
+          status: t.socialPage.status,
+        })),
+        requireConnectedAccount: requireAccount || row.publishTargets.length === 0,
+      }),
+    );
+    if (accounts.length > 0) {
+      skipped += 1;
+      blockedItemIds.push(row.id);
+      const reason =
+        row.publishTargets.length === 0
+          ? skipReasonMessage('NO_ACCOUNT')
+          : skipReasonMessage(
+              'ACCOUNT_NOT_CONNECTED',
+              [...new Set(accounts.map((b) => b.code))].join(', '),
+            );
+      if (row.lastPublishSkipReason !== reason) {
+        await prisma.contentItem.update({
+          where: { id: row.id },
+          data: { lastPublishSkipReason: reason },
+        });
+      }
+      continue;
+    }
+
     const eligible = row.approvalState === 'APPROVED' || noApproval.has(row.brandId);
     if (!eligible) {
       skipped += 1;
@@ -86,6 +135,7 @@ export async function findDuePublishTargetIds(
     where: {
       publishState: { in: ['NONE', 'QUEUED'] },
       OR: [{ nextPublishAt: null }, { nextPublishAt: { lte: now } }],
+      ...(blockedItemIds.length ? { contentItemId: { notIn: blockedItemIds } } : {}),
       contentItem: {
         archivedAt: null,
         scheduleState: 'SCHEDULED',

@@ -58,9 +58,11 @@ export class ContentController {
     @Query('includeArchived') includeArchived?: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
+    @Query('calendar_state') calendarState?: string,
   ) {
     this.requireTenant(req);
     return contentService.list(req.oma!.tenantId!, brandId, {
+      calendarState,
       campaignId,
       status,
       track,
@@ -88,6 +90,12 @@ export class ContentController {
       body as never,
       req.oma!.correlationId,
     );
+  }
+
+  @Get('api/v1/content/:contentId/schedule-readiness')
+  async scheduleReadiness(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.scheduleReadiness(req.oma!.tenantId!, contentId);
   }
 
   @Get('api/v1/content/:contentId/channel-analytics')
