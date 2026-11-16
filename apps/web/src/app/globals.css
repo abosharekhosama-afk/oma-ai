@@ -24,6 +24,7 @@
 @import '../styles/side-drawers.css';
 @import '../styles/mobile-precise-nov03.css';
 @import '../styles/mobile-density.css';
+@import '../styles/strategy-plan-briefs.css';
 
 * {
   box-sizing: border-box;

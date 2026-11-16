@@ -52,6 +52,7 @@ export function brandNavSection(pathname: string, brandId: string): BrandNavSect
   if (
     pathname.includes('/profiles') ||
     pathname.includes('/strategies') ||
+    pathname.includes('/briefs') ||
     pathname.includes('/intelligence')
   ) {
     return 'strategy';
@@ -83,7 +84,10 @@ export function buildBrandPrimaryNav(brandId: string, t: (key: string) => string
       href: `${base}/intelligence`,
       label: t('brand.nav.strategyHub'),
       match: (p) =>
-        p.includes('/profiles') || p.includes('/strategies') || p.includes('/intelligence'),
+        p.includes('/profiles') ||
+        p.includes('/strategies') ||
+        p.includes('/briefs') ||
+        p.includes('/intelligence'),
     },
     {
       id: 'settings',
@@ -152,6 +156,12 @@ export function buildBrandStrategySubnav(
       href: `${base}/strategies`,
       label: t('brand.nav.strategies'),
       match: (p) => p.includes('/strategies'),
+    },
+    {
+      id: 'briefs',
+      href: `${base}/briefs`,
+      label: t('brand.nav.briefs'),
+      match: (p) => p.includes('/briefs'),
     },
   ];
 }

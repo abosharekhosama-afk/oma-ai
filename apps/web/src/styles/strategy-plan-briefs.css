@@ -1,0 +1,74 @@
+/* Strategy plan v2 editor + Briefs (Phase 1 · PR D). Logical properties keep RTL correct. */
+.oma-plan-editor {
+  display: grid;
+  gap: 16px;
+}
+.oma-plan-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.oma-plan-table-wrap {
+  overflow-x: auto;
+}
+.oma-plan-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.oma-plan-table th,
+.oma-plan-table td {
+  padding: 6px 8px;
+  border-block-end: 1px solid var(--oma-border);
+  text-align: start;
+  vertical-align: top;
+}
+.oma-plan-table th {
+  color: var(--oma-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.oma-plan-table input,
+.oma-plan-table select {
+  min-inline-size: 90px;
+}
+.oma-plan-total[data-state='bad'] {
+  color: var(--oma-home-danger);
+}
+.oma-plan-proposal {
+  border: 1px dashed var(--oma-border-strong);
+  border-radius: var(--oma-radius-control);
+  padding: 12px;
+  background: var(--oma-surface-raised);
+  display: grid;
+  gap: 8px;
+}
+.oma-brief-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .oma-brief-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.oma-brief-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.oma-brief-timeline li {
+  border-inline-start: 2px solid var(--oma-border-strong);
+  padding-inline-start: 8px;
+}
+.oma-brief-deliverable {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  padding-block: 8px;
+  border-block-end: 1px solid var(--oma-border);
+}

@@ -21,6 +21,7 @@ import { PermissionDenied } from '../../../../../../../../components/shell/permi
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
+import { StrategyPlanEditor } from '../../../../../../../../components/strategy/strategy-plan-editor';
 import {
   textToTrackList,
   trackListToText,
@@ -208,6 +209,12 @@ export default function StrategyOrganicPage() {
           <p>{t('strategy.warning.immutable')}</p>
         )}
       </form>
+      <StrategyPlanEditor
+        brandId={brandId}
+        strategyId={strategyId}
+        versionId={version.id}
+        track="organic"
+      />
     </BrandWorkspaceShell>
   );
 }

@@ -22,6 +22,7 @@ import { PermissionDenied } from '../../../../../../../../components/shell/permi
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
+import { StrategyPlanEditor } from '../../../../../../../../components/strategy/strategy-plan-editor';
 
 export default function StrategyPaidPage() {
   const t = useT();
@@ -153,6 +154,12 @@ export default function StrategyPaidPage() {
           <p>{t('strategy.warning.immutable')}</p>
         )}
       </form>
+      <StrategyPlanEditor
+        brandId={brandId}
+        strategyId={strategyId}
+        versionId={version.id}
+        track="paid"
+      />
     </BrandWorkspaceShell>
   );
 }
