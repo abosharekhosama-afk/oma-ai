@@ -11,7 +11,14 @@ import {
   isAiLiveEnabled,
   isAiProviderConfigured,
   isAiUseCase,
+  isGenericAiRunSourceType,
+  isGenericAiRunUseCase,
   newId,
+  normalizeEvidenceRefs,
+  readAiRunReview,
+  writeAiRunReview,
+  GENERIC_AI_RUN_SOURCE_TYPES,
+  GENERIC_AI_RUN_USE_CASES,
   parsePriceTable,
   releaseReservation,
   resolveAiAvailability,
@@ -191,6 +198,45 @@ function throwForStructuredCode(code: string, message?: string): never {
   );
 }
 
+async function requireTenantBrand(tenantId: string, brandId: string) {
+  const brand =
+    typeof brandId === 'string' && brandId
+      ? await getPrisma().brandWorkspace.findFirst({
+          where: { id: brandId, tenantId, deletedAt: null },
+          select: { id: true },
+        })
+      : null;
+  if (!brand) throw new DomainError('NOT_FOUND', 'Brand not found', 404, 'errors.not_found');
+  return brand;
+}
+
+async function requireTenantEvidence(tenantId: string, brandId: string, refs: string[]) {
+  if (!refs.length) return [];
+  const rows = await getPrisma().evidenceExcerpt.findMany({
+    where: { id: { in: refs }, tenantId, brandId },
+    select: { id: true, canonicalUrl: true, sourceUrl: true, pageTitle: true, excerptText: true },
+  });
+  if (rows.length !== refs.length) {
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'evidence_refs must reference evidence of this brand',
+      400,
+      'errors.validation_failed',
+      [{ field: 'evidence_refs' }],
+    );
+  }
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return refs.map((id) => {
+    const row = byId.get(id)!;
+    return {
+      id,
+      url: row.canonicalUrl || row.sourceUrl,
+      title: row.pageTitle ?? undefined,
+      excerpt: row.excerptText,
+    };
+  });
+}
+
 export async function createAiRun(input: {
   tenantId: string;
   actorUserId: string;
@@ -202,26 +248,57 @@ export async function createAiRun(input: {
   correlationId?: string;
   evidenceRefs?: string[];
 }) {
-  if (!isAiUseCase(input.useCase)) {
+  if (!isAiUseCase(input.useCase) || !isGenericAiRunUseCase(input.useCase)) {
     throw new DomainError(
       'VALIDATION_FAILED',
-      'Unknown AI use case',
+      'This AI use case is not available on the generic runs endpoint',
       400,
       'errors.validation_failed',
+      [{ field: 'use_case', allowed: [...GENERIC_AI_RUN_USE_CASES] }],
+    );
+  }
+  if (!isGenericAiRunSourceType(input.sourceEntityType)) {
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'Unsupported AI source entity type',
+      400,
+      'errors.validation_failed',
+      [{ field: 'source_entity_type', allowed: [...GENERIC_AI_RUN_SOURCE_TYPES] }],
+    );
+  }
+  const evidenceRefs = normalizeEvidenceRefs(input.evidenceRefs);
+  if (evidenceRefs === null) {
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'evidence_refs must be a bounded array of evidence ids',
+      400,
+      'errors.validation_failed',
+      [{ field: 'evidence_refs' }],
+    );
+  }
+  if (typeof input.idempotencyKey !== 'string' || !input.idempotencyKey.trim()) {
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'idempotency_key is required',
+      400,
+      'errors.validation_failed',
+      [{ field: 'idempotency_key' }],
     );
   }
   const useCase = input.useCase as AiUseCase;
+  // Ownership: the source brand must belong to the caller's tenant.
+  await requireTenantBrand(input.tenantId, input.sourceEntityId);
+  const evidence = await requireTenantEvidence(input.tenantId, input.sourceEntityId, evidenceRefs);
   await billingService.assertFeature(input.tenantId, 'ai_assist');
   const routed = routeModel(useCase, defaultAiModels());
   const useTest = testAdapterAllowed(process.env);
   const live = isAiLiveEnabled();
-  const evidenceRefs = input.evidenceRefs ?? [];
   const priceTable = parsePriceTable(process.env.AI_MODEL_PRICES_JSON);
   const prompt = buildBrandAnalysisPrompt({
     useCase,
     sourceVersion: input.sourceVersion,
     observations: [],
-    evidence: evidenceRefs.map((id) => ({ id, excerpt: '' })),
+    evidence,
     maxInputTokens: budgetLimits().maxInputTokens ?? 6000,
   });
 
@@ -408,9 +485,35 @@ export async function cancelAiRun(tenantId: string, id: string) {
   });
 }
 
-export async function acceptAiRun(tenantId: string, id: string) {
+function requireGenericReviewableRun(run: {
+  useCase: string;
+  sourceEntityType: string;
+  status: string;
+  proposalJson: string | null;
+}) {
+  if (!isGenericAiRunUseCase(run.useCase) || !isGenericAiRunSourceType(run.sourceEntityType)) {
+    throw new DomainError(
+      'CONFLICT_STATE',
+      'This AI run is reviewed through its own workflow.',
+      409,
+      'errors.conflict_state',
+      [{ use_case: run.useCase, source_entity_type: run.sourceEntityType }],
+    );
+  }
+}
+
+export async function acceptAiRun(tenantId: string, id: string, actorUserId?: string) {
   const run = await readAiRun(tenantId, id);
-  if (!run.proposalJson) {
+  if (run.sourceEntityType === 'approved_profile' || run.sourceEntityType === 'approved_strategy') {
+    throw new DomainError(
+      'APPROVED_VERSION_IMMUTABLE',
+      'Approved versions cannot be modified by AI.',
+      409,
+      'errors.approved_immutable',
+    );
+  }
+  requireGenericReviewableRun(run);
+  if (!run.proposalJson || run.status !== 'SUCCEEDED') {
     throw new DomainError(
       'AI_DISABLED',
       'Accept is unavailable while AI is offline.',
@@ -419,6 +522,28 @@ export async function acceptAiRun(tenantId: string, id: string) {
       [{ manual_journey: true }],
     );
   }
+  const review = readAiRunReview(run.metadataJson);
+  if (review?.decision === 'rejected') {
+    throw new DomainError(
+      'CONFLICT_STATE',
+      'This AI proposal was already rejected.',
+      409,
+      'errors.conflict_state',
+      [{ review: 'rejected' }],
+    );
+  }
+  const mode = run.provider === 'test-adapter' ? 'demo_test' : 'live';
+  const result = (draftId: string | null, replayed: boolean) => ({
+    run_id: run.id,
+    draft_id: draftId,
+    approved_unchanged: true,
+    current_strategy_pointer: 'unchanged',
+    human_review: true,
+    replayed,
+    mode,
+  });
+  if (review?.decision === 'accepted') return result(review.draftId, true);
+
   const proposal = validateProposal(JSON.parse(run.proposalJson));
   if (!proposal.ok) {
     throw new DomainError(
@@ -428,18 +553,32 @@ export async function acceptAiRun(tenantId: string, id: string) {
       'errors.schema_invalid',
     );
   }
-  if (run.sourceEntityType === 'approved_profile' || run.sourceEntityType === 'approved_strategy') {
-    throw new DomainError(
-      'APPROVED_VERSION_IMMUTABLE',
-      'Approved versions cannot be modified by AI.',
-      409,
-      'errors.approved_immutable',
-    );
-  }
-  let draftId: string | null = null;
-  if (run.sourceEntityType === 'brand_profile') {
-    draftId = newId();
-    await getPrisma().profileVersion.create({
+  // Ownership: re-check the brand belongs to this tenant before writing anything.
+  await requireTenantBrand(tenantId, run.sourceEntityId);
+  const draftId = newId();
+  const at = new Date().toISOString();
+  await getPrisma().$transaction(async (tx) => {
+    const claimed = await tx.aiRun.updateMany({
+      where: { id: run.id, tenantId, version: run.version },
+      data: {
+        metadataJson: writeAiRunReview(run.metadataJson, {
+          decision: 'accepted',
+          by: actorUserId ?? 'unknown',
+          at,
+          draftId,
+        }),
+        version: { increment: 1 },
+      },
+    });
+    if (claimed.count !== 1) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'This AI proposal changed while it was being accepted.',
+        409,
+        'errors.conflict_state',
+      );
+    }
+    await tx.profileVersion.create({
       data: {
         id: draftId,
         tenantId,
@@ -447,19 +586,61 @@ export async function acceptAiRun(tenantId: string, id: string) {
         status: 'DRAFT',
         sectionsJson: JSON.stringify({
           ai_proposal: proposal.proposal,
+          ai_run_id: run.id,
           requires_human_review: true,
         }),
         aiAvailability:
           run.provider === configuredAiProvider() && isAiLiveEnabled() ? 'USED' : 'NOT_CONFIGURED',
       },
     });
+  });
+  return result(draftId, false);
+}
+
+export async function rejectAiRun(
+  tenantId: string,
+  id: string,
+  actorUserId?: string,
+  reason?: string | null,
+) {
+  const run = await readAiRun(tenantId, id);
+  requireGenericReviewableRun(run);
+  const review = readAiRunReview(run.metadataJson);
+  if (review?.decision === 'accepted') {
+    throw new DomainError(
+      'CONFLICT_STATE',
+      'This AI proposal was already accepted.',
+      409,
+      'errors.conflict_state',
+      [{ review: 'accepted', draft_id: review.draftId }],
+    );
   }
-  return {
-    run_id: run.id,
-    draft_id: draftId,
-    approved_unchanged: true,
-    current_strategy_pointer: 'unchanged',
-    human_review: true,
-    mode: run.provider === 'test-adapter' ? 'demo_test' : 'live',
-  };
+  const trimmed = typeof reason === 'string' ? reason.trim().slice(0, 500) || null : null;
+  if (review?.decision === 'rejected') {
+    return { id: run.id, status: 'REFUSED' as const, manual_journey: true, replayed: true };
+  }
+  // Keep the run status (and its settled cost) intact so budget accounting is unchanged;
+  // the human decision is recorded on the run itself.
+  const updated = await getPrisma().aiRun.updateMany({
+    where: { id: run.id, tenantId, version: run.version },
+    data: {
+      refusalReason: 'HUMAN_REJECTED',
+      metadataJson: writeAiRunReview(run.metadataJson, {
+        decision: 'rejected',
+        by: actorUserId ?? 'unknown',
+        at: new Date().toISOString(),
+        reason: trimmed,
+      }),
+      version: { increment: 1 },
+    },
+  });
+  if (updated.count !== 1) {
+    throw new DomainError(
+      'CONFLICT_STATE',
+      'This AI proposal changed while it was being rejected.',
+      409,
+      'errors.conflict_state',
+    );
+  }
+  return { id: run.id, status: 'REFUSED' as const, manual_journey: true, replayed: false };
 }

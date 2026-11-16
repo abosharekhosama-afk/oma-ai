@@ -4,6 +4,11 @@ import { createAiAdapterFromEnv } from '@oma/ai';
 import { Worker } from 'bullmq';
 import type IORedis from 'ioredis';
 
+/**
+ * TODO(phase3, kept by owner decision): nothing enqueues jobs on the `ai` queue today and the
+ * result of `adapter.generate` below is discarded. Live AI runs go through the typed call sites
+ * (api structured runs and the brand-analysis worker). Do not delete without owner approval.
+ */
 /** Text jobs only. Live provider calls stay disabled unless explicitly enabled with a provider key. */
 export function startAiProcessor(connection: IORedis) {
   const adapter = createAiAdapterFromEnv();
