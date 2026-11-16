@@ -71,6 +71,13 @@ export class SocialController {
   @Post('api/v1/content/:contentId/publish-target')
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   target(@Req() req: Request, @Param('contentId') contentId: string, @Body() body: unknown) {
-    return socialService.setPublishTarget(ctx(req).tenantId, contentId, body);
+    const c = ctx(req);
+    return socialService.setPublishTarget(
+      c.tenantId,
+      contentId,
+      body,
+      c.userId,
+      req.oma?.correlationId,
+    );
   }
 }

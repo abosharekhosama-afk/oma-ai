@@ -2957,6 +2957,20 @@
         ]
       }
     },
+    "/api/v1/content/{contentId}/reopen": {
+      "post": {
+        "operationId": "ContentController_reopen",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
     "/api/v1/content/{contentId}/reject": {
       "post": {
         "operationId": "ContentController_reject",

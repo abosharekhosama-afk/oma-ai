@@ -1,7 +1,7 @@
 import type { ApprovalState, ContentStatus } from './states';
 
 export type ContentApprovalCommand =
-  'request_approval' | 'approve' | 'request_changes' | 'reject' | 'reset';
+  'request_approval' | 'approve' | 'request_changes' | 'reject' | 'reset' | 'reopen';
 
 type Next = { approvalState: ApprovalState; status: ContentStatus; deltaApproved?: number };
 
@@ -52,7 +52,12 @@ export function applyContentApprovalTransition(input: {
       };
     }
     case 'request_changes': {
-      if (approvalState !== 'PENDING' && approvalState !== 'PARTIALLY_APPROVED') {
+      // Allowed after APPROVED too: it is one of the two explicit unlock paths (DEC-025).
+      if (
+        approvalState !== 'PENDING' &&
+        approvalState !== 'PARTIALLY_APPROVED' &&
+        approvalState !== 'APPROVED'
+      ) {
         throw new Error(`Cannot request changes from ${approvalState}`);
       }
       return {
@@ -66,6 +71,12 @@ export function applyContentApprovalTransition(input: {
         throw new Error(`Cannot reject from ${approvalState}`);
       }
       return { approvalState: 'REJECTED', status: 'DRAFT', deltaApproved: -approverApproved };
+    }
+    case 'reopen': {
+      if (approvalState !== 'APPROVED') {
+        throw new Error(`Cannot reopen from ${approvalState}`);
+      }
+      return { approvalState: 'NOT_REQUESTED', status: 'DRAFT', deltaApproved: -approverApproved };
     }
     case 'reset': {
       return { approvalState: 'NOT_REQUESTED', status: 'DRAFT', deltaApproved: -approverApproved };

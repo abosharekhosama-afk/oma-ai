@@ -286,6 +286,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/tasks/:taskId/comments': ['task.write'],
 
   'POST /api/v1/content/:contentId/request-changes': ['content.approve'],
+  'POST /api/v1/content/:contentId/reopen': ['content.approve'],
   'POST /api/v1/content/:contentId/schedule': ['content.schedule'],
   'POST /api/v1/content/:contentId/enqueue': ['content.schedule'],
   'GET /api/v1/workspace/publish-queues': ['content.schedule'],
