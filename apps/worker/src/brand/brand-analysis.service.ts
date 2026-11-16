@@ -13,7 +13,9 @@ import {
   aiBudgetLimitsFromEnv,
   computeCostUsd,
   defaultAiModels,
-  deterministicProposal,
+  brandAnalysisContractFor,
+  deterministicBrandAnalysisV2,
+  type BrandAnalysisV2,
   estimateReserveUsd,
   insightWritesFromProposal,
   isAiLiveEnabled,
@@ -22,7 +24,6 @@ import {
   parsePriceTable,
   shouldSkipApprovedProfile,
   testAdapterAllowed,
-  validateProposal,
   visualIdentityFromObservations,
 } from '@oma/domain';
 import {
@@ -148,6 +149,7 @@ export async function runBrandProfileAnalysis(input: {
     where: { tenantId: input.tenantId, scanAttemptId: input.scanAttemptId },
   });
   const knownEvidence = new Set(evidence.map((item) => item.id));
+  const contract = brandAnalysisContractFor([...knownEvidence]);
   const prompt = buildBrandAnalysisPrompt({
     useCase: 'brand_profile_synthesis',
     sourceVersion: profile.id,
@@ -202,7 +204,8 @@ export async function runBrandProfileAnalysis(input: {
       model: plannedModel,
       promptVersion: prompt.promptVersion,
       promptId: prompt.promptId,
-      schemaVersion: '1',
+      schemaVersion: contract.schemaVersion,
+      contractId: contract.contractId,
       sourceEntityType: 'scan_attempt',
       sourceEntityId: input.scanAttemptId,
       sourceVersion: profile.id,
@@ -226,9 +229,10 @@ export async function runBrandProfileAnalysis(input: {
   }
 
   const started = Date.now();
-  let proposal = useTest
-    ? deterministicProposal({
-        useCase: 'brand_profile_synthesis',
+  let proposal: BrandAnalysisV2 | null = useTest
+    ? deterministicBrandAnalysisV2({
+        promptId: prompt.promptId,
+        promptVersion: prompt.promptVersion,
         evidenceRefs: evidence.map((item) => item.id),
         sourceVersion: profile.id,
         language: prompt.language,
@@ -252,6 +256,13 @@ export async function runBrandProfileAnalysis(input: {
         payload: { scanAttemptId: input.scanAttemptId },
         systemPrompt: prompt.system,
         userPrompt: prompt.user,
+        schema: contract.jsonSchema(),
+        validate: (raw) => {
+          const checked = contract.parse(raw);
+          return checked.ok
+            ? { ok: true as const, value: checked.value }
+            : { ok: false as const, issues: checked.issues };
+        },
       });
       if (!result.ok) {
         errorCode = result.code;
@@ -263,7 +274,7 @@ export async function runBrandProfileAnalysis(input: {
         attempts = result.attempts ?? 1;
         if (result.code === 'REFUSAL') refusalReason = result.message ?? 'REFUSAL';
       } else {
-        proposal = result.proposal;
+        proposal = result.output as BrandAnalysisV2;
         inputTokens = result.inputTokens;
         outputTokens = result.outputTokens;
         model = result.model;
@@ -290,7 +301,7 @@ export async function runBrandProfileAnalysis(input: {
     }
   }
 
-  if (proposal && !validateProposal(proposal).ok) {
+  if (proposal && !contract.parse(proposal).ok) {
     proposal = null;
     errorCode = 'SCHEMA_INVALID';
     failureStage = 'schema';

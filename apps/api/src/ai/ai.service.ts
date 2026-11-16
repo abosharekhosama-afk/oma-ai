@@ -2,9 +2,10 @@ import { getPrisma, tenantAiLedgerSnapshot } from '@oma/db';
 import {
   DomainError,
   aiBudgetLimitsFromEnv,
-  proposalJsonSchema,
   defaultAiModels,
-  deterministicProposal,
+  brandAnalysisContractFor,
+  deterministicBrandAnalysisV2,
+  storedProposalVersion,
   evaluateBudget,
   isAiLiveEnabled,
   isAiProviderConfigured,
@@ -22,7 +23,6 @@ import {
   routeModel,
   strategyAiMode,
   testAdapterAllowed,
-  validateProposal,
   type AiUseCase,
 } from '@oma/domain';
 import { configuredAiProvider, buildBrandAnalysisPrompt } from '@oma/ai';
@@ -99,6 +99,15 @@ export async function aiBudgetForTenant(tenantId: string) {
     }),
     warning: decision.ok ? decision.warning : false,
   };
+}
+
+function readMetadataEvidenceRefs(metadataJson: string | null): string[] {
+  try {
+    const refs = (JSON.parse(metadataJson ?? '{}') as { evidenceRefs?: unknown }).evidenceRefs;
+    return Array.isArray(refs) ? refs.filter((r): r is string => typeof r === 'string') : [];
+  } catch {
+    return [];
+  }
 }
 
 async function requireTenantBrand(tenantId: string, brandId: string) {
@@ -204,6 +213,7 @@ export async function createAiRun(input: {
     maxInputTokens: budgetLimits().maxInputTokens ?? 6000,
   });
 
+  const analysisContract = brandAnalysisContractFor(evidenceRefs);
   const existing = await getPrisma().aiRun.findUnique({
     where: {
       tenantId_idempotencyKey: { tenantId: input.tenantId, idempotencyKey: input.idempotencyKey },
@@ -228,14 +238,15 @@ export async function createAiRun(input: {
         model: routed.model,
         promptVersion: prompt.promptVersion,
         promptId: prompt.promptId,
-        schemaVersion: '1',
+        schemaVersion: analysisContract.schemaVersion,
+        contractId: analysisContract.contractId,
         sourceEntityType: input.sourceEntityType,
         sourceEntityId: input.sourceEntityId,
         sourceVersion: input.sourceVersion,
         status: 'DISABLED',
         idempotencyKey: input.idempotencyKey,
         correlationId: input.correlationId,
-        inputHash: structuredInputHash(prompt, proposalJsonSchema()),
+        inputHash: structuredInputHash(prompt, analysisContract.jsonSchema()),
         errorCode: 'AI_DISABLED',
         failureStage: 'provider',
         attemptCount: 0,
@@ -261,14 +272,18 @@ export async function createAiRun(input: {
     idempotencyKey: input.idempotencyKey,
     correlationId: input.correlationId,
     prompt,
-    schema: proposalJsonSchema(),
-    schemaVersion: '1',
-    parse: (raw) => {
-      const checked = validateProposal(raw);
-      return checked.ok ? { ok: true as const, value: checked.proposal } : { ok: false as const };
-    },
+    schema: analysisContract.jsonSchema(),
+    contractId: analysisContract.contractId,
+    schemaVersion: analysisContract.schemaVersion,
+    parse: analysisContract.parse,
     testValue: () =>
-      deterministicProposal({ useCase, evidenceRefs, sourceVersion: input.sourceVersion }),
+      deterministicBrandAnalysisV2({
+        promptId: prompt.promptId,
+        promptVersion: prompt.promptVersion,
+        evidenceRefs,
+        sourceVersion: input.sourceVersion,
+        language: prompt.language,
+      }),
     serialize: (value) => value,
     metadata: { kind: 'generic_run', evidenceRefs },
   });
@@ -362,13 +377,26 @@ export async function acceptAiRun(tenantId: string, id: string, actorUserId?: st
   });
   if (review?.decision === 'accepted') return result(review.draftId, true);
 
-  const proposal = validateProposal(JSON.parse(run.proposalJson));
+  if (storedProposalVersion(run.proposalJson) !== '2') {
+    // DEC-027 #9: v1 proposals are display-only; regenerate to accept.
+    throw new DomainError(
+      'CONFLICT_STATE',
+      'This AI proposal uses a legacy format. Generate a new proposal to accept it.',
+      409,
+      'errors.conflict_state',
+      [{ code: 'LEGACY_PROPOSAL', regenerate: true }],
+    );
+  }
+  const proposal = brandAnalysisContractFor(readMetadataEvidenceRefs(run.metadataJson)).parse(
+    JSON.parse(run.proposalJson),
+  );
   if (!proposal.ok) {
     throw new DomainError(
       'SCHEMA_INVALID',
       'Proposal failed validation',
       422,
       'errors.schema_invalid',
+      [{ issues: proposal.issues.slice(0, 10) }],
     );
   }
   // Ownership: re-check the brand belongs to this tenant before writing anything.
@@ -403,7 +431,7 @@ export async function acceptAiRun(tenantId: string, id: string, actorUserId?: st
         brandId: run.sourceEntityId,
         status: 'DRAFT',
         sectionsJson: JSON.stringify({
-          ai_proposal: proposal.proposal,
+          ai_proposal: proposal.value,
           ai_run_id: run.id,
           requires_human_review: true,
         }),

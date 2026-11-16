@@ -96,8 +96,8 @@ describe('brand-aware generation prompts', () => {
     });
     expect(prompt.promptId).toBe('oma.strategy_propose');
     expect(prompt.useCase).toBe('organic_strategy');
-    expect(prompt.system).toContain('organic.pillars');
-    expect(prompt.system).not.toContain('paid.campaign_objectives');
+    expect(prompt.system).toContain('organic: fill pillars');
+    expect(prompt.system).not.toContain('paid: fill campaignObjectives');
     expect(prompt.user).toContain(STRATEGY_INPUT_OPEN);
     expect(prompt.user).toContain(STRATEGY_INPUT_CLOSE);
   });

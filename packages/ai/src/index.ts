@@ -27,6 +27,7 @@ export {
 } from './capabilities';
 export {
   buildRepairMessage,
+  defaultStructuredContract,
   extractJsonText,
   repairAttemptsFromEnv,
   runStructuredCore,

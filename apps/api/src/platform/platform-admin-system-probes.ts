@@ -1,12 +1,13 @@
 import {
   brandConnectorMode,
-  contentGenerationJsonSchema,
+  buildContractFor,
+  channelLimits,
+  lengthBudget,
   createWebsiteConnector,
   emptyBrandContext,
   isAiLiveEnabled,
   isAiProviderConfigured,
   resolveBrandWebsiteConnectorChoice,
-  validateContentGeneration,
 } from '@oma/domain';
 import { buildContentGenerationPrompt, createAiAdapterFromEnv } from '@oma/ai';
 import { aiStatus } from '../ai/ai.service';
@@ -101,19 +102,29 @@ export async function probeLiveAi(): Promise<{
     language: 'en',
     brand,
     channel: 'instagram',
-    variantCount: 1,
+    variantCount: 2,
   });
 
+  const limits = channelLimits('instagram');
+  const contract = buildContractFor('idea', {
+    brand,
+    limits,
+    maxChars: lengthBudget(undefined, limits),
+    language: 'en',
+    variantCount: 2,
+  });
   const adapter = createAiAdapterFromEnv();
   const result = await adapter.completeStructured({
     useCase: 'content_ideas',
     payload: { probe: true },
     systemPrompt: prompt.system,
     userPrompt: prompt.user,
-    schema: contentGenerationJsonSchema(),
+    schema: contract.jsonSchema(),
     validate: (raw) => {
-      const checked = validateContentGeneration(raw);
-      return checked.ok ? { ok: true as const, value: checked.result } : { ok: false as const };
+      const checked = contract.parse(raw);
+      return checked.ok
+        ? { ok: true as const, value: checked.value }
+        : { ok: false as const, issues: checked.issues };
     },
   });
 

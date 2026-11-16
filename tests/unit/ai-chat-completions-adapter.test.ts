@@ -8,7 +8,7 @@ function validProposal() {
   return {
     promptId: 'oma.brand_profile_synthesis',
     promptVersion: '2',
-    schemaVersion: '1',
+    schemaVersion: '2',
     language: 'en',
     sourceVersion: 'v1',
     evidenceRefs: ['e1'],

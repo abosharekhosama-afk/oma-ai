@@ -1,5 +1,22 @@
 import { discoveryTierForField, type DiscoveryTier } from '../brand/discovery-tiers';
-import { AI_PROPOSAL_BANNER, type AiProposal } from './proposal';
+import { AI_PROPOSAL_BANNER } from './proposal';
+
+/** Shape shared by the v2 `brand.analysis` contract and legacy v1 proposals. */
+export type BrandAnalysisProposal = {
+  promptId: string;
+  promptVersion: string;
+  language: 'en' | 'ar';
+  sourceVersion: string;
+  banner: string;
+  evidenceRefs: string[];
+  items: Array<{
+    field: string;
+    value: string;
+    kind: 'fact' | 'inference' | 'proposal';
+    confidence?: number;
+    evidenceRefs: string[];
+  }>;
+};
 
 export type InsightWrite = {
   fieldKey: string;
@@ -37,7 +54,7 @@ function firstKnownEvidence(refs: string[], known: Set<string>): string | null {
 }
 
 export function insightWritesFromProposal(
-  proposal: AiProposal,
+  proposal: BrandAnalysisProposal,
   knownEvidenceIds: Set<string>,
 ): InsightWrite[] {
   const writes: InsightWrite[] = [];
@@ -105,7 +122,7 @@ export function visualIdentityFromObservations(
 
 export function mergeAiSections(
   current: Record<string, unknown>,
-  proposal: AiProposal,
+  proposal: BrandAnalysisProposal,
   extras: { visualIdentity?: Record<string, unknown> } = {},
 ): Record<string, unknown> {
   const next: Record<string, unknown> = { ...current };
