@@ -12,12 +12,24 @@ import {
   paidTargetingSchema,
   strategyResearchModeFromEnv,
   experimentVariantSchema,
+  aiProposeHonestyMessage,
+  deterministicStrategyPlanProposal,
+  isAiAnalysisAvailable,
+  mustRefuseAiPropose,
+  strategyAiMode,
+  strategyPlanProposalJsonSchema,
+  validateStrategyPlanProposal,
+  type StrategyPlanProposalInputs,
+  type StrategyPlanTracks,
   type OrganicPlanInput,
   type PaidPlanInput,
   type PlanIssue,
 } from '@oma/domain';
 import { z } from 'zod';
+import { buildStrategyPlanPrompt } from '@oma/ai';
 import type { AuditService } from '../audit/audit.service';
+import { loadBrandContext } from '../ai/brand-context.service';
+import { runStructuredGeneration } from '../ai/structured-run';
 
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
 type Db = ReturnType<typeof getPrisma> | Tx;
@@ -344,6 +356,29 @@ export async function copyStrategyPlan(
 }
 
 /** Which research adapter feeds keyword metrics (DEC-021). Never claims measured data. */
+const PLAN_PROPOSAL_KIND = 'strategy_plan_proposal';
+
+type PlanTrackName = 'organic' | 'paid';
+
+function parseTracksRequest(raw: unknown): PlanTrackName[] | null {
+  if (raw == null) return null;
+  const parsed = z
+    .array(z.enum(['organic', 'paid']))
+    .min(1)
+    .max(2)
+    .safeParse(raw);
+  if (!parsed.success) {
+    throw invalid([
+      { path: 'tracks', code: 'SCHEMA', message: 'tracks must be organic and/or paid' },
+    ]);
+  }
+  return [...new Set(parsed.data)];
+}
+
+function proposalPayload(inputs: StrategyPlanProposalInputs) {
+  return { organic: inputs.organic, paid: inputs.paid };
+}
+
 function researchSummary() {
   return { mode: strategyResearchModeFromEnv(process.env.STRATEGY_RESEARCH_MODE), measured: false };
 }
@@ -415,9 +450,11 @@ export class StrategyPlanService {
     strategyId: string,
     versionId: string,
     rowVersion: unknown,
-    track: 'organic' | 'paid',
+    tracks: Array<'organic' | 'paid'>,
     write: (tx: Tx) => Promise<void>,
     correlationId?: string,
+    auditAction?: string,
+    auditAfterRef?: string,
   ) {
     if (typeof rowVersion !== 'number' || !Number.isInteger(rowVersion)) {
       throw invalid([{ path: 'row_version', code: 'SCHEMA', message: 'row_version is required' }]);
@@ -432,7 +469,7 @@ export class StrategyPlanService {
         [{ code: 'MUST_REVISE' }],
       );
     }
-    if (track === 'organic' && !version.organicEnabled) {
+    if (tracks.includes('organic') && !version.organicEnabled) {
       throw new DomainError(
         'CONFLICT_STATE',
         'Organic track is disabled for this version',
@@ -441,7 +478,7 @@ export class StrategyPlanService {
         [{ code: 'ORGANIC_TRACK_DISABLED' }],
       );
     }
-    if (track === 'paid' && !version.paidEnabled) {
+    if (tracks.includes('paid') && !version.paidEnabled) {
       throw new DomainError(
         'CONFLICT_STATE',
         'Paid track is disabled for this version',
@@ -459,27 +496,30 @@ export class StrategyPlanService {
         throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
       }
       await write(tx);
-      await tx.strategyHumanEdit.create({
-        data: {
-          id: newId(),
-          tenantId,
-          brandId,
-          strategyVersionId: versionId,
-          actorUserId,
-          fieldPath: `plan.${track}`,
-          beforeRef: String(rowVersion),
-          afterRef: String(rowVersion + 1),
-          correlationId: correlationId ?? null,
-        },
-      });
+      for (const track of tracks) {
+        await tx.strategyHumanEdit.create({
+          data: {
+            id: newId(),
+            tenantId,
+            brandId,
+            strategyVersionId: versionId,
+            actorUserId,
+            fieldPath: `plan.${track}`,
+            beforeRef: String(rowVersion),
+            afterRef: String(rowVersion + 1),
+            correlationId: correlationId ?? null,
+          },
+        });
+      }
     });
     await this.audit.write({
       actorUserId,
       tenantId,
-      action: `strategy.plan.${track}_replaced`,
+      action: auditAction ?? `strategy.plan.${tracks[0]}_replaced`,
       targetType: 'StrategyVersion',
       targetId: versionId,
       correlationId,
+      ...(auditAfterRef ? { afterRef: auditAfterRef } : {}),
     });
     return this.getPlan(tenantId, brandId, strategyId, versionId);
   }
@@ -502,7 +542,7 @@ export class StrategyPlanService {
       strategyId,
       versionId,
       rowVersion,
-      'organic',
+      ['organic'],
       (tx) => writeOrganicPlan(tx, { tenantId, brandId, versionId }, plan),
       correlationId,
     );
@@ -526,9 +566,260 @@ export class StrategyPlanService {
       strategyId,
       versionId,
       rowVersion,
-      'paid',
+      ['paid'],
       (tx) => writePaidPlan(tx, { tenantId, brandId, versionId }, plan),
       correlationId,
+    );
+  }
+
+  /**
+   * Generate an Organic/Paid plan proposal from the brand's APPROVED profile
+   * (DEC-020). Nothing is written to the version: the caller reviews the
+   * proposal and calls `acceptProposal`. `mode: 'template'` returns a
+   * deterministic starter built only from approved profile fields when AI is
+   * unavailable; it is never stored as an AI run.
+   */
+  async proposePlan(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    body: Record<string, unknown>,
+    opts: { idempotencyKey?: string; correlationId?: string } = {},
+  ) {
+    const mode = body?.mode == null ? 'ai' : body.mode;
+    if (mode !== 'ai' && mode !== 'template') {
+      throw invalid([{ path: 'mode', code: 'SCHEMA', message: 'mode must be ai or template' }]);
+    }
+    const requested = parseTracksRequest(body?.tracks);
+    const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
+    if (!canPatchVersionContent(version.status as never)) {
+      throw new DomainError(
+        'APPROVED_VERSION_IMMUTABLE',
+        'Only draft strategy versions can receive a generated plan.',
+        409,
+        'errors.approved_immutable',
+        [{ code: 'MUST_REVISE' }],
+      );
+    }
+    const tracks: StrategyPlanTracks = {
+      organic: version.organicEnabled && (!requested || requested.includes('organic')),
+      paid: version.paidEnabled && (!requested || requested.includes('paid')),
+    };
+    if (!tracks.organic && !tracks.paid) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'No enabled track to generate',
+        409,
+        'errors.strategy_track_disabled',
+        [{ code: 'NO_ENABLED_TRACK' }],
+      );
+    }
+    const brand = await loadBrandContext(tenantId, brandId);
+    if (!brand.usedApprovedProfile || !brand.profileVersionId) {
+      throw new DomainError(
+        'BRAND_PROFILE_NOT_APPROVED',
+        'Approve the brand profile before generating a strategy plan.',
+        403,
+        'errors.brand_profile_not_approved',
+        [{ code: 'BRAND_PROFILE_NOT_APPROVED', brand_id: brandId }],
+      );
+    }
+    const language: 'en' | 'ar' =
+      brand.languages.includes('ar') && !brand.languages.includes('en') ? 'ar' : 'en';
+    const evidenceRefs = [brand.profileVersionId];
+    const deterministic = () =>
+      deterministicStrategyPlanProposal({
+        brandName: brand.brandName,
+        language,
+        products: brand.products,
+        services: brand.services,
+        audiences: brand.audiences,
+        tracks,
+      });
+    const base = {
+      tracks: (['organic', 'paid'] as const).filter((t) => tracks[t]),
+      brand_profile_version_id: brand.profileVersionId,
+      requires_acceptance: true,
+      auto_approved: false,
+      version_status: version.status,
+      row_version: version.rowVersion,
+    };
+
+    if (mode === 'template') {
+      const checked = validateStrategyPlanProposal(deterministic(), tracks, {
+        source: 'DETERMINISTIC',
+        evidenceRefs,
+      });
+      if (!checked.ok) throw invalid(checked.issues);
+      return {
+        data: {
+          ...base,
+          mode: 'template' as const,
+          run_id: null,
+          replayed: false,
+          rationale: checked.proposal.rationale,
+          proposal: proposalPayload(checked.inputs),
+        },
+      };
+    }
+
+    const aiMode = strategyAiMode();
+    const available = isAiAnalysisAvailable();
+    if (
+      mustRefuseAiPropose(version.aiAvailability as never, { mode: aiMode, aiAvailable: available })
+    ) {
+      const code = !available || aiMode === 'not_configured' ? 'AI_NOT_CONFIGURED' : 'AI_REFUSED';
+      throw new DomainError(
+        code,
+        aiProposeHonestyMessage(code),
+        503,
+        `errors.${code.toLowerCase()}`,
+        [{ code, manual_journey: true, fallback: 'template' }],
+      );
+    }
+
+    const current = await readStrategyPlan(getPrisma(), versionId);
+    const prompt = buildStrategyPlanPrompt({
+      language,
+      brand,
+      organicEnabled: tracks.organic,
+      paidEnabled: tracks.paid,
+      foundation: JSON.parse(version.foundationJson || '{}'),
+      currentPlan: { organic: current.organic, paid: current.paid },
+    });
+    const run = await runStructuredGeneration({
+      tenantId,
+      actorUserId,
+      useCase: prompt.useCase,
+      sourceEntityType: 'strategy_version',
+      sourceEntityId: versionId,
+      sourceVersion: `${version.id}:${version.rowVersion}`,
+      idempotencyKey:
+        opts.idempotencyKey ||
+        `strategy-plan:${versionId}:${version.rowVersion}:${base.tracks.join('+')}:${actorUserId}:${Date.now()}`,
+      correlationId: opts.correlationId,
+      prompt,
+      schema: strategyPlanProposalJsonSchema(),
+      parse: (raw) => {
+        const checked = validateStrategyPlanProposal(raw, tracks, {
+          source: 'AI_ESTIMATE',
+          evidenceRefs,
+        });
+        return checked.ok ? { ok: true as const, value: checked.proposal } : { ok: false as const };
+      },
+      testValue: deterministic,
+      serialize: (value) => value,
+      brandProfileVersionId: brand.profileVersionId,
+      metadata: { kind: PLAN_PROPOSAL_KIND, tracks: base.tracks },
+    });
+    const checked = validateStrategyPlanProposal(run.value, tracks, {
+      source: 'AI_ESTIMATE',
+      evidenceRefs,
+    });
+    if (!checked.ok) throw invalid(checked.issues);
+    return {
+      data: {
+        ...base,
+        mode: 'ai' as const,
+        run_id: run.runId,
+        replayed: run.replayed,
+        model: run.model,
+        prompt_id: prompt.promptId,
+        prompt_version: prompt.promptVersion,
+        rationale: checked.proposal.rationale,
+        proposal: proposalPayload(checked.inputs),
+      },
+    };
+  }
+
+  /**
+   * Apply an AI plan proposal to a DRAFT version after explicit human review.
+   * Rows keep `info_class=AI_PROPOSAL`, `source=AI_ESTIMATE` and the run id.
+   * The version stays DRAFT: approval still goes through the review flow.
+   */
+  async acceptProposal(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    body: Record<string, unknown>,
+    correlationId?: string,
+  ) {
+    const runId = typeof body?.run_id === 'string' ? body.run_id : '';
+    if (!runId) {
+      throw invalid([{ path: 'run_id', code: 'SCHEMA', message: 'run_id is required' }]);
+    }
+    const requested = parseTracksRequest(body?.tracks);
+    const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
+    const run = await getPrisma().aiRun.findFirst({
+      where: {
+        id: runId,
+        tenantId,
+        sourceEntityType: 'strategy_version',
+        sourceEntityId: versionId,
+      },
+    });
+    const meta = (() => {
+      try {
+        return JSON.parse(run?.metadataJson || '{}') as {
+          kind?: string;
+          tracks?: PlanTrackName[];
+          brandProfileVersionId?: string | null;
+        };
+      } catch {
+        return {};
+      }
+    })();
+    if (!run?.proposalJson || run.status !== 'SUCCEEDED' || meta.kind !== PLAN_PROPOSAL_KIND) {
+      throw new DomainError('NOT_FOUND', 'Plan proposal not found', 404, 'errors.not_found');
+    }
+    const proposed = meta.tracks ?? [];
+    const apply = (requested ?? proposed).filter((t) => proposed.includes(t));
+    if (apply.length === 0) {
+      throw invalid([
+        { path: 'tracks', code: 'SCHEMA', message: 'Proposal has none of the requested tracks' },
+      ]);
+    }
+    const tracks: StrategyPlanTracks = {
+      organic: apply.includes('organic'),
+      paid: apply.includes('paid'),
+    };
+    const checked = validateStrategyPlanProposal(JSON.parse(run.proposalJson), tracks, {
+      source: 'AI_ESTIMATE',
+      evidenceRefs: meta.brandProfileVersionId ? [meta.brandProfileVersionId] : [],
+    });
+    if (!checked.ok) {
+      throw new DomainError(
+        'SCHEMA_INVALID',
+        'Proposal failed validation',
+        422,
+        'errors.schema_invalid',
+        checked.issues,
+      );
+    }
+    const scope = { tenantId, brandId, versionId: version.id };
+    return this.guardedWrite(
+      tenantId,
+      actorUserId,
+      brandId,
+      strategyId,
+      versionId,
+      body?.row_version,
+      apply,
+      async (tx) => {
+        if (checked.inputs.organic) {
+          await writeOrganicPlan(tx, scope, checked.inputs.organic, { aiRunId: run.id });
+        }
+        if (checked.inputs.paid) {
+          await writePaidPlan(tx, scope, checked.inputs.paid, { aiRunId: run.id });
+        }
+      },
+      correlationId,
+      'strategy.plan.ai_proposal_accepted',
+      `ai_run:${run.id}`,
     );
   }
 }

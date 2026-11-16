@@ -3367,5 +3367,6 @@
   "strategy.overview.versionNumber": "النسخة {number}",
   "strategy.overview.noTracks": "لا توجد مسارات مفعّلة",
   "errors.strategy_plan_invalid": "بعض بنود الخطة غير صالحة. راجع الحقول المحددة وحاول مرة أخرى.",
-  "errors.strategy_track_disabled": "هذا المسار متوقف في نسخة الاستراتيجية هذه. فعّله أولاً."
+  "errors.strategy_track_disabled": "هذا المسار متوقف في نسخة الاستراتيجية هذه. فعّله أولاً.",
+  "errors.brand_profile_not_approved": "اعتمد ملف العلامة التجارية أولاً. الاستراتيجيات والخطط تُبنى فقط من ملف بحالة معتمد."
 }

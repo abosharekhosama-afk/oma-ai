@@ -1831,6 +1831,34 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan/ai/propose": {
+      "post": {
+        "operationId": "StrategyController_proposePlan",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan/ai/accept": {
+      "post": {
+        "operationId": "StrategyController_acceptPlanProposal",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/ai/propose": {
       "post": {
         "operationId": "StrategyController_aiPropose",
