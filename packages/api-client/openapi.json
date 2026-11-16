@@ -2861,6 +2861,20 @@
         ]
       }
     },
+    "/api/v1/content/{contentId}/schedule-readiness": {
+      "get": {
+        "operationId": "ContentController_scheduleReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
     "/api/v1/content/{contentId}/channel-analytics": {
       "get": {
         "operationId": "ContentController_channelAnalytics",

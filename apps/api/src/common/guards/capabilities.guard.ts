@@ -249,6 +249,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/ai/hashtags': ['content.create'],
   'GET /api/v1/content/:contentId': ['content.read'],
   'GET /api/v1/content/:contentId/channel-analytics': ['content.read'],
+  'GET /api/v1/content/:contentId/schedule-readiness': ['content.read'],
   'PATCH /api/v1/content/:contentId': ['content.update'],
   'POST /api/v1/content/:contentId/request-approval': ['content.request_approval'],
   'POST /api/v1/content/:contentId/approve': ['content.approve'],

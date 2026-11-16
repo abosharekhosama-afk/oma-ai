@@ -19,7 +19,12 @@ import {
   parseApprovalMode,
   policyToApprovalMode,
   workspaceModeToPolicy,
+  evaluateScheduleReadiness,
+  scheduleRequiresConnectedAccount,
+  calendarPlacement,
   type ApprovalPolicy,
+  type ReadinessTarget,
+  type ScheduleReadiness,
   type ApprovalState,
   type ContentStatus,
   type ContentType,
@@ -166,6 +171,26 @@ function mapContent(
     },
     policy,
   );
+  const targets = readinessTargetsFromRow(row);
+  const readiness = targets
+    ? evaluateScheduleReadiness({
+        workflow: workflowSource(row),
+        policy,
+        channel: row.channel,
+        targets,
+        requireConnectedAccount: scheduleRequiresConnectedAccount(),
+      })
+    : null;
+  const calendar = calendarPlacement({
+    status: row.status,
+    scheduleState: row.scheduleState,
+    plannedAt: row.plannedAt?.toISOString() ?? null,
+    scheduledAt: row.scheduledAt?.toISOString() ?? null,
+    publishedAt: row.publishedAt?.toISOString() ?? null,
+    archivedAt: row.archivedAt?.toISOString() ?? null,
+    readiness,
+  });
+  if (calendar.state === 'CANNOT_SCHEDULE') workflow.publishDisplay = 'CANNOT_SCHEDULE';
   return {
     id: row.id,
     tenant_id: row.tenantId,
@@ -198,6 +223,10 @@ function mapContent(
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
     workflow,
+    /** Live schedule blockers; null when the response was built without publish targets. */
+    schedule_readiness: readiness,
+    /** Planned vs Scheduled placement on the calendar (DEC-023). */
+    calendar: { state: calendar.state, at: calendar.at },
     publishing: {
       social_page_id: row.socialPageId ?? null,
       social_page_ids:
@@ -239,6 +268,31 @@ function mapContent(
       published_at: row.publishedAt?.toISOString() ?? null,
     },
   };
+}
+
+type TargetRowLike = {
+  socialPageId: string;
+  socialPage?: { network?: string | null; status?: string | null } | null;
+};
+
+/**
+ * Readiness targets from an already-loaded row. Returns null when the row was
+ * loaded without publish targets (or only has the legacy `socialPageId`), so
+ * callers never report a blocker they did not check.
+ */
+function readinessTargetsFromRow(row: {
+  socialPageId?: string | null;
+  publishTargets?: TargetRowLike[];
+}): ReadinessTarget[] | null {
+  const rows = (row as { publishTargets?: TargetRowLike[] }).publishTargets;
+  if (!rows) return null;
+  if (!rows.length && row.socialPageId) return null;
+  if (rows.some((t) => !t.socialPage?.status)) return null;
+  return rows.map((t) => ({
+    socialPageId: t.socialPageId,
+    network: String(t.socialPage?.network ?? ''),
+    status: String(t.socialPage?.status ?? ''),
+  }));
 }
 
 /** Parse an optional ISO date from a request body; invalid values are a 400, never a 500. */
@@ -304,6 +358,37 @@ function parseAccentColor(value: string | null | undefined): string | null | und
     );
   }
   return color.toLowerCase();
+}
+
+function calendarStateWhere(value: string | undefined) {
+  if (value === undefined || value === '') return {};
+  switch (value.toLowerCase()) {
+    case 'planned':
+      return { scheduleState: 'UNSCHEDULED' as const, plannedAt: { not: null } };
+    case 'scheduled':
+      return { scheduleState: 'SCHEDULED' as const };
+    case 'unplanned':
+      return { scheduleState: 'UNSCHEDULED' as const, plannedAt: null };
+    default:
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'calendar_state must be planned, scheduled or unplanned',
+        400,
+        'errors.validation_failed',
+      );
+  }
+}
+
+/** 409 SCHEDULE_BLOCKED with every blocker, so the UI can show what to fix. */
+function assertScheduleReady(readiness: ScheduleReadiness, policy: ApprovalPolicy) {
+  if (readiness.ready) return;
+  throw new DomainError(
+    'SCHEDULE_BLOCKED',
+    `Scheduling is blocked: ${readiness.blockers.map((b) => b.code).join(', ')}`,
+    409,
+    'error.schedule_blocked',
+    [{ policy, blockers: readiness.blockers }],
+  );
 }
 
 @Injectable()
@@ -383,6 +468,8 @@ export class ContentService {
       limit?: number;
       /** When true (client/guest membership), omit posts marked hide-from-clients. */
       clientAudience?: boolean;
+      /** planned | scheduled | unplanned (DEC-023). */
+      calendarState?: string;
     },
   ) {
     const brand = await getPrisma().brandWorkspace.findFirst({
@@ -400,6 +487,7 @@ export class ContentService {
       ...(query.track ? { track: query.track as Track } : {}),
       ...(query.channel ? { channel: query.channel } : {}),
       ...(query.clientAudience ? { clientVisible: true } : {}),
+      ...calendarStateWhere(query.calendarState),
       ...(query.includeArchived ? {} : { archivedAt: null }),
       ...(query.q
         ? {
@@ -416,7 +504,9 @@ export class ContentService {
       where,
       orderBy: { updatedAt: 'desc' },
       take: limit + 1,
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     const hasMore = rows.length > limit;
     const data = hasMore ? rows.slice(0, limit) : rows;
@@ -454,7 +544,9 @@ export class ContentService {
   async get(tenantId: string, contentId: string, opts?: { clientAudience?: boolean }) {
     const row = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     if (!row) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
@@ -944,8 +1036,36 @@ export class ContentService {
           });
           const scheduledPolicy = await this.policyForBrand(tenantId, scheduled.brandId);
           return { data: mapContent(scheduled, scheduledPolicy) };
-        } catch {
-          /* leave approved; schedule can be retried manually */
+        } catch (err) {
+          // Stay APPROVED; never swallow the reason silently (DEC-023).
+          const blockers =
+            err instanceof DomainError && err.code === 'SCHEDULE_BLOCKED'
+              ? ((err.details?.[0] as { blockers?: Array<{ code: string }> } | undefined)
+                  ?.blockers ?? [])
+              : [];
+          const reason = blockers.length
+            ? blockers.map((b) => b.code).join(',')
+            : err instanceof DomainError
+              ? err.code
+              : 'ERROR';
+          await getPrisma().contentItem.update({
+            where: { id: contentId },
+            data: { lastPublishSkipReason: `Auto-schedule blocked: ${reason}` },
+          });
+          await this.audit.write({
+            actorUserId,
+            tenantId,
+            action: 'content.schedule_on_approval_blocked',
+            targetType: 'ContentItem',
+            targetId: contentId,
+            afterRef: reason.slice(0, 200),
+            correlationId,
+          });
+          const policy = await this.policyForBrand(tenantId, row.brandId);
+          return {
+            data: mapContent(row, policy),
+            auto_schedule: { attempted: true, scheduled: false, blockers },
+          };
         }
       }
     }
@@ -1083,6 +1203,80 @@ export class ContentService {
     return { data: mapContent(row, pol) };
   }
 
+  /**
+   * Readiness for a loaded row. Loads the legacy single `socialPageId` account when the
+   * post has no publish-target rows, so the check never trusts an unloaded relation.
+   */
+  private async readinessFor(
+    row: Parameters<typeof workflowSource>[0] & {
+      tenantId: string;
+      brandId: string;
+      channel: string;
+      socialPageId: string | null;
+      publishTargets: TargetRowLike[];
+    },
+    policy: ApprovalPolicy,
+  ): Promise<ScheduleReadiness> {
+    let targets = readinessTargetsFromRow(row);
+    if (!targets) {
+      const page = row.socialPageId
+        ? await getPrisma().socialPage.findFirst({
+            where: { id: row.socialPageId, tenantId: row.tenantId, brandId: row.brandId },
+            select: { id: true, network: true, status: true },
+          })
+        : null;
+      targets = page
+        ? [{ socialPageId: page.id, network: page.network, status: page.status }]
+        : row.socialPageId
+          ? [{ socialPageId: row.socialPageId, network: '', status: 'DISCONNECTED' }]
+          : [];
+    }
+    return evaluateScheduleReadiness({
+      workflow: workflowSource(row),
+      policy,
+      channel: row.channel,
+      targets,
+      requireConnectedAccount: scheduleRequiresConnectedAccount(),
+    });
+  }
+
+  /** GET /content/:id/schedule-readiness: every blocker, so the UI can show a checklist. */
+  async scheduleReadiness(tenantId: string, contentId: string) {
+    const row = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
+    });
+    if (!row) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const policy = await this.policyForBrand(tenantId, row.brandId);
+    const readiness = await this.readinessFor(row, policy);
+    const calendar = calendarPlacement({
+      status: row.status,
+      scheduleState: row.scheduleState,
+      plannedAt: row.plannedAt?.toISOString() ?? null,
+      scheduledAt: row.scheduledAt?.toISOString() ?? null,
+      publishedAt: row.publishedAt?.toISOString() ?? null,
+      archivedAt: row.archivedAt?.toISOString() ?? null,
+      readiness,
+    });
+    return {
+      data: {
+        content_id: row.id,
+        ready: readiness.ready,
+        blockers: readiness.blockers,
+        policy,
+        require_connected_account: scheduleRequiresConnectedAccount(),
+        calendar,
+        targets: row.publishTargets.map((t) => ({
+          social_page_id: t.socialPageId,
+          network: t.socialPage?.network ? String(t.socialPage.network).toLowerCase() : null,
+          status: t.socialPage?.status ?? null,
+        })),
+      },
+    };
+  }
+
   async schedule(
     tenantId: string,
     actorUserId: string,
@@ -1092,12 +1286,16 @@ export class ContentService {
   ) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     if (!current) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     }
     const policy = await this.policyForBrand(tenantId, current.brandId);
     assertCanSchedule(workflowSource(current), policy);
+    assertScheduleReady(await this.readinessFor(current, policy), policy);
     const tz = isValidIanaTimezone(input.timezone)
       ? input.timezone.trim()
       : await brandTimezone(tenantId, current.brandId);
@@ -1120,6 +1318,7 @@ export class ContentService {
         scheduleState: 'SCHEDULED',
         status: 'SCHEDULED',
         timezone: tz,
+        lastPublishSkipReason: null,
       },
     });
     const targetCount = await getPrisma().contentPublishTarget.count({
@@ -1139,7 +1338,9 @@ export class ContentService {
     }
     const refreshed = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: contentId },
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     await this.audit.write({
       actorUserId,
@@ -1202,6 +1403,8 @@ export class ContentService {
       data: {
         scheduleState: 'UNSCHEDULED',
         scheduledAt: null,
+        // Unscheduling keeps the post on the calendar as Planned (DEC-023).
+        plannedAt: current.plannedAt ?? current.scheduledAt,
         status: current.approvalState === 'APPROVED' ? 'APPROVED' : 'DRAFT',
         ...(current.publishState === 'ALL_SUCCEEDED'
           ? {}
@@ -1679,7 +1882,9 @@ export class ContentService {
     const { enqueuePublishTargetsNow } = await import('../social/enqueue-publish-now');
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     if (current.archivedAt) {
@@ -1695,6 +1900,8 @@ export class ContentService {
         'errors.validation_failed',
       );
     }
+    // Publish-now is scheduling for "now": the same readiness gate applies (DEC-023).
+    assertScheduleReady(await this.readinessFor(current, policy), policy);
     const now = new Date();
     const tz = current.timezone || (await brandTimezone(tenantId, current.brandId));
     await getPrisma().contentItem.update({
@@ -1748,7 +1955,9 @@ export class ContentService {
     });
     const refreshed = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: contentId },
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     return { data: mapContent(refreshed, policy), enqueued };
   }
@@ -1791,7 +2000,9 @@ export class ContentService {
   ) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     const target = current.publishTargets.find((t) => t.socialPageId === socialPageId);
@@ -1858,7 +2069,9 @@ export class ContentService {
     const policy = await this.policyForBrand(tenantId, current.brandId);
     const row = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: newId_ },
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     return { data: mapContent(row, policy), source_id: contentId };
   }
@@ -1867,7 +2080,9 @@ export class ContentService {
   async ungroup(tenantId: string, actorUserId: string, contentId: string, correlationId?: string) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     const targets = current.publishTargets;
@@ -1899,7 +2114,9 @@ export class ContentService {
     const policy = await this.policyForBrand(tenantId, current.brandId);
     const rows = await getPrisma().contentItem.findMany({
       where: { id: { in: [contentId, ...created] } },
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     await this.audit.write({
       actorUserId,
@@ -1978,7 +2195,9 @@ export class ContentService {
     const policy = await this.policyForBrand(tenantId, input.brandId);
     const row = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: newId_ },
-      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
+      include: {
+        publishTargets: { include: { socialPage: { select: { network: true, status: true } } } },
+      },
     });
     return { data: mapContent(row, policy) };
   }

@@ -49,6 +49,8 @@ export const PUBLISH_DISPLAYS = [
   'APPROVED',
   'PLANNED_DATE',
   'SCHEDULED_LOCAL',
+  /** Scheduled, but a blocker (account disconnected, approval revoked) stops publishing (DEC-023). */
+  'CANNOT_SCHEDULE',
   'PUBLISHING_NOT_CONNECTED',
   'PUBLISHED_SAMPLE',
   'FAILED_SAMPLE',
