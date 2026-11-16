@@ -55,3 +55,19 @@ versions, and `plan-to-requests/convert-tasks` turns plan rows into tasks direct
 - `from-strategy` copies approved strategy text only (goals, key messages/positioning, audiences,
   channels, optional pillar → one deliverable). The result is a DRAFT; AI brief generation is a
   later PR and will follow DEC-020 (proposal + human accept).
+
+## Implementation notes (Phase 1 · PR E — legacy backfill, §6)
+
+- `planLegacyBrief` (`packages/domain/src/work/brief-legacy.ts`) is the pure rule set; it reads the
+  `brief*` columns, falling back to the `__OMA_BRIEF_V1__` description marker when every column is
+  empty, and produces one deliverable (`request-main`) from the request title/formats/channels.
+- Skipped: `DONE`/`CANCELLED` requests, requests that already have tasks (converting the new brief
+  would duplicate existing work), and requests with no brief text.
+- `briefReadyAt != null` **and** a complete brief (objective, audience, key message, deliverable) →
+  `IN_REVIEW` with a `SUBMIT` decision dated `briefReadyAt` (note `legacy_request_backfill`);
+  otherwise `DRAFT`. Never `APPROVED`. `origin = legacy_request`, author = request requester,
+  strategy links copied. Each created brief writes audit `brief.legacy_backfilled`
+  (`beforeRef = work_request:<id>`, actor type `system`).
+- Runner: `pnpm --filter @oma/db backfill:legacy-briefs [-- --tenant=<id>] [-- --apply]`. Dry run by
+  default; idempotent through `Brief @@unique([tenantId, requestId])` (concurrent `P2002` → skip).
+  It is a script, not a migration, so operators choose when to run it per environment.

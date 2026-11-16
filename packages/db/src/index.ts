@@ -8,3 +8,4 @@ export * from './admin-storage-limit';
 export * from './tenant-limit-override';
 export * from './post-metric-snapshot';
 export * from './enqueue-brand-analysis';
+export * from './backfill-legacy-briefs';
