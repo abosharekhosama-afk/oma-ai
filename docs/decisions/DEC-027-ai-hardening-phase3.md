@@ -76,3 +76,33 @@ not always recorded, and the generic `POST /ai/runs` endpoint accepted any use c
   the call falls back once to `json_object`.
 - The Groq/Gemini defaults come from provider documentation, not live calls, and should be
   confirmed with a live smoke run (PR 3.7 script).
+
+## PR 3.4: brand grounding
+
+- The brand context gives every citable fact a short ref id: `C1…C24` for accepted
+  claims (mapped to the `InsightClaim` id) and `P-overview`, `P-tone`, `P-audiences`,
+  `P-messaging`, `P-products`, `P-services` for approved profile sections. Only refs
+  still present after token compaction are offered. Rejected claims never get a ref.
+- Content (caption, rewrite, idea, alt, hashtags) and inbox replies now use the v2
+  contract per call (`buildContractFor(kind, ctx)`), narrowed to:
+  - the channel limit and requested length (over-limit text is a contract issue and is
+    repaired, never trimmed). Inbox replies are capped at 1000 characters;
+  - the requested language (`language` must match, and a script check rejects text in the
+    other language; brand names, URLs, hashtags and mentions are ignored);
+  - the refs in this brand's context. Each variant carries `factual` and `groundingRefs`.
+    An unknown ref, a factual variant with no ref, or a price/percentage with no ref is a
+    contract issue (repaired once, then `SCHEMA_INVALID`).
+- Banned words and rejected claims: offending variants are dropped, never rewritten.
+  If none remain the call is refused with `422 AI_REFUSED / BANNED_CLAIM` (inbox included,
+  with `auto_sent: false`).
+- Inbox language: the explicit request wins, otherwise the language of the latest
+  inbound message, otherwise the brand's first language.
+- No approved profile: content and inbox still run, with no refs allowed, and the
+  response says `grounded: false` and marks each variant `generic: true`. Strategy
+  generation (plan and the legacy propose endpoint) returns
+  `403 BRAND_PROFILE_NOT_APPROVED`.
+- Responses add `grounded`, `schema_version`, `grounding_refs` (resolved to the source
+  claim or section) and per-variant `factual` / `grounding_refs`. Runs record
+  `contractId` and `schemaVersion: '2'`. Prompt versions are bumped to `2`.
+- Known risk: thin profiles give few refs, so factual copy is refused more often. That
+  is intended (no invented facts), and PR 3.7 evals measure it.

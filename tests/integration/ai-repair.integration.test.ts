@@ -1,12 +1,13 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
-import { AI_PROPOSAL_BANNER, newId } from '@oma/domain';
+import { newId } from '@oma/domain';
 import {
   authHeaders,
   createBrand,
   seedBrandTenant,
   type BrandSeed,
 } from '../helpers/strategy-test';
+import { v2Reply } from '../helpers/ai-v2-fixtures';
 import { fakeOpenAiEnv, startFakeAiProvider } from '../helpers/fake-ai-provider';
 
 const ENV_KEYS = [
@@ -21,19 +22,11 @@ const ENV_KEYS = [
   'AI_REPAIR_ATTEMPTS',
 ];
 
-const valid = JSON.stringify({
-  promptId: 'oma.caption_generation',
-  promptVersion: '1',
-  schemaVersion: '1',
-  language: 'en',
-  sourceVersion: 'none',
-  banner: AI_PROPOSAL_BANNER,
+const valid = v2Reply({
   variants: [
     { text: 'Morning coffee, done right.', rationale: 'a' },
     { text: 'Your daily cup.', rationale: 'b' },
   ],
-  hashtags: [],
-  warnings: [],
 });
 
 describe('AI repair loop (live path, fake provider)', () => {

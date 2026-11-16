@@ -77,3 +77,12 @@ Set these on the API (and the worker if analysis also runs there). Never set `AI
 ## Costs
 
 Composer and inbox drafts use the default (Luna) model. Strategy propose uses the routed Terra/reasoning model. USD cost uses the same price table as brand analysis. Unknown models fall back to the conservative $5 / $15 per 1M rates.
+
+## Grounding (Phase 3, DEC-027)
+
+Outputs use the v2 contract. Each variant has `factual` and `groundingRefs`: ids of
+accepted claims (`C1…`) or approved profile sections (`P-overview`, …) shown in the brand
+context. Unknown refs, uncited facts, uncited prices or percentages, wrong-language text and
+over-limit text are rejected and repaired once. Variants with banned words or rejected
+claims are dropped; if none remain the request is refused (`AI_REFUSED`). Without an
+approved profile the response has `grounded: false` and every variant is `generic`.

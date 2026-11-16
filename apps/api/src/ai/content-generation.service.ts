@@ -1,15 +1,20 @@
 import {
   DomainError,
-  applyGenerationModeration,
+  buildContractFor,
   channelLimits,
-  contentGenerationJsonSchema,
-  deterministicGeneration,
+  detectTextLanguage,
+  deterministicGroundedGeneration,
   isAiAnalysisAvailable,
   kindToUseCase,
-  moderateGeneratedText,
-  validateContentGeneration,
+  lengthBudget,
+  moderateGroundedOutput,
+  type BrandContext,
+  type ContentContractKind,
   type ContentGenerationKind,
+  type ContentGenerationV2,
   type ContentLength,
+  type GroundedOutput,
+  type GroundingContext,
 } from '@oma/domain';
 import { buildContentGenerationPrompt, buildInboxReplyPrompt } from '@oma/ai';
 import { loadBrandContext } from './brand-context.service';
@@ -19,6 +24,87 @@ function detectLanguage(input?: string | null): 'en' | 'ar' {
   const raw = (input ?? '').toLowerCase();
   if (raw.startsWith('ar')) return 'ar';
   return 'en';
+}
+
+/** Refuse when moderation removed every variant (banned words or rejected claims). */
+function assertUsable(out: GroundedOutput<ContentGenerationV2>, autoSent?: false) {
+  if (out.value.variants.length) return;
+  throw new DomainError(
+    'AI_REFUSED',
+    'Generated copy used banned or rejected brand claims.',
+    422,
+    'errors.ai_refused',
+    [
+      {
+        code: 'BANNED_CLAIM',
+        manual_journey: true,
+        dropped: out.dropped,
+        ...(autoSent === false ? { auto_sent: false } : {}),
+      },
+    ],
+  );
+}
+
+function groundedVariants(out: GroundedOutput<ContentGenerationV2>, brand: BrandContext) {
+  const byRef = new Map(out.refs.map((r) => [r.ref, r]));
+  return out.value.variants.map((variant) => ({
+    text: variant.text,
+    rationale: variant.rationale,
+    factual: variant.factual,
+    grounding_refs: variant.groundingRefs
+      .map((ref) => byRef.get(ref))
+      .filter((r): r is NonNullable<typeof r> => Boolean(r)),
+    ...(brand.usedApprovedProfile ? {} : { generic: true }),
+  }));
+}
+
+/** Shared structured run for every v2 content kind. */
+async function runGroundedContent(input: {
+  tenantId: string;
+  actorUserId: string;
+  kind: ContentContractKind;
+  ctx: GroundingContext;
+  prompt: Parameters<typeof runStructuredGeneration>[0]['prompt'];
+  sourceEntityType: string;
+  sourceEntityId: string;
+  idempotencyKey?: string;
+  correlationId?: string;
+  caption?: string;
+  metadata: Record<string, unknown>;
+}) {
+  const contract = buildContractFor(input.kind, input.ctx);
+  const run = await runStructuredGeneration<ContentGenerationV2>({
+    tenantId: input.tenantId,
+    actorUserId: input.actorUserId,
+    useCase: input.kind === 'inbox_reply' ? 'inbox_reply' : kindToUseCase(input.kind),
+    sourceEntityType: input.sourceEntityType,
+    sourceEntityId: input.sourceEntityId,
+    sourceVersion: input.ctx.brand.profileVersionId ?? 'none',
+    idempotencyKey: input.idempotencyKey,
+    correlationId: input.correlationId,
+    prompt: input.prompt,
+    schema: contract.jsonSchema(),
+    contractId: contract.contractId,
+    schemaVersion: contract.schemaVersion,
+    parse: contract.parse,
+    testValue: () =>
+      deterministicGroundedGeneration({
+        kind: input.kind,
+        ctx: input.ctx,
+        promptId: input.prompt.promptId,
+        promptVersion: input.prompt.promptVersion,
+        caption: input.caption,
+      }),
+    serialize: (value) => value,
+    brandProfileVersionId: input.ctx.brand.profileVersionId,
+    metadata: {
+      ...input.metadata,
+      grounded: input.ctx.brand.usedApprovedProfile,
+      allowedRefs: input.ctx.brand.groundingRefs.length,
+    },
+  });
+  const moderated = moderateGroundedOutput(run.value, input.ctx.brand);
+  return { run, moderated };
 }
 
 export async function generateBrandContent(input: {
@@ -65,53 +151,32 @@ export async function generateBrandContent(input: {
     variantCount: input.variantCount,
   });
 
-  const run = await runStructuredGeneration<ReturnType<typeof deterministicGeneration>>({
+  const { run, moderated } = await runGroundedContent({
     tenantId: input.tenantId,
     actorUserId: input.actorUserId,
-    useCase: kindToUseCase(kind),
+    kind,
+    ctx: {
+      brand,
+      limits,
+      maxChars: lengthBudget(input.length, limits),
+      language,
+      variantCount: input.variantCount,
+    },
+    prompt,
     sourceEntityType: input.contentId ? 'content' : 'brand',
     sourceEntityId: input.contentId || input.brandId,
-    sourceVersion: brand.profileVersionId ?? 'none',
     idempotencyKey: input.idempotencyKey,
     correlationId: input.correlationId,
-    prompt,
-    schema: contentGenerationJsonSchema(),
-    parse: (raw) => {
-      const checked = validateContentGeneration(raw);
-      return checked.ok ? { ok: true as const, value: checked.result } : { ok: false as const };
-    },
-    testValue: () =>
-      deterministicGeneration({
-        kind,
-        language,
-        sourceVersion: brand.profileVersionId ?? 'none',
-        brandName: brand.brandName,
-        channel: input.channel,
-        caption: input.caption,
-      }),
-    serialize: (value) => value,
-    brandProfileVersionId: brand.profileVersionId,
+    caption: input.caption,
     metadata: { kind, channel: limits.channel, language },
   });
-
-  const moderated = applyGenerationModeration(run.value, brand, limits);
-  const usable = moderated.variants.filter(
-    (variant) => moderateGeneratedText(variant.text, brand).ok,
-  );
-  if (!usable.length) {
-    throw new DomainError(
-      'AI_REFUSED',
-      'Generated copy used banned or rejected brand claims.',
-      422,
-      'errors.ai_refused',
-      [{ code: 'BANNED_CLAIM', manual_journey: true }],
-    );
-  }
+  assertUsable(moderated);
 
   return {
     source: 'ai' as const,
     availability: 'AVAILABLE' as const,
     used_approved_profile: brand.usedApprovedProfile,
+    grounded: moderated.grounded,
     brand_profile_version_id: brand.profileVersionId,
     brand_name: brand.brandName,
     language,
@@ -122,9 +187,11 @@ export async function generateBrandContent(input: {
     model: run.model,
     prompt_id: prompt.promptId,
     prompt_version: prompt.promptVersion,
-    banner: moderated.banner,
-    variants: usable,
-    hashtags: moderated.hashtags,
+    schema_version: moderated.value.schemaVersion,
+    banner: moderated.value.banner,
+    variants: groundedVariants(moderated, brand),
+    hashtags: moderated.value.hashtags,
+    grounding_refs: moderated.refs,
     warnings: moderated.warnings,
   };
 }
@@ -141,7 +208,10 @@ export async function generateInboxDraft(input: {
   correlationId?: string;
 }) {
   const brand = await loadBrandContext(input.tenantId, input.brandId);
-  const language = detectLanguage(input.language ?? brand.languages[0]);
+  const lastInbound = [...input.messages].reverse().find((m) => m.direction !== 'OUTBOUND');
+  const language = input.language
+    ? detectLanguage(input.language)
+    : (detectTextLanguage(lastInbound?.content ?? '') ?? detectLanguage(brand.languages[0]));
   if (!isAiAnalysisAvailable()) {
     throw new DomainError(
       'AI_NOT_CONFIGURED',
@@ -157,40 +227,26 @@ export async function generateInboxDraft(input: {
     channel: input.channel,
     messages: input.messages,
   });
-  const run = await runStructuredGeneration<ReturnType<typeof deterministicGeneration>>({
+  const limits = channelLimits(input.channel ?? 'instagram');
+  const { run, moderated } = await runGroundedContent({
     tenantId: input.tenantId,
     actorUserId: input.actorUserId,
-    useCase: 'inbox_reply',
+    kind: 'inbox_reply',
+    ctx: { brand, limits, maxChars: limits.captionMax, language },
+    prompt,
     sourceEntityType: 'inbox_conversation',
     sourceEntityId: input.conversationId,
-    sourceVersion: brand.profileVersionId ?? 'none',
     idempotencyKey: input.idempotencyKey,
     correlationId: input.correlationId,
-    prompt,
-    schema: contentGenerationJsonSchema(),
-    parse: (raw) => {
-      const checked = validateContentGeneration(raw);
-      return checked.ok ? { ok: true as const, value: checked.result } : { ok: false as const };
-    },
-    testValue: () =>
-      deterministicGeneration({
-        kind: 'inbox_reply',
-        language,
-        sourceVersion: brand.profileVersionId ?? 'none',
-        brandName: brand.brandName,
-        channel: input.channel,
-      }),
-    serialize: (value) => value,
-    brandProfileVersionId: brand.profileVersionId,
     metadata: { kind: 'inbox_reply', language, autoSent: false },
   });
-  const limits = channelLimits(input.channel ?? 'instagram');
-  const moderated = applyGenerationModeration(run.value, brand, limits);
+  assertUsable(moderated, false);
   return {
     source: 'ai' as const,
     auto_sent: false,
     availability: 'AVAILABLE' as const,
     used_approved_profile: brand.usedApprovedProfile,
+    grounded: moderated.grounded,
     brand_profile_version_id: brand.profileVersionId,
     brand_name: brand.brandName,
     language,
@@ -199,8 +255,10 @@ export async function generateInboxDraft(input: {
     model: run.model,
     prompt_id: prompt.promptId,
     prompt_version: prompt.promptVersion,
-    banner: moderated.banner,
-    variants: moderated.variants,
+    schema_version: moderated.value.schemaVersion,
+    banner: moderated.value.banner,
+    variants: groundedVariants(moderated, brand),
+    grounding_refs: moderated.refs,
     warnings: moderated.warnings,
   };
 }

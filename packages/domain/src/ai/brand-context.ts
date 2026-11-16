@@ -4,6 +4,8 @@ import { estimateTokens } from './pricing';
 export const DEFAULT_BRAND_CONTEXT_TOKEN_BUDGET = 1200;
 
 export type BrandContextClaim = {
+  /** InsightClaim id, used as the source of a grounding ref. */
+  id?: string;
   fieldKey: string;
   text: string;
   reviewStatus: 'ACCEPTED' | 'REJECTED' | 'PENDING' | string;
@@ -16,6 +18,25 @@ export type BrandContextVisualIdentity = {
   ogImage: string | null;
   notes: string[];
 };
+
+/** A citable fact in the brand context. `ref` is the short id the model sees. */
+export type GroundingRef = {
+  ref: string;
+  kind: 'claim' | 'profile';
+  /** InsightClaim id for claims, profile section key for profile refs. */
+  sourceId: string;
+  label: string;
+};
+
+/** Profile sections a model may cite, with their ref ids. */
+export const PROFILE_GROUNDING_SECTIONS = [
+  ['overview', 'P-overview'],
+  ['toneOfVoice', 'P-tone'],
+  ['audiences', 'P-audiences'],
+  ['messaging', 'P-messaging'],
+  ['products', 'P-products'],
+  ['services', 'P-services'],
+] as const;
 
 export type BrandContext = {
   tenantId: string;
@@ -34,6 +55,8 @@ export type BrandContext = {
   doClaims: string[];
   dontClaims: string[];
   bannedWords: string[];
+  /** Facts the model may cite (only those still present in compactText). */
+  groundingRefs: GroundingRef[];
   compactText: string;
   estimatedTokens: number;
   truncated: boolean;
@@ -135,6 +158,7 @@ export function emptyBrandContext(input: {
     doClaims: [],
     dontClaims: [],
     bannedWords: [],
+    groundingRefs: [],
     compactText,
     estimatedTokens: estimateTokens(compactText),
     truncated: false,
@@ -154,9 +178,17 @@ export function buildBrandContext(input: BrandContextSource): BrandContext {
   const catalog = asRecord(sections.catalog);
   const visual = asRecord(sections.visual_identity);
   const banned = stringList(sections.banned_words ?? sections.bannedWords);
-  const accepted = (input.claims ?? [])
-    .filter((claim) => claim.reviewStatus === 'ACCEPTED' && claim.text.trim())
-    .map((claim) => `${claim.fieldKey}: ${claim.text.trim()}`);
+  const acceptedAll = (input.claims ?? []).filter(
+    (claim) => claim.reviewStatus === 'ACCEPTED' && claim.text.trim(),
+  );
+  const acceptedClaims = acceptedAll.slice(0, 24);
+  const accepted = acceptedClaims.map((claim) => `${claim.fieldKey}: ${claim.text.trim()}`);
+  const claimRefs: GroundingRef[] = acceptedClaims.map((claim, index) => ({
+    ref: `C${index + 1}`,
+    kind: 'claim',
+    sourceId: claim.id ?? `${claim.fieldKey}#${index + 1}`,
+    label: clip(`${claim.fieldKey}: ${claim.text.trim()}`, 120),
+  }));
   const rejected = (input.claims ?? [])
     .filter((claim) => claim.reviewStatus === 'REJECTED' && claim.text.trim())
     .map((claim) => `${claim.fieldKey}: ${claim.text.trim()}`);
@@ -174,7 +206,7 @@ export function buildBrandContext(input: BrandContextSource): BrandContext {
     overview:
       readString(overview.description) ||
       readString(sections.overview) ||
-      accepted.find((line) => line.startsWith('brand.description:'))?.slice(19) ||
+      acceptedAll.find((claim) => claim.fieldKey === 'brand.description')?.text.trim() ||
       '',
     toneOfVoice: readString(sections.tone) || readString(overview.tone),
     audiences: readString(sections.audiences),
@@ -199,9 +231,10 @@ export function buildBrandContext(input: BrandContextSource): BrandContext {
       ogImage: readString(visual.og_image) || null,
       notes: [readString(visual.ai_colors), readString(visual.ai_logo)].filter(Boolean),
     },
-    doClaims: accepted.slice(0, 24),
+    doClaims: accepted.map((line, index) => `[C${index + 1}] ${line}`),
     dontClaims: rejected.slice(0, 24),
     bannedWords: banned.slice(0, 40),
+    groundingRefs: claimRefs,
     compactText: '',
     estimatedTokens: 0,
     truncated: false,
@@ -225,17 +258,19 @@ export function compactBrandContext(context: BrandContext, maxTokens: number): B
     bannedWords: context.bannedWords.map((item) => clip(item, 40)),
   };
 
+  const grounded = context.usedApprovedProfile;
+  const tag = (ref: string) => (grounded ? `[${ref}] ` : '');
   const pack = (ctx: BrandContext) =>
     [
       `brandName: ${ctx.brandName}`,
       `usedApprovedProfile: ${ctx.usedApprovedProfile}`,
       `profileVersionId: ${ctx.profileVersionId ?? 'none'}`,
-      ctx.overview ? `overview: ${ctx.overview}` : '',
-      ctx.toneOfVoice ? `toneOfVoice: ${ctx.toneOfVoice}` : '',
-      ctx.audiences ? `audiences: ${ctx.audiences}` : '',
-      ctx.messaging ? `messaging: ${ctx.messaging}` : '',
-      ctx.products ? `products: ${ctx.products}` : '',
-      ctx.services ? `services: ${ctx.services}` : '',
+      ctx.overview ? `${tag('P-overview')}overview: ${ctx.overview}` : '',
+      ctx.toneOfVoice ? `${tag('P-tone')}toneOfVoice: ${ctx.toneOfVoice}` : '',
+      ctx.audiences ? `${tag('P-audiences')}audiences: ${ctx.audiences}` : '',
+      ctx.messaging ? `${tag('P-messaging')}messaging: ${ctx.messaging}` : '',
+      ctx.products ? `${tag('P-products')}products: ${ctx.products}` : '',
+      ctx.services ? `${tag('P-services')}services: ${ctx.services}` : '',
       ctx.languages.length ? `languages: ${ctx.languages.join(',')}` : '',
       ctx.visualIdentity.colors.length ? `colors: ${ctx.visualIdentity.colors.join(',')}` : '',
       ctx.visualIdentity.notes.length ? `visualNotes: ${ctx.visualIdentity.notes.join('; ')}` : '',
@@ -280,8 +315,18 @@ export function compactBrandContext(context: BrandContext, maxTokens: number): B
     if (!shrunk) break;
   }
 
+  const profileRefs: GroundingRef[] = grounded
+    ? PROFILE_GROUNDING_SECTIONS.filter(([key]) => Boolean(next[key])).map(([key, ref]) => ({
+        ref,
+        kind: 'profile' as const,
+        sourceId: key,
+        label: clip(`${key}: ${String(next[key])}`, 120),
+      }))
+    : [];
+  const visible = [...context.groundingRefs.filter((r) => r.kind === 'claim'), ...profileRefs];
   return {
     ...next,
+    groundingRefs: visible.filter((r) => compactText.includes(`[${r.ref}]`)),
     compactText,
     estimatedTokens: estimateTokens(compactText),
     truncated,
