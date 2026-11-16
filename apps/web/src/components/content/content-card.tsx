@@ -12,6 +12,7 @@ const labels: Record<PublishDisplay, { en: string; ar: string }> = {
   APPROVED: { en: 'Approved', ar: 'معتمد' },
   PLANNED_DATE: { en: 'Planned date', ar: 'تاريخ مخطط' },
   SCHEDULED_LOCAL: { en: 'Scheduled in OMA', ar: 'مجدول في OMA' },
+  CANNOT_SCHEDULE: { en: 'Cannot publish', ar: 'تعذّر النشر' },
   PUBLISHING_NOT_CONNECTED: { en: 'Publishing not connected', ar: 'النشر غير متصل' },
   PUBLISHED_SAMPLE: { en: 'Published sample', ar: 'عينة منشورة' },
   FAILED_SAMPLE: { en: 'Failed sample', ar: 'عينة فشل' },
@@ -66,6 +67,14 @@ function StatusGlyph({ display }: { display: PublishDisplay }) {
   if (display === 'FAILED_SAMPLE') {
     return <path d="M3 3l6 6M9 3 3 9" fill="none" stroke="currentColor" strokeWidth="1.5" />;
   }
+  if (display === 'CANNOT_SCHEDULE') {
+    return (
+      <>
+        <path d="M6 2.6v4.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+        <circle cx="6" cy="9" r="0.9" fill="currentColor" />
+      </>
+    );
+  }
   return <circle cx="6" cy="6" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.5" />;
 }
 
@@ -76,7 +85,7 @@ export function StatusMark({ display, locale }: { display: PublishDisplay; local
       className={`oma-status-mark oma-status-mark--${display}`}
       data-testid={`status-${display}`}
       data-tone={
-        display === 'FAILED_SAMPLE'
+        display === 'FAILED_SAMPLE' || display === 'CANNOT_SCHEDULE'
           ? 'danger'
           : display === 'APPROVED'
             ? 'positive'
@@ -234,8 +243,13 @@ export function ContentFace({
 }
 
 export function faceDisplay(
-  item: Parameters<typeof resolveContentWorkflow>[0],
+  item: Parameters<typeof resolveContentWorkflow>[0] & {
+    scheduleReadiness?: { ready: boolean } | null;
+  },
   policy: ApprovalPolicy,
 ): PublishDisplay {
-  return resolveContentWorkflow(item, policy).publishDisplay;
+  return resolveContentWorkflow(
+    { ...item, scheduleReady: item.scheduleReady ?? item.scheduleReadiness?.ready ?? null },
+    policy,
+  ).publishDisplay;
 }

@@ -10,6 +10,7 @@ import {
   updateMemberCapabilities,
   type WorkspaceMember,
 } from '../../lib/team-api';
+import { ApprovalLevelsEditor } from './approval-levels-editor';
 import { saveApprovalSettings, type ApprovalSettings } from '../../lib/workspace-extras-api';
 import {
   CheckOutlined,
@@ -238,6 +239,10 @@ export function WorkspaceApprovals({
             ))}
           </select>
         </div>
+      ) : null}
+
+      {approvals.mode === 'multi_level' ? (
+        <ApprovalLevelsEditor members={members} onError={onError} />
       ) : null}
 
       <h3 className="oma-ws-appr-sub">{t('wsPanel.approvals.who_can_approve')}</h3>

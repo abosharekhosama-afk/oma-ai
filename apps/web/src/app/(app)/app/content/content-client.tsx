@@ -21,6 +21,7 @@ import { createPortal } from 'react-dom';
 import { FloatingOverlay } from '../../../../components/ui/floating-overlay';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
+import { ApprovalWorkflowPanel } from '../../../../components/content/approval-workflow-panel';
 import { PostPreview } from '../../../../components/content/post-preview';
 import {
   ApprovalButton,
@@ -6083,6 +6084,21 @@ export default function ContentPage() {
                               {t('content.scheduled_inside_oma_only_external')}
                             </span>
                           </span>
+                          <ApprovalWorkflowPanel
+                            row={selected as ContentRowExtra}
+                            onUpdated={(apiRow) => {
+                              const updated = toContentRow(apiRow);
+                              setRows((prev) =>
+                                prev.map((r) => (r.id === updated.id ? updated : r)),
+                              );
+                              if (selectedId === updated.id) {
+                                const next = draftFromItem(updated, locale);
+                                setDraft(next);
+                                setBaseline(next);
+                              }
+                              setDetailRev((n) => n + 1);
+                            }}
+                          />
                           <DatePicker
                             placeholder={t('demo.content.publish.PLANNED_DATE')}
                             showTime={{ format: t('content.hhmm') }}
