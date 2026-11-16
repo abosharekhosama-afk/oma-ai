@@ -1,22 +1,29 @@
 import { createHash } from 'node:crypto';
-import { consumeAiCreditOnce, getPrisma, tenantAllowsAiAssist } from '@oma/db';
 import {
+  consumeAiCreditOnce,
+  failAiRun,
+  getPrisma,
+  reserveAiRun,
+  settleAiRun,
+  tenantAllowsAiAssist,
+  type AiRunFailureStage,
+} from '@oma/db';
+import {
+  AI_RESERVATION_STALE_MS,
+  aiBudgetLimitsFromEnv,
   computeCostUsd,
   defaultAiModels,
   deterministicProposal,
   estimateReserveUsd,
-  evaluateBudget,
   insightWritesFromProposal,
   isAiLiveEnabled,
   mergeAiSections,
   newId,
   parsePriceTable,
   shouldSkipApprovedProfile,
-  snapshotLedger,
   testAdapterAllowed,
   validateProposal,
   visualIdentityFromObservations,
-  type LedgerEntry,
 } from '@oma/domain';
 import {
   createAiAdapterFromEnv,
@@ -24,40 +31,6 @@ import {
   buildBrandAnalysisPrompt,
   brandAnalysisTimeoutMs,
 } from '@oma/ai';
-
-function budgetLimits() {
-  return {
-    monthlyUsd: Number(process.env.AI_MONTHLY_BUDGET_USD || 25),
-    dailyUsd: Number(process.env.AI_DAILY_BUDGET_USD || 2),
-    maxInputTokens: process.env.AI_MAX_INPUT_TOKENS
-      ? Number(process.env.AI_MAX_INPUT_TOKENS)
-      : null,
-    maxOutputTokens: process.env.AI_MAX_OUTPUT_TOKENS
-      ? Number(process.env.AI_MAX_OUTPUT_TOKENS)
-      : null,
-  };
-}
-
-async function budgetSnapshot(tenantId: string) {
-  const runs = await getPrisma().aiRun.findMany({
-    where: { tenantId },
-    select: { reservedCost: true, settledCost: true, status: true, createdAt: true },
-  });
-  const today = new Date().toISOString().slice(0, 10);
-  const entries: LedgerEntry[] = runs.map((run) => ({
-    tenantId,
-    reservedUsd: Number(run.reservedCost || 0),
-    settledUsd: Number(run.settledCost || 0),
-    countsTowardDay: run.createdAt.toISOString().slice(0, 10) === today,
-    status:
-      run.status === 'QUEUED' || run.status === 'RUNNING'
-        ? 'reserved'
-        : run.status === 'SUCCEEDED'
-          ? 'settled'
-          : 'released',
-  }));
-  return snapshotLedger(tenantId, entries);
-}
 
 async function markAnalysis(
   tenantId: string,
@@ -137,6 +110,13 @@ export async function runBrandProfileAnalysis(input: {
   if (existingRun?.status === 'SUCCEEDED' && existingRun.proposalJson) {
     return { ok: true, skipped: true, reason: 'idempotent', runId: existingRun.id };
   }
+  if (
+    existingRun &&
+    (existingRun.status === 'RUNNING' || existingRun.status === 'QUEUED') &&
+    Date.now() - existingRun.createdAt.getTime() < AI_RESERVATION_STALE_MS
+  ) {
+    return { ok: true, skipped: true, reason: 'in_progress', runId: existingRun.id };
+  }
 
   const useTest = testAdapterAllowed(process.env);
   const live = isAiLiveEnabled();
@@ -183,28 +163,60 @@ export async function runBrandProfileAnalysis(input: {
       title: item.pageTitle ?? undefined,
       excerpt: item.excerptText,
     })),
-    maxInputTokens: budgetLimits().maxInputTokens ?? 6000,
+    maxInputTokens: aiBudgetLimitsFromEnv().maxInputTokens ?? 6000,
   });
 
   const models = defaultAiModels();
   const priceTable = parsePriceTable(process.env.AI_MODEL_PRICES_JSON);
+  const limits = aiBudgetLimitsFromEnv();
+  const maxOutputTokens = limits.maxOutputTokens ?? 1500;
   const reserveUsd = useTest
     ? 0.25
     : estimateReserveUsd({
         model: models.reasoningModel,
         estimatedInputTokens: prompt.estimatedTokens,
-        maxOutputTokens: budgetLimits().maxOutputTokens ?? 1500,
+        maxOutputTokens,
         table: priceTable,
       });
-  const snapshot = await budgetSnapshot(input.tenantId);
-  const budget = evaluateBudget({
-    limits: budgetLimits(),
-    snapshot,
+  const provider = useTest ? 'test-adapter' : configuredAiProvider();
+  const plannedModel = useTest ? 'test-adapter-v1' : models.reasoningModel;
+  const inputHash = createHash('sha256')
+    .update(prompt.system)
+    .update('\n---\n')
+    .update(prompt.user)
+    .digest('hex');
+  const runId = existingRun?.id ?? newId();
+  // Reserve budget and persist the run as RUNNING before calling the provider (DEC-027).
+  const reservation = await reserveAiRun({
+    tenantId: input.tenantId,
+    runId,
+    reuse: Boolean(existingRun),
     reserveUsd,
-    inputTokens: prompt.estimatedTokens,
-    outputTokens: budgetLimits().maxOutputTokens ?? 1500,
+    limits,
+    estimatedInputTokens: prompt.estimatedTokens,
+    maxOutputTokens,
+    data: {
+      actorUserId: input.actorUserId,
+      useCase: 'brand_profile_synthesis',
+      provider,
+      model: plannedModel,
+      promptVersion: prompt.promptVersion,
+      promptId: prompt.promptId,
+      schemaVersion: '1',
+      sourceEntityType: 'scan_attempt',
+      sourceEntityId: input.scanAttemptId,
+      sourceVersion: profile.id,
+      idempotencyKey: input.idempotencyKey,
+      correlationId: input.correlationId,
+      inputHash,
+      inputTokens: prompt.estimatedTokens,
+      outputTokens: 0,
+      estimatedCost: String(reserveUsd),
+      latencyMs: null,
+      attemptCount: 1,
+    },
   });
-  if (!budget.ok) {
+  if (!reservation.ok) {
     await markAnalysis(input.tenantId, input.scanAttemptId, input.profileVersionId, {
       analysisStatus: 'FAILED',
       aiAvailability: 'SKIPPED',
@@ -224,42 +236,64 @@ export async function runBrandProfileAnalysis(input: {
     : null;
   let inputTokens = prompt.estimatedTokens;
   let outputTokens = 32;
-  let model = useTest ? 'test-adapter-v1' : models.reasoningModel;
+  let model = plannedModel;
   let errorCode: string | null = null;
+  let failureStage: AiRunFailureStage = 'provider';
+  let refusalReason: string | null = null;
 
   if (live && !useTest) {
-    const adapter = createAiAdapterFromEnv(process.env, {
-      timeoutMs: brandAnalysisTimeoutMs(process.env),
-    });
-    const result = await adapter.completeStructured({
-      useCase: 'brand_profile_synthesis',
-      payload: { scanAttemptId: input.scanAttemptId },
-      systemPrompt: prompt.system,
-      userPrompt: prompt.user,
-    });
-    if (!result.ok) {
-      errorCode = result.code;
-    } else {
-      proposal = result.proposal;
-      inputTokens = result.inputTokens;
-      outputTokens = result.outputTokens;
-      model = result.model;
+    try {
+      const adapter = createAiAdapterFromEnv(process.env, {
+        timeoutMs: brandAnalysisTimeoutMs(process.env),
+      });
+      const result = await adapter.completeStructured({
+        useCase: 'brand_profile_synthesis',
+        payload: { scanAttemptId: input.scanAttemptId },
+        systemPrompt: prompt.system,
+        userPrompt: prompt.user,
+      });
+      if (!result.ok) {
+        errorCode = result.code;
+        failureStage =
+          result.stage === 'parse' ? 'parse' : result.stage === 'schema' ? 'schema' : 'provider';
+        model = result.model ?? model;
+        inputTokens = result.inputTokens ?? 0;
+        outputTokens = result.outputTokens ?? 0;
+        if (result.code === 'REFUSAL') refusalReason = result.message ?? 'REFUSAL';
+      } else {
+        proposal = result.proposal;
+        inputTokens = result.inputTokens;
+        outputTokens = result.outputTokens;
+        model = result.model;
+      }
+    } catch (err) {
+      errorCode = 'PROVIDER_ERROR';
+      inputTokens = 0;
+      outputTokens = 0;
+      await failAiRun(runId, {
+        status: 'FAILED',
+        errorCode,
+        failureStage: 'provider',
+        model,
+        latencyMs: Date.now() - started,
+        attemptCount: 1,
+      });
+      await markAnalysis(input.tenantId, input.scanAttemptId, input.profileVersionId, {
+        analysisStatus: 'FAILED',
+        aiAvailability: 'UNAVAILABLE',
+        analysisErrorCode: errorCode,
+      });
+      throw err;
     }
   }
 
   if (proposal && !validateProposal(proposal).ok) {
     proposal = null;
     errorCode = 'SCHEMA_INVALID';
+    failureStage = 'schema';
   }
 
-  const settledCost = proposal
-    ? useTest
-      ? 0.25
-      : computeCostUsd(model, inputTokens, outputTokens, priceTable)
-    : 0;
-  const inputHash = createHash('sha256')
-    .update(`${input.tenantId}:brand_profile_synthesis:${input.scanAttemptId}:${profile.id}`)
-    .digest('hex');
+  const callCost = useTest ? 0.25 : computeCostUsd(model, inputTokens, outputTokens, priceTable);
 
   if (proposal) {
     await consumeAiCreditOnce(input.tenantId);
@@ -315,74 +349,45 @@ export async function runBrandProfileAnalysis(input: {
       aiAvailability: 'USED',
       analysisErrorCode: null,
     });
+    const proposalJson = JSON.stringify(proposal);
+    await settleAiRun(runId, {
+      model,
+      provider,
+      inputTokens,
+      outputTokens,
+      costUsd: callCost,
+      latencyMs: Date.now() - started,
+      attemptCount: 1,
+      proposalJson,
+      outputHash: createHash('sha256').update(proposalJson).digest('hex'),
+      promptVersion: proposal.promptVersion,
+    });
   } else {
+    const code = errorCode ?? 'AI_UNAVAILABLE';
+    await failAiRun(runId, {
+      status:
+        code === 'SCHEMA_INVALID'
+          ? 'SCHEMA_INVALID'
+          : code === 'REFUSAL' || code === 'CONTENT_FILTER'
+            ? 'REFUSED'
+            : 'FAILED',
+      errorCode: code,
+      failureStage,
+      model,
+      inputTokens,
+      outputTokens,
+      // Failed attempts that reached the provider still cost tokens (DEC-027 #8).
+      costUsd: useTest ? 0 : callCost,
+      latencyMs: Date.now() - started,
+      attemptCount: 1,
+      refusalReason,
+    });
     await markAnalysis(input.tenantId, input.scanAttemptId, input.profileVersionId, {
       analysisStatus: 'FAILED',
       aiAvailability: 'UNAVAILABLE',
-      analysisErrorCode: errorCode ?? 'AI_UNAVAILABLE',
+      analysisErrorCode: code,
     });
   }
 
-  const run = existingRun
-    ? await prisma.aiRun.update({
-        where: { id: existingRun.id },
-        data: {
-          status: proposal
-            ? 'SUCCEEDED'
-            : errorCode === 'SCHEMA_INVALID'
-              ? 'SCHEMA_INVALID'
-              : 'FAILED',
-          provider: useTest ? 'test-adapter' : configuredAiProvider(),
-          model,
-          promptVersion: proposal?.promptVersion ?? prompt.promptVersion,
-          inputTokens,
-          outputTokens,
-          estimatedCost: String(settledCost),
-          reservedCost: '0',
-          settledCost: String(settledCost),
-          proposalJson: proposal ? JSON.stringify(proposal) : null,
-          outputHash: proposal
-            ? createHash('sha256').update(JSON.stringify(proposal)).digest('hex')
-            : null,
-          errorCode,
-          latencyMs: Date.now() - started,
-          version: { increment: 1 },
-        },
-      })
-    : await prisma.aiRun.create({
-        data: {
-          id: newId(),
-          tenantId: input.tenantId,
-          actorUserId: input.actorUserId,
-          useCase: 'brand_profile_synthesis',
-          provider: useTest ? 'test-adapter' : configuredAiProvider(),
-          model,
-          promptVersion: proposal?.promptVersion ?? prompt.promptVersion,
-          schemaVersion: '1',
-          sourceEntityType: 'scan_attempt',
-          sourceEntityId: input.scanAttemptId,
-          sourceVersion: profile.id,
-          status: proposal
-            ? 'SUCCEEDED'
-            : errorCode === 'SCHEMA_INVALID'
-              ? 'SCHEMA_INVALID'
-              : 'FAILED',
-          idempotencyKey: input.idempotencyKey,
-          correlationId: input.correlationId,
-          inputHash,
-          outputHash: proposal
-            ? createHash('sha256').update(JSON.stringify(proposal)).digest('hex')
-            : null,
-          proposalJson: proposal ? JSON.stringify(proposal) : null,
-          errorCode,
-          inputTokens,
-          outputTokens,
-          estimatedCost: String(settledCost),
-          reservedCost: '0',
-          settledCost: String(settledCost),
-          latencyMs: Date.now() - started,
-        },
-      });
-
-  return { ok: Boolean(proposal), runId: run.id, errorCode };
+  return { ok: Boolean(proposal), runId, errorCode };
 }

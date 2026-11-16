@@ -304,8 +304,7 @@ export class InboxService {
         content: message.content,
         senderName: message.senderName,
       })),
-      idempotencyKey:
-        input.idempotencyKey || `inbox-draft:${conversationId}:${actorUserId}:${Date.now()}`,
+      idempotencyKey: input.idempotencyKey,
       correlationId: input.correlationId,
     });
     return { data: { ...data, auto_sent: false } };

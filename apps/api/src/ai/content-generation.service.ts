@@ -34,7 +34,7 @@ export async function generateBrandContent(input: {
   length?: ContentLength;
   variantCount?: number;
   contentId?: string;
-  idempotencyKey: string;
+  idempotencyKey?: string;
   correlationId?: string;
 }) {
   const brand = await loadBrandContext(input.tenantId, input.brandId);
@@ -137,7 +137,7 @@ export async function generateInboxDraft(input: {
   language?: string;
   channel?: string;
   messages: Array<{ direction: string; content: string; senderName?: string | null }>;
-  idempotencyKey: string;
+  idempotencyKey?: string;
   correlationId?: string;
 }) {
   const brand = await loadBrandContext(input.tenantId, input.brandId);

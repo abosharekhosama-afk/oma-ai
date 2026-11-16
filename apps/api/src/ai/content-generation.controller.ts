@@ -42,8 +42,9 @@ export class ContentGenerationController {
     return req.oma;
   }
 
-  private idempotencyKey(req: Request, body: GenerateBody, fallback: string) {
-    return req.header('idempotency-key') || body.idempotency_key || fallback;
+  /** Without an explicit key the AI runner derives a short-window deterministic one. */
+  private idempotencyKey(req: Request, body: GenerateBody): string | undefined {
+    return req.header('idempotency-key') || body.idempotency_key || undefined;
   }
 
   private async run(
@@ -66,11 +67,7 @@ export class ContentGenerationController {
       length: body.length,
       variantCount: body.variant_count,
       contentId: body.content_id,
-      idempotencyKey: this.idempotencyKey(
-        req,
-        body,
-        `${kind}:${brandId}:${actor.userId}:${Date.now()}`,
-      ),
+      idempotencyKey: this.idempotencyKey(req, body),
       correlationId: actor.correlationId,
     });
     return { data };

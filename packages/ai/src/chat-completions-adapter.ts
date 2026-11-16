@@ -77,7 +77,7 @@ export class ChatCompletionsProviderAdapter implements AiProviderPort {
     userPrompt?: string;
     schema?: Record<string, unknown>;
     abortSignal?: AbortSignal;
-    validate?: (parsed: unknown) => { ok: true; value: unknown } | { ok: false };
+    validate?: (parsed: unknown) => { ok: true; value: unknown } | { ok: false; issues?: string[] };
   }): Promise<AiStructuredSuccess | AiStructuredFailure> {
     const routed = routeModel(input.useCase, this.options);
     if (!this.options.liveEnabled) return { ok: false, code: 'AI_DISABLED' };
@@ -122,25 +122,37 @@ export class ChatCompletionsProviderAdapter implements AiProviderPort {
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const response = await client.chat.completions.create(body, { signal: controller.signal });
+        const usage = {
+          model: routed.model,
+          inputTokens: response.usage?.prompt_tokens ?? 0,
+          outputTokens: response.usage?.completion_tokens ?? 0,
+        };
         const choice = response.choices?.[0];
         if (choice?.message?.refusal) {
-          return { ok: false, code: 'REFUSAL', message: choice.message.refusal };
+          return { ok: false, code: 'REFUSAL', message: choice.message.refusal, ...usage };
         }
         let parsed: unknown;
         try {
           parsed = JSON.parse(choice?.message?.content || '');
         } catch {
-          return { ok: false, code: 'SCHEMA_INVALID' };
+          return { ok: false, code: 'SCHEMA_INVALID', stage: 'parse', ...usage };
         }
         let output: unknown = parsed;
         let proposal: AiProposal | null = null;
         if (input.validate) {
           const checked = input.validate(parsed);
-          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID' };
+          if (!checked.ok)
+            return {
+              ok: false,
+              code: 'SCHEMA_INVALID',
+              stage: 'schema',
+              issues: checked.issues,
+              ...usage,
+            };
           output = checked.value;
         } else {
           const checked = validateProposal(parsed);
-          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID' };
+          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID', stage: 'schema', ...usage };
           proposal = checked.proposal;
           output = checked.proposal;
         }

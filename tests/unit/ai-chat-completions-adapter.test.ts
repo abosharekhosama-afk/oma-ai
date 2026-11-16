@@ -77,9 +77,12 @@ describe('Chat Completions AI provider adapter', () => {
       client: { chat: { completions: { create } } },
       baseUrl: 'https://api.x.ai/v1',
     });
-    await expect(adapter.completeStructured({ useCase: 'summary', payload: {} })).resolves.toEqual({
+    await expect(
+      adapter.completeStructured({ useCase: 'summary', payload: {} }),
+    ).resolves.toMatchObject({
       ok: false,
       code: 'SCHEMA_INVALID',
+      stage: 'schema',
     });
   });
 

@@ -1,12 +1,10 @@
-import { createHash } from 'node:crypto';
-import { getPrisma } from '@oma/db';
+import { getPrisma, tenantAiLedgerSnapshot } from '@oma/db';
 import {
   DomainError,
-  computeCostUsd,
+  aiBudgetLimitsFromEnv,
+  proposalJsonSchema,
   defaultAiModels,
   deterministicProposal,
-  estimateReserveUsd,
-  estimateTokens,
   evaluateBudget,
   isAiLiveEnabled,
   isAiProviderConfigured,
@@ -19,35 +17,20 @@ import {
   writeAiRunReview,
   GENERIC_AI_RUN_SOURCE_TYPES,
   GENERIC_AI_RUN_USE_CASES,
-  parsePriceTable,
-  releaseReservation,
   resolveAiAvailability,
   resolveAiPublicState,
   routeModel,
-  settleReservation,
-  snapshotLedger,
   strategyAiMode,
   testAdapterAllowed,
   validateProposal,
   type AiUseCase,
-  type LedgerEntry,
 } from '@oma/domain';
-import { createAiAdapterFromEnv, configuredAiProvider, buildBrandAnalysisPrompt } from '@oma/ai';
+import { configuredAiProvider, buildBrandAnalysisPrompt } from '@oma/ai';
 import { billingService } from '../billing/billing.service';
-
-const TEST_RESERVE_USD = 0.25;
+import { runStructuredGeneration, structuredInputHash } from './structured-run';
 
 function budgetLimits() {
-  return {
-    monthlyUsd: Number(process.env.AI_MONTHLY_BUDGET_USD || 25),
-    dailyUsd: Number(process.env.AI_DAILY_BUDGET_USD || 2),
-    maxInputTokens: process.env.AI_MAX_INPUT_TOKENS
-      ? Number(process.env.AI_MAX_INPUT_TOKENS)
-      : null,
-    maxOutputTokens: process.env.AI_MAX_OUTPUT_TOKENS
-      ? Number(process.env.AI_MAX_OUTPUT_TOKENS)
-      : null,
-  };
+  return aiBudgetLimitsFromEnv();
 }
 
 export function aiStatus() {
@@ -88,24 +71,7 @@ export function aiStatus() {
 }
 
 export async function budgetSnapshot(tenantId: string) {
-  const runs = await getPrisma().aiRun.findMany({
-    where: { tenantId },
-    select: { reservedCost: true, settledCost: true, status: true, createdAt: true },
-  });
-  const today = new Date().toISOString().slice(0, 10);
-  const entries: LedgerEntry[] = runs.map((run) => ({
-    tenantId,
-    reservedUsd: Number(run.reservedCost || 0),
-    settledUsd: Number(run.settledCost || 0),
-    countsTowardDay: run.createdAt.toISOString().slice(0, 10) === today,
-    status:
-      run.status === 'QUEUED' || run.status === 'RUNNING'
-        ? 'reserved'
-        : run.status === 'SUCCEEDED'
-          ? 'settled'
-          : 'released',
-  }));
-  return snapshotLedger(tenantId, entries);
+  return tenantAiLedgerSnapshot(tenantId);
 }
 
 export async function aiBudgetForTenant(tenantId: string) {
@@ -133,69 +99,6 @@ export async function aiBudgetForTenant(tenantId: string) {
     }),
     warning: decision.ok ? decision.warning : false,
   };
-}
-
-function throwForStructuredCode(code: string, message?: string): never {
-  if (code === 'AI_DISABLED') {
-    throw new DomainError(
-      'AI_DISABLED',
-      'AI text intelligence is offline. Continue manually.',
-      503,
-      'errors.ai_disabled',
-      [{ code, manual_journey: true }],
-    );
-  }
-  if (code === 'NOT_CONFIGURED') {
-    throw new DomainError(
-      'AI_NOT_CONFIGURED',
-      'AI is not configured. Continue manually.',
-      503,
-      'errors.ai_not_configured',
-      [{ code, manual_journey: true }],
-    );
-  }
-  if (code === 'AUTH' || code === 'QUOTA' || code === 'TIMEOUT' || code === 'RATE_LIMIT') {
-    throw new DomainError(
-      'AI_UNAVAILABLE',
-      message || 'The AI provider is temporarily unavailable.',
-      503,
-      'errors.ai_unavailable',
-      [{ code, manual_journey: true }],
-    );
-  }
-  if (code === 'REFUSAL' || code === 'CONTENT_FILTER') {
-    throw new DomainError(
-      'AI_REFUSED',
-      message || 'The model refused this request.',
-      422,
-      'errors.ai_refused',
-      [{ code, manual_journey: true }],
-    );
-  }
-  if (code === 'SCHEMA_INVALID') {
-    throw new DomainError(
-      'SCHEMA_INVALID',
-      'Model output failed schema validation',
-      422,
-      'errors.schema_invalid',
-    );
-  }
-  if (code === 'BILLING_NOT_ENABLED') {
-    throw new DomainError(
-      'BILLING_NOT_ENABLED',
-      'Live AI billing is not activated. Continue manually.',
-      503,
-      'errors.billing_not_enabled',
-      [{ manual_journey: true }],
-    );
-  }
-  throw new DomainError(
-    'AI_UNAVAILABLE',
-    message || 'AI request failed. Continue manually.',
-    503,
-    'errors.ai_unavailable',
-    [{ code, manual_journey: true }],
-  );
 }
 
 async function requireTenantBrand(tenantId: string, brandId: string) {
@@ -293,7 +196,6 @@ export async function createAiRun(input: {
   const routed = routeModel(useCase, defaultAiModels());
   const useTest = testAdapterAllowed(process.env);
   const live = isAiLiveEnabled();
-  const priceTable = parsePriceTable(process.env.AI_MODEL_PRICES_JSON);
   const prompt = buildBrandAnalysisPrompt({
     useCase,
     sourceVersion: input.sourceVersion,
@@ -307,159 +209,75 @@ export async function createAiRun(input: {
       tenantId_idempotencyKey: { tenantId: input.tenantId, idempotencyKey: input.idempotencyKey },
     },
   });
-  if (existing)
+  if (existing && existing.status !== 'SUCCEEDED')
     return {
       run: existing,
       created: false,
       mode: useTest ? 'demo_test' : live ? 'live' : 'offline',
     };
 
-  let proposal = useTest
-    ? deterministicProposal({
+  if (!useTest && !live) {
+    // Offline: record the honest DISABLED state; no provider call, no cost.
+    const run = await getPrisma().aiRun.create({
+      data: {
+        id: newId(),
+        tenantId: input.tenantId,
+        actorUserId: input.actorUserId,
         useCase,
-        evidenceRefs,
+        provider: configuredAiProvider(),
+        model: routed.model,
+        promptVersion: prompt.promptVersion,
+        promptId: prompt.promptId,
+        schemaVersion: '1',
+        sourceEntityType: input.sourceEntityType,
+        sourceEntityId: input.sourceEntityId,
         sourceVersion: input.sourceVersion,
-      })
-    : null;
-
-  let inputTokens = estimateTokens(prompt.user);
-  let outputTokens = 32;
-  let model = useTest ? 'test-adapter-v1' : routed.model;
-  const provider = useTest ? 'test-adapter' : configuredAiProvider();
-  let structuredCode: string | null = live ? null : 'AI_DISABLED';
-
-  if (live && !useTest) {
-    const reservedEstimate = estimateReserveUsd({
-      model: routed.model,
-      estimatedInputTokens: prompt.estimatedTokens,
-      maxOutputTokens: budgetLimits().maxOutputTokens ?? 1500,
-      table: priceTable,
+        status: 'DISABLED',
+        idempotencyKey: input.idempotencyKey,
+        correlationId: input.correlationId,
+        inputHash: structuredInputHash(prompt, proposalJsonSchema()),
+        errorCode: 'AI_DISABLED',
+        failureStage: 'provider',
+        attemptCount: 0,
+        latencyMs: 0,
+      },
     });
-    const snapshot = await budgetSnapshot(input.tenantId);
-    const budget = evaluateBudget({
-      limits: budgetLimits(),
-      snapshot,
-      reserveUsd: reservedEstimate,
-      inputTokens: prompt.estimatedTokens,
-      outputTokens: budgetLimits().maxOutputTokens ?? 1500,
-    });
-    if (!budget.ok) {
-      throw new DomainError(
-        'BUDGET_EXCEEDED',
-        'AI budget exceeded',
-        429,
-        'errors.budget_exceeded',
-        [{ manual_journey: true, scope: budget.scope }],
-      );
-    }
-    const adapter = createAiAdapterFromEnv();
-    const result = await adapter.completeStructured({
-      useCase,
-      payload: { refs: evidenceRefs },
-      systemPrompt: prompt.system,
-      userPrompt: prompt.user,
-    });
-    if (!result.ok) throwForStructuredCode(result.code, result.message);
-    proposal = result.proposal;
-    inputTokens = result.inputTokens;
-    outputTokens = result.outputTokens;
-    model = result.model;
-    structuredCode = null;
-  } else if (!useTest) {
-    const adapter = createAiAdapterFromEnv();
-    const offline = await adapter.completeStructured({
-      useCase,
-      payload: { refs: evidenceRefs },
-    });
-    structuredCode = offline.ok ? null : offline.code;
-  }
-
-  if (proposal && !validateProposal(proposal).ok) {
     throw new DomainError(
-      'SCHEMA_INVALID',
-      'Proposal failed schema validation',
-      422,
-      'errors.schema_invalid',
-    );
-  }
-
-  const reserveUsd = proposal
-    ? useTest
-      ? TEST_RESERVE_USD
-      : computeCostUsd(model, inputTokens, outputTokens, priceTable)
-    : 0;
-  const snapshot = await budgetSnapshot(input.tenantId);
-  const budget = evaluateBudget({
-    limits: budgetLimits(),
-    snapshot,
-    reserveUsd: useTest || live ? reserveUsd || TEST_RESERVE_USD : 0,
-    inputTokens,
-    outputTokens,
-  });
-  if (!budget.ok) {
-    throw new DomainError('BUDGET_EXCEEDED', 'AI budget exceeded', 429, 'errors.budget_exceeded', [
-      { manual_journey: true, scope: budget.scope },
-    ]);
-  }
-
-  if (proposal) {
-    await billingService.consumeUsage(input.tenantId, 'ai_credits_per_month', 1);
-  }
-
-  const inputHash = createHash('sha256')
-    .update(`${input.tenantId}:${input.useCase}:${input.sourceEntityId}:${input.sourceVersion}`)
-    .digest('hex');
-  const reserved = {
-    tenantId: input.tenantId,
-    reservedUsd: reserveUsd,
-    settledUsd: 0,
-    status: 'reserved' as const,
-  };
-  const settled = proposal ? settleReservation(reserved) : releaseReservation(reserved);
-  const run = await getPrisma().aiRun.create({
-    data: {
-      id: newId(),
-      tenantId: input.tenantId,
-      actorUserId: input.actorUserId,
-      useCase,
-      provider,
-      model,
-      promptVersion: proposal?.promptVersion ?? prompt.promptVersion,
-      schemaVersion: '1',
-      sourceEntityType: input.sourceEntityType,
-      sourceEntityId: input.sourceEntityId,
-      sourceVersion: input.sourceVersion,
-      status: proposal ? 'SUCCEEDED' : 'DISABLED',
-      idempotencyKey: input.idempotencyKey,
-      correlationId: input.correlationId,
-      inputHash,
-      outputHash: proposal
-        ? createHash('sha256').update(JSON.stringify(proposal)).digest('hex')
-        : null,
-      proposalJson: proposal ? JSON.stringify(proposal) : null,
-      errorCode: proposal ? null : structuredCode,
-      inputTokens,
-      outputTokens,
-      estimatedCost: String(reserveUsd),
-      reservedCost: '0',
-      settledCost: String(settled.settledUsd),
-      latencyMs: 1,
-    },
-  });
-  if (!proposal) {
-    throw new DomainError(
-      structuredCode === 'AI_DISABLED' ? 'AI_DISABLED' : 'BILLING_NOT_ENABLED',
+      'AI_DISABLED',
       'AI text intelligence is offline. Continue manually.',
       503,
       'errors.ai_disabled',
-      [{ code: structuredCode, manual_journey: true, run_id: run.id }],
+      [{ code: 'AI_DISABLED', manual_journey: true, run_id: run.id }],
     );
   }
+
+  const result = await runStructuredGeneration({
+    tenantId: input.tenantId,
+    actorUserId: input.actorUserId,
+    useCase,
+    sourceEntityType: input.sourceEntityType,
+    sourceEntityId: input.sourceEntityId,
+    sourceVersion: input.sourceVersion,
+    idempotencyKey: input.idempotencyKey,
+    correlationId: input.correlationId,
+    prompt,
+    schema: proposalJsonSchema(),
+    schemaVersion: '1',
+    parse: (raw) => {
+      const checked = validateProposal(raw);
+      return checked.ok ? { ok: true as const, value: checked.proposal } : { ok: false as const };
+    },
+    testValue: () =>
+      deterministicProposal({ useCase, evidenceRefs, sourceVersion: input.sourceVersion }),
+    serialize: (value) => value,
+    metadata: { kind: 'generic_run', evidenceRefs },
+  });
+  const run = await readAiRun(input.tenantId, result.runId);
   return {
     run,
-    created: true,
+    created: !result.replayed,
     mode: useTest ? ('demo_test' as const) : ('live' as const),
-    proposal,
+    proposal: result.value,
   };
 }
 
