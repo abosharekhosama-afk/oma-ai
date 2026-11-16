@@ -155,3 +155,26 @@ not always recorded, and the generic `POST /ai/runs` endpoint accepted any use c
 - Static test `tests/unit/ai-draft-only-invariant.test.ts` scans AI-only modules and the AI
   methods of mixed services for Prisma `data:` blocks that set `APPROVED`, `SUPERSEDED`,
   `PUBLISHED`, `SCHEDULED` or an accepted claim, and checks the guards are called.
+
+## PR 3.7: AI evals
+
+- `tests/ai-evals` has 26 deterministic cases. 15 are golden: every v2 contract (caption,
+  rewrite, idea, alt, hashtags, inbox, brand analysis, strategy foundation) in EN and AR,
+  including recorded repair cases. 10 are prompt injection: revealing the prompt with an
+  invented ref, a banned guarantee in inbox, switching an AR request to English, an
+  uncited 70% discount, an extra `debug` key, an instruction hidden in a hashtag, an
+  unknown evidence id, an invented field, and filling a disabled paid track. 1 is a
+  documented known gap.
+- The cases run through the production prompt builders, contracts, `runStructuredCore`
+  and moderation, with no network. They are part of `pnpm test` (the vitest include now
+  has `tests/ai-evals`). CI fails if final validity < 100%, any banned claim leaks, any
+  non-gap injection gets through, or the repair rate reaches 50%.
+- Current numbers on the recorded set: first-pass validity 0.8, final validity 1.0,
+  repair rate 0.2, banned leaks 0, injection blocked 1.0, known gaps 1.
+- Known gap: a poisoned page cited by its own real evidence id passes the contract. Only
+  human review of the PENDING claim stops it, which is the draft-only invariant from
+  PR 3.6.
+- `scripts/ai/ai-eval-live.ts` (`pnpm ai:eval:live`) runs the same cases against the
+  configured provider. It refuses to run unless `AI_LIVE_ENABLED=true`, never runs in CI,
+  and reports validity, repair rate, leaks, injection markers followed, and tokens. It was
+  checked locally against a fake endpoint only; no live run was made.

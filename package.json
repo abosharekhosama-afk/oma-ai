@@ -21,6 +21,8 @@
     "test": "vitest run",
     "test:unit": "vitest run packages apps tests/dev-os",
     "test:devos": "vitest run tests/dev-os",
+    "test:ai-evals": "vitest run tests/ai-evals",
+    "ai:eval:live": "cd apps/api && tsx ../../scripts/ai/ai-eval-live.ts",
     "test:integration": "vitest run tests/integration tests/security tests/contract",
     "test:contract": "vitest run tests/contract",
     "test:security": "vitest run tests/security",
