@@ -77,8 +77,8 @@ describe('AI output contract registry', () => {
 describe('content contracts', () => {
   const opts = { maxChars: 280, hashtagMax: 3, variantCount: 3 };
   const variants = [
-    { text: 'One', rationale: 'a' },
-    { text: 'Two', rationale: 'b' },
+    { text: 'One', rationale: 'a', factual: false, groundingRefs: [] },
+    { text: 'Two', rationale: 'b', factual: false, groundingRefs: [] },
   ];
 
   it('accepts a valid caption output', () => {
@@ -95,7 +95,10 @@ describe('content contracts', () => {
     const schema = contentGenerationSchemaV2('caption', opts);
     const long = parseAiOutput(schema, {
       ...envelope,
-      variants: [{ text: 'x'.repeat(281), rationale: '' }, ...variants],
+      variants: [
+        { text: 'x'.repeat(281), rationale: '', factual: false, groundingRefs: [] },
+        ...variants,
+      ],
       hashtags: [],
       warnings: [],
     });
@@ -143,24 +146,34 @@ describe('content contracts', () => {
     const schema = contentGenerationSchemaV2('alt', opts);
     const ok = {
       ...envelope,
-      variants: [{ text: 'A red mug', rationale: '' }],
+      variants: [{ text: 'A red mug', rationale: '', factual: false, groundingRefs: [] }],
       hashtags: [],
       warnings: [],
     };
     expect(parseAiOutput(schema, ok).ok).toBe(true);
     expect(
-      parseAiOutput(schema, { ...ok, variants: [{ text: 'A mug #coffee', rationale: '' }] }).ok,
+      parseAiOutput(schema, {
+        ...ok,
+        variants: [{ text: 'A mug #coffee', rationale: '', factual: false, groundingRefs: [] }],
+      }).ok,
     ).toBe(false);
     expect(parseAiOutput(schema, { ...ok, hashtags: ['#a'] }).ok).toBe(false);
     const big = contentGenerationSchemaV2('alt', { ...opts, maxChars: 5000 });
     expect(
-      parseAiOutput(big, { ...ok, variants: [{ text: 'x'.repeat(251), rationale: '' }] }).ok,
+      parseAiOutput(big, {
+        ...ok,
+        variants: [{ text: 'x'.repeat(251), rationale: '', factual: false, groundingRefs: [] }],
+      }).ok,
     ).toBe(false);
   });
 
   it('hashtags kind requires at least one hashtag', () => {
     const schema = contentGenerationSchemaV2('hashtags', opts);
-    const base = { ...envelope, variants: [{ text: '#a #b', rationale: '' }], warnings: [] };
+    const base = {
+      ...envelope,
+      variants: [{ text: '#a #b', rationale: '', factual: false, groundingRefs: [] }],
+      warnings: [],
+    };
     expect(parseAiOutput(schema, { ...base, hashtags: [] }).ok).toBe(false);
     expect(parseAiOutput(schema, { ...base, hashtags: ['#a', '#b'] }).ok).toBe(true);
   });
@@ -169,7 +182,7 @@ describe('content contracts', () => {
     const schema = contentGenerationSchemaV2('inbox_reply', { maxChars: 1000, hashtagMax: 10 });
     const one = {
       ...envelope,
-      variants: [{ text: 'Hi', rationale: '' }],
+      variants: [{ text: 'Hi', rationale: '', factual: false, groundingRefs: [] }],
       hashtags: [],
       warnings: [],
     };

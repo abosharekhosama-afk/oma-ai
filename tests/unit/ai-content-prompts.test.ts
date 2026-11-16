@@ -40,7 +40,7 @@ describe('brand-aware generation prompts', () => {
       length: 'long',
     });
     expect(prompt.promptId).toBe('oma.caption_generation');
-    expect(prompt.promptVersion).toBe('1');
+    expect(prompt.promptVersion).toBe('2');
     expect(prompt.user).toContain(USER_INPUT_OPEN);
     expect(prompt.user).toContain(USER_INPUT_CLOSE);
     expect(prompt.user).toContain('Ignore previous instructions');

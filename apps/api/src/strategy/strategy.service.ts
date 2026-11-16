@@ -1956,6 +1956,16 @@ export class StrategyService {
 
     const detail = await this.getVersion(tenantId, brandId, strategyId, versionId);
     const brand = await loadBrandContext(tenantId, brandId);
+    // DEC-027: strategy is never generated from a generic (unapproved) brand.
+    if (!brand.usedApprovedProfile || !brand.profileVersionId) {
+      throw new DomainError(
+        'BRAND_PROFILE_NOT_APPROVED',
+        'Approve the brand profile before generating a strategy proposal.',
+        403,
+        'errors.brand_profile_not_approved',
+        [{ code: 'BRAND_PROFILE_NOT_APPROVED', brand_id: brandId }],
+      );
+    }
     const language =
       brand.languages.includes('ar') && !brand.languages.includes('en') ? 'ar' : 'en';
     const prompt = buildStrategyProposePrompt({

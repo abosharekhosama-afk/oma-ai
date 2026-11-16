@@ -69,7 +69,8 @@ export async function loadBrandContext(
   const claims = profile
     ? await getPrisma().insightClaim.findMany({
         where: { tenantId, brandId, profileVersionId: profile.id },
-        select: { fieldKey: true, textValue: true, reviewStatus: true },
+        select: { id: true, fieldKey: true, textValue: true, reviewStatus: true },
+        orderBy: [{ fieldKey: 'asc' }, { id: 'asc' }],
       })
     : [];
 
@@ -79,6 +80,7 @@ export async function loadBrandContext(
     brandName: brand.name,
     profile,
     claims: claims.map((claim) => ({
+      id: claim.id,
       fieldKey: claim.fieldKey,
       text: claim.textValue ?? '',
       reviewStatus: claim.reviewStatus,

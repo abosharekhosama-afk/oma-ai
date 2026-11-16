@@ -1,12 +1,13 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { getPrisma, tenantAiLedgerSnapshot } from '@oma/db';
-import { AI_PROPOSAL_BANNER, newId } from '@oma/domain';
+import { newId } from '@oma/domain';
 import {
   authHeaders,
   createBrand,
   seedBrandTenant,
   type BrandSeed,
 } from '../helpers/strategy-test';
+import { v2Reply } from '../helpers/ai-v2-fixtures';
 import { fakeOpenAiEnv, startFakeAiProvider } from '../helpers/fake-ai-provider';
 
 const ENV_KEYS = [
@@ -37,19 +38,13 @@ async function caption(seed: BrandSeed, brandId: string, key?: string, body: obj
 }
 
 function validCaption(sourceVersion = 'none') {
-  return JSON.stringify({
-    promptId: 'oma.caption_generation',
-    promptVersion: '1',
-    schemaVersion: '1',
-    language: 'en',
+  return v2Reply({
     sourceVersion,
-    banner: AI_PROPOSAL_BANNER,
     variants: [
       { text: 'Fresh coffee every morning.', rationale: 'simple' },
       { text: 'Your daily cup, done right.', rationale: 'warm' },
     ],
     hashtags: ['#coffee'],
-    warnings: [],
   });
 }
 

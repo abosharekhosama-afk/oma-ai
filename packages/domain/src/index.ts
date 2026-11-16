@@ -43,6 +43,8 @@ export * from './ai/generation';
 export * from './ai/brand-context';
 export * from './ai/generic-runs';
 export * from './ai/contracts';
+export * from './ai/language';
+export * from './ai/grounding';
 export * from './social';
 export * from './time/schedule-time';
 export * from './time/holiday-calendars';
