@@ -206,7 +206,12 @@ export function humanizePublishError(
 }
 
 export type PublishSkipCode =
-  'NOT_APPROVED' | 'NO_ACCOUNT' | 'ACCOUNT_NOT_CONNECTED' | 'ENCRYPTION_KEY' | 'OTHER';
+  | 'NOT_APPROVED'
+  | 'NO_ACCOUNT'
+  | 'ACCOUNT_NOT_CONNECTED'
+  | 'AI_REVIEW_REQUIRED'
+  | 'ENCRYPTION_KEY'
+  | 'OTHER';
 
 export function skipReasonMessage(code: PublishSkipCode, detail?: string): string {
   switch (code) {
@@ -218,6 +223,8 @@ export function skipReasonMessage(code: PublishSkipCode, detail?: string): strin
       return detail
         ? `Skipped: publishing account is not connected (${detail})`
         : 'Skipped: publishing account is not connected';
+    case 'AI_REVIEW_REQUIRED':
+      return 'Skipped: AI-generated copy needs a human review before publishing';
     case 'ENCRYPTION_KEY':
       return 'Skipped: SOCIAL_TOKEN_ENCRYPTION_KEY is not configured on the worker';
     default:

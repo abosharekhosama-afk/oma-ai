@@ -438,6 +438,23 @@ export class ContentController {
     );
   }
 
+  @Post('api/v1/content/:contentId/ai-review')
+  @UseGuards(CsrfGuard)
+  async confirmAiReview(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Body() body: { note?: { en: string; ar?: string } | string },
+  ) {
+    this.requireTenant(req);
+    return contentService.confirmAiReview(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      body?.note,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post('api/v1/content/:contentId/schedule')
   @UseGuards(CsrfGuard)
   async schedule(

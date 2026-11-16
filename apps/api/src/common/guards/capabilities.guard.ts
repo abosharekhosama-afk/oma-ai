@@ -254,6 +254,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/content/:contentId/request-approval': ['content.request_approval'],
   'POST /api/v1/content/:contentId/approve': ['content.approve'],
   'POST /api/v1/content/:contentId/reject': ['content.approve'],
+  'POST /api/v1/content/:contentId/ai-review': ['content.approve'],
   'POST /api/v1/content/:contentId/mark-published': ['content.update'],
   'GET /api/v1/content/:contentId/comments': ['content.read'],
   'POST /api/v1/content/:contentId/comments': ['content.update'],

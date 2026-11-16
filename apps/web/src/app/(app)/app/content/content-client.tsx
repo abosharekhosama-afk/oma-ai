@@ -149,7 +149,11 @@ import {
   contentTypeLabel,
 } from '../../../../lib/demo/stage3-content';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
-import { proposeContentText, type ContentAiProposal } from '../../../../lib/content-ai';
+import {
+  appendAiRunId,
+  proposeContentText,
+  type ContentAiProposal,
+} from '../../../../lib/content-ai';
 import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
@@ -418,6 +422,8 @@ type ComposeForm = {
   brief: string;
   labels: string[];
   firstComment: string;
+  /** AI runs whose text was applied in this compose session (DEC-024 human-review gate). */
+  aiRunIds: string[];
 };
 
 type ComposeLabel = {
@@ -495,11 +501,16 @@ function PlanableComposeCard({
         ? { text: raw, variants: [{ text: raw }], source: 'ai', banner: '' }
         : raw;
     setAiProposal(proposal);
+    const aiRunIds = appendAiRunId(form.aiRunIds, proposal);
     if (kind === 'hashtags') {
-      onChange({ firstComment: proposal.text });
+      onChange({ firstComment: proposal.text, aiRunIds });
       setShowFirstComment(true);
     } else {
-      onChange({ caption: proposal.text, title: form.title || proposal.text.slice(0, 80) });
+      onChange({
+        caption: proposal.text,
+        title: form.title || proposal.text.slice(0, 80),
+        aiRunIds,
+      });
     }
     if (proposal.banner) toast.push(proposal.banner, 'default');
     return proposal;
@@ -1603,6 +1614,7 @@ export default function ContentPage() {
     media: [] as MediaAsset[],
     labels: [] as string[],
     firstComment: '',
+    aiRunIds: [] as string[],
   });
 
   const isAr = locale.toLowerCase().startsWith('ar');
@@ -2980,6 +2992,7 @@ export default function ContentPage() {
             : null,
           labels: createForm.labels,
           media_asset_ids: batch.map((asset) => asset.id),
+          ...(createForm.aiRunIds.length ? { ai_run_ids: createForm.aiRunIds } : {}),
         });
         createdItems.push(apiCreated);
         createdCount++;
@@ -3030,6 +3043,7 @@ export default function ContentPage() {
         firstComment: '',
         media: [],
         socialPageIds: [],
+        aiRunIds: [],
       }));
       openItem(createdRows[0]!, 'edit');
       setRows((prev) => [
