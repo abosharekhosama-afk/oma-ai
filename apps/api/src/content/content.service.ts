@@ -22,6 +22,10 @@ import {
   evaluateScheduleReadiness,
   scheduleRequiresConnectedAccount,
   calendarPlacement,
+  aiReviewRequired,
+  parseAiRunIds,
+  applyAiOutput,
+  aiProvenanceForCopy,
   type ApprovalPolicy,
   type ReadinessTarget,
   type ScheduleReadiness,
@@ -155,6 +159,10 @@ function mapContent(
     publishedAt?: Date | null;
     syncGroupId?: string | null;
     preferredAudience?: string | null;
+    aiAssisted?: boolean;
+    aiRunIds?: string[];
+    aiReviewedAt?: Date | null;
+    aiReviewedBy?: string | null;
   },
   policy: ApprovalPolicy = 'OPTIONAL',
 ) {
@@ -179,6 +187,7 @@ function mapContent(
         channel: row.channel,
         targets,
         requireConnectedAccount: scheduleRequiresConnectedAccount(),
+        ai: aiInput(row),
       })
     : null;
   const calendar = calendarPlacement({
@@ -227,6 +236,17 @@ function mapContent(
     schedule_readiness: readiness,
     /** Planned vs Scheduled placement on the calendar (DEC-023). */
     calendar: { state: calendar.state, at: calendar.at },
+    /** AI provenance + human-review gate (DEC-024). */
+    ai: {
+      assisted: Boolean(row.aiAssisted),
+      run_ids: row.aiRunIds ?? [],
+      reviewed_at: row.aiReviewedAt?.toISOString() ?? null,
+      reviewed_by: row.aiReviewedBy ?? null,
+      review_required: aiReviewRequired({
+        aiAssisted: Boolean(row.aiAssisted),
+        aiReviewedAt: row.aiReviewedAt ?? null,
+      }),
+    },
     publishing: {
       social_page_id: row.socialPageId ?? null,
       social_page_ids:
@@ -268,6 +288,26 @@ function mapContent(
       published_at: row.publishedAt?.toISOString() ?? null,
     },
   };
+}
+
+function aiInput(row: { aiAssisted?: boolean; aiReviewedAt?: Date | null }) {
+  return { assisted: Boolean(row.aiAssisted), reviewed: Boolean(row.aiReviewedAt) };
+}
+
+/** Applied AI output must reference successful runs of this tenant (DEC-024). */
+async function assertAiRunsUsable(tenantId: string, runIds: string[]) {
+  const found = await getPrisma().aiRun.count({
+    where: { tenantId, id: { in: runIds }, status: 'SUCCEEDED' },
+  });
+  if (found !== runIds.length) {
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'ai_run_ids must reference successful AI runs in this workspace',
+      400,
+      'errors.validation_failed',
+      [{ field: 'ai_run_ids' }],
+    );
+  }
 }
 
 type TargetRowLike = {
@@ -687,10 +727,14 @@ export class ContentService {
       labels?: string[];
       preview_asset_id?: string | null;
       media_asset_ids?: string[] | null;
+      /** AI runs whose output is in this post (DEC-024). */
+      ai_run_ids?: string[] | null;
     },
     correlationId?: string,
   ) {
     await this.requireActiveBrand(tenantId, brandId);
+    const aiRunIds = parseAiRunIds(input.ai_run_ids);
+    if (aiRunIds) await assertAiRunsUsable(tenantId, aiRunIds);
     await billingService.assertWriteAccess(tenantId);
     const media = await resolvePreviewAssets(
       tenantId,
@@ -740,6 +784,7 @@ export class ContentService {
         approverApproved: 0,
         labels: input.labels ?? [],
         ...(media ?? {}),
+        ...(aiRunIds ? applyAiOutput({ aiRunIds: [] }, aiRunIds) : {}),
         createdBy: actorUserId,
       },
     });
@@ -751,6 +796,7 @@ export class ContentService {
       targetType: 'ContentItem',
       targetId: row.id,
       correlationId,
+      ...(aiRunIds ? { afterRef: `ai_runs:${aiRunIds.join(',')}`.slice(0, 500) } : {}),
     });
 
     return { data: mapContent(row, policy) };
@@ -771,9 +817,11 @@ export class ContentService {
       clientVisible?: boolean;
       preview_asset_id?: string | null;
       media_asset_ids?: string[] | null;
+      ai_run_ids?: string[] | null;
     },
     correlationId?: string,
   ) {
+    const aiRunIds = parseAiRunIds(patch.ai_run_ids);
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
     });
@@ -795,6 +843,7 @@ export class ContentService {
       }
     }
     await this.requireActiveBrand(tenantId, current.brandId);
+    if (aiRunIds) await assertAiRunsUsable(tenantId, aiRunIds);
 
     if (patch.campaignId) {
       const campaign = await getPrisma().campaign.findFirst({
@@ -836,6 +885,7 @@ export class ContentService {
         ...(patch.labels ? { labels: patch.labels } : {}),
         ...(patch.clientVisible !== undefined ? { clientVisible: patch.clientVisible } : {}),
         ...(media ?? {}),
+        ...(aiRunIds ? applyAiOutput(current, aiRunIds) : {}),
       },
     });
 
@@ -846,6 +896,7 @@ export class ContentService {
       targetType: 'ContentItem',
       targetId: row.id,
       correlationId,
+      ...(aiRunIds ? { afterRef: `ai_runs:${aiRunIds.join(',')}`.slice(0, 500) } : {}),
     });
 
     return this.get(tenantId, contentId);
@@ -1008,6 +1059,10 @@ export class ContentService {
         approvalState: next.approvalState,
         status: next.status,
         approverApproved: approved,
+        // A completed human approval is also the AI review (DEC-024).
+        ...(next.approvalState === 'APPROVED' && aiReviewRequired(current)
+          ? { aiReviewedAt: new Date(), aiReviewedBy: actorUserId }
+          : {}),
       },
     });
     await this.writeEvent(tenantId, contentId, actorUserId, 'APPROVE', note);
@@ -1071,6 +1126,65 @@ export class ContentService {
     }
     const policy = await this.policyForBrand(tenantId, row.brandId);
     return { data: mapContent(row, policy) };
+  }
+
+  /**
+   * Human confirmation that AI-assisted copy was reviewed (DEC-024). Works under every
+   * approval policy, including NONE; the reviewer needs `content.approve`.
+   */
+  async confirmAiReview(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    note?: LocaleInput,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    if (current.archivedAt) {
+      throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.content_archived');
+    }
+    if (!current.aiAssisted) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'This post has no AI-generated copy to review',
+        409,
+        'error.ai_review_not_needed',
+      );
+    }
+    if (current.aiReviewedAt) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'The AI-generated copy was already reviewed',
+        409,
+        'error.ai_review_already_done',
+      );
+    }
+    const claimed = await getPrisma().contentItem.updateMany({
+      where: { id: contentId, aiReviewedAt: null },
+      data: { aiReviewedAt: new Date(), aiReviewedBy: actorUserId },
+    });
+    if (claimed.count !== 1) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'The AI-generated copy was already reviewed',
+        409,
+        'error.ai_review_already_done',
+      );
+    }
+    await this.writeEvent(tenantId, contentId, actorUserId, 'AI_REVIEW', note);
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.ai_reviewed',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      afterRef: `ai_runs:${current.aiRunIds.join(',')}`.slice(0, 500),
+      correlationId,
+    });
+    return this.get(tenantId, contentId);
   }
 
   async requestChanges(
@@ -1182,7 +1296,14 @@ export class ContentService {
     if (current.archivedAt) {
       throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
     }
-    assertCanPublish(workflowSource(current), await this.policyForBrand(tenantId, current.brandId));
+    const samplePolicy = await this.policyForBrand(tenantId, current.brandId);
+    assertCanPublish(workflowSource(current), samplePolicy);
+    if (aiReviewRequired(current)) {
+      assertScheduleReady(
+        { ready: false, blockers: [{ code: 'AI_REVIEW_REQUIRED' }] },
+        samplePolicy,
+      );
+    }
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: { status: 'PUBLISHED_SAMPLE', scheduleState: 'UNSCHEDULED' },
@@ -1214,6 +1335,8 @@ export class ContentService {
       channel: string;
       socialPageId: string | null;
       publishTargets: TargetRowLike[];
+      aiAssisted?: boolean;
+      aiReviewedAt?: Date | null;
     },
     policy: ApprovalPolicy,
   ): Promise<ScheduleReadiness> {
@@ -1237,6 +1360,7 @@ export class ContentService {
       channel: row.channel,
       targets,
       requireConnectedAccount: scheduleRequiresConnectedAccount(),
+      ai: aiInput(row),
     });
   }
 
@@ -1511,6 +1635,7 @@ export class ContentService {
         previewAssetId: media.previewAssetId,
         previewAssetUrl: media.previewAssetUrl,
         mediaAssetIds: media.mediaAssetIds,
+        ...aiProvenanceForCopy(current),
         createdBy: actorUserId,
       },
     });

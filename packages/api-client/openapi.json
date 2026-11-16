@@ -3149,6 +3149,20 @@
         ]
       }
     },
+    "/api/v1/content/{contentId}/ai-review": {
+      "post": {
+        "operationId": "ContentController_confirmAiReview",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
     "/api/v1/content/{contentId}/schedule": {
       "post": {
         "operationId": "ContentController_schedule",

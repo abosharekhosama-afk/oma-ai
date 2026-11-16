@@ -1594,6 +1594,13 @@ model ContentItem {
   syncGroupId           String?
   /// Preferred audience label (Planable post setting), free text.
   preferredAudience     String?
+  /// True once AI-generated text was applied (DEC-024). Never reset by human edits.
+  aiAssisted            Boolean                   @default(false)
+  /// AiRun ids whose output was applied to this post (latest last, capped).
+  aiRunIds              String[]                  @default([])
+  /// Human confirmation that the AI-assisted copy was reviewed; cleared when new AI output is applied.
+  aiReviewedAt          DateTime?
+  aiReviewedBy          String?
   createdBy             String
   createdAt             DateTime                  @default(now())
   updatedAt             DateTime                  @updatedAt

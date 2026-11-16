@@ -15,6 +15,7 @@ export const SCHEDULE_BLOCKERS = [
   'ARCHIVED',
   'REJECTED',
   'APPROVAL_REQUIRED',
+  'AI_REVIEW_REQUIRED',
   'NO_CONNECTED_ACCOUNT',
   'ACCOUNT_NOT_CONNECTED',
   'CHANNEL_NOT_CONNECTED',
@@ -46,6 +47,8 @@ export type ScheduleReadinessInput = {
   channel: string;
   targets: ReadinessTarget[];
   requireConnectedAccount: boolean;
+  /** AI provenance (DEC-024): AI-assisted copy needs a human review under every policy. */
+  ai?: { assisted: boolean; reviewed: boolean } | null;
 };
 
 export type ScheduleReadiness = { ready: boolean; blockers: ScheduleBlocker[] };
@@ -64,6 +67,8 @@ export function evaluateScheduleReadiness(input: ScheduleReadinessInput): Schedu
   else if (wf.scheduleBlockedReason === 'APPROVAL_REQUIRED') {
     blockers.push({ code: 'APPROVAL_REQUIRED' });
   }
+
+  if (input.ai?.assisted && !input.ai.reviewed) blockers.push({ code: 'AI_REVIEW_REQUIRED' });
 
   if (input.requireConnectedAccount) {
     const connected = input.targets.filter((t) => t.status === 'CONNECTED');

@@ -63,6 +63,8 @@ export async function findDuePublishTargetIds(
       channel: true,
       socialPageId: true,
       approvalState: true,
+      aiAssisted: true,
+      aiReviewedAt: true,
       lastPublishSkipReason: true,
       publishTargets: {
         select: { socialPageId: true, socialPage: { select: { network: true, status: true } } },
@@ -106,6 +108,19 @@ export async function findDuePublishTargetIds(
       continue;
     }
 
+    if (row.aiAssisted && !row.aiReviewedAt) {
+      // AI-assisted copy never publishes without a human review, under any policy (DEC-024).
+      skipped += 1;
+      const reason = skipReasonMessage('AI_REVIEW_REQUIRED');
+      if (row.lastPublishSkipReason !== reason) {
+        await prisma.contentItem.update({
+          where: { id: row.id },
+          data: { lastPublishSkipReason: reason },
+        });
+      }
+      continue;
+    }
+
     const eligible = row.approvalState === 'APPROVED' || noApproval.has(row.brandId);
     if (!eligible) {
       skipped += 1;
@@ -140,7 +155,10 @@ export async function findDuePublishTargetIds(
         archivedAt: null,
         scheduleState: 'SCHEDULED',
         scheduledAt: { lte: now },
-        OR: [{ approvalState: 'APPROVED' }, { brandId: { in: [...noApproval] } }],
+        AND: [
+          { OR: [{ approvalState: 'APPROVED' }, { brandId: { in: [...noApproval] } }] },
+          { OR: [{ aiAssisted: false }, { aiReviewedAt: { not: null } }] },
+        ],
       },
     },
     orderBy: { contentItem: { scheduledAt: 'asc' } },

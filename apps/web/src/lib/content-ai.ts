@@ -15,6 +15,8 @@ export type ContentAiProposal = {
   brandProfileVersionId?: string | null;
   usedApprovedProfile?: boolean;
   hashtags?: string[];
+  /** AiRun id of a live AI proposal; sent back as `ai_run_ids` when the text is used (DEC-024). */
+  runId?: string | null;
 };
 
 function isArLocale(locale: string): boolean {
@@ -151,6 +153,7 @@ export async function proposeContentText(input: {
         hashtags?: string[];
         brand_profile_version_id?: string | null;
         used_approved_profile?: boolean;
+        run_id?: string | null;
       };
     }>(`/api/v1/brands/${input.brandId}/ai/generate`, {
       method: 'POST',
@@ -179,6 +182,7 @@ export async function proposeContentText(input: {
       brandProfileVersionId: res.data?.brand_profile_version_id ?? null,
       usedApprovedProfile: Boolean(res.data?.used_approved_profile),
       hashtags: res.data?.hashtags,
+      runId: res.data?.run_id ?? null,
     };
   } catch (err) {
     if (isFallbackError(err)) return template;
@@ -234,4 +238,13 @@ export async function proposeInboxReply(input: {
     if (isFallbackError(err)) return template;
     throw err;
   }
+}
+
+/** AI run ids to record after applying a proposal (template text is not AI output). */
+export function appendAiRunId(
+  current: string[],
+  proposal: Pick<ContentAiProposal, 'source' | 'runId'>,
+) {
+  if (proposal.source !== 'ai' || !proposal.runId) return current;
+  return current.includes(proposal.runId) ? current : [...current, proposal.runId];
 }

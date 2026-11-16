@@ -226,6 +226,8 @@ export async function createContentProduction(input: {
   preview_asset_id?: string | null;
   /** Ordered WorkDrive MediaAsset ids attached to the post. */
   media_asset_ids?: string[] | null;
+  /** AI runs whose output is in the post (DEC-024). */
+  ai_run_ids?: string[];
 }): Promise<ApiContent> {
   const { brandId, ...body } = input;
   const res = await api<{ data: ApiContent }>(`/api/v1/brands/${brandId}/content`, {
