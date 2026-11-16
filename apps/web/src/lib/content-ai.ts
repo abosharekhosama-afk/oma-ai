@@ -2,9 +2,21 @@ import { api } from './api';
 
 export type ContentAiKind = 'caption' | 'alt' | 'idea' | 'hashtags';
 
+export type ContentAiGroundingRef = {
+  ref: string;
+  kind: 'claim' | 'profile';
+  sourceId?: string;
+  label: string;
+};
+
 export type ContentAiVariant = {
   text: string;
   rationale?: string;
+  /** True when the variant states a brand fact; such variants must cite a ref (DEC-027 3.4). */
+  factual?: boolean;
+  groundingRefs?: ContentAiGroundingRef[];
+  /** Brand had no approved profile: copy is generic, not grounded in brand facts. */
+  generic?: boolean;
 };
 
 export type ContentAiProposal = {
@@ -17,7 +29,102 @@ export type ContentAiProposal = {
   hashtags?: string[];
   /** AiRun id of a live AI proposal; sent back as `ai_run_ids` when the text is used (DEC-024). */
   runId?: string | null;
+  /** Grounded in an approved brand profile (claims / profile sections cited). */
+  grounded?: boolean;
+  groundingRefs?: ContentAiGroundingRef[];
 };
+
+type ApiVariant = {
+  text?: string;
+  rationale?: string;
+  factual?: boolean;
+  grounding_refs?: Array<{ ref?: string; kind?: string; sourceId?: string; label?: string }>;
+  generic?: boolean;
+};
+
+type ApiProposalData = {
+  variants?: ApiVariant[];
+  banner?: string;
+  hashtags?: string[];
+  brand_profile_version_id?: string | null;
+  used_approved_profile?: boolean;
+  run_id?: string | null;
+  grounded?: boolean;
+  grounding_refs?: ApiVariant['grounding_refs'];
+  auto_sent?: boolean;
+};
+
+function mapRefs(refs: ApiVariant['grounding_refs']): ContentAiGroundingRef[] {
+  return (refs ?? [])
+    .filter((r) => r?.ref && r.label)
+    .map((r) => ({
+      ref: r.ref!,
+      kind: r.kind === 'profile' ? ('profile' as const) : ('claim' as const),
+      sourceId: r.sourceId,
+      label: r.label!,
+    }));
+}
+
+/** Map a v2 grounded API payload to the UI proposal shape (null when there is no usable text). */
+export function mapAiProposal(
+  data: ApiProposalData | undefined,
+  locale: string,
+): ContentAiProposal | null {
+  const variants: ContentAiVariant[] = (data?.variants ?? [])
+    .filter((item) => item.text?.trim())
+    .map((item) => ({
+      text: item.text!,
+      rationale: item.rationale,
+      factual: item.factual,
+      groundingRefs: mapRefs(item.grounding_refs),
+      generic: item.generic,
+    }));
+  if (!variants.length) return null;
+  return {
+    text: variants[0]!.text,
+    variants,
+    source: 'ai',
+    banner: reviewBanner(locale, data?.banner ?? ''),
+    brandProfileVersionId: data?.brand_profile_version_id ?? null,
+    usedApprovedProfile: Boolean(data?.used_approved_profile),
+    hashtags: data?.hashtags,
+    runId: data?.run_id ?? null,
+    grounded: Boolean(data?.grounded),
+    groundingRefs: mapRefs(data?.grounding_refs),
+  };
+}
+
+/**
+ * Plain-language reason for an AI refusal or invalid output (no raw server text).
+ * Returns null for errors that are not AI-output problems.
+ */
+export function aiRefusalReason(err: unknown, locale: string): string | null {
+  const e = err as
+    | {
+        code?: string;
+        data?: { error?: { code?: string; details?: Array<{ code?: string; dropped?: number }> } };
+      }
+    | undefined;
+  const code = e?.code ?? e?.data?.error?.code;
+  const detail = e?.data?.error?.details?.[0];
+  const ar = isArLocale(locale);
+  if (code === 'AI_REFUSED') {
+    if (detail?.code === 'BANNED_CLAIM') {
+      return ar
+        ? 'تم حجب الاقتراح لأنه استخدم كلمات محظورة أو ادعاءات مرفوضة للعلامة. اكتب النص يدوياً أو حدّث ملف البراند.'
+        : 'The suggestion was blocked because it used banned words or rejected brand claims. Write it manually or update the brand profile.';
+    }
+    return ar
+      ? 'رفض النموذج هذا الطلب. يمكنك المتابعة يدوياً.'
+      : 'The AI model declined this request. You can continue manually.';
+  }
+  if (code === 'SCHEMA_INVALID') {
+    return ar
+      ? 'أعاد الذكاء الاصطناعي نتيجة غير صالحة حتى بعد الإصلاح. حاول مرة أخرى أو اكتب النص يدوياً.'
+      : 'The AI returned an invalid result even after a repair attempt. Try again or write it manually.';
+  }
+  return null;
+}
 
 function isArLocale(locale: string): boolean {
   return locale.toLowerCase().startsWith('ar');
@@ -124,7 +231,8 @@ function asTemplate(input: {
 }
 
 function isFallbackError(err: unknown): boolean {
-  const code = (err as { code?: string } | undefined)?.code;
+  const e = err as { code?: string; data?: { error?: { code?: string } } } | undefined;
+  const code = e?.code ?? e?.data?.error?.code;
   return (
     code === 'AI_NOT_CONFIGURED' ||
     code === 'AI_DISABLED' ||
@@ -146,44 +254,27 @@ export async function proposeContentText(input: {
   const template = asTemplate(input);
   if (!input.brandId) return template;
   try {
-    const res = await api<{
-      data?: {
-        variants?: ContentAiVariant[];
-        banner?: string;
-        hashtags?: string[];
-        brand_profile_version_id?: string | null;
-        used_approved_profile?: boolean;
-        run_id?: string | null;
-      };
-    }>(`/api/v1/brands/${input.brandId}/ai/generate`, {
-      method: 'POST',
-      headers: {
-        'Idempotency-Key':
-          typeof crypto !== 'undefined' && 'randomUUID' in crypto
-            ? crypto.randomUUID()
-            : `content-${input.kind}-${Date.now()}`,
+    const res = await api<{ data?: ApiProposalData }>(
+      `/api/v1/brands/${input.brandId}/ai/generate`,
+      {
+        method: 'POST',
+        headers: {
+          'Idempotency-Key':
+            typeof crypto !== 'undefined' && 'randomUUID' in crypto
+              ? crypto.randomUUID()
+              : `content-${input.kind}-${Date.now()}`,
+        },
+        body: JSON.stringify({
+          kind: input.kind,
+          channel: input.channel,
+          language: input.locale,
+          caption: input.caption,
+          title: input.title,
+          content_id: input.contentId,
+        }),
       },
-      body: JSON.stringify({
-        kind: input.kind,
-        channel: input.channel,
-        language: input.locale,
-        caption: input.caption,
-        title: input.title,
-        content_id: input.contentId,
-      }),
-    });
-    const variants = (res.data?.variants ?? []).filter((item) => item.text?.trim());
-    if (!variants.length) return template;
-    return {
-      text: variants[0]!.text,
-      variants,
-      source: 'ai',
-      banner: reviewBanner(input.locale, res.data?.banner ?? ''),
-      brandProfileVersionId: res.data?.brand_profile_version_id ?? null,
-      usedApprovedProfile: Boolean(res.data?.used_approved_profile),
-      hashtags: res.data?.hashtags,
-      runId: res.data?.run_id ?? null,
-    };
+    );
+    return mapAiProposal(res.data, input.locale) ?? template;
   } catch (err) {
     if (isFallbackError(err)) return template;
     throw err;
@@ -206,34 +297,20 @@ export async function proposeInboxReply(input: {
     usedApprovedProfile: false,
   };
   try {
-    const res = await api<{
-      data?: {
-        variants?: ContentAiVariant[];
-        banner?: string;
-        brand_profile_version_id?: string | null;
-        used_approved_profile?: boolean;
-        auto_sent?: boolean;
-      };
-    }>(`/api/v1/inbox/conversations/${input.conversationId}/ai/draft`, {
-      method: 'POST',
-      headers: {
-        'Idempotency-Key':
-          typeof crypto !== 'undefined' && 'randomUUID' in crypto
-            ? crypto.randomUUID()
-            : `inbox-${input.conversationId}-${Date.now()}`,
+    const res = await api<{ data?: ApiProposalData }>(
+      `/api/v1/inbox/conversations/${input.conversationId}/ai/draft`,
+      {
+        method: 'POST',
+        headers: {
+          'Idempotency-Key':
+            typeof crypto !== 'undefined' && 'randomUUID' in crypto
+              ? crypto.randomUUID()
+              : `inbox-${input.conversationId}-${Date.now()}`,
+        },
+        body: JSON.stringify({ language: input.locale }),
       },
-      body: JSON.stringify({ language: input.locale }),
-    });
-    const variants = (res.data?.variants ?? []).filter((item) => item.text?.trim());
-    if (!variants.length) return template;
-    return {
-      text: variants[0]!.text,
-      variants,
-      source: 'ai',
-      banner: reviewBanner(input.locale, res.data?.banner ?? ''),
-      brandProfileVersionId: res.data?.brand_profile_version_id ?? null,
-      usedApprovedProfile: Boolean(res.data?.used_approved_profile),
-    };
+    );
+    return mapAiProposal(res.data, input.locale) ?? template;
   } catch (err) {
     if (isFallbackError(err)) return template;
     throw err;

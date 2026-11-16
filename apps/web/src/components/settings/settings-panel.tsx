@@ -24,6 +24,7 @@ import { useLocale, useT } from '../../lib/use-locale';
 import { ShellIcon } from '../shell/shell-icons';
 import type { NavIconId } from '../shell/nav-config';
 import { StorageSettings } from './storage-settings';
+import { AiUsageSettings } from './ai-usage-settings';
 import { useCapabilities } from '../../lib/use-capabilities';
 import { timezoneOptions } from '../../lib/brand-settings-api';
 
@@ -84,6 +85,7 @@ const NAV: Array<{ id: Section; icon: NavIconId; group: 'account' | 'workspace' 
   { id: 'workspace', icon: 'company', group: 'workspace' },
   { id: 'storage', icon: 'deliverables', group: 'workspace' },
   { id: 'integrations', icon: 'campaigns', group: 'workspace' },
+  { id: 'ai', icon: 'analytics', group: 'workspace' },
 ];
 
 /**
@@ -479,6 +481,14 @@ export function SettingsPanel({
                   t={t}
                   locale={locale}
                   canManage={capabilities.capabilities.includes('tenant.manage')}
+                />
+              )}
+
+              {section === 'ai' && !capabilities.loading && (
+                <AiUsageSettings
+                  t={t}
+                  locale={locale}
+                  canView={capabilities.capabilities.includes('ai.configure')}
                 />
               )}
 

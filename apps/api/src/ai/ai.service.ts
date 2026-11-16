@@ -6,6 +6,11 @@ import {
   brandAnalysisContractFor,
   deterministicBrandAnalysisV2,
   storedProposalVersion,
+  AI_RUNS_PAGE_MAX,
+  aiUsageMonthRange,
+  decodeAiRunCursor,
+  encodeAiRunCursor,
+  summarizeAiUsage,
   assertAiWriteTarget,
   assertHumanActor,
   evaluateBudget,
@@ -523,4 +528,124 @@ export async function rejectAiRun(
     );
   }
   return { id: run.id, status: 'REFUSED' as const, manual_journey: true, replayed: false };
+}
+
+function runListItem(run: {
+  id: string;
+  useCase: string;
+  status: string;
+  provider: string;
+  model: string;
+  contractId: string | null;
+  schemaVersion: string;
+  attemptCount: number;
+  failureStage: string | null;
+  errorCode: string | null;
+  refusalReason: string | null;
+  settledCost: unknown;
+  latencyMs: number | null;
+  sourceEntityType: string;
+  sourceEntityId: string;
+  metadataJson: string | null;
+  createdAt: Date;
+}) {
+  const review = readAiRunReview(run.metadataJson);
+  return {
+    id: run.id,
+    use_case: run.useCase,
+    status: run.status,
+    provider: run.provider,
+    model: run.model,
+    contract_id: run.contractId,
+    schema_version: run.schemaVersion,
+    legacy: run.schemaVersion === '1',
+    attempt_count: run.attemptCount,
+    failure_stage: run.failureStage,
+    error_code: run.errorCode,
+    refusal_reason: run.refusalReason,
+    review: review?.decision ?? null,
+    cost_usd: Number(run.settledCost ?? 0),
+    latency_ms: run.latencyMs,
+    source_entity_type: run.sourceEntityType,
+    source_entity_id: run.sourceEntityId,
+    created_at: run.createdAt.toISOString(),
+  };
+}
+
+/** Admin list of this tenant's AI runs, newest first, keyset-paginated (DEC-027 3.8). */
+export async function listAiRuns(
+  tenantId: string,
+  query: { cursor?: string; limit?: string | number; use_case?: string; status?: string },
+) {
+  const limit = Math.min(AI_RUNS_PAGE_MAX, Math.max(1, Number(query.limit) || 25));
+  const cursor = decodeAiRunCursor(query.cursor);
+  if (query.cursor && !cursor) {
+    throw new DomainError('VALIDATION_FAILED', 'Invalid cursor', 400, 'errors.validation_failed', [
+      { field: 'cursor' },
+    ]);
+  }
+  const STATUSES = [
+    'QUEUED',
+    'RUNNING',
+    'SUCCEEDED',
+    'FAILED',
+    'CANCELLED',
+    'DISABLED',
+    'SCHEMA_INVALID',
+    'REFUSED',
+  ];
+  if (query.status && !STATUSES.includes(query.status)) {
+    throw new DomainError('VALIDATION_FAILED', 'Invalid status', 400, 'errors.validation_failed', [
+      { field: 'status' },
+    ]);
+  }
+  const rows = await getPrisma().aiRun.findMany({
+    where: {
+      tenantId,
+      ...(query.use_case ? { useCase: query.use_case } : {}),
+      ...(query.status ? { status: query.status as never } : {}),
+      ...(cursor
+        ? {
+            OR: [
+              { createdAt: { lt: cursor.createdAt } },
+              { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+            ],
+          }
+        : {}),
+    },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    take: limit + 1,
+  });
+  const page = rows.slice(0, limit);
+  const last = page.at(-1);
+  return {
+    items: page.map(runListItem),
+    next_cursor: rows.length > limit && last ? encodeAiRunCursor(last.createdAt, last.id) : null,
+  };
+}
+
+/** Admin usage summary for one UTC month: runs, failures, repairs and real cost. */
+export async function aiUsageForTenant(tenantId: string, month?: string) {
+  const range = aiUsageMonthRange(month);
+  const rows = await getPrisma().aiRun.findMany({
+    where: { tenantId, createdAt: { gte: range.start, lt: range.end } },
+    select: {
+      useCase: true,
+      status: true,
+      attemptCount: true,
+      settledCost: true,
+      refusalReason: true,
+      schemaVersion: true,
+    },
+  });
+  return {
+    month: range.month,
+    ...summarizeAiUsage(
+      rows.map((r) => ({
+        ...r,
+        settledCost: r.settledCost === null ? null : String(r.settledCost),
+      })),
+    ),
+    budget: await budgetSnapshot(tenantId),
+  };
 }

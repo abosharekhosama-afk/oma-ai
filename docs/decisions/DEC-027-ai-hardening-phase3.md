@@ -178,3 +178,21 @@ not always recorded, and the generic `POST /ai/runs` endpoint accepted any use c
   configured provider. It refuses to run unless `AI_LIVE_ENABLED=true`, never runs in CI,
   and reports validity, repair rate, leaks, injection markers followed, and tokens. It was
   checked locally against a fake endpoint only; no live run was made.
+
+## PR 3.8: web AI provenance and admin usage
+
+- `GET /api/v1/ai/runs` lists this tenant's AI runs, newest first, with keyset pagination
+  (`cursor`, `limit` up to 100) and `use_case` / `status` filters. A bad status or
+  cursor returns 400. Each row shows status, attempts, failure stage, the human review
+  decision, the legacy v1 flag and the real settled cost. There are no prompts or outputs.
+- `GET /api/v1/ai/usage?month=YYYY-MM` summarizes one UTC month per use case: runs,
+  succeeded, failed, schema_invalid, refused, repaired (attempts > 1), rejected by a
+  person, legacy v1 and cost. It also includes the budget snapshot. Both routes need
+  `ai.configure` (workspace admins); plain members get 403. The summary logic is
+  `summarizeAiUsage` in `@oma/domain`.
+- Settings gains an "AI usage" section with a per-use-case table and recent runs (load
+  more). Members without `ai.configure` see an admins-only note.
+- The composer shows a grounded or generic badge and the cited refs (`C1`, `P-tone`) for
+  each live proposal. Refusals (`AI_REFUSED`, including `BANNED_CLAIM`) and
+  `SCHEMA_INVALID` show a plain-language reason in EN or AR instead of a generic
+  "not connected" message. Inbox proposals now also carry `runId` and grounding fields.

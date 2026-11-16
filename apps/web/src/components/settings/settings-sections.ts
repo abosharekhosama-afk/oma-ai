@@ -5,6 +5,7 @@ export const SETTINGS_SECTIONS = [
   'workspace',
   'storage',
   'integrations',
+  'ai',
 ] as const;
 export type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number];
 
