@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -15,7 +16,7 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { DomainError } from '@oma/domain';
-import { strategyPlanRequestsService, strategyService } from '../container';
+import { strategyPlanRequestsService, strategyPlanService, strategyService } from '../container';
 
 @Controller('api/v1/brands/:brandId')
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -248,6 +249,59 @@ export class StrategyController {
   ) {
     this.requireTenant(req);
     return strategyService.patchOrganic(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Get('strategies/:strategyId/versions/:versionId/plan')
+  async getPlan(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanService.getPlan(req.oma!.tenantId!, brandId, strategyId, versionId);
+  }
+
+  @Put('strategies/:strategyId/versions/:versionId/plan/organic')
+  @UseGuards(CsrfGuard)
+  async putOrganicPlan(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanService.putOrganic(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Put('strategies/:strategyId/versions/:versionId/plan/paid')
+  @UseGuards(CsrfGuard)
+  async putPaidPlan(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanService.putPaid(
       req.oma!.tenantId!,
       req.oma!.userId!,
       brandId,
