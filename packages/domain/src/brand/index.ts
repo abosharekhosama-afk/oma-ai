@@ -9,6 +9,7 @@ export * from './scan-transitions';
 export * from './immutability';
 export * from './approval-eligibility';
 export * from './info-state';
+export * from './reference-taxonomy';
 export * from './fixture-connector-env';
 export * from './robots-parser';
 export * from './sitemap-parser';

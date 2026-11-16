@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
   DomainError,
@@ -63,6 +63,31 @@ export class StrategyService {
       throw new DomainError('BRAND_ARCHIVED', 'Brand archived', 409, 'errors.brand_archived');
     }
     return brand;
+  }
+
+  private async requireApprovedBrandProfile(
+    tenantId: string,
+    brandId: string,
+    brand: { currentApprovedProfileVersionId: string | null },
+  ) {
+    const profile = brand.currentApprovedProfileVersionId
+      ? await getPrisma().profileVersion.findFirst({
+          where: tenantWhere(tenantId, {
+            id: brand.currentApprovedProfileVersionId,
+            brandId,
+            status: 'APPROVED',
+          }),
+        })
+      : null;
+    if (!profile) {
+      throw new ForbiddenException({
+        code: 'BRAND_PROFILE_NOT_APPROVED',
+        message: 'لا يمكن إنشاء الاستراتيجية قبل اعتماد ملف العلامة التجارية بحالة APPROVED.',
+        brand_id: brandId,
+        required_status: 'APPROVED',
+      });
+    }
+    return profile;
   }
 
   private async requireStrategy(tenantId: string, brandId: string, strategyId: string) {
@@ -167,7 +192,8 @@ export class StrategyService {
     },
     correlationId?: string,
   ) {
-    await this.requireBrand(tenantId, brandId);
+    const brand = await this.requireBrand(tenantId, brandId);
+    await this.requireApprovedBrandProfile(tenantId, brandId, brand);
     const name = input.name?.trim();
     if (!name || name.length > 160) {
       throw new DomainError('VALIDATION_FAILED', 'Invalid name', 400, 'errors.validation_failed');
@@ -187,6 +213,15 @@ export class StrategyService {
           [{ code: 'APPROVED_PROFILE_INVALID' }],
         );
       }
+    }
+
+    if (input.draft_profile_version_id) {
+      throw new ForbiddenException({
+        code: 'DRAFT_PROFILE_FORBIDDEN',
+        message: 'لا يمكن استخدام ملف علامة تجارية مسودة لإنشاء استراتيجية.',
+        profile_version_id: input.draft_profile_version_id,
+        required_status: 'APPROVED',
+      });
     }
 
     const strategyId = newId();
@@ -633,23 +668,20 @@ export class StrategyService {
       where: tenantWhere(tenantId, { id: input.profile_version_id, brandId }),
     });
     if (!profile) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
-    if (input.role === 'approved' && profile.status !== 'APPROVED') {
-      throw new DomainError(
-        'VALIDATION_FAILED',
-        'Profile must be APPROVED for approved linkage',
-        400,
-        'errors.validation_failed',
-        [{ code: 'PROFILE_NOT_APPROVED' }],
-      );
+    if (input.role === 'draft_aid' || profile.status !== 'APPROVED') {
+      throw new ForbiddenException({
+        code: 'DRAFT_PROFILE_FORBIDDEN',
+        message: 'لا يمكن ربط الاستراتيجية إلا بملف علامة تجارية بحالة APPROVED.',
+        profile_version_id: profile.id,
+        required_status: 'APPROVED',
+      });
     }
 
     await getPrisma().strategyVersion.update({
       where: { id: versionId },
       data: {
-        linkedApprovedProfileVersionId:
-          input.role === 'approved' ? profile.id : version.linkedApprovedProfileVersionId,
-        draftProfileVersionId:
-          input.role === 'draft_aid' ? profile.id : version.draftProfileVersionId,
+        linkedApprovedProfileVersionId: profile.id,
+        draftProfileVersionId: null,
         rowVersion: { increment: 1 },
       },
     });

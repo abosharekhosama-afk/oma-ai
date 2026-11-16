@@ -98,6 +98,7 @@ export type DiscoveredPage = {
   url: string;
   canonical_url: string;
   title: string | null;
+  reference_class: 'Fact' | 'Inference' | 'Proposal' | null;
   classification: string;
   fetch_status: string;
   http_status: number | null;
@@ -120,6 +121,7 @@ export type CatalogProductMedia = {
 export type DiscoveredProduct = {
   id: string;
   kind: string;
+  reference_class: 'Fact' | 'Inference' | 'Proposal' | null;
   name: string;
   description: string | null;
   category: string | null;
@@ -162,6 +164,7 @@ export type EvidenceItem = {
   fetched_at: string;
   excerpt_text: string;
   content_hash: string;
+  reference_class: 'Fact' | 'Inference' | 'Proposal' | null;
   extraction_method: string;
   scan_attempt_id: string;
   discovered_page_id: string | null;
@@ -172,6 +175,7 @@ export type InsightItem = {
   id: string;
   field_key: string;
   info_state: string;
+  reference_class: 'Fact' | 'Inference' | 'Proposal' | null;
   review_status: string;
   discovery_tier: string;
   evidence_id: string | null;

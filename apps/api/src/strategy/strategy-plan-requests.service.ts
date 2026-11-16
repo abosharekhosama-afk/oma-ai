@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
   DomainError,
   buildPlanWorkRequestDrafts,
   briefReadiness,
-  catalogOfferingsFromDiscoveryRows,
   catalogOfferingsFromProfileSections,
   newId,
   buildPlanRequestImpactReport,
@@ -12,7 +11,6 @@ import {
   type CatalogOffering,
   type PlanWorkRequestDraft,
 } from '@oma/domain';
-import { enrichCatalogOfferingsWithApprovedMedia } from '../catalog/catalog.service';
 import { AuditService } from '../audit/audit.service';
 import { OpsService } from '../content/ops.service';
 import { parseOptionalDate } from '../content/content.service';
@@ -59,6 +57,47 @@ export class StrategyPlanRequestsService {
         'errors.strategy_not_approved',
       );
     }
+    const brand = await getPrisma().brandWorkspace.findFirst({
+      where: tenantWhere(tenantId, { id: brandId }),
+      select: { currentApprovedProfileVersionId: true },
+    });
+    const approvedProfileId = brand?.currentApprovedProfileVersionId;
+    const approvedProfile = approvedProfileId
+      ? await getPrisma().profileVersion.findFirst({
+          where: tenantWhere(tenantId, {
+            id: approvedProfileId,
+            brandId,
+            status: 'APPROVED',
+          }),
+          select: { id: true },
+        })
+      : null;
+    if (!approvedProfile) {
+      throw new ForbiddenException({
+        code: 'BRAND_PROFILE_NOT_APPROVED',
+        message: 'لا يمكن بناء طلبات الخطة قبل اعتماد ملف العلامة التجارية بحالة APPROVED.',
+        brand_id: brandId,
+        required_status: 'APPROVED',
+      });
+    }
+    if (version.linkedApprovedProfileVersionId) {
+      const linked = await getPrisma().profileVersion.findFirst({
+        where: tenantWhere(tenantId, {
+          id: version.linkedApprovedProfileVersionId,
+          brandId,
+          status: 'APPROVED',
+        }),
+        select: { id: true },
+      });
+      if (!linked) {
+        throw new ForbiddenException({
+          code: 'LINKED_PROFILE_NOT_APPROVED',
+          message: 'الاستراتيجية تشير إلى ملف علامة تجارية غير معتمد.',
+          profile_version_id: version.linkedApprovedProfileVersionId,
+          required_status: 'APPROVED',
+        });
+      }
+    }
     return version;
   }
 
@@ -70,7 +109,7 @@ export class StrategyPlanRequestsService {
     const tryProfile = async (profileVersionId: string | null | undefined) => {
       if (!profileVersionId) return [] as CatalogOffering[];
       const profile = await getPrisma().profileVersion.findFirst({
-        where: tenantWhere(tenantId, { id: profileVersionId, brandId }),
+        where: tenantWhere(tenantId, { id: profileVersionId, brandId, status: 'APPROVED' }),
       });
       if (!profile?.sectionsJson) return [];
       const sections = parseJson<Record<string, unknown>>(profile.sectionsJson, {});
@@ -86,20 +125,7 @@ export class StrategyPlanRequestsService {
     const approved = await tryProfile(brand?.currentApprovedProfileVersionId ?? null);
     if (approved.length > 0) return approved;
 
-    const latestScan = await getPrisma().scanAttempt.findFirst({
-      where: tenantWhere(tenantId, {
-        brandId,
-        status: { in: ['SUCCEEDED', 'PARTIAL'] },
-      }),
-      orderBy: [{ finishedAt: 'desc' }, { createdAt: 'desc' }],
-    });
-    if (!latestScan) return [];
-    const rows = await getPrisma().discoveredProductService.findMany({
-      where: { tenantId, scanAttemptId: latestScan.id },
-      orderBy: { name: 'asc' },
-    });
-    const offerings = catalogOfferingsFromDiscoveryRows(rows);
-    return enrichCatalogOfferingsWithApprovedMedia(tenantId, offerings);
+    return [];
   }
 
   private buildDrafts(

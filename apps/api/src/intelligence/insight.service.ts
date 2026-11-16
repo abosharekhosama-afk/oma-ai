@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
-import { DomainError, infoStateAfterAccept, newId } from '@oma/domain';
+import {
+  DomainError,
+  infoStateAfterAccept,
+  newId,
+  referenceTaxonomyFromInfoState,
+} from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
@@ -136,6 +141,7 @@ export class InsightService {
         id: insightId,
         review_status: decision,
         info_state: infoState,
+        reference_class: referenceTaxonomyFromInfoState(infoState),
         row_version: insight.rowVersion + 1,
       },
     };
