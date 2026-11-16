@@ -1485,6 +1485,48 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan": {
+      "get": {
+        "operationId": "StrategyController_getPlan",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan/organic": {
+      "put": {
+        "operationId": "StrategyController_putOrganicPlan",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan/paid": {
+      "put": {
+        "operationId": "StrategyController_putPaidPlan",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/paid": {
       "patch": {
         "operationId": "StrategyController_patchPaid",

@@ -21,6 +21,7 @@ import { buildStrategyProposePrompt } from '@oma/ai';
 import { loadBrandContext } from '../ai/brand-context.service';
 import { runStructuredGeneration } from '../ai/structured-run';
 import { notificationAllowed } from '@oma/domain';
+import { copyStrategyPlan } from './strategy-plan.service';
 import { AuditService } from '../audit/audit.service';
 
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
@@ -1774,6 +1775,7 @@ export class StrategyService {
         },
       });
     }
+    await copyStrategyPlan(tx, { tenantId, brandId }, sourceVersionId, newVersionId);
     return newVersionId;
   }
 

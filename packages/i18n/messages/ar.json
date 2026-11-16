@@ -3365,5 +3365,7 @@
   "strategy.list.noApprovedVersion": "لا توجد نسخة معتمدة",
   "strategy.list.updatedAt": "آخر تحديث {date}",
   "strategy.overview.versionNumber": "النسخة {number}",
-  "strategy.overview.noTracks": "لا توجد مسارات مفعّلة"
+  "strategy.overview.noTracks": "لا توجد مسارات مفعّلة",
+  "errors.strategy_plan_invalid": "بعض بنود الخطة غير صالحة. راجع الحقول المحددة وحاول مرة أخرى.",
+  "errors.strategy_track_disabled": "هذا المسار متوقف في نسخة الاستراتيجية هذه. فعّله أولاً."
 }

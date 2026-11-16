@@ -49,30 +49,30 @@ enum JobStatus {
 }
 
 model User {
-  id                   String         @id
-  email                String         @unique
-  emailVerifiedAt      DateTime?
-  passwordHash         String?
-  name                 String
-  preferredLocale      String         @default("en")
-  preferredDir         String         @default("ltr")
-  avatarUrl            String?
+  id                                String                        @id
+  email                             String                        @unique
+  emailVerifiedAt                   DateTime?
+  passwordHash                      String?
+  name                              String
+  preferredLocale                   String                        @default("en")
+  preferredDir                      String                        @default("ltr")
+  avatarUrl                         String?
   /// MediaAsset id when the avatar is stored in the tenant WorkDrive.
-  avatarAssetId        String?
+  avatarAssetId                     String?
   /// JSON: { notifications: { [type]: boolean }, timezone, weekStart, ... }
-  preferencesJson      String         @default("{}")
-  termsAcceptedAt      DateTime?
-  termsVersion         String?
-  privacyAcceptedAt    DateTime?
-  twoFactorEnabled     Boolean        @default(false)
-  twoFactorSecret      String?
-  twoFactorBackupCodes String?
-  deletionScheduledAt  DateTime?
-  deletionPurgeAt      DateTime?
-  systemRole           SystemRole     @default(USER)
-  status               UserStatus     @default(ACTIVE)
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  preferencesJson                   String                        @default("{}")
+  termsAcceptedAt                   DateTime?
+  termsVersion                      String?
+  privacyAcceptedAt                 DateTime?
+  twoFactorEnabled                  Boolean                       @default(false)
+  twoFactorSecret                   String?
+  twoFactorBackupCodes              String?
+  deletionScheduledAt               DateTime?
+  deletionPurgeAt                   DateTime?
+  systemRole                        SystemRole                    @default(USER)
+  status                            UserStatus                    @default(ACTIVE)
+  createdAt                         DateTime                      @default(now())
+  updatedAt                         DateTime                      @updatedAt
   sessions                          Session[]
   memberships                       Membership[]
   auditEvents                       AuditEvent[]                  @relation("ActorUser")
@@ -128,19 +128,19 @@ model SsoDomainConfig {
 }
 
 model Session {
-  id             String    @id
-  userId         String
-  tokenHash      String    @unique
-  activeTenantId String?
-  ip             String?
-  userAgent      String?
-  createdAt      DateTime  @default(now())
-  expiresAt      DateTime
-  revokedAt      DateTime?
-  lastSeenAt     DateTime  @default(now())
-  user           User      @relation(fields: [userId], references: [id])
-  activeTenant          Tenant?                      @relation(fields: [activeTenantId], references: [id])
-  supportImpersonation  SupportImpersonationSession?
+  id                   String                       @id
+  userId               String
+  tokenHash            String                       @unique
+  activeTenantId       String?
+  ip                   String?
+  userAgent            String?
+  createdAt            DateTime                     @default(now())
+  expiresAt            DateTime
+  revokedAt            DateTime?
+  lastSeenAt           DateTime                     @default(now())
+  user                 User                         @relation(fields: [userId], references: [id])
+  activeTenant         Tenant?                      @relation(fields: [activeTenantId], references: [id])
+  supportImpersonation SupportImpersonationSession?
 
   @@index([userId])
 }
@@ -182,73 +182,73 @@ enum SupportCasePriority {
 
 /// Tenant-scoped helpdesk ticket. Customers open cases; platform support replies.
 model SupportCase {
-  id               String              @id
-  tenantId         String
-  createdByUserId  String
-  subject          String
-  status           SupportCaseStatus   @default(OPEN)
-  priority         SupportCasePriority @default(NORMAL)
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-  closedAt         DateTime?
-  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdBy        User                @relation("SupportCaseCreator", fields: [createdByUserId], references: [id])
-  messages         SupportCaseMessage[]
+  id              String               @id
+  tenantId        String
+  createdByUserId String
+  subject         String
+  status          SupportCaseStatus    @default(OPEN)
+  priority        SupportCasePriority  @default(NORMAL)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  closedAt        DateTime?
+  tenant          Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy       User                 @relation("SupportCaseCreator", fields: [createdByUserId], references: [id])
+  messages        SupportCaseMessage[]
 
   @@index([tenantId, updatedAt])
   @@index([status, updatedAt])
 }
 
 model SupportCaseMessage {
-  id             String   @id
-  caseId         String
-  authorUserId   String
+  id           String      @id
+  caseId       String
+  authorUserId String
   /// customer | support — derived from session role at write time
-  authorKind     String
-  body           String
+  authorKind   String
+  body         String
   /// Visible to support operators only (internal note).
-  internal       Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  case           SupportCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  author         User        @relation(fields: [authorUserId], references: [id])
+  internal     Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  case         SupportCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  author       User        @relation(fields: [authorUserId], references: [id])
 
   @@index([caseId, createdAt])
 }
 
 model Tenant {
-  id                   String                 @id
-  name                 String
-  slug                 String                 @unique
-  status               TenantStatus           @default(ACTIVE)
-  defaultLocale        String                 @default("en")
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  version              Int                    @default(1)
-  memberships          Membership[]
-  sessions             Session[]
-  grants               CapabilityGrant[]
-  audits               AuditEvent[]
-  outbox               OutboxEvent[]
-  jobs                 JobRun[]
-  notifications        Notification[]
-  idempotency          IdempotencyRecord[]
-  brandWorkspaces      BrandWorkspace[]
-  aiRuns               AiRun[]
-  workspaceSetting     WorkspaceSetting?
-  timeSlots            WorkspaceTimeSlot[]
-  subscription         WorkspaceSubscription?
-  upgradeRequests      PlanUpgradeRequest[]
-  billingCheckouts     BillingCheckout[]
-  billingInvoices      BillingInvoice[]
-  billingUsageCounters BillingUsageCounter[]
-  manualPaymentOrders  ManualPaymentOrder[]
-  inboxConversations   InboxConversation[]
-  listeningRules       ListeningRule[]
-  listeningHits        ListeningHit[]
-  listeningAlerts      ListeningAlert[]
-  storageSetting       WorkspaceStorageSetting?
-  storageBackupJobs    StorageBackupJob[]
-  storageMigrations       StorageMigration[]
+  id                    String                        @id
+  name                  String
+  slug                  String                        @unique
+  status                TenantStatus                  @default(ACTIVE)
+  defaultLocale         String                        @default("en")
+  createdAt             DateTime                      @default(now())
+  updatedAt             DateTime                      @updatedAt
+  version               Int                           @default(1)
+  memberships           Membership[]
+  sessions              Session[]
+  grants                CapabilityGrant[]
+  audits                AuditEvent[]
+  outbox                OutboxEvent[]
+  jobs                  JobRun[]
+  notifications         Notification[]
+  idempotency           IdempotencyRecord[]
+  brandWorkspaces       BrandWorkspace[]
+  aiRuns                AiRun[]
+  workspaceSetting      WorkspaceSetting?
+  timeSlots             WorkspaceTimeSlot[]
+  subscription          WorkspaceSubscription?
+  upgradeRequests       PlanUpgradeRequest[]
+  billingCheckouts      BillingCheckout[]
+  billingInvoices       BillingInvoice[]
+  billingUsageCounters  BillingUsageCounter[]
+  manualPaymentOrders   ManualPaymentOrder[]
+  inboxConversations    InboxConversation[]
+  listeningRules        ListeningRule[]
+  listeningHits         ListeningHit[]
+  listeningAlerts       ListeningAlert[]
+  storageSetting        WorkspaceStorageSetting?
+  storageBackupJobs     StorageBackupJob[]
+  storageMigrations     StorageMigration[]
   supportImpersonations SupportImpersonationSession[]
   supportCases          SupportCase[]
   usageOverrides        WorkspaceUsageOverride[]
@@ -803,54 +803,54 @@ model DiscoveredPage {
 }
 
 model DiscoveredProductService {
-  id              String             @id
-  tenantId        String
-  brandId         String
-  scanAttemptId   String
-  kind            ProductServiceKind
-  name            String
-  description     String?
-  category        String?
-  skuPublic       String?
-  priceAmount     String?
-  priceCurrency   String?
-  availability    String?
-  sourcePageId    String?
-  parentProductId String?
-  dedupeKey       String
+  id               String                @id
+  tenantId         String
+  brandId          String
+  scanAttemptId    String
+  kind             ProductServiceKind
+  name             String
+  description      String?
+  category         String?
+  skuPublic        String?
+  priceAmount      String?
+  priceCurrency    String?
+  availability     String?
+  sourcePageId     String?
+  parentProductId  String?
+  dedupeKey        String
   /// The product's own page (absolute URL) when known.
-  sourceUrl       String?
+  sourceUrl        String?
   /// Regular price when the product is on sale.
-  compareAtPrice  String?
+  compareAtPrice   String?
   /// Platform identifier, e.g. `shopify:123`.
-  platformId      String?
-  variantCount    Int?
+  platformId       String?
+  variantCount     Int?
   /// JSON array of { label, value } facts published by the store.
-  attributesJson  String?
+  attributesJson   String?
   /// PLATFORM_API | JSON_LD | MICRODATA | OPEN_GRAPH | DOM_DETAIL
   extractionSource String?
-  confidence      Float?
-  brand           BrandWorkspace     @relation(fields: [brandId], references: [id])
-  scanAttempt     ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
-  catalogMedia    CatalogProductMedia[]
+  confidence       Float?
+  brand            BrandWorkspace        @relation(fields: [brandId], references: [id])
+  scanAttempt      ScanAttempt           @relation(fields: [scanAttemptId], references: [id])
+  catalogMedia     CatalogProductMedia[]
 
   @@unique([scanAttemptId, dedupeKey])
   @@index([tenantId, scanAttemptId])
 }
 
 model CatalogProductMedia {
-  id                   String                @id
-  tenantId             String
-  brandId              String
-  discoveredProductId  String
-  mediaAssetId         String
-  role                 CatalogMediaRole
-  reviewStatus         CatalogMediaReviewStatus @default(APPROVED)
-  sourceUrl            String?
-  sortOrder            Int                   @default(0)
-  createdAt            DateTime              @default(now())
-  discoveredProduct    DiscoveredProductService @relation(fields: [discoveredProductId], references: [id], onDelete: Cascade)
-  mediaAsset           MediaAsset            @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  id                  String                   @id
+  tenantId            String
+  brandId             String
+  discoveredProductId String
+  mediaAssetId        String
+  role                CatalogMediaRole
+  reviewStatus        CatalogMediaReviewStatus @default(APPROVED)
+  sourceUrl           String?
+  sortOrder           Int                      @default(0)
+  createdAt           DateTime                 @default(now())
+  discoveredProduct   DiscoveredProductService @relation(fields: [discoveredProductId], references: [id], onDelete: Cascade)
+  mediaAsset          MediaAsset               @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
 
   @@unique([discoveredProductId, mediaAssetId, role])
   @@index([tenantId, brandId, discoveredProductId])
@@ -1063,6 +1063,12 @@ model StrategyVersion {
   reviewDecisions                StrategyReviewDecision[]
   approvalRecord                 StrategyApprovalRecord?
   humanEdits                     StrategyHumanEdit[]
+  contentPillars                 StrategyContentPillar[]
+  seoKeywords                    StrategySeoKeyword[]
+  contentGaps                    StrategyContentGap[]
+  paidAllocations                StrategyPaidAllocation[]
+  paidAudiences                  StrategyPaidAudience[]
+  experiments                    StrategyExperiment[]
 
   @@unique([strategyId, versionNumber])
   @@index([tenantId, brandId, strategyId, createdAt])
@@ -1244,6 +1250,216 @@ model StrategyHumanEdit {
   correlationId     String?
   createdAt         DateTime        @default(now())
   version           StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId])
+}
+
+/// Strategy tracks v2 (DEC-021). Child rows of a StrategyVersion: copied on revise/clone,
+/// frozen with the version once it leaves DRAFT. `source` labels where a row or metric came from.
+enum StrategySearchIntent {
+  INFORMATIONAL
+  NAVIGATIONAL
+  COMMERCIAL
+  TRANSACTIONAL
+}
+
+enum StrategyDataSource {
+  MANUAL
+  AI_ESTIMATE
+  DETERMINISTIC
+  BRAND_PROFILE
+  EXTERNAL
+}
+
+enum StrategyContentGapKind {
+  MISSING_TOPIC
+  THIN_CONTENT
+  MISSING_FORMAT
+  FUNNEL_STAGE
+  COMPETITOR_ONLY
+}
+
+enum StrategyFunnelStage {
+  AWARENESS
+  CONSIDERATION
+  CONVERSION
+  RETENTION
+}
+
+enum StrategyPaidPlatform {
+  META
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  SNAPCHAT
+  X
+  LINKEDIN
+  YOUTUBE
+  GOOGLE_SEARCH
+}
+
+enum StrategyPaidObjective {
+  AWARENESS
+  TRAFFIC
+  ENGAGEMENT
+  LEADS
+  APP_PROMOTION
+  SALES
+}
+
+enum StrategyExperimentVariable {
+  CREATIVE
+  COPY
+  AUDIENCE
+  PLACEMENT
+  OFFER
+  LANDING_PAGE
+}
+
+enum StrategyExperimentStatus {
+  PLANNED
+  RUNNING
+  CONCLUDED
+  CANCELLED
+}
+
+model StrategyContentPillar {
+  id                String               @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  key               String
+  nameEn            String
+  nameAr            String
+  description       String?
+  funnelStage       StrategyFunnelStage?
+  shareTargetPct    Int?
+  infoClass         StrategyInfoClass    @default(USER_AUTHORED)
+  source            StrategyDataSource   @default(MANUAL)
+  evidenceRefs      String[]             @default([])
+  aiRunId           String?
+  sortOrder         Int                  @default(0)
+  createdAt         DateTime             @default(now())
+  version           StrategyVersion      @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyVersionId, key])
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategySeoKeyword {
+  id                String               @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  keyword           String
+  locale            String               @default("ar")
+  intent            StrategySearchIntent
+  pillarKey         String?
+  priority          Int                  @default(3)
+  monthlyVolume     Int?
+  difficulty        Int?
+  metricSource      StrategyDataSource?
+  infoClass         StrategyInfoClass    @default(USER_AUTHORED)
+  source            StrategyDataSource   @default(MANUAL)
+  evidenceRefs      String[]             @default([])
+  aiRunId           String?
+  sortOrder         Int                  @default(0)
+  createdAt         DateTime             @default(now())
+  version           StrategyVersion      @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyContentGap {
+  id                String                 @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  kind              StrategyContentGapKind
+  topic             String
+  description       String?
+  pillarKey         String?
+  priority          Int                    @default(3)
+  infoClass         StrategyInfoClass      @default(USER_AUTHORED)
+  source            StrategyDataSource     @default(MANUAL)
+  evidenceRefs      String[]               @default([])
+  aiRunId           String?
+  sortOrder         Int                    @default(0)
+  createdAt         DateTime               @default(now())
+  version           StrategyVersion        @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyPaidAllocation {
+  id                String                @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  platform          StrategyPaidPlatform
+  objective         StrategyPaidObjective
+  sharePct          Int
+  funnelStage       StrategyFunnelStage?
+  rationale         String?
+  infoClass         StrategyInfoClass     @default(USER_AUTHORED)
+  source            StrategyDataSource    @default(MANUAL)
+  evidenceRefs      String[]              @default([])
+  aiRunId           String?
+  sortOrder         Int                   @default(0)
+  createdAt         DateTime              @default(now())
+  version           StrategyVersion       @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyVersionId, platform, objective])
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyPaidAudience {
+  id                String                @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  key               String
+  name              String
+  description       String?
+  platform          StrategyPaidPlatform?
+  funnelStage       StrategyFunnelStage?
+  /// JSON validated by `paidTargetingSchema` (locations, languages, ages, genders, interests…).
+  targetingJson     String                @default("{}")
+  infoClass         StrategyInfoClass     @default(USER_AUTHORED)
+  source            StrategyDataSource    @default(MANUAL)
+  evidenceRefs      String[]              @default([])
+  aiRunId           String?
+  sortOrder         Int                   @default(0)
+  createdAt         DateTime              @default(now())
+  version           StrategyVersion       @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyVersionId, key])
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyExperiment {
+  id                String                     @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  name              String
+  hypothesis        String
+  variable          StrategyExperimentVariable
+  platform          StrategyPaidPlatform?
+  audienceKey       String?
+  /// JSON array validated by `experimentVariantSchema` ([{ key: "A", description }]).
+  variantsJson      String                     @default("[]")
+  primaryMetric     String
+  minSampleSize     Int?
+  durationDays      Int?
+  status            StrategyExperimentStatus   @default(PLANNED)
+  infoClass         StrategyInfoClass          @default(USER_AUTHORED)
+  source            StrategyDataSource         @default(MANUAL)
+  evidenceRefs      String[]                   @default([])
+  aiRunId           String?
+  sortOrder         Int                        @default(0)
+  createdAt         DateTime                   @default(now())
+  version           StrategyVersion            @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, strategyVersionId])
 }
@@ -1897,26 +2113,26 @@ model ContentPublishTarget {
 /// A connected social profile/page for a brand. Tokens are AES-256-GCM encrypted at rest
 /// (SOCIAL_TOKEN_ENCRYPTION_KEY); never returned by the API.
 model SocialPage {
-  id               String                 @id
+  id               String                   @id
   tenantId         String
   brandId          String
   network          SocialNetwork
   externalId       String
   name             String
   avatarUrl        String?
-  status           SocialPageStatus       @default(CONNECTED)
+  status           SocialPageStatus         @default(CONNECTED)
   accessTokenEnc   String
   refreshTokenEnc  String?
   tokenExpiresAt   DateTime?
   refreshExpiresAt DateTime?
-  scopes           String[]               @default([])
+  scopes           String[]                 @default([])
   /// Network-specific ids (e.g. Instagram business account's parent Facebook page).
-  metaJson         String                 @default("{}")
+  metaJson         String                   @default("{}")
   lastError        String?
   lastRefreshedAt  DateTime?
   connectedBy      String
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
   publishTargets   ContentPublishTarget[]
   metricSnapshots  PostMetricSnapshot[]
   activityBuckets  AudienceActivityBucket[]
@@ -1927,8 +2143,6 @@ model SocialPage {
   @@index([tenantId, brandId])
   @@index([status, tokenExpiresAt])
 }
-
-
 
 /// Per-account auto-queue that assigns the next free send slot.
 model PublishQueue {
@@ -2093,24 +2307,24 @@ enum StorageMode {
 
 /// Per-workspace storage mode. Absent row means OMA_INTERNAL (unless a BYOS connection exists).
 model WorkspaceStorageSetting {
-  tenantId              String      @id
-  mode                  StorageMode @default(OMA_INTERNAL)
-  workdriveRootFolderId String?
-  workdriveKeyRef       String?
+  tenantId               String      @id
+  mode                   StorageMode @default(OMA_INTERNAL)
+  workdriveRootFolderId  String?
+  workdriveKeyRef        String?
   /// Encrypted child wdk_ for tenants/{tenantId} when the master key can mint.
-  platformKeyEnc        String?
-  platformKeyPrefix     String?
-  platformKeyId         String?
-  platformRootFolderId  String?
+  platformKeyEnc         String?
+  platformKeyPrefix      String?
+  platformKeyId          String?
+  platformRootFolderId   String?
   /// active | unsupported | revoked
-  platformKeyStatus     String?
-  backupPausedAt        DateTime?
+  platformKeyStatus      String?
+  backupPausedAt         DateTime?
   /// quota_exceeded | key_revoked
-  backupPausedReason    String?
+  backupPausedReason     String?
   /// Super-admin override for plan storage_bytes (null = follow plan catalog only).
   adminStorageLimitBytes BigInt?
-  updatedAt             DateTime    @updatedAt
-  tenant                Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  updatedAt              DateTime    @updatedAt
+  tenant                 Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 /// Replay protection for inbound WorkDrive webhooks (event id).
@@ -2171,21 +2385,21 @@ model StorageBackupJob {
 }
 
 model StorageMigration {
-  id           String                  @id
+  id           String                 @id
   tenantId     String
-  status       StorageMigrationStatus  @default(PENDING)
-  deleteSource Boolean                 @default(false)
-  total        Int                     @default(0)
-  completed    Int                     @default(0)
-  failed       Int                     @default(0)
-  skipped      Int                     @default(0)
+  status       StorageMigrationStatus @default(PENDING)
+  deleteSource Boolean                @default(false)
+  total        Int                    @default(0)
+  completed    Int                    @default(0)
+  failed       Int                    @default(0)
+  skipped      Int                    @default(0)
   lastError    String?
   startedBy    String
   startedAt    DateTime?
   finishedAt   DateTime?
-  createdAt    DateTime                @default(now())
-  updatedAt    DateTime                @updatedAt
-  tenant       Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, status])
 }
@@ -2205,34 +2419,34 @@ model StorageQuotaReconcile {
 
 /// A file OMA uses (post media, brand logo, deliverable) stored in WorkDrive (platform or BYOS).
 model MediaAsset {
-  id              String           @id
-  tenantId        String
-  brandId         String?
+  id                  String                @id
+  tenantId            String
+  brandId             String?
   /// posts | logos | deliverables | avatars
-  kind            String
-  workdriveFileId String
-  folderId        String?
-  name            String
-  mime            String
-  size            BigInt
-  sha256          String?
-  status          MediaAssetStatus @default(READY)
-  storageProvider StorageProvider  @default(OMA_INTERNAL)
+  kind                String
+  workdriveFileId     String
+  folderId            String?
+  name                String
+  mime                String
+  size                BigInt
+  sha256              String?
+  status              MediaAssetStatus      @default(READY)
+  storageProvider     StorageProvider       @default(OMA_INTERNAL)
   /// Logical path such as tenants/{tenantId}/brands/{brandId}/posts
-  storagePath     String?
-  replicaFileId   String?
-  replicaFolderId String?
+  storagePath         String?
+  replicaFileId       String?
+  replicaFolderId     String?
   /// pending | ready | failed | skipped
-  replicaStatus   String?
+  replicaStatus       String?
   /// upload | workdrive (picked from existing files) | migrated
-  source          String           @default("upload")
-  lastCheckedAt   DateTime?
-  missingSince    DateTime?
-  createdBy       String
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  backupJobs           StorageBackupJob[]
-  catalogProductLinks  CatalogProductMedia[]
+  source              String                @default("upload")
+  lastCheckedAt       DateTime?
+  missingSince        DateTime?
+  createdBy           String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  backupJobs          StorageBackupJob[]
+  catalogProductLinks CatalogProductMedia[]
 
   @@unique([tenantId, brandId, workdriveFileId])
   @@index([tenantId, brandId, kind, createdAt])
@@ -2322,17 +2536,17 @@ model WorkspaceSubscription {
 }
 
 model BillingSettings {
-  id                       String   @id @default("platform")
-  vatRateBps               Int      @default(1700)
-  gracePeriodDays          Int      @default(7)
-  trialDays                Int      @default(14)
-  currency                 String   @default("usd")
-  xApiAddonMonthlyUsdCents Int      @default(2900)
-  bankInstructionsEn           String?
-  bankInstructionsAr           String?
+  id                        String   @id @default("platform")
+  vatRateBps                Int      @default(1700)
+  gracePeriodDays           Int      @default(7)
+  trialDays                 Int      @default(14)
+  currency                  String   @default("usd")
+  xApiAddonMonthlyUsdCents  Int      @default(2900)
+  bankInstructionsEn        String?
+  bankInstructionsAr        String?
   /// Shown on manual bank-transfer checkout and admin activation screens.
-  bankTransferAccountNumber    String?
-  updatedAt                    DateTime @updatedAt
+  bankTransferAccountNumber String?
+  updatedAt                 DateTime @updatedAt
 }
 
 model BillingInvoice {
@@ -2385,24 +2599,24 @@ model BillingWebhookEvent {
 }
 
 model ManualPaymentOrder {
-  id                String    @id
-  tenantId          String
-  requestedBy       String
-  planCode          String
-  billingCycle      String    @default("monthly")
-  xApiAddon         Boolean   @default(false)
+  id                  String    @id
+  tenantId            String
+  requestedBy         String
+  planCode            String
+  billingCycle        String    @default("monthly")
+  xApiAddon           Boolean   @default(false)
   /// bank_transfer | jawwal_pay | palpay | reflect | lahza
-  provider          String
-  reference         String    @unique
-  amountExVatCents  Int
-  vatRateBps        Int
-  vatCents          Int
-  amountIncVatCents Int
-  currency          String    @default("usd")
+  provider            String
+  reference           String    @unique
+  amountExVatCents    Int
+  vatRateBps          Int
+  vatCents            Int
+  amountIncVatCents   Int
+  currency            String    @default("usd")
   /// awaiting_payment | proof_uploaded | approved | rejected | cancelled
-  status            String    @default("awaiting_payment")
-  instructionsEn    String
-  instructionsAr    String
+  status              String    @default("awaiting_payment")
+  instructionsEn      String
+  instructionsAr      String
   proofNote           String?
   proofFileName       String?
   proofMime           String?
@@ -2414,11 +2628,11 @@ model ManualPaymentOrder {
   transferAt          DateTime?
   transferTxnRef      String?
   adminNote           String?
-  approvedBy        String?
-  approvedAt        DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  approvedBy          String?
+  approvedAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  tenant              Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, status])
   @@index([status, createdAt])

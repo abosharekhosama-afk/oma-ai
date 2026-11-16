@@ -3365,5 +3365,7 @@
   "strategy.list.noApprovedVersion": "No approved version",
   "strategy.list.updatedAt": "Updated {date}",
   "strategy.overview.versionNumber": "Version {number}",
-  "strategy.overview.noTracks": "No tracks enabled"
+  "strategy.overview.noTracks": "No tracks enabled",
+  "errors.strategy_plan_invalid": "Some plan rows are invalid. Check the highlighted fields and try again.",
+  "errors.strategy_track_disabled": "This track is turned off for this strategy version. Turn it on first."
 }
