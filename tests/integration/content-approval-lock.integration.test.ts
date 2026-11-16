@@ -159,8 +159,6 @@ describe('approval lock covers every publishable mutation path (DEC-025)', () =>
     const row = await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post.id } });
     expect(row.approverApproved).toBe(0);
     // The restarted round accepts the same approver again.
-    expect((await api.act(post.id, 'approve')).body.data.approval_state).toBe(
-      'PARTIALLY_APPROVED',
-    );
+    expect((await api.act(post.id, 'approve')).body.data.approval_state).toBe('PARTIALLY_APPROVED');
   });
 });
