@@ -1010,8 +1010,9 @@ export class ContentService {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     }
     if (current.approverRequired > 1) {
+      // A new round starts at the last request or at an approval reset on edit (DEC-025).
       const lastRequest = await getPrisma().contentApprovalEvent.findFirst({
-        where: { tenantId, contentId, action: 'REQUEST' },
+        where: { tenantId, contentId, action: { in: ['REQUEST', 'APPROVAL_RESET'] } },
         orderBy: { at: 'desc' },
       });
       const already = await getPrisma().contentApprovalEvent.findFirst({
