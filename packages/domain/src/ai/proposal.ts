@@ -31,7 +31,7 @@ export function validateProposal(
   return { ok: true, proposal: parsed.data };
 }
 
-/** Strict JSON Schema for OpenAI Structured Outputs. All properties required. */
+/** @deprecated v1, hand-written. Use the `brand.analysis` / `strategy.foundation` contracts instead; removed in PR 3.5. */
 export function proposalJsonSchema(): Record<string, unknown> {
   return {
     type: 'object',

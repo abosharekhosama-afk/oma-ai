@@ -79,7 +79,7 @@ export function validateContentGeneration(
   return { ok: true, result: parsed.data };
 }
 
-/** Strict JSON Schema for OpenAI Structured Outputs. */
+/** @deprecated v1, hand-written. Use the `content.*` contracts (ai/contracts) instead; removed in PR 3.5. */
 export function contentGenerationJsonSchema(): Record<string, unknown> {
   return {
     type: 'object',
