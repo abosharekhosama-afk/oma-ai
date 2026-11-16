@@ -10,6 +10,7 @@ import {
   mergeCatalogFieldValues,
   newId,
   parseCatalogFieldValue,
+  referenceTaxonomyFromInfoState,
 } from '@oma/domain';
 import { notificationAllowed } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
@@ -75,6 +76,7 @@ export class ProfileService {
           id: i.id,
           field_key: i.fieldKey,
           info_state: i.infoState,
+          reference_class: referenceTaxonomyFromInfoState(i.infoState),
           review_status: i.reviewStatus,
           discovery_tier: i.discoveryTier,
           evidence_id: i.evidenceId,

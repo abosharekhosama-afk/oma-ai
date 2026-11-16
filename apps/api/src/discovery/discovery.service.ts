@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
-import { catalogCoverage, DomainError } from '@oma/domain';
+import { catalogCoverage, DomainError, referenceTaxonomyFromInfoState } from '@oma/domain';
 
 function parseAttributes(raw: string | null): Array<{ label: string; value: string }> {
   if (!raw) return [];
@@ -47,6 +47,7 @@ export class DiscoveryService {
         url: p.url,
         canonical_url: p.canonicalUrl,
         title: p.title,
+        reference_class: referenceTaxonomyFromInfoState('OBSERVED'),
         classification: p.classification,
         fetch_status: p.fetchStatus,
         http_status: p.httpStatus,
@@ -92,6 +93,7 @@ export class DiscoveryService {
       data: data.map((p) => ({
         id: p.id,
         kind: p.kind,
+        reference_class: referenceTaxonomyFromInfoState('OBSERVED'),
         name: p.name,
         description: p.description,
         category: p.category,
@@ -181,6 +183,7 @@ export class DiscoveryService {
         fetched_at: e.fetchedAt.toISOString(),
         excerpt_text: e.excerptText,
         content_hash: e.contentHash,
+        reference_class: referenceTaxonomyFromInfoState('OBSERVED'),
         extraction_method: e.extractionMethod,
         scan_attempt_id: e.scanAttemptId,
         discovered_page_id: e.discoveredPageId,
