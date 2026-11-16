@@ -240,6 +240,7 @@ export async function runBrandProfileAnalysis(input: {
   let errorCode: string | null = null;
   let failureStage: AiRunFailureStage = 'provider';
   let refusalReason: string | null = null;
+  let attempts = 1;
 
   if (live && !useTest) {
     try {
@@ -259,12 +260,14 @@ export async function runBrandProfileAnalysis(input: {
         model = result.model ?? model;
         inputTokens = result.inputTokens ?? 0;
         outputTokens = result.outputTokens ?? 0;
+        attempts = result.attempts ?? 1;
         if (result.code === 'REFUSAL') refusalReason = result.message ?? 'REFUSAL';
       } else {
         proposal = result.proposal;
         inputTokens = result.inputTokens;
         outputTokens = result.outputTokens;
         model = result.model;
+        attempts = result.attempts;
       }
     } catch (err) {
       errorCode = 'PROVIDER_ERROR';
@@ -357,7 +360,7 @@ export async function runBrandProfileAnalysis(input: {
       outputTokens,
       costUsd: callCost,
       latencyMs: Date.now() - started,
-      attemptCount: 1,
+      attemptCount: attempts,
       proposalJson,
       outputHash: createHash('sha256').update(proposalJson).digest('hex'),
       promptVersion: proposal.promptVersion,
@@ -379,7 +382,7 @@ export async function runBrandProfileAnalysis(input: {
       // Failed attempts that reached the provider still cost tokens (DEC-027 #8).
       costUsd: useTest ? 0 : callCost,
       latencyMs: Date.now() - started,
-      attemptCount: 1,
+      attemptCount: attempts,
       refusalReason,
     });
     await markAnalysis(input.tenantId, input.scanAttemptId, input.profileVersionId, {

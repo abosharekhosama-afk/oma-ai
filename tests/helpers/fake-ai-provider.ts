@@ -9,6 +9,8 @@ export type FakeAiReply = {
   delayMs?: number;
   status?: number;
   refusal?: string;
+  /** Error message for status >= 400 replies. */
+  errorMessage?: string;
 };
 
 export type FakeAiRequest = { path: string; body: Record<string, unknown> };
@@ -36,7 +38,14 @@ export async function startFakeAiProvider(replies: FakeAiReply[]) {
     res.setHeader('content-type', 'application/json');
     if (reply.status && reply.status >= 400) {
       res.statusCode = reply.status;
-      res.end(JSON.stringify({ error: { message: 'fake provider error', type: 'server_error' } }));
+      res.end(
+        JSON.stringify({
+          error: {
+            message: reply.errorMessage ?? 'fake provider error',
+            type: 'invalid_request_error',
+          },
+        }),
+      );
       return;
     }
     const usageIn = reply.inputTokens ?? 1000;

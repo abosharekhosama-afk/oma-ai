@@ -231,7 +231,7 @@ export async function runStructuredGeneration<T>(input: {
   const fail = async (
     code: string,
     stage: AiRunFailureStage,
-    usage: { model?: string; inputTokens?: number; outputTokens?: number } = {},
+    usage: { model?: string; inputTokens?: number; outputTokens?: number; attempts?: number } = {},
     refusalReason?: string,
   ) => {
     const model = usage.model ?? plannedModel;
@@ -247,7 +247,7 @@ export async function runStructuredGeneration<T>(input: {
       outputTokens: usage.outputTokens,
       costUsd,
       latencyMs: Date.now() - started,
-      attemptCount: 1,
+      attemptCount: usage.attempts ?? 1,
       refusalReason: refusalReason ?? null,
     });
   };
@@ -256,6 +256,7 @@ export async function runStructuredGeneration<T>(input: {
   let model = plannedModel;
   let inputTokens = estimateTokens(input.prompt.user);
   let outputTokens = 64;
+  let attempts = 1;
   try {
     if (useTest) {
       raw = input.testValue();
@@ -289,6 +290,7 @@ export async function runStructuredGeneration<T>(input: {
       model = result.model;
       inputTokens = result.inputTokens;
       outputTokens = result.outputTokens;
+      attempts = result.attempts;
     }
   } catch (err) {
     const current = await getPrisma().aiRun.findUnique({
@@ -301,7 +303,7 @@ export async function runStructuredGeneration<T>(input: {
 
   const parsed = input.parse(raw);
   if (!parsed.ok) {
-    await fail('SCHEMA_INVALID', 'schema', { model, inputTokens, outputTokens });
+    await fail('SCHEMA_INVALID', 'schema', { model, inputTokens, outputTokens, attempts });
     throw new DomainError(
       'SCHEMA_INVALID',
       'Model output failed schema validation',
@@ -324,7 +326,7 @@ export async function runStructuredGeneration<T>(input: {
     outputTokens,
     costUsd,
     latencyMs: Date.now() - started,
-    attemptCount: 1,
+    attemptCount: attempts,
     proposalJson,
     outputHash: createHash('sha256').update(proposalJson).digest('hex'),
   });

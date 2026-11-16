@@ -17,3 +17,21 @@ export {
   configuredAiProvider,
   configuredAiApiKey,
 } from './provider-factory';
+export {
+  PROVIDER_CAPABILITIES,
+  isSchemaRejection,
+  structuredOutputMode,
+  type AiProviderName,
+  type ProviderCapability,
+  type StructuredOutputMode,
+} from './capabilities';
+export {
+  buildRepairMessage,
+  extractJsonText,
+  repairAttemptsFromEnv,
+  runStructuredCore,
+  type CoreMessage,
+  type CoreReply,
+  type CoreTransport,
+  type StructuredValidate,
+} from './structured-core';

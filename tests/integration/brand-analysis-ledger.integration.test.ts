@@ -100,7 +100,8 @@ describe('brand analysis worker: unified run ledger', () => {
         status: 'SCHEMA_INVALID',
         failureStage: 'parse',
         reservedCost: '0',
-        inputTokens: 3000,
+        inputTokens: 6000,
+        attemptCount: 2,
       });
       expect(Number(row.settledCost)).toBeGreaterThan(0);
       const scan = await getPrisma().scanAttempt.findUniqueOrThrow({
@@ -125,6 +126,7 @@ describe('brand analysis worker: unified run ledger', () => {
     };
     const fake = await startFakeAiProvider([
       { content: 'nope' },
+      { content: 'still nope' },
       { content: JSON.stringify(proposal) },
     ]);
     try {

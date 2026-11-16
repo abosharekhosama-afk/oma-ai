@@ -76,7 +76,7 @@ describe('AI run ledger: every call recorded, real latency, safe reservations', 
     await getPrisma().aiRun.deleteMany({ where: { tenantId: seed.tenantId } });
   });
 
-  it('records an invalid-JSON live call as SCHEMA_INVALID with its billed cost', async () => {
+  it('records an invalid-JSON live call (after its repair attempt) as SCHEMA_INVALID with its billed cost', async () => {
     const fake = await startFakeAiProvider([
       { content: 'this is not json', inputTokens: 2000, outputTokens: 1000 },
     ]);
@@ -93,9 +93,10 @@ describe('AI run ledger: every call recorded, real latency, safe reservations', 
         failureStage: 'parse',
         errorCode: 'SCHEMA_INVALID',
         reservedCost: '0',
-        inputTokens: 2000,
-        outputTokens: 1000,
-        attemptCount: 1,
+        // First call + one repair call (DEC-027 #1), both billed.
+        inputTokens: 4000,
+        outputTokens: 2000,
+        attemptCount: 2,
       });
       expect(Number(run.settledCost)).toBeGreaterThan(0);
       expect(run.latencyMs).not.toBeNull();

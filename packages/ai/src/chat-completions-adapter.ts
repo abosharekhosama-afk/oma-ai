@@ -3,16 +3,21 @@ import {
   isAiUseCase,
   proposalJsonSchema,
   routeModel,
-  validateProposal,
   type AiGenerateRequest,
   type AiGenerateResult,
   type AiModelConfig,
-  type AiProposal,
   type AiProviderPort,
   type AiUseCase,
 } from '@oma/domain';
-import { mapProviderError, type AiStructuredErrorCode } from './provider-errors';
-import type { AiStructuredFailure, AiStructuredSuccess } from './openai-adapter';
+import { structuredOutputMode } from './capabilities';
+import {
+  repairAttemptsFromEnv,
+  runStructuredCore,
+  type AiStructuredFailure,
+  type AiStructuredSuccess,
+  type CoreTransport,
+  type StructuredValidate,
+} from './structured-core';
 
 export type ChatCompletionsClient = {
   chat: {
@@ -38,10 +43,9 @@ export type ChatCompletionsAdapterOptions = AiModelConfig & {
   baseUrl: string;
   timeoutMs?: number;
   maxRetries?: number;
+  repairAttempts?: number;
   client?: ChatCompletionsClient;
 };
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class ChatCompletionsProviderAdapter implements AiProviderPort {
   constructor(private readonly options: ChatCompletionsAdapterOptions) {}
@@ -77,7 +81,7 @@ export class ChatCompletionsProviderAdapter implements AiProviderPort {
     userPrompt?: string;
     schema?: Record<string, unknown>;
     abortSignal?: AbortSignal;
-    validate?: (parsed: unknown) => { ok: true; value: unknown } | { ok: false; issues?: string[] };
+    validate?: StructuredValidate;
   }): Promise<AiStructuredSuccess | AiStructuredFailure> {
     const routed = routeModel(input.useCase, this.options);
     if (!this.options.liveEnabled) return { ok: false, code: 'AI_DISABLED' };
@@ -96,89 +100,42 @@ export class ChatCompletionsProviderAdapter implements AiProviderPort {
 
     const maxRetries = this.options.maxRetries ?? 2;
     const timeoutMs = this.options.timeoutMs ?? 60_000;
-    const userPrompt =
-      input.userPrompt ?? JSON.stringify({ useCase: input.useCase, payload: input.payload });
-    const schema = input.schema ?? proposalJsonSchema();
-    const body = {
-      model: routed.model,
-      messages: [
+    const chat = client;
+    const transport: CoreTransport = async (messages, format, signal) => {
+      const response = await chat.chat.completions.create(
         {
-          role: 'system',
-          content: input.systemPrompt ?? 'Return only JSON matching the provided schema.',
+          model: routed.model,
+          messages,
+          response_format:
+            format.mode === 'json_schema_strict'
+              ? {
+                  type: 'json_schema',
+                  json_schema: { name: 'oma_text_proposal', strict: true, schema: format.schema },
+                }
+              : { type: 'json_object' },
         },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: { name: 'oma_text_proposal', strict: true, schema },
-      },
+        { signal },
+      );
+      const choice = response.choices?.[0];
+      return {
+        text: choice?.message?.content || '',
+        refusal: choice?.message?.refusal || null,
+        inputTokens: response.usage?.prompt_tokens ?? 0,
+        outputTokens: response.usage?.completion_tokens ?? 0,
+      };
     };
-
-    let lastError: AiStructuredFailure = { ok: false, code: 'PROVIDER_ERROR' };
-    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const controller = new AbortController();
-      const onAbort = () => controller.abort();
-      input.abortSignal?.addEventListener('abort', onAbort);
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const response = await client.chat.completions.create(body, { signal: controller.signal });
-        const usage = {
-          model: routed.model,
-          inputTokens: response.usage?.prompt_tokens ?? 0,
-          outputTokens: response.usage?.completion_tokens ?? 0,
-        };
-        const choice = response.choices?.[0];
-        if (choice?.message?.refusal) {
-          return { ok: false, code: 'REFUSAL', message: choice.message.refusal, ...usage };
-        }
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(choice?.message?.content || '');
-        } catch {
-          return { ok: false, code: 'SCHEMA_INVALID', stage: 'parse', ...usage };
-        }
-        let output: unknown = parsed;
-        let proposal: AiProposal | null = null;
-        if (input.validate) {
-          const checked = input.validate(parsed);
-          if (!checked.ok)
-            return {
-              ok: false,
-              code: 'SCHEMA_INVALID',
-              stage: 'schema',
-              issues: checked.issues,
-              ...usage,
-            };
-          output = checked.value;
-        } else {
-          const checked = validateProposal(parsed);
-          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID', stage: 'schema', ...usage };
-          proposal = checked.proposal;
-          output = checked.proposal;
-        }
-        return {
-          ok: true,
-          proposal: proposal ?? (output as AiProposal),
-          output,
-          model: routed.model,
-          inputTokens: response.usage?.prompt_tokens ?? 0,
-          outputTokens: response.usage?.completion_tokens ?? 0,
-        };
-      } catch (err) {
-        const mapped = mapProviderError(err);
-        lastError = {
-          ok: false,
-          code: mapped.code as AiStructuredErrorCode,
-          message: mapped.message,
-        };
-        const canRetry = mapped.retryable && attempt < maxRetries && !input.abortSignal?.aborted;
-        if (!canRetry) return lastError;
-        await sleep(250 * 2 ** attempt);
-      } finally {
-        clearTimeout(timer);
-        input.abortSignal?.removeEventListener('abort', onAbort);
-      }
-    }
-    return lastError;
+    return runStructuredCore({
+      transport,
+      model: routed.model,
+      system: input.systemPrompt ?? 'Return only JSON matching the provided schema.',
+      user: input.userPrompt ?? JSON.stringify({ useCase: input.useCase, payload: input.payload }),
+      schema: input.schema ?? proposalJsonSchema(),
+      mode: structuredOutputMode(this.options.provider, routed.model),
+      validate: input.validate,
+      maxRetries,
+      timeoutMs,
+      repairAttempts: this.options.repairAttempts ?? repairAttemptsFromEnv(),
+      abortSignal: input.abortSignal,
+    });
   }
 }
