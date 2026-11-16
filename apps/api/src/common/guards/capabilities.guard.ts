@@ -287,6 +287,11 @@ const routeRequirements: Record<string, string[]> = {
 
   'POST /api/v1/content/:contentId/request-changes': ['content.approve'],
   'POST /api/v1/content/:contentId/reopen': ['content.approve'],
+  'GET /api/v1/content/:contentId/approval': ['content.read'],
+  'GET /api/v1/workspace/approval-levels': ['content.read'],
+  'PUT /api/v1/workspace/approval-levels': ['tenant.manage'],
+  'GET /api/v1/brands/:brandId/approval-levels': ['content.read'],
+  'PUT /api/v1/brands/:brandId/approval-levels': ['tenant.manage'],
   'POST /api/v1/content/:contentId/schedule': ['content.schedule'],
   'POST /api/v1/content/:contentId/enqueue': ['content.schedule'],
   'GET /api/v1/workspace/publish-queues': ['content.schedule'],

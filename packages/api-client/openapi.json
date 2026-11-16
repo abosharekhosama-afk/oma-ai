@@ -2875,6 +2875,72 @@
         ]
       }
     },
+    "/api/v1/content/{contentId}/approval": {
+      "get": {
+        "operationId": "ContentController_approvalProgress",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/workspace/approval-levels": {
+      "get": {
+        "operationId": "ContentController_workspaceLevels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      },
+      "put": {
+        "operationId": "ContentController_putWorkspaceLevels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/approval-levels": {
+      "get": {
+        "operationId": "ContentController_brandLevels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      },
+      "put": {
+        "operationId": "ContentController_putBrandLevels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
     "/api/v1/content/{contentId}/channel-analytics": {
       "get": {
         "operationId": "ContentController_channelAnalytics",

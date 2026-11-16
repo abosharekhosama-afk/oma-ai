@@ -13,7 +13,7 @@ import type { ApprovalPolicy, ApprovalState } from './states';
  * - APPROVED, lock off, policy ≠ NONE → the edit is allowed and the approval resets
  *   to NOT_REQUESTED (audited as `content.approval_reset_on_edit`).
  * - PARTIALLY_APPROVED                → the edit is allowed and collected approvals
- *   reset to 0 (state back to PENDING): approvers must see the final version.
+ *   reset to 0 (state back to PENDING, new round): approvers must see the final version.
  *
  * Planning metadata (planned date, labels, client visibility, campaign, track)
  * never counts as a publishable change and stays editable while locked.
@@ -39,6 +39,8 @@ export type ContentLockInput = {
 export type ApprovalResetData = {
   approvalState: 'NOT_REQUESTED' | 'PENDING';
   approverApproved: 0;
+  /** A restarted review opens a new round, so earlier per-level decisions no longer count. */
+  approvalRoundStartedAt?: Date;
 };
 
 export type ContentMutationDecision =
@@ -63,6 +65,7 @@ export function isContentLocked(input: {
 export function decideContentMutation(
   input: ContentLockInput,
   fields: readonly LockedContentField[],
+  now: Date = new Date(),
 ): ContentMutationDecision {
   const touched = [...new Set(fields)].filter((f) =>
     (LOCKED_CONTENT_FIELDS as readonly string[]).includes(f),
@@ -81,12 +84,12 @@ export function decideContentMutation(
       unschedule: input.policy === 'REQUIRED',
     };
   }
-  if (input.approvalState === 'PARTIALLY_APPROVED' && input.approverApproved > 0) {
+  if (input.approvalState === 'PARTIALLY_APPROVED') {
     return {
       kind: 'reset',
       from: 'PARTIALLY_APPROVED',
       fields: touched,
-      data: { approvalState: 'PENDING', approverApproved: 0 },
+      data: { approvalState: 'PENDING', approverApproved: 0, approvalRoundStartedAt: now },
       unschedule: false,
     };
   }
