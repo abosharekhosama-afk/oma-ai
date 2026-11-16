@@ -3580,5 +3580,22 @@
   "briefs.tasks": "المهام",
   "briefs.comments": "التعليقات",
   "briefs.comment.placeholder": "اكتب تعليقاً…",
-  "briefs.comment.submit": "تعليق"
+  "briefs.comment.submit": "تعليق",
+  "demo.settings.section.ai": "استخدام الذكاء الاصطناعي",
+  "settings.ai.body": "كل تشغيل للذكاء الاصطناعي في مساحة العمل: النتيجة ومحاولات الإصلاح والمراجعة البشرية والتكلفة الفعلية لدى المزوّد. الذكاء الاصطناعي يكتب مسودات فقط.",
+  "settings.ai.adminOnly": "يمكن لمسؤولي مساحة العمل فقط عرض استخدام الذكاء الاصطناعي.",
+  "settings.ai.month": "الشهر (UTC)",
+  "settings.ai.cost": "التكلفة",
+  "settings.ai.useCase": "حالة الاستخدام",
+  "settings.ai.runs": "التشغيلات",
+  "settings.ai.failed": "فشل",
+  "settings.ai.repaired": "تم إصلاحه",
+  "settings.ai.rejected": "رفضه شخص",
+  "settings.ai.empty": "لا توجد تشغيلات ذكاء اصطناعي هذا الشهر.",
+  "settings.ai.recent": "أحدث التشغيلات",
+  "settings.ai.when": "الوقت",
+  "settings.ai.status": "الحالة",
+  "settings.ai.attempts": "المحاولات",
+  "settings.ai.legacy": "إصدار قديم v1",
+  "settings.ai.more": "تحميل المزيد"
 }

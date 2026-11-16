@@ -151,6 +151,7 @@ import {
 } from '../../../../lib/demo/stage3-content';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
+  aiRefusalReason,
   appendAiRunId,
   proposeContentText,
   type ContentAiProposal,
@@ -492,6 +493,12 @@ function PlanableComposeCard({
   const [showFirstComment, setShowFirstComment] = useState(true);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiProposal, setAiProposal] = useState<ContentAiProposal | null>(null);
+  const [aiRefusal, setAiRefusal] = useState<string | null>(null);
+  const reportAiError = (err: unknown) => {
+    const reason = aiRefusalReason(err, isAr ? 'ar' : 'en');
+    setAiRefusal(reason);
+    toast.push(reason ?? contentApiError(err, t('demo.content.aiNotConnected')), 'danger');
+  };
 
   const applyAiProposal = (
     raw: string | ContentAiProposal,
@@ -502,6 +509,7 @@ function PlanableComposeCard({
         ? { text: raw, variants: [{ text: raw }], source: 'ai', banner: '' }
         : raw;
     setAiProposal(proposal);
+    setAiRefusal(null);
     const aiRunIds = appendAiRunId(form.aiRunIds, proposal);
     if (kind === 'hashtags') {
       onChange({ firstComment: proposal.text, aiRunIds });
@@ -670,9 +678,7 @@ function PlanableComposeCard({
                     applyAiProposal(result, 'idea');
                     setAiHint(false);
                   })
-                  .catch((err) =>
-                    toast.push(contentApiError(err, t('demo.content.aiNotConnected')), 'danger'),
-                  )
+                  .catch(reportAiError)
                   .finally(() => setAiBusy(false));
               }}
             >
@@ -795,12 +801,7 @@ function PlanableComposeCard({
                     setAiBusy(true);
                     void onGenerateAi('caption')
                       .then((result) => applyAiProposal(result, 'caption'))
-                      .catch((err) =>
-                        toast.push(
-                          contentApiError(err, t('demo.content.aiNotConnected')),
-                          'danger',
-                        ),
-                      )
+                      .catch(reportAiError)
                       .finally(() => setAiBusy(false));
                   }}
                 >
@@ -813,6 +814,15 @@ function PlanableComposeCard({
                       ? 'توليد بالذكاء الاصطناعي'
                       : 'Generate with AI'}
                 </button>
+                {aiRefusal ? (
+                  <div
+                    className="oma-compose-ai-meta oma-plx-error"
+                    role="alert"
+                    data-testid="compose-ai-refusal"
+                  >
+                    {aiRefusal}
+                  </div>
+                ) : null}
                 {aiProposal ? (
                   <div className="oma-compose-ai-meta" data-testid="compose-ai-meta">
                     <span className="oma-muted">
@@ -836,6 +846,30 @@ function PlanableComposeCard({
                           ? 'لا يوجد ملف براند معتمد — تم استخدام اسم العلامة فقط'
                           : 'No approved brand profile — brand name only'}
                       </span>
+                    ) : null}
+                    {aiProposal.source === 'ai' ? (
+                      <span
+                        className="oma-chip"
+                        data-testid="compose-ai-grounding"
+                        data-grounded={aiProposal.grounded ? 'true' : 'false'}
+                      >
+                        {aiProposal.grounded
+                          ? isAr
+                            ? 'مستند إلى حقائق البراند'
+                            : 'Grounded in brand facts'
+                          : isAr
+                            ? 'نص عام — غير مستند إلى حقائق'
+                            : 'Generic copy — not grounded'}
+                      </span>
+                    ) : null}
+                    {aiProposal.variants[0]?.groundingRefs?.length ? (
+                      <div className="oma-chip-row" data-testid="compose-ai-refs">
+                        {aiProposal.variants[0].groundingRefs.map((ref) => (
+                          <span key={ref.ref} className="oma-chip" title={ref.label}>
+                            {ref.ref}: {ref.label.slice(0, 40)}
+                          </span>
+                        ))}
+                      </div>
                     ) : null}
                     {aiProposal.variants.length > 1 ? (
                       <div className="oma-chip-row" data-testid="compose-ai-variants">

@@ -3580,5 +3580,22 @@
   "briefs.tasks": "Tasks",
   "briefs.comments": "Comments",
   "briefs.comment.placeholder": "Write a comment…",
-  "briefs.comment.submit": "Comment"
+  "briefs.comment.submit": "Comment",
+  "demo.settings.section.ai": "AI usage",
+  "settings.ai.body": "Every AI run in this workspace: outcome, repair attempts, human review and real provider cost. AI only ever writes drafts.",
+  "settings.ai.adminOnly": "Only workspace admins can view AI usage.",
+  "settings.ai.month": "Month (UTC)",
+  "settings.ai.cost": "Cost",
+  "settings.ai.useCase": "Use case",
+  "settings.ai.runs": "Runs",
+  "settings.ai.failed": "Failed",
+  "settings.ai.repaired": "Repaired",
+  "settings.ai.rejected": "Rejected by a person",
+  "settings.ai.empty": "No AI runs this month.",
+  "settings.ai.recent": "Recent runs",
+  "settings.ai.when": "When",
+  "settings.ai.status": "Status",
+  "settings.ai.attempts": "Attempts",
+  "settings.ai.legacy": "legacy v1",
+  "settings.ai.more": "Load more"
 }

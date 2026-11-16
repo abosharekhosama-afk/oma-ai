@@ -60,6 +60,8 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/jobs/:id': ['job.read'],
   'POST /api/v1/jobs/:id/cancel': ['job.read'],
   'GET /api/v1/ai/budget': ['ai.configure'],
+  'GET /api/v1/ai/usage': ['ai.configure'],
+  'GET /api/v1/ai/runs': ['ai.configure'],
   'POST /api/v1/ai/runs': ['ai.propose.strategy'],
   'GET /api/v1/ai/runs/:id': ['ai.propose.strategy'],
   'POST /api/v1/ai/runs/:id/cancel': ['ai.propose.strategy'],

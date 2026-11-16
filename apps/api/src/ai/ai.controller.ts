@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { DomainError } from '@oma/domain';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -12,6 +12,8 @@ import {
   cancelAiRun,
   createAiRun,
   readAiRun,
+  listAiRuns,
+  aiUsageForTenant,
 } from './ai.service';
 
 @Controller('api/v1/ai')
@@ -44,6 +46,23 @@ export class AiController {
   async budget(@Req() req: Request) {
     const actor = this.requireTenant(req);
     return { data: await aiBudgetForTenant(actor.tenantId!) };
+  }
+
+  @Get('usage')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  async usage(@Req() req: Request, @Query('month') month?: string) {
+    const actor = this.requireTenant(req);
+    return { data: await aiUsageForTenant(actor.tenantId!, month) };
+  }
+
+  @Get('runs')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  async list(
+    @Req() req: Request,
+    @Query() query: { cursor?: string; limit?: string; use_case?: string; status?: string },
+  ) {
+    const actor = this.requireTenant(req);
+    return { data: await listAiRuns(actor.tenantId!, query) };
   }
 
   @Post('runs')

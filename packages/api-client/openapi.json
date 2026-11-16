@@ -3799,7 +3799,33 @@
         ]
       }
     },
+    "/api/v1/ai/usage": {
+      "get": {
+        "operationId": "AiController_usage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
     "/api/v1/ai/runs": {
+      "get": {
+        "operationId": "AiController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      },
       "post": {
         "operationId": "AiController_create",
         "parameters": [],
