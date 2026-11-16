@@ -1550,64 +1550,69 @@ model Campaign {
 }
 
 model ContentItem {
-  id                    String                    @id
-  tenantId              String
-  brandId               String
-  campaignId            String?
-  titleEn               String
-  titleAr               String
-  captionEn             String?
-  captionAr             String?
-  contentType           ContentType
-  channel               String
-  track                 Track
-  status                ContentStatus             @default(DRAFT)
-  approvalState         ContentApprovalState      @default(NOT_REQUESTED)
-  scheduleState         ContentScheduleState      @default(UNSCHEDULED)
-  plannedAt             DateTime?
-  scheduledAt           DateTime?
-  timezone              String                    @default("Asia/Dubai")
-  approverRequired      Int                       @default(1)
-  approverApproved      Int                       @default(0)
-  previewAssetUrl       String?
+  id                     String                    @id
+  tenantId               String
+  brandId                String
+  campaignId             String?
+  titleEn                String
+  titleAr                String
+  captionEn              String?
+  captionAr              String?
+  contentType            ContentType
+  channel                String
+  track                  Track
+  status                 ContentStatus             @default(DRAFT)
+  approvalState          ContentApprovalState      @default(NOT_REQUESTED)
+  scheduleState          ContentScheduleState      @default(UNSCHEDULED)
+  plannedAt              DateTime?
+  scheduledAt            DateTime?
+  timezone               String                    @default("Asia/Dubai")
+  approverRequired       Int                       @default(1)
+  approverApproved       Int                       @default(0)
+  previewAssetUrl        String?
   /// MediaAsset id when the preview is stored in WorkDrive (previewAssetUrl = /api/v1/media/:id/view).
-  previewAssetId        String?
+  previewAssetId         String?
   /// Ordered WorkDrive MediaAsset ids attached to this post; previewAssetId remains the first item for compatibility.
-  mediaAssetIds         String[]                  @default([])
-  labels                String[]                  @default([])
-  assigneeUserId        String?
-  clientVisible         Boolean                   @default(true)
+  mediaAssetIds          String[]                  @default([])
+  labels                 String[]                  @default([])
+  assigneeUserId         String?
+  clientVisible          Boolean                   @default(true)
   /// Primary connected account (legacy UI); first publish target when multiple are set.
-  socialPageId          String?
+  socialPageId           String?
   /// Rollup across ContentPublishTarget rows.
-  publishState          ContentPublishRollupState @default(NONE)
-  publishAttempts       Int                       @default(0)
-  nextPublishAt         DateTime?
-  lastPublishError      String?
-  workerPickedAt        DateTime?
-  lastPublishSkipReason String?
-  externalPostId        String?
-  externalPostUrl       String?
-  publishedAt           DateTime?
-  archivedAt            DateTime?
+  publishState           ContentPublishRollupState @default(NONE)
+  publishAttempts        Int                       @default(0)
+  nextPublishAt          DateTime?
+  lastPublishError       String?
+  workerPickedAt         DateTime?
+  lastPublishSkipReason  String?
+  externalPostId         String?
+  externalPostUrl        String?
+  publishedAt            DateTime?
+  archivedAt             DateTime?
   /// Shared id across posts that were composed with Sync ON (Planable group).
-  syncGroupId           String?
+  syncGroupId            String?
   /// Preferred audience label (Planable post setting), free text.
-  preferredAudience     String?
+  preferredAudience      String?
   /// True once AI-generated text was applied (DEC-024). Never reset by human edits.
-  aiAssisted            Boolean                   @default(false)
+  aiAssisted             Boolean                   @default(false)
   /// AiRun ids whose output was applied to this post (latest last, capped).
-  aiRunIds              String[]                  @default([])
+  aiRunIds               String[]                  @default([])
   /// Human confirmation that the AI-assisted copy was reviewed; cleared when new AI output is applied.
-  aiReviewedAt          DateTime?
-  aiReviewedBy          String?
-  createdBy             String
-  createdAt             DateTime                  @default(now())
-  updatedAt             DateTime                  @updatedAt
-  campaign              Campaign?                 @relation(fields: [campaignId], references: [id])
-  approvalEvents        ContentApprovalEvent[]
-  comments              ContentComment[]
-  publishTargets        ContentPublishTarget[]
+  aiReviewedAt           DateTime?
+  aiReviewedBy           String?
+  /// Frozen multi-level approval plan for the current round (DEC-026); null = counter mode.
+  approvalLevels         Json?
+  /// Start of the current approval round; per-level decisions are scoped to it (DEC-026).
+  approvalRoundStartedAt DateTime?
+  createdBy              String
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  campaign               Campaign?                 @relation(fields: [campaignId], references: [id])
+  approvalEvents         ContentApprovalEvent[]
+  approvalDecisions      ContentApprovalDecision[]
+  comments               ContentComment[]
+  publishTargets         ContentPublishTarget[]
 
   @@index([tenantId, brandId])
   @@index([brandId, campaignId])
@@ -1619,6 +1624,42 @@ model ContentItem {
   @@index([tenantId, channel])
   @@index([publishState, nextPublishAt])
   @@index([tenantId, syncGroupId])
+}
+
+/// Ordered approval level (DEC-026). brandId null = workspace default plan.
+model ApprovalLevel {
+  id              String   @id
+  tenantId        String
+  brandId         String?
+  position        Int
+  nameEn          String
+  nameAr          String
+  minApprovals    Int      @default(1)
+  /// Empty = anyone with content.approve may decide at this level.
+  approverUserIds String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId, brandId, position])
+}
+
+/// One approver's decision at one level of one approval round (DEC-026).
+model ContentApprovalDecision {
+  id             String      @id
+  tenantId       String
+  contentId      String
+  roundStartedAt DateTime
+  levelPosition  Int
+  approverUserId String
+  /// APPROVED | CHANGES_REQUESTED | REJECTED
+  decision       String
+  noteEn         String?
+  noteAr         String?
+  at             DateTime    @default(now())
+  content        ContentItem @relation(fields: [contentId], references: [id])
+
+  @@unique([contentId, roundStartedAt, levelPosition, approverUserId])
+  @@index([tenantId, contentId])
 }
 
 model ContentApprovalEvent {

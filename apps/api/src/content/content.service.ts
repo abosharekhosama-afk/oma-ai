@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getPrisma, tenantWhere } from '@oma/db';
+import { getPrisma, Prisma, tenantWhere } from '@oma/db';
 import { billingService } from '../billing/billing.service';
 import { brandTimezone } from '../brand/brand.service';
 import { parseTimezone } from '../brand/brand-input';
@@ -26,6 +26,12 @@ import {
   applyAiOutput,
   aiProvenanceForCopy,
   parseReopenReason,
+  readLevelPlan,
+  evaluateLevelApproval,
+  canDecideAtLevel,
+  levelProgress,
+  parseApprovalLevelsInput,
+  type ApprovalDecisionKind,
   type ApprovalPolicy,
   type LockedContentField,
   type ReadinessTarget,
@@ -40,6 +46,13 @@ import { mediaPlaybackUrl } from '../media/media.service';
 import { syncContentPublishRollup } from '../social/publish-target-sync';
 import { buildChannelAnalyticsView, parseInsights } from './channel-analytics';
 import { maybeRefreshPublishTargetInsights } from './refresh-post-insights';
+import {
+  levelsView,
+  listApprovalLevels,
+  planJson,
+  replaceApprovalLevels,
+  resolveLevelPlan,
+} from './approval-levels';
 import {
   enforceContentMutation,
   loadApprovalConfig,
@@ -117,6 +130,51 @@ async function resolvePreviewAssets(tenantId: string, brandId: string, value: un
 
 type LocaleInput = { en: string; ar?: string } | string;
 
+type ContentRowForApproval = Prisma.ContentItemGetPayload<object>;
+
+/** Level the round is waiting on (1-based); in counter mode, the next approval slot. */
+function currentLevelPosition(row: { approverApproved: number; approverRequired: number }): number {
+  return Math.max(1, Math.min(row.approverApproved + 1, row.approverRequired));
+}
+
+/**
+ * In level mode, only someone who can decide at some level of the frozen plan may
+ * request changes or reject during review (DEC-026). Counter mode is unchanged.
+ */
+function assertLevelDecider(
+  row: { approvalLevels?: unknown; approvalState: string },
+  actorUserId: string,
+) {
+  if (row.approvalState !== 'PENDING' && row.approvalState !== 'PARTIALLY_APPROVED') return;
+  const plan = readLevelPlan(row.approvalLevels);
+  if (!plan || plan.some((l) => canDecideAtLevel(l, actorUserId))) return;
+  throw new DomainError(
+    'APPROVAL_INELIGIBLE',
+    'You are not an approver for this post',
+    403,
+    'error.approval_not_assigned',
+  );
+}
+
+/** Compact level summary for cards and lists (DEC-026); null in counter mode. */
+function approvalLevelsSummary(row: {
+  approvalLevels?: unknown;
+  approverApproved: number;
+  approvalState: string;
+}) {
+  const plan = readLevelPlan(row.approvalLevels);
+  if (!plan) return null;
+  const done = row.approvalState === 'APPROVED' ? plan.length : row.approverApproved;
+  const current = plan[done] ?? null;
+  return {
+    total: plan.length,
+    completed: done,
+    current: current
+      ? { position: current.position, name: { en: current.nameEn, ar: current.nameAr } }
+      : null,
+  };
+}
+
 function withReset(reset: ApprovalReset | null): { approval_reset?: ApprovalReset } {
   return reset ? { approval_reset: reset } : {};
 }
@@ -175,6 +233,7 @@ function mapContent(
     aiRunIds?: string[];
     aiReviewedAt?: Date | null;
     aiReviewedBy?: string | null;
+    approvalLevels?: unknown;
   },
   policy: ApprovalPolicy = 'OPTIONAL',
 ) {
@@ -231,6 +290,7 @@ function mapContent(
     timezone: row.timezone,
     approver_required: row.approverRequired,
     approver_approved: row.approverApproved,
+    approval_levels: approvalLevelsSummary(row),
     preview_asset_url: row.previewAssetUrl,
     preview_asset_id: row.previewAssetId ?? null,
     media_asset_ids: row.mediaAssetIds ?? (row.previewAssetId ? [row.previewAssetId] : []),
@@ -941,10 +1001,8 @@ export class ContentService {
     if (current.archivedAt) {
       throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.content_archived');
     }
-    const { policy: reqPolicy, requiredApprovers } = await this.approvalConfig(
-      tenantId,
-      current.brandId,
-    );
+    const reqCfg = await this.approvalConfig(tenantId, current.brandId);
+    const { policy: reqPolicy, requiredApprovers } = reqCfg;
     if (reqPolicy === 'NONE') {
       throw new DomainError(
         'CONFLICT_STATE',
@@ -970,13 +1028,17 @@ export class ContentService {
         'error.conflict_state',
       );
     }
+    const levels = await resolveLevelPlan(tenantId, current.brandId, reqCfg);
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {
         approvalState: next.approvalState,
         status: next.status,
-        approverRequired: requiredApprovers,
+        approverRequired: levels ? levels.plan.length : requiredApprovers,
         approverApproved: 0,
+        // Freeze the level plan for this round; settings edits never change it (DEC-026).
+        approvalLevels: planJson(levels?.plan ?? null),
+        approvalRoundStartedAt: new Date(),
         // Re-review clears any local schedule; it must be re-scheduled after approval.
         ...(current.scheduleState === 'SCHEDULED'
           ? { scheduleState: 'UNSCHEDULED', scheduledAt: null }
@@ -991,6 +1053,7 @@ export class ContentService {
       targetType: 'ContentItem',
       targetId: contentId,
       correlationId,
+      ...(levels ? { afterRef: `levels:${levels.plan.length};source:${levels.source}` } : {}),
     });
     const policy = await this.policyForBrand(tenantId, row.brandId);
     return { data: mapContent(row, policy) };
@@ -1002,12 +1065,28 @@ export class ContentService {
     contentId: string,
     note?: LocaleInput,
     correlationId?: string,
+    requestedLevel?: number | null,
   ) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
     });
     if (!current) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    }
+    const plan = readLevelPlan(current.approvalLevels);
+    const inRound =
+      current.approvalState === 'PENDING' || current.approvalState === 'PARTIALLY_APPROVED';
+    if (plan && inRound && current.approvalRoundStartedAt) {
+      return this.approveLevel(
+        tenantId,
+        actorUserId,
+        current,
+        plan,
+        current.approvalRoundStartedAt,
+        note,
+        correlationId,
+        requestedLevel,
+      );
     }
     if (current.approverRequired > 1) {
       // A new round starts at the last request or at an approval reset on edit (DEC-025).
@@ -1056,6 +1135,136 @@ export class ContentService {
       next.deltaApproved,
       current.approverRequired,
     );
+    if (current.approvalRoundStartedAt) {
+      await this.recordDecision(
+        current,
+        actorUserId,
+        Math.min(current.approverApproved + 1, current.approverRequired),
+        'APPROVED',
+        note,
+      );
+    }
+    return this.finishApproval(tenantId, actorUserId, current, next, approved, note, correlationId);
+  }
+
+  /** One approval at the current level of a frozen multi-level plan (DEC-026). */
+  private async approveLevel(
+    tenantId: string,
+    actorUserId: string,
+    current: ContentRowForApproval,
+    plan: NonNullable<ReturnType<typeof readLevelPlan>>,
+    roundStartedAt: Date,
+    note: LocaleInput | undefined,
+    correlationId: string | undefined,
+    requestedLevel?: number | null,
+  ) {
+    const prisma = getPrisma();
+    const decisions = await prisma.contentApprovalDecision.findMany({
+      where: { contentId: current.id, roundStartedAt },
+    });
+    const outcome = evaluateLevelApproval({
+      plan,
+      completedLevels: current.approverApproved,
+      decisions,
+      actorUserId,
+      requestedLevel,
+    });
+    try {
+      await this.recordDecision(current, actorUserId, outcome.level.position, 'APPROVED', note, {
+        createOnly: true,
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new DomainError(
+          'CONFLICT_STATE',
+          'You already approved this level; another approver is needed',
+          409,
+          'error.already_approved',
+          [{ level: outcome.level.position }],
+        );
+      }
+      throw err;
+    }
+    // Recount after the insert so concurrent approvals at one level still advance it.
+    const approvals = await prisma.contentApprovalDecision.count({
+      where: {
+        contentId: current.id,
+        roundStartedAt,
+        levelPosition: outcome.level.position,
+        decision: 'APPROVED',
+      },
+    });
+    const levelComplete = approvals >= outcome.level.minApprovals;
+    const completed = levelComplete ? outcome.level.position : current.approverApproved;
+    const final = completed >= plan.length;
+    const next = final
+      ? { approvalState: 'APPROVED' as const, status: 'APPROVED' as const }
+      : { approvalState: 'PARTIALLY_APPROVED' as const, status: 'IN_REVIEW' as const };
+    return this.finishApproval(
+      tenantId,
+      actorUserId,
+      current,
+      next,
+      completed,
+      note,
+      correlationId,
+      {
+        level: outcome.level.position,
+        levelName: outcome.level.nameEn,
+        approvals,
+        required: outcome.level.minApprovals,
+        levelComplete,
+      },
+    );
+  }
+
+  private async recordDecision(
+    current: { id: string; tenantId: string; approvalRoundStartedAt: Date | null },
+    actorUserId: string,
+    levelPosition: number,
+    decision: ApprovalDecisionKind,
+    note?: LocaleInput,
+    opts?: { createOnly?: boolean },
+  ) {
+    if (!current.approvalRoundStartedAt) return;
+    const n = note ? localePair(note) : null;
+    const key = {
+      contentId: current.id,
+      roundStartedAt: current.approvalRoundStartedAt,
+      levelPosition: Math.max(1, levelPosition),
+      approverUserId: actorUserId,
+    };
+    const data = { decision, noteEn: n?.en ?? null, noteAr: n?.ar ?? null, at: new Date() };
+    if (opts?.createOnly) {
+      await getPrisma().contentApprovalDecision.create({
+        data: { id: newId(), tenantId: current.tenantId, ...key, ...data },
+      });
+      return;
+    }
+    await getPrisma().contentApprovalDecision.upsert({
+      where: { contentId_roundStartedAt_levelPosition_approverUserId: key },
+      create: { id: newId(), tenantId: current.tenantId, ...key, ...data },
+      update: data,
+    });
+  }
+
+  private async finishApproval(
+    tenantId: string,
+    actorUserId: string,
+    current: ContentRowForApproval,
+    next: { approvalState: ApprovalState; status: ContentStatus },
+    approved: number,
+    note: LocaleInput | undefined,
+    correlationId: string | undefined,
+    level?: {
+      level: number;
+      levelName: string;
+      approvals: number;
+      required: number;
+      levelComplete: boolean;
+    },
+  ) {
+    const contentId = current.id;
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {
@@ -1076,6 +1285,11 @@ export class ContentService {
       targetType: 'ContentItem',
       targetId: contentId,
       correlationId,
+      ...(level
+        ? {
+            afterRef: `level:${level.level};approvals:${level.approvals}/${level.required}${level.levelComplete ? ';level_complete' : ''}`,
+          }
+        : {}),
     });
     if (next.approvalState === 'APPROVED') {
       const cfg = await this.approvalConfig(tenantId, current.brandId);
@@ -1129,6 +1343,114 @@ export class ContentService {
     }
     const policy = await this.policyForBrand(tenantId, row.brandId);
     return { data: mapContent(row, policy) };
+  }
+
+  /** Per-level approval progress for the stepper (DEC-026). */
+  async approvalProgress(tenantId: string, contentId: string) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const plan = readLevelPlan(current.approvalLevels);
+    const decisions = current.approvalRoundStartedAt
+      ? await getPrisma().contentApprovalDecision.findMany({
+          where: { contentId, roundStartedAt: current.approvalRoundStartedAt },
+          orderBy: { at: 'asc' },
+        })
+      : [];
+    const userIds = [...new Set(decisions.map((d) => d.approverUserId))];
+    const users = userIds.length
+      ? await getPrisma().user.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const nameOf = new Map(users.map((u) => [u.id, u.name]));
+    const decisionView = (d: (typeof decisions)[number]) => ({
+      user_id: d.approverUserId,
+      user_name: nameOf.get(d.approverUserId) ?? null,
+      decision: d.decision,
+      note: d.noteEn ? { en: d.noteEn, ar: d.noteAr ?? d.noteEn } : null,
+      at: d.at.toISOString(),
+    });
+    const base = {
+      approval_state: current.approvalState,
+      round_started_at: current.approvalRoundStartedAt?.toISOString() ?? null,
+      approver_required: current.approverRequired,
+      approver_approved: current.approverApproved,
+    };
+    if (!plan) {
+      return {
+        data: {
+          ...base,
+          mode: 'counter' as const,
+          levels: [],
+          decisions: decisions.map(decisionView),
+        },
+      };
+    }
+    const progress = levelProgress({
+      plan,
+      completedLevels: current.approverApproved,
+      approvalState: current.approvalState,
+      decisions,
+    });
+    const view = await levelsView(tenantId, plan);
+    return {
+      data: {
+        ...base,
+        mode: 'levels' as const,
+        levels: progress.map((l, i) => ({
+          ...view[i]!,
+          status: l.status,
+          approvals: l.approvals,
+          decisions: decisions.filter((d) => d.levelPosition === l.position).map(decisionView),
+        })),
+        decisions: decisions.map(decisionView),
+      },
+    };
+  }
+
+  async getApprovalLevels(tenantId: string, brandId: string | null) {
+    if (brandId) await this.requireActiveBrand(tenantId, brandId);
+    const [own, workspace, cfg] = await Promise.all([
+      brandId ? listApprovalLevels(tenantId, brandId) : Promise.resolve(null),
+      listApprovalLevels(tenantId, null),
+      brandId ? this.approvalConfig(tenantId, brandId) : Promise.resolve(null),
+    ]);
+    const effective = cfg ? await resolveLevelPlan(tenantId, brandId!, cfg) : null;
+    return {
+      data: {
+        levels: await levelsView(tenantId, own ?? workspace),
+        ...(brandId
+          ? {
+              workspace_levels: await levelsView(tenantId, workspace),
+              approval_mode: cfg!.mode,
+              effective_source: effective?.source ?? 'counter',
+            }
+          : {}),
+      },
+    };
+  }
+
+  async setApprovalLevels(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string | null,
+    body: unknown,
+    correlationId?: string,
+  ) {
+    if (brandId) await this.requireActiveBrand(tenantId, brandId);
+    const plan = parseApprovalLevelsInput(body);
+    await replaceApprovalLevels({
+      tenantId,
+      brandId,
+      plan,
+      actorUserId,
+      audit: this.audit,
+      correlationId,
+    });
+    return this.getApprovalLevels(tenantId, brandId);
   }
 
   /**
@@ -1220,6 +1542,7 @@ export class ContentService {
         'error.conflict_state',
       );
     }
+    assertLevelDecider(current, actorUserId);
     // From APPROVED this is an explicit unlock (DEC-025): the post leaves the
     // publish schedule but stays Planned on the calendar.
     const unlock = current.approvalState === 'APPROVED';
@@ -1234,6 +1557,15 @@ export class ContentService {
       },
     });
     if (unschedule) await resetPendingTargets(current);
+    if (!unlock) {
+      await this.recordDecision(
+        current,
+        actorUserId,
+        currentLevelPosition(current),
+        'CHANGES_REQUESTED',
+        note,
+      );
+    }
     await this.writeEvent(tenantId, contentId, actorUserId, 'REQUEST_CHANGES', note);
     if (unlock) {
       await this.audit.write({
@@ -1348,10 +1680,18 @@ export class ContentService {
         'error.conflict_state',
       );
     }
+    assertLevelDecider(current, actorUserId);
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: { approvalState: next.approvalState, status: next.status, approverApproved: 0 },
     });
+    await this.recordDecision(
+      current,
+      actorUserId,
+      currentLevelPosition(current),
+      'REJECTED',
+      note,
+    );
     await this.writeEvent(tenantId, contentId, actorUserId, 'REJECT', note);
     await this.audit.write({
       actorUserId,

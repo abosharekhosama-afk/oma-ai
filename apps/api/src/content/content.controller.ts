@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -98,6 +99,57 @@ export class ContentController {
     return contentService.scheduleReadiness(req.oma!.tenantId!, contentId);
   }
 
+  /** Per-level approval progress for the stepper (DEC-026). */
+  @Get('api/v1/content/:contentId/approval')
+  async approvalProgress(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.approvalProgress(req.oma!.tenantId!, contentId);
+  }
+
+  /** Workspace default multi-level approval plan (DEC-026). */
+  @Get('api/v1/workspace/approval-levels')
+  async workspaceLevels(@Req() req: Request) {
+    this.requireTenant(req);
+    return contentService.getApprovalLevels(req.oma!.tenantId!, null);
+  }
+
+  @Put('api/v1/workspace/approval-levels')
+  @UseGuards(CsrfGuard)
+  async putWorkspaceLevels(@Req() req: Request, @Body() body: unknown) {
+    this.requireTenant(req);
+    return contentService.setApprovalLevels(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      null,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
+  /** Brand plan (used when the brand overrides approvals with mode multi_level). */
+  @Get('api/v1/brands/:brandId/approval-levels')
+  async brandLevels(@Req() req: Request, @Param('brandId') brandId: string) {
+    this.requireTenant(req);
+    return contentService.getApprovalLevels(req.oma!.tenantId!, brandId);
+  }
+
+  @Put('api/v1/brands/:brandId/approval-levels')
+  @UseGuards(CsrfGuard)
+  async putBrandLevels(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Body() body: unknown,
+  ) {
+    this.requireTenant(req);
+    return contentService.setApprovalLevels(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
   @Get('api/v1/content/:contentId/channel-analytics')
   async channelAnalytics(
     @Req() req: Request,
@@ -166,7 +218,7 @@ export class ContentController {
   async approve(
     @Req() req: Request,
     @Param('contentId') contentId: string,
-    @Body() body: { note?: { en: string; ar?: string } | string },
+    @Body() body: { note?: { en: string; ar?: string } | string; level?: number },
   ) {
     this.requireTenant(req);
     return contentService.approve(
@@ -175,6 +227,7 @@ export class ContentController {
       contentId,
       body?.note,
       req.oma!.correlationId,
+      typeof body?.level === 'number' ? body.level : null,
     );
   }
 
