@@ -15,6 +15,8 @@ import {
   strategyAiMode,
   deterministicStrategyFoundationV2,
   storedProposalVersion,
+  assertAiWriteTarget,
+  assertHumanActor,
   strategyFoundationContractFor,
 } from '@oma/domain';
 import { buildStrategyProposePrompt } from '@oma/ai';
@@ -2038,7 +2040,9 @@ export class StrategyService {
     strategyId: string,
     versionId: string,
     runId: string,
+    actorUserId?: string | null,
   ) {
+    assertHumanActor(actorUserId);
     const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
     if (!canPatchVersionContent(version.status as never)) {
       throw new DomainError(
@@ -2116,6 +2120,28 @@ export class StrategyService {
     foundation.ai_proposal_accepted = true;
 
     await getPrisma().$transaction(async (tx) => {
+      // Re-check inside the transaction: the version may have left DRAFT meanwhile.
+      const fresh = await tx.strategyVersion.findUniqueOrThrow({
+        where: { id: version.id },
+        select: { status: true },
+      });
+      assertAiWriteTarget({
+        kind: 'strategy_version',
+        status: fresh.status,
+        humanActorId: actorUserId,
+      });
+      await tx.auditEvent.create({
+        data: {
+          id: newId(),
+          actorUserId,
+          actorType: 'USER',
+          tenantId,
+          action: 'strategy.ai_proposal_accepted',
+          targetType: 'strategy_version',
+          targetId: version.id,
+          afterRef: `ai_run:${runId}`,
+        },
+      });
       await tx.strategyVersion.update({
         where: { id: version.id },
         data: {
@@ -2189,7 +2215,9 @@ export class StrategyService {
     strategyId: string,
     versionId: string,
     runId: string,
+    actorUserId?: string | null,
   ) {
+    assertHumanActor(actorUserId);
     await this.requireVersion(tenantId, brandId, strategyId, versionId);
     const run = await getPrisma().aiRun.findFirst({
       where: { id: runId, tenantId, sourceEntityId: versionId },
@@ -2199,10 +2227,24 @@ export class StrategyService {
       ? parseJson<Record<string, unknown>>(run.metadataJson, {})
       : {};
     metadata.review = 'rejected';
-    await getPrisma().aiRun.update({
-      where: { id: run.id },
-      data: { metadataJson: JSON.stringify(metadata) },
-    });
+    await getPrisma().$transaction([
+      getPrisma().aiRun.update({
+        where: { id: run.id },
+        data: { metadataJson: JSON.stringify(metadata), refusalReason: 'HUMAN_REJECTED' },
+      }),
+      getPrisma().auditEvent.create({
+        data: {
+          id: newId(),
+          actorUserId,
+          actorType: 'USER',
+          tenantId,
+          action: 'strategy.ai_proposal_rejected',
+          targetType: 'strategy_version',
+          targetId: versionId,
+          afterRef: `ai_run:${run.id}`,
+        },
+      }),
+    ]);
     return {
       data: {
         run_id: run.id,

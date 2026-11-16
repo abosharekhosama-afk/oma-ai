@@ -792,6 +792,7 @@ export class StrategyController {
       strategyId,
       versionId,
       body.run_id,
+      req.oma!.userId ?? null,
     );
   }
 
@@ -811,6 +812,7 @@ export class StrategyController {
       strategyId,
       versionId,
       body.run_id,
+      req.oma!.userId ?? null,
     );
   }
 
