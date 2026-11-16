@@ -696,9 +696,7 @@ export class StrategyPlanService {
       sourceEntityType: 'strategy_version',
       sourceEntityId: versionId,
       sourceVersion: `${version.id}:${version.rowVersion}`,
-      idempotencyKey:
-        opts.idempotencyKey ||
-        `strategy-plan:${versionId}:${version.rowVersion}:${base.tracks.join('+')}:${actorUserId}:${Date.now()}`,
+      idempotencyKey: opts.idempotencyKey,
       correlationId: opts.correlationId,
       prompt,
       schema: strategyPlanProposalJsonSchema(),

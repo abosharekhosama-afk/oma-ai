@@ -54,6 +54,14 @@ export type AiStructuredFailure = {
   ok: false;
   code: AiStructuredErrorCode;
   message?: string;
+  /** parse = not JSON; schema = JSON that failed the contract. */
+  stage?: 'parse' | 'schema';
+  /** Contract issues, when the validator reported them. */
+  issues?: string[];
+  /** Usage of the call that produced this failure (it is still billed). */
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -112,7 +120,7 @@ export class OpenAiProviderAdapter implements AiProviderPort {
     userPrompt?: string;
     schema?: Record<string, unknown>;
     abortSignal?: AbortSignal;
-    validate?: (parsed: unknown) => { ok: true; value: unknown } | { ok: false };
+    validate?: (parsed: unknown) => { ok: true; value: unknown } | { ok: false; issues?: string[] };
   }): Promise<AiStructuredSuccess | AiStructuredFailure> {
     const routed = routeModel(input.useCase, this.options);
     if (!this.options.liveEnabled) return { ok: false, code: 'AI_DISABLED' };
@@ -161,23 +169,35 @@ export class OpenAiProviderAdapter implements AiProviderPort {
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const response = await client.responses.create(body, { signal: controller.signal });
+        const usage = {
+          model: routed.model,
+          inputTokens: response.usage?.input_tokens ?? 0,
+          outputTokens: response.usage?.output_tokens ?? 0,
+        };
         const refusal = extractRefusal(response);
-        if (refusal) return { ok: false, code: 'REFUSAL', message: refusal };
+        if (refusal) return { ok: false, code: 'REFUSAL', message: refusal, ...usage };
         let parsed: unknown;
         try {
           parsed = JSON.parse(response.output_text || '');
         } catch {
-          return { ok: false, code: 'SCHEMA_INVALID' };
+          return { ok: false, code: 'SCHEMA_INVALID', stage: 'parse', ...usage };
         }
         let output: unknown = parsed;
         let proposal: AiProposal | null = null;
         if (input.validate) {
           const checked = input.validate(parsed);
-          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID' };
+          if (!checked.ok)
+            return {
+              ok: false,
+              code: 'SCHEMA_INVALID',
+              stage: 'schema',
+              issues: checked.issues,
+              ...usage,
+            };
           output = checked.value;
         } else {
           const checked = validateProposal(parsed);
-          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID' };
+          if (!checked.ok) return { ok: false, code: 'SCHEMA_INVALID', stage: 'schema', ...usage };
           proposal = checked.proposal;
           output = checked.proposal;
         }

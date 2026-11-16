@@ -43,3 +43,15 @@ export function evaluateBudget(input: {
   const utilization = input.limits.monthlyUsd > 0 ? month / input.limits.monthlyUsd : 1;
   return { ok: true, warning: utilization >= WARNING_RATIO, utilization };
 }
+
+/** Budget limits from env (single source; previously duplicated in api and worker). */
+export function aiBudgetLimitsFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): BudgetLimits {
+  return {
+    monthlyUsd: Number(env.AI_MONTHLY_BUDGET_USD || 25),
+    dailyUsd: Number(env.AI_DAILY_BUDGET_USD || 2),
+    maxInputTokens: env.AI_MAX_INPUT_TOKENS ? Number(env.AI_MAX_INPUT_TOKENS) : null,
+    maxOutputTokens: env.AI_MAX_OUTPUT_TOKENS ? Number(env.AI_MAX_OUTPUT_TOKENS) : null,
+  };
+}

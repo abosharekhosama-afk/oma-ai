@@ -304,6 +304,12 @@ model AiRun {
   reservedCost     String      @default("0")
   settledCost      String      @default("0")
   latencyMs        Int?
+  /// Provider calls made for this run (first call + repairs).
+  attemptCount     Int         @default(1)
+  /// Where a failed run stopped: budget | provider | parse | schema | semantic.
+  failureStage     String?
+  /// Output contract id (ai/contracts), e.g. content.variants.
+  contractId       String?
   errorCode        String?
   refusalReason    String?
   proposalJson     String?

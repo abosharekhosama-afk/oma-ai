@@ -41,3 +41,22 @@ not always recorded, and the generic `POST /ai/runs` endpoint accepted any use c
 - Reject is persisted: `refusalReason=HUMAN_REJECTED` and `metadata.review`. The run status
   and settled cost are unchanged so budget accounting is unaffected. Accept after reject
   and reject after accept return 409.
+
+## PR 3.2: unified run ledger
+
+- New `AiRun` columns: `attemptCount`, `failureStage` (`budget|provider|parse|schema|semantic`)
+  and `contractId`. Migration `20261116210000_ai_run_ledger` (additive, defaults only).
+- `@oma/db` `reserveAiRun` checks the budget and persists the run as `RUNNING` with its
+  reservation inside one transaction under a per-tenant advisory lock, so concurrent calls
+  cannot overrun the budget. `settleAiRun` / `failAiRun` release the reservation and record
+  the real cost, tokens and latency on the same row.
+- Every provider call has an `AiRun` row: api structured runs, the generic `/ai/runs`
+  endpoint and the brand-analysis worker. Failed attempts that reached the provider keep
+  their billed cost (counted in USD, no `ai_credits` consumed).
+- The budget window is the current UTC month (it previously summed every run ever).
+  `RUNNING` reservations older than 15 minutes are treated as abandoned.
+- `inputHash` is a hash of the actual prompt and schema. Without an explicit
+  Idempotency-Key, an identical request from the same actor within 60 seconds replays
+  the same run (`Date.now()` keys removed); a duplicate while running returns 409
+  `AI_RUN_IN_PROGRESS`.
+- Platform admin provider probes are not tenant runs and stay unlogged.

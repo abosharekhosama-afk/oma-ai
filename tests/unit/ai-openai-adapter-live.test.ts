@@ -65,7 +65,7 @@ describe('live OpenAI adapter', () => {
       useCase: 'summary',
       payload: {},
     });
-    expect(result).toEqual({ ok: false, code: 'SCHEMA_INVALID' });
+    expect(result).toMatchObject({ ok: false, code: 'SCHEMA_INVALID', stage: 'schema' });
   });
 
   it('maps model refusals', async () => {

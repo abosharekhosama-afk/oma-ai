@@ -1978,8 +1978,7 @@ export class StrategyService {
       sourceEntityType: 'strategy_version',
       sourceEntityId: versionId,
       sourceVersion: version.id,
-      idempotencyKey:
-        opts?.idempotencyKey || `strategy-propose:${versionId}:${actorUserId}:${Date.now()}`,
+      idempotencyKey: opts?.idempotencyKey,
       correlationId: opts?.correlationId,
       prompt,
       schema: proposalJsonSchema(),
