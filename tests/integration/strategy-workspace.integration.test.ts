@@ -23,11 +23,21 @@ describe('strategy workspace integration', () => {
     for (const c of closers) await c();
   });
 
-  it('creates draft without approved profile with missing_source warning', async () => {
+  it('blocks creation until the brand profile is APPROVED; unlinked draft keeps missing_source', async () => {
     const seed = await seedBrandTenant();
     closers.push(async () => seed.app.close());
     const { body: brandBody } = await createBrand(seed);
     const brandId = brandBody.data.id as string;
+
+    const gated = await createStrategy(
+      seed,
+      brandId,
+      { name: 'No approved profile' },
+      { ensureApprovedProfile: false },
+    );
+    expect(gated.res.status).toBe(403);
+    expect(gated.body.error.code).toBe('BRAND_PROFILE_NOT_APPROVED');
+    expect(gated.body.error.message_key).toBe('errors.brand_profile_not_approved');
 
     const { res, body } = await createStrategy(seed, brandId, { name: 'Draft only' });
     expect([200, 201]).toContain(res.status);
@@ -87,7 +97,7 @@ describe('strategy workspace integration', () => {
     expect(brandAfter.currentApprovedStrategyId).toBeNull();
   });
 
-  it('draft_aid profile never satisfies submit gate; approved link does', async () => {
+  it('draft profiles cannot be linked; only the approved link satisfies the submit gate', async () => {
     const seed = await seedBrandTenant();
     closers.push(async () => seed.app.close());
     const { body: brandBody } = await createBrand(seed);
@@ -113,8 +123,20 @@ describe('strategy workspace integration', () => {
       rowVersion,
       'draft_aid',
     );
-    expect([200, 201]).toContain(aid.res.status);
-    rowVersion = aid.body.data.row_version;
+    expect(aid.res.status).toBe(403);
+    expect(aid.body.error.code).toBe('DRAFT_PROFILE_FORBIDDEN');
+
+    const draftAsApproved = await linkApprovedProfile(
+      seed,
+      brandId,
+      strategyId,
+      versionId,
+      draftProfileId,
+      rowVersion,
+      'approved',
+    );
+    expect(draftAsApproved.res.status).toBe(403);
+    expect(draftAsApproved.body.error.code).toBe('DRAFT_PROFILE_FORBIDDEN');
 
     await patchFoundation(seed, brandId, strategyId, versionId, rowVersion, {
       goals: [{ value: 'G', infoClass: 'USER_AUTHORED' }],

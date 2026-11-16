@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
   DomainError,
@@ -80,12 +80,13 @@ export class StrategyService {
         })
       : null;
     if (!profile) {
-      throw new ForbiddenException({
-        code: 'BRAND_PROFILE_NOT_APPROVED',
-        message: 'لا يمكن إنشاء الاستراتيجية قبل اعتماد ملف العلامة التجارية بحالة APPROVED.',
-        brand_id: brandId,
-        required_status: 'APPROVED',
-      });
+      throw new DomainError(
+        'BRAND_PROFILE_NOT_APPROVED',
+        'A strategy can only be created after the brand profile is APPROVED.',
+        403,
+        'errors.brand_profile_not_approved',
+        [{ brand_id: brandId, required_status: 'APPROVED' }],
+      );
     }
     return profile;
   }
@@ -216,12 +217,13 @@ export class StrategyService {
     }
 
     if (input.draft_profile_version_id) {
-      throw new ForbiddenException({
-        code: 'DRAFT_PROFILE_FORBIDDEN',
-        message: 'لا يمكن استخدام ملف علامة تجارية مسودة لإنشاء استراتيجية.',
-        profile_version_id: input.draft_profile_version_id,
-        required_status: 'APPROVED',
-      });
+      throw new DomainError(
+        'DRAFT_PROFILE_FORBIDDEN',
+        'A draft brand profile cannot be used to create a strategy.',
+        403,
+        'errors.draft_profile_forbidden',
+        [{ profile_version_id: input.draft_profile_version_id, required_status: 'APPROVED' }],
+      );
     }
 
     const strategyId = newId();
@@ -669,12 +671,13 @@ export class StrategyService {
     });
     if (!profile) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
     if (input.role === 'draft_aid' || profile.status !== 'APPROVED') {
-      throw new ForbiddenException({
-        code: 'DRAFT_PROFILE_FORBIDDEN',
-        message: 'لا يمكن ربط الاستراتيجية إلا بملف علامة تجارية بحالة APPROVED.',
-        profile_version_id: profile.id,
-        required_status: 'APPROVED',
-      });
+      throw new DomainError(
+        'DRAFT_PROFILE_FORBIDDEN',
+        'A strategy can only be linked to an APPROVED brand profile.',
+        403,
+        'errors.draft_profile_forbidden',
+        [{ profile_version_id: profile.id, required_status: 'APPROVED' }],
+      );
     }
 
     await getPrisma().strategyVersion.update({

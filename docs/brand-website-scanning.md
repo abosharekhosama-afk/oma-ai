@@ -40,12 +40,12 @@ the static result is empty or missing product media (`BRAND_SCANNER_JS_RENDER_MO
 
 When the worker has `playwright-core` and Chromium available, set:
 
-| Variable                                 | Default | Purpose                                                                                                                                             |
-| ---------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variable                                 | Default | Purpose                                                                                                                               |
+| ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `BRAND_SCANNER_JS_RENDER_MODE`           | `auto`  | `off` \| `auto` \| `always` — `auto` re-fetches with headless Chromium when the page looks like an SPA shell or has weak catalog data |
-| `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000` | Per-page render timeout                                                                                                                             |
-| `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`  | Block fonts and non-image media during render to save RAM                                                                                            |
-| `BRAND_SCANNER_JS_BLOCK_IMAGES`          | `false` | Optional low-memory mode; blocks images too, but can prevent lazy-loaded product galleries from being discovered                                    |
+| `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000` | Per-page render timeout                                                                                                               |
+| `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`  | Block fonts and non-image media during render to save RAM                                                                             |
+| `BRAND_SCANNER_JS_BLOCK_IMAGES`          | `false` | Optional low-memory mode; blocks images too, but can prevent lazy-loaded product galleries from being discovered                      |
 
 `auto` keeps static fetch first; Playwright runs only when heuristics say JS is likely required. Images
 remain enabled during rendered scans so lazy loaders can populate product galleries. In `always` mode,

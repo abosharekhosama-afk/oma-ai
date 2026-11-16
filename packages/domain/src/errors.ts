@@ -45,7 +45,10 @@ export type ErrorCode =
   | 'PLAN_FEATURE_REQUIRED'
   | 'PLAN_INACTIVE'
   | 'PAYMENT_REQUIRED'
-  | 'ADDON_REQUIRED';
+  | 'ADDON_REQUIRED'
+  | 'BRAND_PROFILE_NOT_APPROVED'
+  | 'DRAFT_PROFILE_FORBIDDEN'
+  | 'LINKED_PROFILE_NOT_APPROVED';
 
 export class DomainError extends Error {
   constructor(

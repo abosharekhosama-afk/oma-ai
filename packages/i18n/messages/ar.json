@@ -3365,5 +3365,8 @@
   "strategy.list.noApprovedVersion": "لا توجد نسخة معتمدة",
   "strategy.list.updatedAt": "آخر تحديث {date}",
   "strategy.overview.versionNumber": "النسخة {number}",
-  "strategy.overview.noTracks": "لا توجد مسارات مفعّلة"
+  "strategy.overview.noTracks": "لا توجد مسارات مفعّلة",
+  "errors.brand_profile_not_approved": "اعتمد ملف العلامة التجارية أولاً. الاستراتيجيات والخطط تُبنى فقط من ملف بحالة معتمد.",
+  "errors.draft_profile_forbidden": "لا يمكن استخدام ملف علامة تجارية مسودة هنا. اربط الملف المعتمد بدلاً منه.",
+  "errors.linked_profile_not_approved": "هذه الاستراتيجية مرتبطة بملف علامة تجارية لم يعد معتمداً. اربط الملف المعتمد الحالي."
 }

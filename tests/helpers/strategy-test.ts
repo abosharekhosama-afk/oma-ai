@@ -31,7 +31,18 @@ export async function createStrategy(
     organic_enabled?: boolean;
     paid_enabled?: boolean;
   },
+  options?: {
+    /**
+     * Strategy creation requires the brand to have an APPROVED profile
+     * (`BRAND_PROFILE_NOT_APPROVED`). By default the helper seeds one when the
+     * brand has none; pass `false` to exercise the gate itself.
+     */
+    ensureApprovedProfile?: boolean;
+  },
 ) {
+  if (options?.ensureApprovedProfile !== false) {
+    await ensureApprovedProfileVersion(seed.tenantId, brandId);
+  }
   const res = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/strategies`, {
     method: 'POST',
     headers: authHeaders(seed),
@@ -41,6 +52,22 @@ export async function createStrategy(
     }),
   });
   return { res, body: await res.json() };
+}
+
+/** Return the brand's current APPROVED profile id, seeding one when missing. */
+export async function ensureApprovedProfileVersion(tenantId: string, brandId: string) {
+  const brand = await getPrisma().brandWorkspace.findFirst({
+    where: { id: brandId, tenantId },
+    select: { currentApprovedProfileVersionId: true },
+  });
+  if (brand?.currentApprovedProfileVersionId) {
+    const current = await getPrisma().profileVersion.findFirst({
+      where: { id: brand.currentApprovedProfileVersionId, tenantId, status: 'APPROVED' },
+      select: { id: true },
+    });
+    if (current) return current.id;
+  }
+  return seedApprovedProfileVersion(tenantId, brandId);
 }
 
 export async function getStrategy(seed: BrandSeed, brandId: string, strategyId: string) {

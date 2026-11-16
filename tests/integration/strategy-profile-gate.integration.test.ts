@@ -23,9 +23,38 @@ describe('strategy profile gate', () => {
     await seed.app.close();
   });
 
-  it('draft OK without approved profile', async () => {
+  it('creation is blocked until the brand profile is APPROVED', async () => {
     const { body: brand } = await createBrand(seed);
-    const { res, body } = await createStrategy(seed, brand.data.id, { name: 'No profile draft' });
+    const { res, body } = await createStrategy(
+      seed,
+      brand.data.id,
+      { name: 'No profile draft' },
+      { ensureApprovedProfile: false },
+    );
+    expect(res.status).toBe(403);
+    expect(body.error.code).toBe('BRAND_PROFILE_NOT_APPROVED');
+    expect(body.error.details).toEqual([{ brand_id: brand.data.id, required_status: 'APPROVED' }]);
+  });
+
+  it('creation rejects a draft profile id', async () => {
+    const { body: brand } = await createBrand(seed);
+    const brandId = brand.data.id as string;
+    const draftProfileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
+    await getPrisma().profileVersion.update({
+      where: { id: draftProfileId },
+      data: { status: 'DRAFT', approvedAt: null },
+    });
+    const { res, body } = await createStrategy(seed, brandId, {
+      name: 'Draft aid on create',
+      draft_profile_version_id: draftProfileId,
+    });
+    expect(res.status).toBe(403);
+    expect(body.error.code).toBe('DRAFT_PROFILE_FORBIDDEN');
+  });
+
+  it('approved profile allows a draft that is flagged missing_source until linked', async () => {
+    const { body: brand } = await createBrand(seed);
+    const { res, body } = await createStrategy(seed, brand.data.id, { name: 'Unlinked draft' });
     expect([200, 201]).toContain(res.status);
     expect(body.data.latest_version.missing_source).toBe(true);
     expect(body.data.latest_version.status).toBe('DRAFT');
@@ -61,7 +90,7 @@ describe('strategy profile gate', () => {
     expect(JSON.stringify(blocked.body)).toMatch(/APPROVED_PROFILE_REQUIRED|APPROVAL_INELIGIBLE/);
   });
 
-  it('draft_aid profile is not enough for submit', async () => {
+  it('draft profile cannot be linked as draft_aid and submit stays blocked', async () => {
     const { body: brand } = await createBrand(seed);
     const brandId = brand.data.id as string;
     const draftProfileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
@@ -83,8 +112,8 @@ describe('strategy profile gate', () => {
       rowVersion,
       'draft_aid',
     );
-    expect([200, 201]).toContain(aid.res.status);
-    rowVersion = aid.body.data.row_version;
+    expect(aid.res.status).toBe(403);
+    expect(aid.body.error.code).toBe('DRAFT_PROFILE_FORBIDDEN');
 
     await patchFoundation(seed, brandId, strategyId, versionId, rowVersion, {
       goals: [{ value: 'G', infoClass: 'USER_AUTHORED' }],

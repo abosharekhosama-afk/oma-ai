@@ -1,6 +1,6 @@
 # DP-003-001 — Brand Profile linkage gate
 
-**Status:** `OWNER_APPROVED / RESOLVED`
+**Status:** `SUPERSEDED (2026-11-16) — see addendum`
 **Resolution:** **Option B** (Owner 2026-09-08)
 **Feature:** `003-strategy-organic-paid-plans`
 **Slice resolution:** `SR-003-001-B`
@@ -33,3 +33,12 @@ Canonical behavior: Feature 003 `spec.md` §8.2, `FR-SOP-010`–`012`.
 
 - Closing `DEC-004` / live crawl
 - Allowing 003 to mutate Feature 002 approvals
+
+## Addendum (2026-11-16) — moved to Option A
+
+Commit `b636b3f3` (`feat: enforce approved brand profiles for strategies`) moved the product to
+**Option A**: creating a strategy requires the brand to have an `APPROVED` profile
+(`403 BRAND_PROFILE_NOT_APPROVED`), draft profiles can no longer be linked
+(`403 DRAFT_PROFILE_FORBIDDEN`), and plan requests require the linked profile to still be approved
+(`403 LINKED_PROFILE_NOT_APPROVED`). A new draft created from an approved brand is still flagged
+`missing_source` until a specific approved version is linked, and submit still requires the link.

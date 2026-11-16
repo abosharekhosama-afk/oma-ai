@@ -3365,5 +3365,8 @@
   "strategy.list.noApprovedVersion": "No approved version",
   "strategy.list.updatedAt": "Updated {date}",
   "strategy.overview.versionNumber": "Version {number}",
-  "strategy.overview.noTracks": "No tracks enabled"
+  "strategy.overview.noTracks": "No tracks enabled",
+  "errors.brand_profile_not_approved": "Approve the brand profile first. Strategies and plans are built only from an APPROVED profile.",
+  "errors.draft_profile_forbidden": "A draft brand profile can’t be used here. Link the APPROVED profile instead.",
+  "errors.linked_profile_not_approved": "This strategy points to a brand profile that is no longer APPROVED. Link the current approved profile."
 }
