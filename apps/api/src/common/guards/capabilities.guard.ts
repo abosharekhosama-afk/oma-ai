@@ -123,6 +123,18 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/tracks/enablement': [
     'strategy.edit',
   ],
+  'GET /api/v1/brands/:brandId/briefs': ['brief.read'],
+  'POST /api/v1/brands/:brandId/briefs': ['brief.create'],
+  'POST /api/v1/brands/:brandId/briefs/from-strategy': ['brief.create'],
+  'GET /api/v1/brands/:brandId/briefs/:briefId': ['brief.read'],
+  'PATCH /api/v1/brands/:brandId/briefs/:briefId': ['brief.edit'],
+  'POST /api/v1/brands/:brandId/briefs/:briefId/submit': ['brief.submit'],
+  'POST /api/v1/brands/:brandId/briefs/:briefId/approve': ['brief.approve'],
+  'POST /api/v1/brands/:brandId/briefs/:briefId/request-changes': ['brief.approve'],
+  'POST /api/v1/brands/:brandId/briefs/:briefId/revise': ['brief.edit'],
+  'POST /api/v1/brands/:brandId/briefs/:briefId/cancel': ['brief.edit'],
+  'POST /api/v1/brands/:brandId/briefs/:briefId/convert': ['brief.convert', 'task.create'],
+  'POST /api/v1/brands/:brandId/briefs/:briefId/comments': ['brief.comment'],
   'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan': ['strategy.read'],
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan/ai/propose': [
     'strategy.edit',
@@ -663,6 +675,7 @@ export function matchRequirements(method: string, path: string): string[] | null
       .replace(':taskId', '[^/]+')
       .replace(':itemId', '[^/]+')
       .replace(':requestId', '[^/]+')
+      .replace(':briefId', '[^/]+')
       .replace(':commentId', '[^/]+')
       .replace(':dayKey', '[^/]+')
       .replace(':labelId', '[^/]+')

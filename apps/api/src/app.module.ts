@@ -31,6 +31,7 @@ import { DiscoveryController } from './discovery/discovery.controller';
 import { CatalogController } from './catalog/catalog.controller';
 import { ProfileController } from './intelligence/profile.controller';
 import { StrategyController } from './strategy/strategy.controller';
+import { BriefController } from './brief/brief.controller';
 import { DemoController } from './demo/demo.controller';
 import { CampaignController } from './content/campaign.controller';
 import { ContentController } from './content/content.controller';
@@ -68,6 +69,7 @@ import { SupportController } from './platform/support.controller';
     CatalogController,
     ProfileController,
     StrategyController,
+    BriefController,
     DemoController,
     CampaignController,
     ContentController,

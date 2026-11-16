@@ -31,7 +31,8 @@ versions, and `plan-to-requests/convert-tasks` turns plan rows into tasks direct
 ## Consequences
 
 - New capabilities: `brief.read`, `brief.create`, `brief.edit`, `brief.submit`, `brief.approve`,
-  `brief.convert`.
+  `brief.convert`, `brief.comment` (migration `20261116150100_brief_capabilities` syncs system
+  profiles and backfills grants for existing memberships; it never revokes anything).
 - Feature flag `BRIEF_ENTITY_ENABLED` (default on in dev/test) gates the new routes and UI.
 - The direct `plan-to-requests/convert-tasks` path remains for existing data but the UI routes new
   work through briefs.
@@ -40,3 +41,17 @@ versions, and `plan-to-requests/convert-tasks` turns plan rows into tasks direct
 
 - Whether a request without a strategy (ad-hoc intake) must also pass through a brief.
 - Whether self-approval is allowed for single-member brands (default: allowed, audited).
+
+## Implementation notes (Phase 1 · PR C)
+
+- Routes are brand-scoped: `/api/v1/brands/:brandId/briefs[/:briefId[/submit|approve|request-changes|revise|cancel|convert|comments]]`
+  plus `POST /briefs/from-strategy`. Every mutation takes `row_version` (optimistic lock).
+- `request-changes` requires a comment. `edit` is allowed in `DRAFT` and `CHANGES_REQUESTED` only.
+- Conversion creates one `WorkTask` per deliverable with `briefId`, `briefVersionId` and
+  `briefDeliverableKey`; a unique key on `(briefVersionId, briefDeliverableKey)` makes it idempotent.
+  Repeating `convert` on a `CONVERTED` brief returns the existing tasks (`replayed: true`).
+- Self-approval: blocked when another active member with `brief.approve` can see the brand
+  (workspace admin or brand member); otherwise allowed and recorded as `selfApproval=true` + audit.
+- `from-strategy` copies approved strategy text only (goals, key messages/positioning, audiences,
+  channels, optional pillar → one deliverable). The result is a DRAFT; AI brief generation is a
+  later PR and will follow DEC-020 (proposal + human accept).

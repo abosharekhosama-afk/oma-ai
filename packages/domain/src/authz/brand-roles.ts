@@ -33,6 +33,8 @@ const APPROVER_EXTRA = new Set([
   'deliverable.annotate',
   'brand.version.approve',
   'brand.insight.decide',
+  'brief.approve',
+  'brief.comment',
 ]);
 
 /**
@@ -51,6 +53,8 @@ const VIEWER_EXTRA = new Set([
   'deliverable.review',
   'deliverable.review.decide',
   'strategy.comment',
+  'brief.approve',
+  'brief.comment',
 ]);
 
 function isReadOnly(code: string) {

@@ -91,6 +91,25 @@ export const OPS_CAPABILITIES = [
   'deliverable.review.decide',
 ] as const;
 
+/** Brief aggregate (DEC-019). */
+export const BRIEF_CAPABILITIES = [
+  'brief.read',
+  'brief.create',
+  'brief.edit',
+  'brief.submit',
+  'brief.approve',
+  'brief.convert',
+  'brief.comment',
+] as const;
+
+const BRIEF_AUTHOR = [
+  'brief.read',
+  'brief.create',
+  'brief.edit',
+  'brief.submit',
+  'brief.comment',
+] as const;
+
 export type CapabilityCode =
   | (typeof FOUNDATION_CAPABILITIES)[number]
   | (typeof BRAND_CAPABILITIES)[number]
@@ -99,6 +118,7 @@ export type CapabilityCode =
   | (typeof CAMPAIGN_CAPABILITIES)[number]
   | (typeof CONTENT_CAPABILITIES)[number]
   | (typeof OPS_CAPABILITIES)[number]
+  | (typeof BRIEF_CAPABILITIES)[number]
   | string;
 
 export function hasCapability(
@@ -159,6 +179,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...CAMPAIGN_CAPABILITIES,
     ...CONTENT_CAPABILITIES,
     ...OPS_CAPABILITIES,
+    ...BRIEF_CAPABILITIES,
   ],
   COMPANY_OWNER: [
     'tenant.manage',
@@ -176,6 +197,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...CAMPAIGN_CAPABILITIES,
     ...CONTENT_CAPABILITIES,
     ...OPS_CAPABILITIES,
+    ...BRIEF_CAPABILITIES,
   ],
   /** Planable Administrator */
   ADMIN: [
@@ -192,6 +214,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...CAMPAIGN_CAPABILITIES,
     ...CONTENT_CAPABILITIES,
     ...OPS_CAPABILITIES,
+    ...BRIEF_CAPABILITIES,
     'ai.propose.strategy',
     'ai.propose.brief',
   ],
@@ -212,6 +235,8 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'deliverable.write',
     'deliverable.version.create',
     'deliverable.annotate',
+    ...BRIEF_AUTHOR,
+    'brief.convert',
   ],
   /** Planable Approver — approve content and deliverable review decisions */
   APPROVER: [
@@ -226,6 +251,9 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'deliverable.review.decide',
     'deliverable.read',
     'deliverable.annotate',
+    'brief.read',
+    'brief.approve',
+    'brief.comment',
   ],
   /** Standard collaborator */
   MEMBER: [
@@ -247,6 +275,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'task.update',
     'task.write',
     'deliverable.read',
+    ...BRIEF_AUTHOR,
   ],
   /** External client / guest — view, request, comment & approve (hide-from-clients respected) */
   CLIENT: [
@@ -262,8 +291,11 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'deliverable.review',
     'deliverable.review.decide',
     'deliverable.annotate',
+    'brief.read',
+    'brief.approve',
+    'brief.comment',
   ],
-  GUEST: ['notification.read', 'content.read', 'campaign.read', 'brand.read'],
+  GUEST: ['notification.read', 'content.read', 'campaign.read', 'brand.read', 'brief.read'],
   VIEWER: [
     'notification.read',
     'analytics.read',
@@ -271,6 +303,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'campaign.read',
     'brand.read',
     'strategy.read',
+    'brief.read',
   ],
 };
 
