@@ -13,6 +13,7 @@ import {
   aiBudgetLimitsFromEnv,
   computeCostUsd,
   defaultAiModels,
+  assertAiWriteTarget,
   brandAnalysisContractFor,
   deterministicBrandAnalysisV2,
   type BrandAnalysisV2,
@@ -312,57 +313,88 @@ export async function runBrandProfileAnalysis(input: {
   if (proposal) {
     await consumeAiCreditOnce(input.tenantId);
     const writes = insightWritesFromProposal(proposal, knownEvidence);
-    await prisma.$transaction(async (tx) => {
-      const pendingAi = await tx.insightClaim.findMany({
-        where: {
-          tenantId: input.tenantId,
-          profileVersionId: profile.id,
-          createdBy: 'AI',
-          reviewStatus: 'PENDING',
-        },
-      });
-      if (pendingAi.length > 0) {
-        await tx.insightClaim.deleteMany({ where: { id: { in: pendingAi.map((row) => row.id) } } });
-      }
-      for (const write of writes) {
-        await tx.insightClaim.create({
-          data: {
-            id: newId(),
+    let applied = true;
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Draft-only invariant: lock the row and re-check it is still a draft (DEC-027 3.6).
+        const locked = await tx.profileVersion.updateMany({
+          where: {
+            id: profile.id,
             tenantId: input.tenantId,
-            brandId: input.brandId,
+            status: { in: ['DRAFT', 'NEEDS_REVIEW'] },
+          },
+          data: { analysisStatus: 'ANALYZING' },
+        });
+        if (locked.count !== 1) {
+          const current = await tx.profileVersion.findUniqueOrThrow({
+            where: { id: profile.id },
+            select: { status: true },
+          });
+          assertAiWriteTarget({ kind: 'profile_version', status: current.status });
+        }
+        const pendingAi = await tx.insightClaim.findMany({
+          where: {
+            tenantId: input.tenantId,
             profileVersionId: profile.id,
-            fieldKey: write.fieldKey,
-            infoState: write.infoState,
-            reviewStatus: 'PENDING',
-            textValue: write.textValue,
-            valueJson: write.valueJson,
-            evidenceId: write.evidenceId,
-            discoveryTier: write.discoveryTier as never,
             createdBy: 'AI',
-            confidence: write.confidence,
+            reviewStatus: 'PENDING',
           },
         });
-      }
-      const currentSections = profile.sectionsJson
-        ? (JSON.parse(profile.sectionsJson) as Record<string, unknown>)
-        : {};
-      const nextSections = mergeAiSections(currentSections, proposal!, {
-        visualIdentity: visualIdentityFromObservations(observations),
+        if (pendingAi.length > 0) {
+          await tx.insightClaim.deleteMany({
+            where: { id: { in: pendingAi.map((row) => row.id) } },
+          });
+        }
+        for (const write of writes) {
+          assertAiWriteTarget({ kind: 'insight_claim', reviewStatus: 'PENDING' });
+          await tx.insightClaim.create({
+            data: {
+              id: newId(),
+              tenantId: input.tenantId,
+              brandId: input.brandId,
+              profileVersionId: profile.id,
+              fieldKey: write.fieldKey,
+              infoState: write.infoState,
+              reviewStatus: 'PENDING',
+              textValue: write.textValue,
+              valueJson: write.valueJson,
+              evidenceId: write.evidenceId,
+              discoveryTier: write.discoveryTier as never,
+              createdBy: 'AI',
+              confidence: write.confidence,
+            },
+          });
+        }
+        const currentSections = profile.sectionsJson
+          ? (JSON.parse(profile.sectionsJson) as Record<string, unknown>)
+          : {};
+        const nextSections = mergeAiSections(currentSections, proposal!, {
+          visualIdentity: visualIdentityFromObservations(observations),
+          aiRunId: runId,
+        });
+        await tx.profileVersion.update({
+          where: { id: profile.id },
+          data: {
+            sectionsJson: JSON.stringify(nextSections),
+            analysisStatus: 'ANALYZED',
+            aiAvailability: 'USED',
+          },
+        });
       });
-      await tx.profileVersion.update({
-        where: { id: profile.id },
-        data: {
-          sectionsJson: JSON.stringify(nextSections),
-          analysisStatus: 'ANALYZED',
-          aiAvailability: 'USED',
-        },
-      });
-    });
-    await markAnalysis(input.tenantId, input.scanAttemptId, input.profileVersionId, {
-      analysisStatus: 'ANALYZED',
-      aiAvailability: 'USED',
-      analysisErrorCode: null,
-    });
+    } catch (err) {
+      if (!isAiWriteForbidden(err)) throw err;
+      // The profile was approved while the model was running: keep the proposal on the
+      // run (it was paid for) but never touch the approved version.
+      applied = false;
+    }
+    await markAnalysis(
+      input.tenantId,
+      input.scanAttemptId,
+      input.profileVersionId,
+      applied
+        ? { analysisStatus: 'ANALYZED', aiAvailability: 'USED', analysisErrorCode: null }
+        : { analysisStatus: 'SKIPPED', analysisErrorCode: 'APPROVED_VERSION_IMMUTABLE' },
+    );
     const proposalJson = JSON.stringify(proposal);
     await settleAiRun(runId, {
       model,
@@ -404,4 +436,9 @@ export async function runBrandProfileAnalysis(input: {
   }
 
   return { ok: Boolean(proposal), runId, errorCode };
+}
+
+function isAiWriteForbidden(err: unknown): boolean {
+  const details = (err as { details?: Array<{ code?: string }> })?.details;
+  return Array.isArray(details) && details.some((d) => d?.code === 'AI_WRITE_FORBIDDEN');
 }

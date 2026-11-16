@@ -123,7 +123,7 @@ export function visualIdentityFromObservations(
 export function mergeAiSections(
   current: Record<string, unknown>,
   proposal: BrandAnalysisProposal,
-  extras: { visualIdentity?: Record<string, unknown> } = {},
+  extras: { visualIdentity?: Record<string, unknown>; aiRunId?: string } = {},
 ): Record<string, unknown> {
   const next: Record<string, unknown> = { ...current };
   const pick = (field: string) => proposal.items.find((item) => item.field === field)?.value;
@@ -156,6 +156,10 @@ export function mergeAiSections(
   next.visual_identity = visual;
 
   next.ai_analysis = {
+    // Provenance: these sections are an AI proposal on a draft until a human approves.
+    run_id: extras.aiRunId ?? null,
+    origin: 'AI_PROPOSED',
+    fields: [...new Set(proposal.items.map((item) => item.field))],
     promptId: proposal.promptId,
     promptVersion: proposal.promptVersion,
     language: proposal.language,

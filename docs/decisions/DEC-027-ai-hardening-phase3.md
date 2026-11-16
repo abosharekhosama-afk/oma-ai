@@ -130,3 +130,28 @@ not always recorded, and the generic `POST /ai/runs` endpoint accepted any use c
 - The admin AI probe uses the v2 `content.variants` contract.
 - `apps/worker/src/processors/ai.processor.ts` is untouched and kept (owner override).
   Its `adapter.generate()` path now validates against `brand.analysis` v2.
+
+## PR 3.6: draft-only invariant
+
+- `assertAiWriteTarget` (domain `ai/write-guard.ts`) defines the only places AI output may
+  land: the `AiRun` row, a `DRAFT`/`NEEDS_REVIEW` profile version, `PENDING` insight
+  claims, a `DRAFT` strategy version (only through a human accept), and `DRAFT` content.
+  Anything else gets `409 CONFLICT_STATE / AI_WRITE_FORBIDDEN`.
+- Accept and reject on generic `/ai/runs` and on legacy strategy propose require a
+  signed-in person (`assertHumanActor` → `403 HUMAN_ACTOR_REQUIRED`). Each writes an
+  `AuditEvent` in the same transaction (`ai.run.accepted|rejected`,
+  `strategy.ai_proposal_accepted|rejected`) with `afterRef: ai_run:<id>`. The plan accept
+  already audited through `guardedWrite`.
+- Strategy accept re-checks inside the transaction that the version is still `DRAFT`.
+- Brand analysis worker: locks the profile row inside the write transaction and re-checks
+  it is still a draft. If a person approved it while the model was running, nothing is
+  written: the run keeps the paid proposal, and the scan is marked
+  `SKIPPED / APPROVED_VERSION_IMMUTABLE`. AI-written sections carry provenance in
+  `sections.ai_analysis` (`run_id`, `origin: AI_PROPOSED`, `fields`).
+- Deviation from the plan: brand analysis still merges its proposal into the draft's
+  sections instead of a separate proposal blob, because the profile review UI edits
+  those sections directly and approval is the human gate. Changing that is UI work and is
+  left for later.
+- Static test `tests/unit/ai-draft-only-invariant.test.ts` scans AI-only modules and the AI
+  methods of mixed services for Prisma `data:` blocks that set `APPROVED`, `SUPERSEDED`,
+  `PUBLISHED`, `SCHEDULED` or an accepted claim, and checks the guards are called.

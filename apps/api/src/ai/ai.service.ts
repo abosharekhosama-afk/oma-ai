@@ -6,6 +6,8 @@ import {
   brandAnalysisContractFor,
   deterministicBrandAnalysisV2,
   storedProposalVersion,
+  assertAiWriteTarget,
+  assertHumanActor,
   evaluateBudget,
   isAiLiveEnabled,
   isAiProviderConfigured,
@@ -336,6 +338,7 @@ function requireGenericReviewableRun(run: {
 }
 
 export async function acceptAiRun(tenantId: string, id: string, actorUserId?: string) {
+  assertHumanActor(actorUserId);
   const run = await readAiRun(tenantId, id);
   if (run.sourceEntityType === 'approved_profile' || run.sourceEntityType === 'approved_strategy') {
     throw new DomainError(
@@ -409,7 +412,7 @@ export async function acceptAiRun(tenantId: string, id: string, actorUserId?: st
       data: {
         metadataJson: writeAiRunReview(run.metadataJson, {
           decision: 'accepted',
-          by: actorUserId ?? 'unknown',
+          by: actorUserId,
           at,
           draftId,
         }),
@@ -424,6 +427,19 @@ export async function acceptAiRun(tenantId: string, id: string, actorUserId?: st
         'errors.conflict_state',
       );
     }
+    assertAiWriteTarget({ kind: 'profile_version', status: 'DRAFT' });
+    await tx.auditEvent.create({
+      data: {
+        id: newId(),
+        actorUserId,
+        actorType: 'USER',
+        tenantId,
+        action: 'ai.run.accepted',
+        targetType: 'profile_version',
+        targetId: draftId,
+        afterRef: `ai_run:${run.id}`,
+      },
+    });
     await tx.profileVersion.create({
       data: {
         id: draftId,
@@ -449,6 +465,7 @@ export async function rejectAiRun(
   actorUserId?: string,
   reason?: string | null,
 ) {
+  assertHumanActor(actorUserId);
   const run = await readAiRun(tenantId, id);
   requireGenericReviewableRun(run);
   const review = readAiRunReview(run.metadataJson);
@@ -467,18 +484,35 @@ export async function rejectAiRun(
   }
   // Keep the run status (and its settled cost) intact so budget accounting is unchanged;
   // the human decision is recorded on the run itself.
-  const updated = await getPrisma().aiRun.updateMany({
-    where: { id: run.id, tenantId, version: run.version },
-    data: {
-      refusalReason: 'HUMAN_REJECTED',
-      metadataJson: writeAiRunReview(run.metadataJson, {
-        decision: 'rejected',
-        by: actorUserId ?? 'unknown',
-        at: new Date().toISOString(),
-        reason: trimmed,
-      }),
-      version: { increment: 1 },
-    },
+  const updated = await getPrisma().$transaction(async (tx) => {
+    const res = await tx.aiRun.updateMany({
+      where: { id: run.id, tenantId, version: run.version },
+      data: {
+        refusalReason: 'HUMAN_REJECTED',
+        metadataJson: writeAiRunReview(run.metadataJson, {
+          decision: 'rejected',
+          by: actorUserId,
+          at: new Date().toISOString(),
+          reason: trimmed,
+        }),
+        version: { increment: 1 },
+      },
+    });
+    if (res.count === 1) {
+      await tx.auditEvent.create({
+        data: {
+          id: newId(),
+          actorUserId,
+          actorType: 'USER',
+          tenantId,
+          action: 'ai.run.rejected',
+          targetType: 'ai_run',
+          targetId: run.id,
+          afterRef: trimmed ? `reason:${trimmed}`.slice(0, 500) : undefined,
+        },
+      });
+    }
+    return res;
   });
   if (updated.count !== 1) {
     throw new DomainError(
