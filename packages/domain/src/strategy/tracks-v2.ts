@@ -8,7 +8,7 @@ import { STRATEGY_INFO_CLASSES } from './states';
  * Paid: platform budget allocation, audience targeting, A/B experiments.
  *
  * These Zod schemas are the single source of truth for the API input, the AI
- * structured output contract (see `packages/ai/src/schemas/strategy-plan.ts`),
+ * structured output contract (see `./plan-proposal.ts`),
  * and the deterministic generator. Every row carries an info class and a
  * `source` so estimates are never presented as measured data.
  */

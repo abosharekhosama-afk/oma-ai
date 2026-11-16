@@ -712,6 +712,48 @@ export class StrategyController {
     );
   }
 
+  @Post('strategies/:strategyId/versions/:versionId/plan/ai/propose')
+  @UseGuards(CsrfGuard)
+  async proposePlan(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanService.proposePlan(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      body,
+      { idempotencyKey: req.header('idempotency-key'), correlationId: req.oma!.correlationId },
+    );
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/plan/ai/accept')
+  @UseGuards(CsrfGuard)
+  async acceptPlanProposal(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanService.acceptProposal(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post('strategies/:strategyId/versions/:versionId/ai/propose')
   @UseGuards(CsrfGuard)
   async aiPropose(
