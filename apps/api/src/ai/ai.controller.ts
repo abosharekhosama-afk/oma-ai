@@ -1,11 +1,14 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { DomainError } from '@oma/domain';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import {
   aiStatus,
   aiBudgetForTenant,
   acceptAiRun,
+  rejectAiRun,
   cancelAiRun,
   createAiRun,
   readAiRun,
@@ -37,13 +40,14 @@ export class AiController {
   }
 
   @Get('budget')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
   async budget(@Req() req: Request) {
     const actor = this.requireTenant(req);
     return { data: await aiBudgetForTenant(actor.tenantId!) };
   }
 
   @Post('runs')
-  @UseGuards(CsrfGuard)
+  @UseGuards(AuthGuard, CapabilitiesGuard, CsrfGuard)
   async create(
     @Req() req: Request,
     @Body()
@@ -72,32 +76,30 @@ export class AiController {
   }
 
   @Get('runs/:id')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
   async read(@Req() req: Request, @Param('id') id: string) {
     const actor = this.requireTenant(req);
     return { data: await readAiRun(actor.tenantId!, id) };
   }
 
   @Post('runs/:id/cancel')
-  @UseGuards(CsrfGuard)
+  @UseGuards(AuthGuard, CapabilitiesGuard, CsrfGuard)
   async cancel(@Req() req: Request, @Param('id') id: string) {
     const actor = this.requireTenant(req);
     return { data: await cancelAiRun(actor.tenantId!, id) };
   }
 
   @Post('runs/:id/accept')
-  @UseGuards(CsrfGuard)
+  @UseGuards(AuthGuard, CapabilitiesGuard, CsrfGuard)
   async accept(@Req() req: Request, @Param('id') id: string) {
     const actor = this.requireTenant(req);
-    return { data: await acceptAiRun(actor.tenantId!, id) };
+    return { data: await acceptAiRun(actor.tenantId!, id, actor.userId!) };
   }
 
   @Post('runs/:id/reject')
-  @UseGuards(CsrfGuard)
-  async reject(@Req() req: Request, @Param('id') id: string) {
+  @UseGuards(AuthGuard, CapabilitiesGuard, CsrfGuard)
+  async reject(@Req() req: Request, @Param('id') id: string, @Body() body?: { reason?: string }) {
     const actor = this.requireTenant(req);
-    const run = await readAiRun(actor.tenantId!, id);
-    return {
-      data: { id: run.id, status: 'REFUSED', manual_journey: true },
-    };
+    return { data: await rejectAiRun(actor.tenantId!, id, actor.userId!, body?.reason ?? null) };
   }
 }
