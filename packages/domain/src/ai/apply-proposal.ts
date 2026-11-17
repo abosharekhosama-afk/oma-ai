@@ -186,6 +186,71 @@ export function shouldSkipApprovedProfile(status: string): boolean {
   return status === 'APPROVED' || status === 'SUPERSEDED';
 }
 
+function tryParseJson(raw: string | null | undefined): unknown {
+  if (!raw?.trim()) return null;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Apply an accepted insight to profile sections, using structured `valueJson` when present
+ * (logo/colors/contact/social/languages from crawl observations).
+ */
+export function applyAcceptedInsightClaimToSections(
+  current: Record<string, unknown>,
+  fieldKey: string,
+  textValue: string | null | undefined,
+  valueJson: string | null | undefined,
+): Record<string, unknown> {
+  if (fieldKey === 'brand.logo' || fieldKey === 'brand.colors') {
+    const rowJson =
+      valueJson ??
+      (() => {
+        const parsed = tryParseJson(textValue ?? null);
+        return parsed != null ? JSON.stringify(parsed) : null;
+      })();
+    if (!rowJson) return current;
+    const mergedVisual = visualIdentityFromObservations([{ fieldKey, valueJson: rowJson }]);
+    const next = { ...current };
+    const visual = {
+      ...(typeof next.visual_identity === 'object' && next.visual_identity ? next.visual_identity : {}),
+      ...mergedVisual,
+    } as Record<string, unknown>;
+    next.visual_identity = visual;
+    return next;
+  }
+
+  if (fieldKey === 'brand.contact' || fieldKey === 'brand.social') {
+    const parsed = tryParseJson(valueJson) ?? tryParseJson(textValue ?? null);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const next = { ...current };
+      const sectionKey = fieldKey === 'brand.contact' ? 'contact' : 'social';
+      next[sectionKey] = {
+        ...(typeof next[sectionKey] === 'object' && next[sectionKey] ? next[sectionKey] : {}),
+        ...(parsed as Record<string, unknown>),
+      };
+      return next;
+    }
+  }
+
+  if (fieldKey === 'brand.languages') {
+    const parsed = tryParseJson(valueJson) ?? tryParseJson(textValue ?? null);
+    if (Array.isArray(parsed)) {
+      const next = { ...current };
+      next.languages = {
+        ...(typeof next.languages === 'object' && next.languages ? next.languages : {}),
+        items: parsed,
+      };
+      return next;
+    }
+  }
+
+  return applyAcceptedInsightToSections(current, fieldKey, textValue);
+}
+
 /** Mirror worker merge rules when a human accepts a single AI insight (API path). */
 export function applyAcceptedInsightToSections(
   current: Record<string, unknown>,

@@ -1,9 +1,9 @@
 import { getPrisma } from '@oma/db';
 import {
+  bootstrapIdentitySectionsFromObservations,
   discoveryTierForField,
   isRequiredForApproval,
   newId,
-  visualIdentityFromObservations,
 } from '@oma/domain';
 
 export async function createProfileDraftFromScan(input: {
@@ -31,14 +31,19 @@ export async function createProfileDraftFromScan(input: {
     ...(catalogFromObs('catalog.products') ? { products: catalogFromObs('catalog.products') } : {}),
     ...(catalogFromObs('catalog.services') ? { services: catalogFromObs('catalog.services') } : {}),
   };
+  const identityBootstrap = bootstrapIdentitySectionsFromObservations(
+    observations.map((o) => ({ fieldKey: o.fieldKey, valueJson: o.valueJson })),
+  );
   const sections = {
-    overview: {},
+    overview: identityBootstrap.overview ?? {},
     catalog,
-    languages: {},
+    languages: identityBootstrap.languages ?? {},
     tone: {},
     audiences: {},
     messaging: {},
-    visual_identity: visualIdentityFromObservations(observations),
+    visual_identity: identityBootstrap.visual_identity ?? {},
+    contact: identityBootstrap.contact ?? {},
+    social: identityBootstrap.social ?? {},
     claims: {},
     risks: {},
     evidence_refs: observations.map((o) => o.evidenceId).filter(Boolean),

@@ -3388,6 +3388,8 @@
   "brand.intelligence.aiReadyNote": "التحليل واقتراحات الاستراتيجية تعمل فعلياً. كل نتيجة من الذكاء الاصطناعي تنتظر موافقة بشرية.",
   "brand.intelligence.approvedOn": "اعتُمد في {date}",
   "brand.intelligence.insightsPending": "بانتظار المراجعة",
+  "brand.intelligence.identityCompleteness": "أقسام الهوية",
+  "brand.intelligence.identityNarrativeReady": "السرد جاهز",
   "brand.intelligence.insightsReviewed": "الاستنتاجات المراجَعة",
   "brand.intelligence.lastUpdated": "آخر تحديث",
   "brand.intelligence.noProfileYet": "لا يوجد ملف بعد",

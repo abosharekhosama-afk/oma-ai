@@ -174,6 +174,17 @@ export default function BrandIntelligenceHubPage() {
               <dt>{t('brand.intelligence.insightsPending')}</dt>
               <dd>{review.pending}</dd>
             </div>
+            {latestProfile?.identity_completeness ? (
+              <div>
+                <dt>{t('brand.intelligence.identityCompleteness')}</dt>
+                <dd>
+                  {latestProfile.identity_completeness.percent}%
+                  {latestProfile.identity_completeness.narrative_ready
+                    ? ` · ${t('brand.intelligence.identityNarrativeReady')}`
+                    : ''}
+                </dd>
+              </div>
+            ) : null}
           </dl>
           {review.total > 0 ? (
             <div

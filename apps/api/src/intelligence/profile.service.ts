@@ -5,8 +5,10 @@ import {
   canEditProfile,
   catalogOfferingsFromDiscoveryRows,
   catalogOfferingsFromProfileSections,
+  computeBrandIdentityCompleteness,
   discoveryTierForField,
   evaluateApprovalEligibility,
+  reconcileIdentitySectionsFromInsights,
   isRequiredForApproval,
   mergeCatalogFieldValues,
   newId,
@@ -67,6 +69,10 @@ export class ProfileService {
       orderBy: { createdAt: 'desc' },
       take: 20,
     });
+    const sections = version.sectionsJson
+      ? (JSON.parse(version.sectionsJson) as Record<string, unknown>)
+      : {};
+    const identity_completeness = computeBrandIdentityCompleteness(sections);
     return {
       data: {
         id: version.id,
@@ -76,7 +82,8 @@ export class ProfileService {
         ai_availability: version.aiAvailability,
         analysis_status: version.analysisStatus,
         analysis_job_status: version.analysisStatus,
-        sections: version.sectionsJson ? JSON.parse(version.sectionsJson) : {},
+        sections,
+        identity_completeness,
         insights: insights.map((i) => ({
           id: i.id,
           field_key: i.fieldKey,
@@ -363,6 +370,47 @@ export class ProfileService {
         profile: (await this.get(tenantId, brandId, versionId)).data,
       },
     };
+  }
+
+  async tryMaterializeIdentityBeforeApprove(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    versionId: string,
+    correlationId?: string,
+  ) {
+    const version = await this.loadVersion(tenantId, brandId, versionId);
+    const insights = await getPrisma().insightClaim.findMany({
+      where: tenantWhere(tenantId, { profileVersionId: versionId }),
+    });
+    const sections = version.sectionsJson
+      ? (JSON.parse(version.sectionsJson) as Record<string, unknown>)
+      : {};
+    const merged = reconcileIdentitySectionsFromInsights(
+      sections,
+      insights.map((i) => ({
+        fieldKey: i.fieldKey,
+        textValue: i.textValue,
+        valueJson: i.valueJson,
+        reviewStatus: i.reviewStatus,
+      })),
+    );
+    const before = JSON.stringify(sections);
+    const after = JSON.stringify(merged);
+    if (before === after) return { materialized: false as const };
+    await getPrisma().profileVersion.update({
+      where: { id: versionId },
+      data: { sectionsJson: after },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'profile.identity_materialized',
+      targetType: 'ProfileVersion',
+      targetId: versionId,
+      correlationId,
+    });
+    return { materialized: true as const, identity_completeness: computeBrandIdentityCompleteness(merged) };
   }
 
   async tryMaterializeCatalogBeforeApprove(
