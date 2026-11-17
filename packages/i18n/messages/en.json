@@ -3392,6 +3392,8 @@
   "brand.intelligence.aiReadyNote": "Analysis and strategy suggestions run live. Every AI result waits for human approval.",
   "brand.intelligence.approvedOn": "Approved {date}",
   "brand.intelligence.insightsPending": "Pending",
+  "brand.intelligence.identityCompleteness": "Identity sections",
+  "brand.intelligence.identityNarrativeReady": "Narrative ready",
   "brand.intelligence.insightsReviewed": "Insights reviewed",
   "brand.intelligence.lastUpdated": "Last updated",
   "brand.intelligence.noProfileYet": "No profile yet",

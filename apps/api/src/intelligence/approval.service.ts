@@ -42,6 +42,13 @@ export class ApprovalService {
       throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
     }
 
+    await this.profiles.tryMaterializeIdentityBeforeApprove(
+      tenantId,
+      actorUserId,
+      brandId,
+      versionId,
+      correlationId,
+    );
     await this.profiles.tryMaterializeCatalogBeforeApprove(
       tenantId,
       actorUserId,

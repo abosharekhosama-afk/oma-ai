@@ -197,6 +197,13 @@ export type ProfileDetail = {
   ai_availability: string;
   analysis_status?: string;
   sections: Record<string, unknown>;
+  identity_completeness?: {
+    sections: Record<string, boolean>;
+    filled_count: number;
+    total_count: number;
+    percent: number;
+    narrative_ready: boolean;
+  };
   insights: InsightItem[];
   coverage_snapshot: Record<string, unknown> | null;
   eligibility: { approvable: boolean; blocking_reasons: string[] };

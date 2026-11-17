@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
   DomainError,
-  applyAcceptedInsightToSections,
+  applyAcceptedInsightClaimToSections,
   canEditProfile,
   infoStateAfterAccept,
   newId,
@@ -135,10 +135,11 @@ export class InsightService {
           const sections = profile.sectionsJson
             ? (JSON.parse(profile.sectionsJson) as Record<string, unknown>)
             : {};
-          const merged = applyAcceptedInsightToSections(
+          const merged = applyAcceptedInsightClaimToSections(
             sections,
             insight.fieldKey,
             insight.textValue,
+            insight.valueJson,
           );
           await tx.profileVersion.update({
             where: { id: profile.id },

@@ -20,6 +20,7 @@ export * from './js-render-heuristic';
 export * from './js-render-error';
 export * from './catalog-summary';
 export * from './catalog-offerings';
+export * from './identity-sections';
 export * from './merge-discovery-catalog';
 export * from './website-connector-factory';
 export * from './product-values';
