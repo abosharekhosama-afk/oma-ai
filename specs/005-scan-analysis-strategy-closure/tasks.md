@@ -40,9 +40,9 @@
 
 - [x] T020 Unit test: `enqueueBrandAnalysis` idempotent for same `scan_attempt_id` + `profile_version_id`
 - [x] T021 Audit brand-analysis contract fields in `packages/domain/src/ai/contracts/brand-analysis.ts`; list gaps vs spec § Jasper-like sections in `research.md` (005)
-- [ ] T022 Implement missing proposal apply paths in `apps/api/src/intelligence` (or ai apply module) for any contract field without UI dependency
+- [x] T022 Implement missing proposal apply paths in `apps/api/src/intelligence` (or ai apply module) for any contract field without UI dependency
 - [x] T023 Expose `analysis_job_status` + `ai_availability` on profile version GET (API only)
-- [ ] T024 Integration: scan with `AI_TEST_ADAPTER=1` in CI → analysis job SUCCEEDED → at least one proposal row exists
+- [x] T024 Integration: scan with `AI_TEST_ADAPTER=1` in CI → analysis job SUCCEEDED → at least one proposal row exists
 
 **Checkpoint:** With AI off, profile approve still works; with test adapter, proposals apply manually.
 

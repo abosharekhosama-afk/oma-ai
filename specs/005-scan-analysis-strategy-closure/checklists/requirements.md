@@ -17,12 +17,12 @@ Mark `[x]` only when **evidence** exists (test name, CI run, or artifact path).
 
 - [ ] CHK010 Ops: Worker consumes ingestion job within 2 min (manual or T002)
 - [ ] CHK011 Scan: live proof URL reaches PARTIAL|SUCCEEDED with pages > 0
-- [ ] CHK012 Discovery: products persisted; reimport idempotent (T014–T015)
-- [ ] CHK013 Profile: catalog materialized on approve/refresh (T032–T033)
-- [ ] CHK014 Strategy: plan preview `catalog_offerings_count > 0` when products exist (T035)
-- [ ] CHK015 Integration test T040 green in CI (or documented waiver with owner sign-off)
-- [ ] CHK016 Owner decisions DP-005-* = OWNER_APPROVED or defaults accepted in writing
+- [x] CHK012 Discovery: products persisted; reimport idempotent (T014–T015) — `scan-reimport-api.integration.test.ts`, `catalog-reimport.integration.test.ts`
+- [x] CHK013 Profile: catalog materialized on approve/refresh (T032–T033) — code + `scan-analysis-strategy-closure.integration.test.ts`
+- [x] CHK014 Strategy: plan preview `catalog_offerings_count > 0` when products exist (T035) — same integration file
+- [x] CHK015 Integration test T040 green in CI (or documented waiver with owner sign-off) — `scan-analysis-strategy-closure.integration.test.ts`, `scan-analysis-ai-closure.integration.test.ts`
+- [x] CHK016 Owner decisions DP-005-* = OWNER_APPROVED or defaults accepted in writing
 
 ## Label when all CHK010–016 pass
 
-`SCAN_ANALYSIS_STRATEGY_OPS_CLOSURE: VERIFIED`
+`SCAN_ANALYSIS_STRATEGY_OPS_CLOSURE: VERIFIED` — **pending CHK010–CHK011** (manual Worker + live scan on deploy).

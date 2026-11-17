@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
   DomainError,
+  applyAcceptedInsightToSections,
+  canEditProfile,
   infoStateAfterAccept,
   newId,
   referenceTaxonomyFromInfoState,
@@ -125,6 +127,25 @@ export class InsightService {
           correlationId,
         },
       });
+      if (decision === 'ACCEPTED' && insight.textValue) {
+        const profile = await tx.profileVersion.findFirst({
+          where: tenantWhere(tenantId, { id: insight.profileVersionId, brandId }),
+        });
+        if (profile && canEditProfile(profile.status as never)) {
+          const sections = profile.sectionsJson
+            ? (JSON.parse(profile.sectionsJson) as Record<string, unknown>)
+            : {};
+          const merged = applyAcceptedInsightToSections(
+            sections,
+            insight.fieldKey,
+            insight.textValue,
+          );
+          await tx.profileVersion.update({
+            where: { id: profile.id },
+            data: { sectionsJson: JSON.stringify(merged) },
+          });
+        }
+      }
     });
 
     await this.audit.write({
