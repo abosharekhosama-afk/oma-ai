@@ -347,7 +347,11 @@ export default function ScanDetailPage() {
           </div>
         ) : null}
         {inProgress && scan.stalled ? (
-          <div className="oma-banner oma-banner-warning" role="alert" data-testid="scan-stalled-banner">
+          <div
+            className="oma-banner oma-banner-warning"
+            role="alert"
+            data-testid="scan-stalled-banner"
+          >
             <strong>{t('brand.scan.stalledTitle')}</strong>
             <p>{t('brand.scan.stalledBody')}</p>
           </div>
@@ -363,7 +367,12 @@ export default function ScanDetailPage() {
               ? [{ label: t('brand.scan.pagesJsRendered'), value: scan.coverage.pages_js_rendered }]
               : []),
             ...(scan.product_media_imported != null
-              ? [{ label: t('brand.scan.productMediaImported'), value: scan.product_media_imported }]
+              ? [
+                  {
+                    label: t('brand.scan.productMediaImported'),
+                    value: scan.product_media_imported,
+                  },
+                ]
               : []),
           ]}
         />
