@@ -1,4 +1,5 @@
 import type { CatalogSummaryItem } from './catalog-summary';
+import { discoveryRowsToCatalogItems } from './merge-discovery-catalog';
 
 export type CatalogOfferingKind = 'product' | 'service';
 
@@ -45,6 +46,11 @@ function itemsFromCatalogField(value: unknown): CatalogSummaryItem[] {
           description: typeof rec.description === 'string' ? rec.description : undefined,
           category: typeof rec.category === 'string' ? rec.category : undefined,
           price: typeof rec.price === 'string' ? rec.price : undefined,
+          product_id: typeof rec.product_id === 'string' ? rec.product_id : undefined,
+          primary_media_view_url:
+            typeof rec.primary_media_view_url === 'string'
+              ? rec.primary_media_view_url
+              : undefined,
         };
       })
       .filter(Boolean) as CatalogSummaryItem[];
@@ -70,13 +76,39 @@ export function catalogOfferingsFromProfileSections(
     ...item,
     kind: 'product' as const,
     slug: slugForCatalogName(item.name),
+    product_id: item.product_id,
+    primary_media_view_url: item.primary_media_view_url,
   }));
   const services = itemsFromCatalogField(catalog.services).map((item) => ({
     ...item,
     kind: 'service' as const,
     slug: slugForCatalogName(item.name),
+    product_id: item.product_id,
+    primary_media_view_url: item.primary_media_view_url,
   }));
   return [...products, ...services];
+}
+
+export type CatalogOfferingsSource = 'profile_sections' | 'discovery_fallback' | 'none';
+
+export function buildCatalogSectionsFromDiscovery(
+  rows: Array<{
+    id?: string;
+    kind: 'PRODUCT' | 'SERVICE' | string;
+    name: string;
+    description?: string | null;
+    category?: string | null;
+    priceAmount?: string | null;
+    priceCurrency?: string | null;
+    primary_media_view_url?: string | null;
+  }>,
+): Record<string, unknown> {
+  const productRows = rows.filter((r) => r.kind === 'PRODUCT');
+  const serviceRows = rows.filter((r) => r.kind === 'SERVICE');
+  return {
+    products: discoveryRowsToCatalogItems(productRows),
+    services: discoveryRowsToCatalogItems(serviceRows),
+  };
 }
 
 export function catalogOfferingsFromDiscoveryRows(

@@ -53,9 +53,15 @@ export class ScanService {
     finishedAt: Date | null;
     errorDetail?: string | null;
   }) {
+    const staleMinutes = Number(process.env.BRAND_SCAN_STALE_MINUTES ?? 45);
+    const stalled =
+      scan.status === 'RUNNING' &&
+      Boolean(scan.startedAt) &&
+      Date.now() - (scan.startedAt as Date).getTime() > staleMinutes * 60 * 1000;
     return {
       id: scan.id,
       status: scan.status,
+      stalled,
       progress_percent: scan.progressPercent,
       pages_fetched: scan.pagesFetched,
       pages_failed: scan.pagesFailed,

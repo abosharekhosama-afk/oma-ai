@@ -1253,6 +1253,20 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/profiles/{versionId}/catalog/refresh-from-scan": {
+      "post": {
+        "operationId": "ProfileController_refreshCatalogFromScan",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/profiles/{versionId}/catalog/merge-discovery": {
       "post": {
         "operationId": "ProfileController_mergeDiscoveryCatalog",
@@ -5666,6 +5680,20 @@
         },
         "tags": [
           "PlatformAdmin"
+        ]
+      }
+    },
+    "/api/v1/platform/health/queues": {
+      "get": {
+        "operationId": "PlatformHealthController_queues",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PlatformHealth"
         ]
       }
     },

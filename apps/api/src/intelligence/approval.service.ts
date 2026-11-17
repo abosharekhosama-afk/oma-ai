@@ -9,10 +9,14 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { invalidateBrandContextCache } from '../ai/brand-context.service';
+import type { ProfileService } from './profile.service';
 
 @Injectable()
 export class ApprovalService {
-  constructor(private readonly audit: AuditService) {}
+  constructor(
+    private readonly audit: AuditService,
+    private readonly profiles: ProfileService,
+  ) {}
 
   async approve(
     tenantId: string,
@@ -37,6 +41,14 @@ export class ApprovalService {
     if (version.rowVersion !== input.row_version) {
       throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
     }
+
+    await this.profiles.tryMaterializeCatalogBeforeApprove(
+      tenantId,
+      actorUserId,
+      brandId,
+      versionId,
+      correlationId,
+    );
 
     const insights = await getPrisma().insightClaim.findMany({
       where: tenantWhere(tenantId, { profileVersionId: versionId }),

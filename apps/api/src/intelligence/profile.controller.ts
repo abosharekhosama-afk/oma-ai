@@ -125,6 +125,30 @@ export class ProfileController {
     );
   }
 
+  @Post('profiles/:versionId/catalog/refresh-from-scan')
+  @UseGuards(CsrfGuard)
+  async refreshCatalogFromScan(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('versionId') versionId: string,
+    @Body()
+    body: {
+      row_version: number;
+      scan_id?: string;
+      accept_catalog_insights?: boolean;
+    },
+  ) {
+    this.requireTenant(req);
+    return profileService.refreshCatalogFromScan(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      versionId,
+      body,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post('profiles/:versionId/catalog/merge-discovery')
   @UseGuards(CsrfGuard)
   async mergeDiscoveryCatalog(
