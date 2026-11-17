@@ -48,9 +48,7 @@ function itemsFromCatalogField(value: unknown): CatalogSummaryItem[] {
           price: typeof rec.price === 'string' ? rec.price : undefined,
           product_id: typeof rec.product_id === 'string' ? rec.product_id : undefined,
           primary_media_view_url:
-            typeof rec.primary_media_view_url === 'string'
-              ? rec.primary_media_view_url
-              : undefined,
+            typeof rec.primary_media_view_url === 'string' ? rec.primary_media_view_url : undefined,
         };
       })
       .filter(Boolean) as CatalogSummaryItem[];

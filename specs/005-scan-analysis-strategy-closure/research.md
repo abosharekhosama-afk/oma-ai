@@ -5,14 +5,14 @@
 
 ## Repository facts (004 branch)
 
-| Capability | Location | Closure note |
-| ---------- | -------- | ------------ |
-| Live crawl | `packages/domain/src/brand/website-connector-factory.ts`, `live-website-connector.ts` | Default `live` when not fixture |
-| Catalog observations | `extraction.service.ts` `persistCatalogObservations` | Must stay regression-covered |
-| Analysis enqueue | `ingestion.processor.ts` `enqueueBrandAnalysis` | After profile draft |
-| Plan catalog | `strategy-plan-requests.service.ts` `loadCatalogOfferings` | **Gap:** profile sections only — 005 adds sync + fallback |
-| Profile sections catalog | `profile-draft.service.ts` | Pulls from observations, not full discovery media richness |
-| Catalog reimport | `catalog.processor.ts` `catalog.reimport` | Operational path for legacy scans |
+| Capability               | Location                                                                              | Closure note                                               |
+| ------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Live crawl               | `packages/domain/src/brand/website-connector-factory.ts`, `live-website-connector.ts` | Default `live` when not fixture                            |
+| Catalog observations     | `extraction.service.ts` `persistCatalogObservations`                                  | Must stay regression-covered                               |
+| Analysis enqueue         | `ingestion.processor.ts` `enqueueBrandAnalysis`                                       | After profile draft                                        |
+| Plan catalog             | `strategy-plan-requests.service.ts` `loadCatalogOfferings`                            | **Gap:** profile sections only — 005 adds sync + fallback  |
+| Profile sections catalog | `profile-draft.service.ts`                                                            | Pulls from observations, not full discovery media richness |
+| Catalog reimport         | `catalog.processor.ts` `catalog.reimport`                                             | Operational path for legacy scans                          |
 
 ## Reference document alignment (Arabic marketing refs §10)
 
@@ -22,10 +22,10 @@
 
 ## Open unknowns
 
-| ID | Unknown | Default |
-| -- | ------- | ------- |
-| R-005-01 | CI allowlist URL for live crawl | Use same host as existing security crawl tests or env `CLOSURE_PROOF_URL` |
-| R-005-02 | Approve-time auto catalog vs explicit refresh | **DP-005-001 B** — refresh + approve materialization |
+| ID       | Unknown                                       | Default                                                                   |
+| -------- | --------------------------------------------- | ------------------------------------------------------------------------- |
+| R-005-01 | CI allowlist URL for live crawl               | Use same host as existing security crawl tests or env `CLOSURE_PROOF_URL` |
+| R-005-02 | Approve-time auto catalog vs explicit refresh | **DP-005-001 B** — refresh + approve materialization                      |
 
 ## References
 

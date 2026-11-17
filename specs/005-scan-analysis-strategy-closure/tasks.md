@@ -110,9 +110,9 @@ Phase 5 optional after 4
 
 ## Suggested implement PR slicing
 
-| PR | Tasks | Title |
-| -- | ----- | ----- |
-| 1 | T010–T015, T002 | Scan observability + extraction regression |
-| 2 | T020–T024 | Analysis closure |
-| 3 | T030–T038 | Catalog sync + plan-requests fallback |
-| 4 | T040–T044 | Integration proof + checklist |
+| PR  | Tasks           | Title                                      |
+| --- | --------------- | ------------------------------------------ |
+| 1   | T010–T015, T002 | Scan observability + extraction regression |
+| 2   | T020–T024       | Analysis closure                           |
+| 3   | T030–T038       | Catalog sync + plan-requests fallback      |
+| 4   | T040–T044       | Integration proof + checklist              |

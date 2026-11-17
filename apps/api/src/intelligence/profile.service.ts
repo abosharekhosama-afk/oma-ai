@@ -373,7 +373,8 @@ export class ProfileService {
   ) {
     const version = await this.loadVersion(tenantId, brandId, versionId);
     if (this.profileCatalogItemCount(version) > 0) return { materialized: false as const };
-    const scanId = version.scanAttemptId ?? (await this.findLatestEligibleScanId(tenantId, brandId));
+    const scanId =
+      version.scanAttemptId ?? (await this.findLatestEligibleScanId(tenantId, brandId));
     if (!scanId) return { materialized: false as const };
     const rows = await getPrisma().discoveredProductService.count({
       where: tenantWhere(tenantId, { scanAttemptId: scanId, brandId }),

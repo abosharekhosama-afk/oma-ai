@@ -159,8 +159,7 @@ export class StrategyPlanRequestsService {
       return finish(approvedResult.offerings, 'profile_sections');
     }
 
-    const profileForScan =
-      linkedResult.profile ?? approvedResult.profile ?? null;
+    const profileForScan = linkedResult.profile ?? approvedResult.profile ?? null;
     const scan = profileForScan?.scanAttemptId
       ? await getPrisma().scanAttempt.findFirst({
           where: tenantWhere(tenantId, {

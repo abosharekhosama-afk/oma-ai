@@ -18,20 +18,20 @@
 
 ### Slice resolutions
 
-| ID | Affirms | Does not close |
-| ---- | ------- | -------------- |
-| `SR-005-CLOSURE` | End-to-end operational closure 002→003 on configured ops stack | `PRODUCTION_LAUNCH_READY`, full Semrush/Smartly |
-| `SR-005-NO-VISUAL` | Functional/API/job closure; scan/analysis UI not a DoD gate | DEC-017 owner visual acceptance |
-| `SR-005-LIVE-OPS` | Live website connector + configured AI on Worker is valid for closure demos | Mandatory vendor selection for DEC-004/007 |
-| `SR-005-CATALOG-SYNC` | Approved profile catalog must reflect discovery truth for plan-requests | Re-open Feature 002 SoT model |
+| ID                    | Affirms                                                                     | Does not close                                  |
+| --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------- |
+| `SR-005-CLOSURE`      | End-to-end operational closure 002→003 on configured ops stack              | `PRODUCTION_LAUNCH_READY`, full Semrush/Smartly |
+| `SR-005-NO-VISUAL`    | Functional/API/job closure; scan/analysis UI not a DoD gate                 | DEC-017 owner visual acceptance                 |
+| `SR-005-LIVE-OPS`     | Live website connector + configured AI on Worker is valid for closure demos | Mandatory vendor selection for DEC-004/007      |
+| `SR-005-CATALOG-SYNC` | Approved profile catalog must reflect discovery truth for plan-requests     | Re-open Feature 002 SoT model                   |
 
 ### Owner decision packets (required before implement)
 
-| Packet | Question | Options (default if silent) |
-| ------ | -------- | ---------------------------- |
-| `DP-005-001` | When to materialize `sectionsJson.catalog` from `discoveredProductService` | **B (default):** On **profile version approve** + explicit **“Refresh catalog from latest scan”** command on draft; not silent overwrite of approved versions |
-| `DP-005-002` | Closure tier for sign-off | **A (default):** **OPS_CLOSURE** — configured Worker+Redis+live crawl+optional AI; **B:** adds catalog.generate + WorkDrive in proof journey |
-| `DP-005-003` | Fallback catalog for plan-requests | **A (default):** If approved profile `catalog` empty, API may read **latest succeeded/partial scan** for same brand (read-only, tenant-scoped) with honesty flag `catalog_source: discovery_fallback` |
+| Packet       | Question                                                                   | Options (default if silent)                                                                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DP-005-001` | When to materialize `sectionsJson.catalog` from `discoveredProductService` | **B (default):** On **profile version approve** + explicit **“Refresh catalog from latest scan”** command on draft; not silent overwrite of approved versions                                         |
+| `DP-005-002` | Closure tier for sign-off                                                  | **A (default):** **OPS_CLOSURE** — configured Worker+Redis+live crawl+optional AI; **B:** adds catalog.generate + WorkDrive in proof journey                                                          |
+| `DP-005-003` | Fallback catalog for plan-requests                                         | **A (default):** If approved profile `catalog` empty, API may read **latest succeeded/partial scan** for same brand (read-only, tenant-scoped) with honesty flag `catalog_source: discovery_fallback` |
 
 ---
 
@@ -131,18 +131,18 @@ Reuses 002 + 003 capabilities only (no new capability codes unless implement pro
 
 ## 5. Functional requirements
 
-| ID | Requirement |
-| ---- | ----------- |
-| FR-SAS-001 | System MUST document and validate **minimum ops env** for closure (Worker, Redis, crawl, optional AI) in `quickstart.md`. |
-| FR-SAS-002 | Scan API MUST surface **connector mode** (`LIVE`/`FIXTURE`/`NOT_CONFIGURED`) and **job staleness** when Worker unreachable. |
+| ID         | Requirement                                                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR-SAS-001 | System MUST document and validate **minimum ops env** for closure (Worker, Redis, crawl, optional AI) in `quickstart.md`.                   |
+| FR-SAS-002 | Scan API MUST surface **connector mode** (`LIVE`/`FIXTURE`/`NOT_CONFIGURED`) and **job staleness** when Worker unreachable.                 |
 | FR-SAS-003 | Extraction MUST persist catalog rollup observations (`catalog.products` / `catalog.services`) when discovery rows exist (regression guard). |
-| FR-SAS-004 | Profile approve command MUST support **catalog materialization** from discovery per `DP-005-001`. |
-| FR-SAS-005 | Plan-requests MUST use approved profile catalog first; MAY use discovery fallback per `DP-005-003` with explicit `catalog_source`. |
-| FR-SAS-006 | Brand analysis MUST remain **proposal-only**; no auto-approve; idempotent enqueue per scan/draft. |
-| FR-SAS-007 | Reimport media MUST be retry-safe and tenant-scoped. |
-| FR-SAS-008 | Closure proof journey MUST be automatable (integration or E2E) without fixture-only connector. |
-| FR-SAS-009 | All new mutations MUST emit audit events and respect capability guards (regression tests). |
-| FR-SAS-010 | Manual Semrush-equivalent fields (competitors, gaps) in 003 MUST remain usable without implying live Semrush data. |
+| FR-SAS-004 | Profile approve command MUST support **catalog materialization** from discovery per `DP-005-001`.                                           |
+| FR-SAS-005 | Plan-requests MUST use approved profile catalog first; MAY use discovery fallback per `DP-005-003` with explicit `catalog_source`.          |
+| FR-SAS-006 | Brand analysis MUST remain **proposal-only**; no auto-approve; idempotent enqueue per scan/draft.                                           |
+| FR-SAS-007 | Reimport media MUST be retry-safe and tenant-scoped.                                                                                        |
+| FR-SAS-008 | Closure proof journey MUST be automatable (integration or E2E) without fixture-only connector.                                              |
+| FR-SAS-009 | All new mutations MUST emit audit events and respect capability guards (regression tests).                                                  |
+| FR-SAS-010 | Manual Semrush-equivalent fields (competitors, gaps) in 003 MUST remain usable without implying live Semrush data.                          |
 
 ## 6. Non-goals
 
@@ -153,20 +153,20 @@ Reuses 002 + 003 capabilities only (no new capability codes unless implement pro
 
 ## 7. Success criteria
 
-| ID | Criterion |
-| ---- | --------- |
+| ID         | Criterion                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------- |
 | SC-SAS-001 | `quickstart.md` proof journey passes on CI or documented manual ops check list with evidence IDs. |
-| SC-SAS-002 | `catalog_offerings_count > 0` in plan preview for seeded real-site proof brand. |
-| SC-SAS-003 | Zero cross-tenant catalog/analysis leakage in new tests. |
-| SC-SAS-004 | Owner signs `DP-005-001`–`003` or accepts defaults recorded in `decisions/`. |
+| SC-SAS-002 | `catalog_offerings_count > 0` in plan preview for seeded real-site proof brand.                   |
+| SC-SAS-003 | Zero cross-tenant catalog/analysis leakage in new tests.                                          |
+| SC-SAS-004 | Owner signs `DP-005-001`–`003` or accepts defaults recorded in `decisions/`.                      |
 
 ## 8. Traceability
 
-| Story | FRs | SCs |
-| ----- | --- | --- |
+| Story     | FRs            | SCs        |
+| --------- | -------------- | ---------- |
 | US-SAS-01 | FR-SAS-001,002 | SC-SAS-001 |
 | US-SAS-02 | FR-SAS-003,007 | SC-SAS-001 |
-| US-SAS-03 | FR-SAS-006 | SC-SAS-001 |
+| US-SAS-03 | FR-SAS-006     | SC-SAS-001 |
 | US-SAS-04 | FR-SAS-004,005 | SC-SAS-002 |
 | US-SAS-05 | FR-SAS-005,009 | SC-SAS-002 |
 | US-SAS-06 | FR-SAS-002,007 | SC-SAS-003 |

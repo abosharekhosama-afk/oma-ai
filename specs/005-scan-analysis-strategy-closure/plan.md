@@ -19,26 +19,26 @@ without Planable visual work and without Phase BG vendor packs (Semrush/Smartly 
 
 ## Technical context
 
-| Area | Choice |
-| ---- | ------ |
-| Stack | Existing DEC-014 monolith; reuse `ingestion`, `analysis`, `catalog` workers |
-| Crawl | `createWebsiteConnector()` / live connector on Worker (already on `004`) |
-| AI | `isAiLiveEnabled` + `runBrandProfileAnalysis`; proposals via existing ai layer |
-| Profile | `ProfileVersion.sectionsJson.catalog` + approve API in `apps/api/src/intelligence` |
-| Strategy | `StrategyPlanRequestsService.loadCatalogOfferings` + extend per `DP-005-003` |
-| Tests | Vitest integration + one Playwright or API journey on **live crawl** in CI with guard env |
+| Area     | Choice                                                                                    |
+| -------- | ----------------------------------------------------------------------------------------- |
+| Stack    | Existing DEC-014 monolith; reuse `ingestion`, `analysis`, `catalog` workers               |
+| Crawl    | `createWebsiteConnector()` / live connector on Worker (already on `004`)                  |
+| AI       | `isAiLiveEnabled` + `runBrandProfileAnalysis`; proposals via existing ai layer            |
+| Profile  | `ProfileVersion.sectionsJson.catalog` + approve API in `apps/api/src/intelligence`        |
+| Strategy | `StrategyPlanRequestsService.loadCatalogOfferings` + extend per `DP-005-003`              |
+| Tests    | Vitest integration + one Playwright or API journey on **live crawl** in CI with guard env |
 
 ---
 
 ## Constitution check
 
-| Principle | Compliance |
-| --------- | ---------- |
-| Tenant isolation | All new reads scoped `tenantWhere`; fallback scan must be same `brandId` |
-| AI proposes; humans decide | No auto-approve; analysis remains proposals |
-| Versions immutable | Catalog sync on approve copies forward; approved rows not mutated in place |
-| Traceability | Audit on catalog refresh, fallback usage, plan commit |
-| DEC-016 | No **new** vendor SDKs; configured OpenAI/live crawl allowed as **ops**, not DEC closure |
+| Principle                  | Compliance                                                                               |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| Tenant isolation           | All new reads scoped `tenantWhere`; fallback scan must be same `brandId`                 |
+| AI proposes; humans decide | No auto-approve; analysis remains proposals                                              |
+| Versions immutable         | Catalog sync on approve copies forward; approved rows not mutated in place               |
+| Traceability               | Audit on catalog refresh, fallback usage, plan commit                                    |
+| DEC-016                    | No **new** vendor SDKs; configured OpenAI/live crawl allowed as **ops**, not DEC closure |
 
 **Gate:** Pass for provider-neutral operational closure.
 
@@ -46,17 +46,17 @@ without Planable visual work and without Phase BG vendor packs (Semrush/Smartly 
 
 ## Gap → workstream map (from 2026-11-17 report)
 
-| Gap | Workstream | Phase |
-| --- | ---------- | ----- |
-| Worker+Redis not deployed | **WS-OPS** | 0 |
-| Scan stalls / honesty | **WS-SCAN-OBS** | 1 |
-| Media/catalog incomplete | **WS-EXTRACT** (done partially; regression + reimport UX/API) | 1 |
-| AI NOT_CONFIGURED | **WS-AI** (env + apply proposals completeness) | 2 |
-| Empty profile catalog → empty plan | **WS-CATALOG-SYNC** | 3 |
-| Strategy linkage | **WS-STRATEGY-LINK** (gates + plan preview tests) | 3 |
-| No end-to-end proof | **WS-PROOF** | 4 |
-| Semrush live | **Out of scope** (manual 003 fields) | — |
-| WorkDrive generate | **Optional** per `DP-005-002` B | 5 |
+| Gap                                | Workstream                                                    | Phase |
+| ---------------------------------- | ------------------------------------------------------------- | ----- |
+| Worker+Redis not deployed          | **WS-OPS**                                                    | 0     |
+| Scan stalls / honesty              | **WS-SCAN-OBS**                                               | 1     |
+| Media/catalog incomplete           | **WS-EXTRACT** (done partially; regression + reimport UX/API) | 1     |
+| AI NOT_CONFIGURED                  | **WS-AI** (env + apply proposals completeness)                | 2     |
+| Empty profile catalog → empty plan | **WS-CATALOG-SYNC**                                           | 3     |
+| Strategy linkage                   | **WS-STRATEGY-LINK** (gates + plan preview tests)             | 3     |
+| No end-to-end proof                | **WS-PROOF**                                                  | 4     |
+| Semrush live                       | **Out of scope** (manual 003 fields)                          | —     |
+| WorkDrive generate                 | **Optional** per `DP-005-002` B                               | 5     |
 
 ---
 
@@ -150,25 +150,25 @@ Only if Owner selects `DP-005-002` B:
 
 ## Key files (implement touch map)
 
-| Domain | Paths |
-| ------ | ----- |
-| Scan / jobs | `apps/worker/src/processors/ingestion.processor.ts`, `apps/api/src/brand/scan.service.ts` |
-| Extraction | `apps/worker/src/brand/extraction.service.ts`, `catalog-reimport.ts` |
-| Analysis | `apps/worker/src/brand/brand-analysis.service.ts`, `apps/worker/src/processors/analysis.processor.ts` |
-| Profile | `apps/api/src/intelligence/profile.service.ts`, `profile-draft.service.ts` (worker) |
-| Catalog offerings | `packages/domain/src/brand/catalog-offerings.ts`, `strategy-plan-requests.service.ts` |
-| Guards | `apps/api/src/common/guards/capabilities.guard.ts` |
+| Domain            | Paths                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| Scan / jobs       | `apps/worker/src/processors/ingestion.processor.ts`, `apps/api/src/brand/scan.service.ts`             |
+| Extraction        | `apps/worker/src/brand/extraction.service.ts`, `catalog-reimport.ts`                                  |
+| Analysis          | `apps/worker/src/brand/brand-analysis.service.ts`, `apps/worker/src/processors/analysis.processor.ts` |
+| Profile           | `apps/api/src/intelligence/profile.service.ts`, `profile-draft.service.ts` (worker)                   |
+| Catalog offerings | `packages/domain/src/brand/catalog-offerings.ts`, `strategy-plan-requests.service.ts`                 |
+| Guards            | `apps/api/src/common/guards/capabilities.guard.ts`                                                    |
 
 ---
 
 ## Risks
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| CI flaky live crawl | Allowlist host + short max pages; optional job only on `main`/`004` |
+| Risk                      | Mitigation                                                                       |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| CI flaky live crawl       | Allowlist host + short max pages; optional job only on `main`/`004`              |
 | Approved profile mutation | Only **new** approved version or approve-time copy; never PATCH approved catalog |
-| Fallback hides bad data | `catalog_source` + audit + UI honesty string (functional; UI later) |
-| Worker not on Vercel | Phase 0 runbook; block “closure verified” without Worker evidence |
+| Fallback hides bad data   | `catalog_source` + audit + UI honesty string (functional; UI later)              |
+| Worker not on Vercel      | Phase 0 runbook; block “closure verified” without Worker evidence                |
 
 ---
 

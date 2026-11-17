@@ -9,11 +9,11 @@ When should `sectionsJson.catalog` in a `ProfileVersion` reflect rows in `discov
 
 ## Options
 
-| Option | Behavior |
-| ------ | -------- |
-| **A** | Continuous sync on every scan completion into **latest draft** only |
+| Option              | Behavior                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| **A**               | Continuous sync on every scan completion into **latest draft** only                                    |
 | **B (recommended)** | On **draft refresh catalog** command + mandatory step on **approve** (merge from latest eligible scan) |
-| **C** | Never auto; manual editor only |
+| **C**               | Never auto; manual editor only                                                                         |
 
 ## Recommendation
 
