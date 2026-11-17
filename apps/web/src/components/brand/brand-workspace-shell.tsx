@@ -132,7 +132,7 @@ export function BrandWorkspaceShell({
       <section className="oma-plx-listening-panel oma-plx-brand-panel">
         <header className="oma-plx-deliv-panel__head oma-plx-brand-nav-head">
           <nav
-            className="oma-plx-deliv-groups oma-plx-brand-nav oma-brand-nav"
+            className="oma-plx-deliv-groups oma-plx-brand-nav oma-plx-brand-nav--primary oma-brand-nav"
             aria-label={t('brand.nav.label')}
           >
             {primaryLinks.map((link) => {
@@ -152,10 +152,14 @@ export function BrandWorkspaceShell({
             })}
           </nav>
           {evidenceSubnav ? (
-            <BrandWorkspaceSubnav links={evidenceSubnav} ariaLabel={t('brand.nav.evidenceSub')} />
+            <div className="oma-plx-brand-subnav-wrap">
+              <BrandWorkspaceSubnav links={evidenceSubnav} ariaLabel={t('brand.nav.evidenceSub')} />
+            </div>
           ) : null}
           {strategySubnav ? (
-            <BrandWorkspaceSubnav links={strategySubnav} ariaLabel={t('brand.nav.strategySub')} />
+            <div className="oma-plx-brand-subnav-wrap">
+              <BrandWorkspaceSubnav links={strategySubnav} ariaLabel={t('brand.nav.strategySub')} />
+            </div>
           ) : null}
         </header>
         <div className="oma-plx-deliv-panel__body oma-plx-brand-panel__body">

@@ -48,7 +48,10 @@ export type BrandDetail = {
 export type ScanDetail = {
   id: string;
   status: string;
+  stalled?: boolean;
   progress_percent: number;
+  pages_js_rendered?: number;
+  product_media_imported?: number;
   pages_fetched: number;
   pages_failed: number;
   pages_skipped: number;

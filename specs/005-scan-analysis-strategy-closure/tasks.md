@@ -13,7 +13,7 @@
 - [x] T001 Document closure env matrix in `specs/005-scan-analysis-strategy-closure/quickstart.md` (Worker, Redis, `BRAND_WEBSITE_CONNECTOR`, AI vars, optional WorkDrive)
 - [x] T002 Add API ops probe `GET /api/v1/platform/health/queues` (or extend existing health) returning ingestion/analysis/catalog queue depth + last consumer heartbeat (honest when unknown)
 - [x] T003 Add runbook section in `quickstart.md`: Vercel-only vs API+Worker topology; link `docs/PRODUCTION_LOCK_WORK_OPS.md`
-- [ ] T004 Manual proof checklist in `checklists/requirements.md`: scan job consumed < 2 min
+- [ ] T004 Manual proof checklist in `checklists/requirements.md`: scan job consumed < 2 min (`scripts/closure-005/ops-smoke.sh` + Worker sign-off)
 
 **Checkpoint:** Operator sign-off on ops matrix (no code DoD without Worker).
 
