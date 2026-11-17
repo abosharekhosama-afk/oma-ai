@@ -468,7 +468,7 @@ export class StrategyPlanRequestsService {
     versionId: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const { offerings: catalogOfferings, catalog_source } = await this.loadCatalogOfferings(
+    const { offerings: catalogOfferings } = await this.loadCatalogOfferings(
       tenantId,
       brandId,
       version,
@@ -531,7 +531,7 @@ export class StrategyPlanRequestsService {
       throw new DomainError('VALIDATION_FAILED', 'request_ids required', 400, 'errors.validation');
     }
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const { offerings: catalogOfferings, catalog_source } = await this.loadCatalogOfferings(
+    const { offerings: catalogOfferings } = await this.loadCatalogOfferings(
       tenantId,
       brandId,
       version,
