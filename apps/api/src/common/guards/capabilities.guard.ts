@@ -104,6 +104,9 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/profiles/:versionId/catalog/merge-discovery': [
     'brand.insight.edit',
   ],
+  'POST /api/v1/brands/:brandId/profiles/:versionId/catalog/refresh-from-scan': [
+    'brand.insight.edit',
+  ],
   'POST /api/v1/brands/:brandId/profiles/:versionId/insights/bulk-accept': ['brand.insight.decide'],
   'POST /api/v1/brands/:brandId/profiles/:versionId/approve': ['brand.version.approve'],
   'POST /api/v1/brands/:brandId/profiles/:versionId/reject': ['brand.version.approve'],
@@ -426,6 +429,10 @@ export function matchRequirements(method: string, path: string): string[] | null
     .replace(/\/api\/v1\/brands\/[^/]+\/scans/, '/api/v1/brands/:brandId/scans')
     .replace(/\/api\/v1\/brands\/[^/]+\/website/, '/api/v1/brands/:brandId/website')
     .replace(/\/api\/v1\/brands\/[^/]+\/archive/, '/api/v1/brands/:brandId/archive')
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/profiles\/[^/]+\/catalog\/refresh-from-scan/,
+      '/api/v1/brands/:brandId/profiles/:versionId/catalog/refresh-from-scan',
+    )
     .replace(
       /\/api\/v1\/brands\/[^/]+\/profiles\/[^/]+\/catalog\/merge-discovery/,
       '/api/v1/brands/:brandId/profiles/:versionId/catalog/merge-discovery',

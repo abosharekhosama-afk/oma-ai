@@ -46,6 +46,7 @@ import { InboxController } from './inbox/inbox.controller';
 import { ListeningController } from './listening/listening.controller';
 import { WebhooksController } from './webhooks/webhooks.controller';
 import { PlatformAdminController } from './platform/platform-admin.controller';
+import { PlatformHealthController } from './platform/platform-health.controller';
 import { HelpdeskController } from './helpdesk/helpdesk.controller';
 import { SupportController } from './platform/support.controller';
 
@@ -92,6 +93,7 @@ import { SupportController } from './platform/support.controller';
     ListeningController,
     WebhooksController,
     PlatformAdminController,
+    PlatformHealthController,
     SupportController,
     HelpdeskController,
   ],

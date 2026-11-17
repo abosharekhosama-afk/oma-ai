@@ -3,6 +3,8 @@ export type CatalogSummaryItem = {
   description?: string;
   category?: string;
   price?: string;
+  product_id?: string;
+  primary_media_view_url?: string;
 };
 
 export type CatalogFieldValue = {

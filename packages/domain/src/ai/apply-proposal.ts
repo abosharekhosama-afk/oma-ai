@@ -131,6 +131,7 @@ export function mergeAiSections(
   const overview = {
     ...(typeof next.overview === 'object' && next.overview ? next.overview : {}),
   } as Record<string, unknown>;
+  if (pick('brand.name')) overview.name = pick('brand.name');
   if (pick('brand.description')) overview.description = pick('brand.description');
   if (pick('brand.categories')) overview.categories = pick('brand.categories');
   next.overview = overview;
@@ -139,6 +140,18 @@ export function mergeAiSections(
   if (pick('brand.audiences')) next.audiences = { summary: pick('brand.audiences') };
   if (pick('brand.messaging')) next.messaging = { summary: pick('brand.messaging') };
   if (pick('brand.languages')) next.languages = { summary: pick('brand.languages') };
+  if (pick('brand.contact')) {
+    next.contact = {
+      ...(typeof next.contact === 'object' && next.contact ? next.contact : {}),
+      summary: pick('brand.contact'),
+    };
+  }
+  if (pick('brand.social')) {
+    next.social = {
+      ...(typeof next.social === 'object' && next.social ? next.social : {}),
+      summary: pick('brand.social'),
+    };
+  }
   if (pick('catalog.products') || pick('catalog.services')) {
     next.catalog = {
       ...(typeof next.catalog === 'object' && next.catalog ? next.catalog : {}),
@@ -171,4 +184,88 @@ export function mergeAiSections(
 
 export function shouldSkipApprovedProfile(status: string): boolean {
   return status === 'APPROVED' || status === 'SUPERSEDED';
+}
+
+/** Mirror worker merge rules when a human accepts a single AI insight (API path). */
+export function applyAcceptedInsightToSections(
+  current: Record<string, unknown>,
+  fieldKey: string,
+  textValue: string | null | undefined,
+): Record<string, unknown> {
+  const value = textValue?.trim();
+  if (!value) return current;
+  const next: Record<string, unknown> = { ...current };
+
+  const overview = {
+    ...(typeof next.overview === 'object' && next.overview ? next.overview : {}),
+  } as Record<string, unknown>;
+
+  switch (fieldKey) {
+    case 'brand.name':
+      overview.name = value;
+      next.overview = overview;
+      break;
+    case 'brand.description':
+      overview.description = value;
+      next.overview = overview;
+      break;
+    case 'brand.categories':
+      overview.categories = value;
+      next.overview = overview;
+      break;
+    case 'brand.tone':
+      next.tone = { summary: value };
+      break;
+    case 'brand.audiences':
+      next.audiences = { summary: value };
+      break;
+    case 'brand.messaging':
+      next.messaging = { summary: value };
+      break;
+    case 'brand.languages':
+      next.languages = { summary: value };
+      break;
+    case 'brand.contact':
+      next.contact = {
+        ...(typeof next.contact === 'object' && next.contact ? next.contact : {}),
+        summary: value,
+      };
+      break;
+    case 'brand.social':
+      next.social = {
+        ...(typeof next.social === 'object' && next.social ? next.social : {}),
+        summary: value,
+      };
+      break;
+    case 'catalog.products':
+    case 'catalog.services': {
+      const catalog = {
+        ...(typeof next.catalog === 'object' && next.catalog ? next.catalog : {}),
+      } as Record<string, unknown>;
+      const sectionKey = fieldKey === 'catalog.products' ? 'products' : 'services';
+      try {
+        const parsed = JSON.parse(value) as unknown;
+        catalog[sectionKey] = parsed;
+      } catch {
+        catalog[sectionKey] = value;
+      }
+      next.catalog = catalog;
+      break;
+    }
+    case 'brand.colors':
+    case 'brand.logo': {
+      const visual = {
+        ...(typeof next.visual_identity === 'object' && next.visual_identity
+          ? next.visual_identity
+          : {}),
+      } as Record<string, unknown>;
+      if (fieldKey === 'brand.colors') visual.ai_colors = value;
+      if (fieldKey === 'brand.logo') visual.ai_logo = value;
+      next.visual_identity = visual;
+      break;
+    }
+    default:
+      break;
+  }
+  return next;
 }

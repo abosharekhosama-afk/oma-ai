@@ -8,12 +8,15 @@ import {
   newId,
   buildPlanRequestImpactReport,
   comparableFromStored,
+  catalogOfferingsFromDiscoveryRows,
   type CatalogOffering,
+  type CatalogOfferingsSource,
   type PlanWorkRequestDraft,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { OpsService } from '../content/ops.service';
 import { parseOptionalDate } from '../content/content.service';
+import { enrichCatalogOfferingsWithApprovedMedia } from '../catalog/catalog.service';
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   if (!raw) return fallback;
@@ -105,27 +108,83 @@ export class StrategyPlanRequestsService {
     tenantId: string,
     brandId: string,
     version: Awaited<ReturnType<typeof this.loadApprovedVersion>>,
-  ): Promise<CatalogOffering[]> {
+    options?: { auditFallback?: boolean; actorUserId?: string; correlationId?: string },
+  ): Promise<{ offerings: CatalogOffering[]; catalog_source: CatalogOfferingsSource }> {
     const tryProfile = async (profileVersionId: string | null | undefined) => {
-      if (!profileVersionId) return [] as CatalogOffering[];
+      if (!profileVersionId) return { offerings: [] as CatalogOffering[], profile: null };
       const profile = await getPrisma().profileVersion.findFirst({
         where: tenantWhere(tenantId, { id: profileVersionId, brandId, status: 'APPROVED' }),
       });
-      if (!profile?.sectionsJson) return [];
+      if (!profile?.sectionsJson) return { offerings: [], profile };
       const sections = parseJson<Record<string, unknown>>(profile.sectionsJson, {});
-      return catalogOfferingsFromProfileSections(sections);
+      const offerings = catalogOfferingsFromProfileSections(sections);
+      return { offerings, profile };
     };
 
-    const linked = await tryProfile(version.linkedApprovedProfileVersionId);
-    if (linked.length > 0) return linked;
+    const finish = async (
+      offerings: CatalogOffering[],
+      source: CatalogOfferingsSource,
+      scanId?: string | null,
+    ) => {
+      const enriched = await enrichCatalogOfferingsWithApprovedMedia(tenantId, offerings);
+      if (
+        source === 'discovery_fallback' &&
+        options?.auditFallback &&
+        options.actorUserId &&
+        enriched.length > 0
+      ) {
+        await this.audit.write({
+          actorUserId: options.actorUserId,
+          tenantId,
+          action: 'strategy.plan.catalog_discovery_fallback',
+          targetType: 'StrategyVersion',
+          targetId: version.id,
+          afterRef: scanId ?? undefined,
+          correlationId: options.correlationId,
+        });
+      }
+      return { offerings: enriched, catalog_source: enriched.length > 0 ? source : 'none' };
+    };
+
+    const linkedResult = await tryProfile(version.linkedApprovedProfileVersionId);
+    if (linkedResult.offerings.length > 0) {
+      return finish(linkedResult.offerings, 'profile_sections');
+    }
 
     const brand = await getPrisma().brandWorkspace.findFirst({
       where: tenantWhere(tenantId, { id: brandId }),
     });
-    const approved = await tryProfile(brand?.currentApprovedProfileVersionId ?? null);
-    if (approved.length > 0) return approved;
+    const approvedResult = await tryProfile(brand?.currentApprovedProfileVersionId ?? null);
+    if (approvedResult.offerings.length > 0) {
+      return finish(approvedResult.offerings, 'profile_sections');
+    }
 
-    return [];
+    const profileForScan = linkedResult.profile ?? approvedResult.profile ?? null;
+    const scan = profileForScan?.scanAttemptId
+      ? await getPrisma().scanAttempt.findFirst({
+          where: tenantWhere(tenantId, {
+            id: profileForScan.scanAttemptId,
+            brandId,
+            status: { in: ['SUCCEEDED', 'PARTIAL'] },
+          }),
+        })
+      : await getPrisma().scanAttempt.findFirst({
+          where: tenantWhere(tenantId, {
+            brandId,
+            status: { in: ['SUCCEEDED', 'PARTIAL'] },
+          }),
+          orderBy: [{ finishedAt: 'desc' }, { createdAt: 'desc' }],
+        });
+
+    if (!scan) {
+      return { offerings: [], catalog_source: 'none' };
+    }
+
+    const rows = await getPrisma().discoveredProductService.findMany({
+      where: tenantWhere(tenantId, { scanAttemptId: scan.id, brandId }),
+    });
+    const fromDiscovery = catalogOfferingsFromDiscoveryRows(rows);
+    return finish(fromDiscovery, 'discovery_fallback', scan.id);
   }
 
   private buildDrafts(
@@ -167,7 +226,11 @@ export class StrategyPlanRequestsService {
     versionId: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const { offerings: catalogOfferings, catalog_source } = await this.loadCatalogOfferings(
+      tenantId,
+      brandId,
+      version,
+    );
     const drafts = this.buildDrafts(version, catalogOfferings);
     const existing = await getPrisma().workRequest.findMany({
       where: { tenantId, strategyVersionId: versionId },
@@ -182,6 +245,7 @@ export class StrategyPlanRequestsService {
         strategy_version_id: versionId,
         strategy_id: strategyId,
         catalog_offerings_count: catalogOfferings.length,
+        catalog_source,
         catalog_request_count: catalogAnchored.length,
         preview: drafts.map((draft) => ({
           ...draft,
@@ -295,7 +359,12 @@ export class StrategyPlanRequestsService {
     correlationId?: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const { offerings: catalogOfferings, catalog_source } = await this.loadCatalogOfferings(
+      tenantId,
+      brandId,
+      version,
+      { auditFallback: true, actorUserId, correlationId },
+    );
     const drafts = this.buildDrafts(version, catalogOfferings);
     const defaults = await this.resolveCommitDefaults(tenantId, brandId, input.defaults);
     const selected =
@@ -342,6 +411,7 @@ export class StrategyPlanRequestsService {
         created_request_ids: created,
         skipped_plan_source_keys: skipped,
         strategy_version_id: versionId,
+        catalog_source,
       },
     };
   }
@@ -398,7 +468,11 @@ export class StrategyPlanRequestsService {
     versionId: string,
   ) {
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const { offerings: catalogOfferings } = await this.loadCatalogOfferings(
+      tenantId,
+      brandId,
+      version,
+    );
     const drafts = this.buildDrafts(version, catalogOfferings);
     const prior = await getPrisma().workRequest.findMany({
       where: {
@@ -457,7 +531,11 @@ export class StrategyPlanRequestsService {
       throw new DomainError('VALIDATION_FAILED', 'request_ids required', 400, 'errors.validation');
     }
     const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
-    const catalogOfferings = await this.loadCatalogOfferings(tenantId, brandId, version);
+    const { offerings: catalogOfferings } = await this.loadCatalogOfferings(
+      tenantId,
+      brandId,
+      version,
+    );
     const drafts = this.buildDrafts(version, catalogOfferings);
     const draftByKey = new Map(drafts.map((d) => [d.plan_source_key, d]));
     const impact = await this.planRequestImpact(tenantId, brandId, strategyId, versionId);

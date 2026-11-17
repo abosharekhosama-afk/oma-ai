@@ -18,4 +18,14 @@ describe('catalog-summary', () => {
     expect(value.products?.summary).toContain('Widget');
     expect(value.services?.summary).toContain('Installation');
   });
+
+  it('regression: discovery rows yield catalog.products for extraction observations (T010)', () => {
+    const value = buildCatalogFieldValue([
+      { kind: 'PRODUCT', name: 'Alpha', description: 'one' },
+      { kind: 'PRODUCT', name: 'Beta' },
+    ]);
+    expect(value.products?.items).toHaveLength(2);
+    expect(value.products?.items.map((i) => i.name)).toEqual(['Alpha', 'Beta']);
+    expect(value.products?.summary).toContain('Alpha');
+  });
 });

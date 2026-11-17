@@ -36,11 +36,13 @@ export function parseCatalogFieldValue(
 
 export function discoveryRowsToCatalogItems(
   rows: Array<{
+    id?: string;
     name: string;
     description?: string | null;
     category?: string | null;
     priceAmount?: string | null;
     priceCurrency?: string | null;
+    primary_media_view_url?: string | null;
   }>,
 ): CatalogSummaryItem[] {
   return rows.map((row) => {
@@ -54,6 +56,8 @@ export function discoveryRowsToCatalogItems(
       description: row.description?.trim() || undefined,
       category: row.category?.trim() || undefined,
       price,
+      product_id: row.id,
+      primary_media_view_url: row.primary_media_view_url?.trim() || undefined,
     };
   });
 }

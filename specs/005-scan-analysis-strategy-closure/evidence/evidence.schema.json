@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ScanAnalysisStrategyClosureEvidence",
+  "type": "object",
+  "required": [
+    "tenant_id",
+    "brand_id",
+    "scan_attempt_id",
+    "profile_version_id",
+    "strategy_version_id",
+    "verified_at"
+  ],
+  "properties": {
+    "tenant_id": { "type": "string" },
+    "brand_id": { "type": "string" },
+    "scan_attempt_id": { "type": "string" },
+    "profile_version_id": { "type": "string" },
+    "strategy_version_id": { "type": "string" },
+    "work_request_ids": { "type": "array", "items": { "type": "string" } },
+    "catalog_source": {
+      "type": "string",
+      "enum": ["profile_sections", "discovery_fallback", "none"]
+    },
+    "connector_mode": { "type": "string" },
+    "verified_at": { "type": "string", "format": "date-time" },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

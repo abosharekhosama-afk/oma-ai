@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   AI_PROPOSAL_BANNER,
+  applyAcceptedInsightToSections,
   insightWritesFromProposal,
   mergeAiSections,
   shouldSkipApprovedProfile,
@@ -62,5 +63,36 @@ describe('apply brand proposal', () => {
     expect((sections.visual_identity as { colors: string[] }).colors).toEqual(['#112233']);
     expect(shouldSkipApprovedProfile('APPROVED')).toBe(true);
     expect(shouldSkipApprovedProfile('NEEDS_REVIEW')).toBe(false);
+  });
+
+  it('mergeAiSections applies name, contact, and social proposal fields', () => {
+    const rich = {
+      ...proposal,
+      items: [
+        ...proposal.items,
+        { field: 'brand.name', value: 'Acme Co', kind: 'fact' as const, evidenceRefs: ['e1'] },
+        {
+          field: 'brand.contact',
+          value: 'hello@acme.test',
+          kind: 'fact' as const,
+          evidenceRefs: ['e1'],
+        },
+        {
+          field: 'brand.social',
+          value: '@acme',
+          kind: 'inference' as const,
+          evidenceRefs: ['e1'],
+        },
+      ],
+    };
+    const sections = mergeAiSections({}, rich);
+    expect((sections.overview as { name: string }).name).toBe('Acme Co');
+    expect((sections.contact as { summary: string }).summary).toBe('hello@acme.test');
+    expect((sections.social as { summary: string }).summary).toBe('@acme');
+  });
+
+  it('applyAcceptedInsightToSections updates overview on accept path', () => {
+    const next = applyAcceptedInsightToSections({}, 'brand.description', 'Grounded copy');
+    expect((next.overview as { description: string }).description).toBe('Grounded copy');
   });
 });

@@ -6,16 +6,16 @@
 
 ## 1. Minimum environment
 
-| Component | Required for CORE (`DP-005-002` A) | Notes |
-| --------- | ---------------------------------- | ----- |
-| PostgreSQL | Yes | Same DB for API + Worker |
-| Redis | Yes | BullMQ prefix `oma` (default) |
-| API (`apps/api`) | Yes | |
-| Worker (`apps/worker`) | Yes | Must run `ingestion`, `analysis`, `catalog` processors |
-| Web (`apps/web`) | Yes | For manual proof; API-only sufficient for integration test |
-| Live website connector | Yes | `BRAND_WEBSITE_CONNECTOR=live` (default on 004 when not fixture) |
-| `AI_LIVE_ENABLED` | Optional | Manual profile path works without |
-| WorkDrive | No (CORE) | Only for `catalog.generate` (Phase 5) |
+| Component              | Required for CORE (`DP-005-002` A) | Notes                                                            |
+| ---------------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| PostgreSQL             | Yes                                | Same DB for API + Worker                                         |
+| Redis                  | Yes                                | BullMQ prefix `oma` (default)                                    |
+| API (`apps/api`)       | Yes                                |                                                                  |
+| Worker (`apps/worker`) | Yes                                | Must run `ingestion`, `analysis`, `catalog` processors           |
+| Web (`apps/web`)       | Yes                                | For manual proof; API-only sufficient for integration test       |
+| Live website connector | Yes                                | `BRAND_WEBSITE_CONNECTOR=live` (default on 004 when not fixture) |
+| `AI_LIVE_ENABLED`      | Optional                           | Manual profile path works without                                |
+| WorkDrive              | No (CORE)                          | Only for `catalog.generate` (Phase 5)                            |
 
 ### Example env (Worker + API)
 
@@ -62,17 +62,31 @@ Requires `CLOSURE_PROOF_URL` (allowlisted public site) when test is added in T04
 
 ## 4. Failure triage
 
-| Symptom | Check |
-| ------- | ----- |
-| Scan stuck QUEUED/RUNNING | Worker running? Redis? Queue depth via T002 probe |
-| `NOT_CONFIGURED` connector | Env fixture/disabled; set live connector |
-| 0 products | JS-render mode; try reimport; new scan |
-| AI no proposals | `AI_LIVE_ENABLED` + key; analysis job in `job_run` |
-| Plan catalog count 0 | Profile `sectionsJson.catalog`; run refresh; fallback flag `catalog_source` |
-| Generate 409 profile | Approve profile first |
+| Symptom                    | Check                                                                       |
+| -------------------------- | --------------------------------------------------------------------------- |
+| Scan stuck QUEUED/RUNNING  | Worker running? Redis? Queue depth via T002 probe                           |
+| `NOT_CONFIGURED` connector | Env fixture/disabled; set live connector                                    |
+| 0 products                 | JS-render mode; try reimport; new scan                                      |
+| AI no proposals            | `AI_LIVE_ENABLED` + key; analysis job in `job_run`                          |
+| Plan catalog count 0       | Profile `sectionsJson.catalog`; run refresh; fallback flag `catalog_source` |
+| Generate 409 profile       | Approve profile first                                                       |
 
 ---
 
-## 5. Sign-off
+## 5. Production topology runbook (T003)
+
+| Topology          | Scan/analysis/catalog | When to use                           |
+| ----------------- | --------------------- | ------------------------------------- |
+| Vercel API only   | **Broken** for crawl  | Never for closure proof               |
+| API + Worker + DB | **Required**          | All CORE 005 verification             |
+| API + Worker home | Same as row above     | Long-running scans (`pnpm dev` stack) |
+
+Canonical ops lock: [`docs/PRODUCTION_LOCK_WORK_OPS.md`](../../docs/PRODUCTION_LOCK_WORK_OPS.md).
+
+**Queue probe:** `GET /api/v1/platform/health/queues` (depth only; worker heartbeat honest when unknown).
+
+---
+
+## 6. Sign-off
 
 Owner marks checklist in [`checklists/requirements.md`](./checklists/requirements.md) and confirms `DP-005-001`–`003` in [`decisions/`](./decisions/).
