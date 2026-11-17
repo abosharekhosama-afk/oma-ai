@@ -34,6 +34,16 @@ OPENAI_API_KEY=...
 
 **Do not** set `BRAND_FIXTURE_CONNECTOR=1` for real-site closure proof.
 
+### Ops smoke (CHK010 helper)
+
+With API running locally or on staging:
+
+```bash
+API_BASE=https://your-api-host scripts/closure-005/ops-smoke.sh
+```
+
+Confirm Worker logs show an ingestion job consumed within **2 minutes** after enqueueing a scan (manual sign-off on `checklists/requirements.md` CHK010).
+
 ---
 
 ## 2. Proof journey (manual)

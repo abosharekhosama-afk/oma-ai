@@ -15,8 +15,8 @@ Mark `[x]` only when **evidence** exists (test name, CI run, or artifact path).
 
 ## Closure evidence (implement stage)
 
-- [ ] CHK010 Ops: Worker consumes ingestion job within 2 min (manual or T002)
-- [ ] CHK011 Scan: live proof URL reaches PARTIAL|SUCCEEDED with pages > 0
+- [ ] CHK010 Ops: Worker consumes ingestion job within 2 min — run `scripts/closure-005/ops-smoke.sh` + confirm queue consumer on Worker host
+- [ ] CHK011 Scan: live proof URL reaches PARTIAL|SUCCEEDED with pages > 0 (see `quickstart.md` CLOSURE_PROOF_URL)
 - [x] CHK012 Discovery: products persisted; reimport idempotent (T014–T015) — `scan-reimport-api.integration.test.ts`, `catalog-reimport.integration.test.ts`
 - [x] CHK013 Profile: catalog materialized on approve/refresh (T032–T033) — code + `scan-analysis-strategy-closure.integration.test.ts`
 - [x] CHK014 Strategy: plan preview `catalog_offerings_count > 0` when products exist (T035) — same integration file

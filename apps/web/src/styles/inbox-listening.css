@@ -4754,7 +4754,7 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 .oma-plx-brand-nav-head {
   overflow-x: auto;
   padding: 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid #eceef1;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -4771,21 +4771,71 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   padding: 8px 10px 6px;
 }
 
-.oma-plx-brand-nav .oma-plx-deliv-groups__btn,
-.oma-plx-brand-nav .oma-brand-nav-link {
+/* Planable-style workspace tabs (primary) */
+.oma-plx-brand-nav--primary.oma-plx-deliv-groups {
+  gap: 0;
+  padding: 0 12px;
+  padding-bottom: 0;
+}
+
+.oma-plx-brand-nav--primary .oma-plx-deliv-groups__btn,
+.oma-plx-brand-nav--primary .oma-brand-nav-link {
+  border-radius: 0;
+  margin-bottom: 0;
+  padding: 12px 16px;
+  border-bottom: 2px solid transparent;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+.oma-plx-brand-nav--primary .oma-plx-deliv-groups__btn.is-active,
+.oma-plx-brand-nav--primary .oma-brand-nav-link.is-active {
+  color: #1677ff !important;
+  font-weight: 600;
+  border-bottom-color: #1677ff;
+  background: transparent !important;
+}
+
+.oma-plx-brand-nav:not(.oma-plx-brand-nav--primary) .oma-plx-deliv-groups__btn,
+.oma-plx-brand-nav:not(.oma-plx-brand-nav--primary) .oma-brand-nav-link {
   text-decoration: none;
   white-space: nowrap;
-  border-bottom: none !important;
   min-height: 0;
+}
+
+.oma-plx-brand-subnav-wrap {
+  padding: 8px 12px 10px;
+  background: #f9fafb;
+  border-top: 1px solid #eceef1;
 }
 
 .oma-plx-brand-subnav.oma-brand-nav-secondary {
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
-  padding: 0 10px 8px;
-  border-top: 1px solid #f3f4f6;
+  padding: 0;
+  border-top: none;
   min-width: min-content;
+}
+
+.oma-plx-brand-discovery-tabs {
+  padding: 8px 0 10px;
+  gap: 6px;
+  border-bottom: 1px solid #eceef1;
+  margin-bottom: 14px;
+}
+
+.oma-plx-brand-discovery-tabs .oma-plx-deliv-groups__btn {
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.oma-plx-brand-discovery-tabs .oma-plx-deliv-groups__btn.is-active {
+  background: #fff !important;
+  border-color: #eceef1;
+  color: #1677ff !important;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
 }
 
 .oma-brand-nav-link--secondary {
@@ -5379,14 +5429,23 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     padding: 10px;
   }
 
-  .oma-plx-brand-nav {
+  .oma-plx-brand-nav:not(.oma-plx-brand-nav--primary) {
     padding: 6px 8px 4px;
+  }
+
+  .oma-plx-brand-nav--primary {
+    padding: 0 8px;
   }
 
   .oma-plx-brand-nav .oma-plx-deliv-groups__btn,
   .oma-plx-brand-nav .oma-brand-nav-link {
     padding: 6px 10px;
     font-size: 12px;
+  }
+
+  .oma-plx-brand-nav--primary .oma-plx-deliv-groups__btn,
+  .oma-plx-brand-nav--primary .oma-brand-nav-link {
+    padding: 10px 12px;
   }
 
   .oma-plx-brand-main .oma-page-header,

@@ -346,6 +346,12 @@ export default function ScanDetailPage() {
             <p>{t('brand.scan.cancelledBody')}</p>
           </div>
         ) : null}
+        {inProgress && scan.stalled ? (
+          <div className="oma-banner oma-banner-warning" role="alert" data-testid="scan-stalled-banner">
+            <strong>{t('brand.scan.stalledTitle')}</strong>
+            <p>{t('brand.scan.stalledBody')}</p>
+          </div>
+        ) : null}
 
         <BrandPlxStatGrid
           stats={[
@@ -353,6 +359,12 @@ export default function ScanDetailPage() {
             { label: t('brand.scan.pagesFailed'), value: scan.pages_failed },
             { label: t('brand.scan.pagesSkipped'), value: scan.pages_skipped },
             { label: t('brand.scan.catalogFound'), value: productsFound },
+            ...(scan.coverage?.pages_js_rendered != null
+              ? [{ label: t('brand.scan.pagesJsRendered'), value: scan.coverage.pages_js_rendered }]
+              : []),
+            ...(scan.product_media_imported != null
+              ? [{ label: t('brand.scan.productMediaImported'), value: scan.product_media_imported }]
+              : []),
           ]}
         />
         {actionError ? (

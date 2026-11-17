@@ -28,7 +28,7 @@ export function DiscoveryTabs({ brandId, counts }: { brandId: string; counts?: C
   ];
   return (
     <nav
-      className="oma-discovery-tabs"
+      className="oma-plx-deliv-groups oma-plx-brand-discovery-tabs"
       aria-label={t('brand.discovery.tabsLabel')}
       data-testid="discovery-tabs"
     >
@@ -39,11 +39,11 @@ export function DiscoveryTabs({ brandId, counts }: { brandId: string; counts?: C
             key={tab.id}
             href={tab.href}
             aria-current={active ? 'page' : undefined}
-            className={`oma-discovery-tabs__tab${active ? ' is-active' : ''}`}
+            className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
           >
             <span>{tab.label}</span>
             {tab.count != null ? (
-              <span className="oma-discovery-tabs__count">{tab.count}</span>
+              <span className="oma-plx-reviews-tabs__count">{tab.count}</span>
             ) : null}
           </Link>
         );
