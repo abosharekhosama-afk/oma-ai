@@ -73,7 +73,7 @@
 - [x] T040 Add `tests/integration/scan-analysis-strategy-closure.integration.test.ts` (live connector allowlist host, bounded pages)
 - [x] T041 [P] Optional Playwright `tests/e2e/scan-strategy-closure.e2e.ts` (skip without `CLOSURE_PROOF_URL` env)
 - [x] T042 Write evidence template `artifacts/closure-005/README.md` + json schema for proof ids
-- [ ] T043 Run full gate: `pnpm typecheck`, `pnpm test`, relevant worker build; record in checklist
+- [ ] T043 Run full gate: `pnpm typecheck`, `pnpm test`, relevant worker build; record in checklist (automated in CI verify job; Owner sign-off for CHK010–011)
 - [x] T044 Owner record `DP-005-001`–`003` decisions in `decisions/` (status OWNER_APPROVED)
 
 **Checkpoint:** Checklist marks SC-SAS-001–003 passed.
