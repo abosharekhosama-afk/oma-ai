@@ -75,6 +75,7 @@ export class ProfileService {
         scan_attempt_id: version.scanAttemptId,
         ai_availability: version.aiAvailability,
         analysis_status: version.analysisStatus,
+        analysis_job_status: version.analysisStatus,
         sections: version.sectionsJson ? JSON.parse(version.sectionsJson) : {},
         insights: insights.map((i) => ({
           id: i.id,

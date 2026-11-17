@@ -1,6 +1,6 @@
 # DP-005-003 — Plan-requests catalog fallback
 
-**Status**: `PROPOSED` (default **Option A**)
+**Status**: `OWNER_APPROVED` — **Option A** (discovery fallback + `catalog_source`, 2026-11-17)
 
 ## Question
 

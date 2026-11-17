@@ -73,6 +73,20 @@ Requires `CLOSURE_PROOF_URL` (allowlisted public site) when test is added in T04
 
 ---
 
-## 5. Sign-off
+## 5. Production topology runbook (T003)
+
+| Topology          | Scan/analysis/catalog | When to use                           |
+| ----------------- | --------------------- | ------------------------------------- |
+| Vercel API only   | **Broken** for crawl  | Never for closure proof               |
+| API + Worker + DB | **Required**          | All CORE 005 verification             |
+| API + Worker home | Same as row above     | Long-running scans (`pnpm dev` stack) |
+
+Canonical ops lock: [`docs/PRODUCTION_LOCK_WORK_OPS.md`](../../docs/PRODUCTION_LOCK_WORK_OPS.md).
+
+**Queue probe:** `GET /api/v1/platform/health/queues` (depth only; worker heartbeat honest when unknown).
+
+---
+
+## 6. Sign-off
 
 Owner marks checklist in [`checklists/requirements.md`](./checklists/requirements.md) and confirms `DP-005-001`–`003` in [`decisions/`](./decisions/).

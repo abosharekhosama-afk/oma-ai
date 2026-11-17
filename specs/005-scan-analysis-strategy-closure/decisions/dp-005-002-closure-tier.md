@@ -1,6 +1,6 @@
 # DP-005-002 — Closure sign-off tier
 
-**Status**: `PROPOSED` (default **Option A**)
+**Status**: `OWNER_APPROVED` — **Option A** (CORE without WorkDrive generate, 2026-11-17)
 
 ## Question
 

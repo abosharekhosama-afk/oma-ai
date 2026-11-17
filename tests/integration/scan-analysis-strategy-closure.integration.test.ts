@@ -12,7 +12,7 @@ import {
   seedBrandTenant,
 } from '../helpers/strategy-test';
 
-describe('strategy plan catalog discovery fallback', () => {
+describe('scan-analysis-strategy operational closure (005 T035/T040)', () => {
   let seed: Awaited<ReturnType<typeof seedBrandTenant>>;
   let app: INestApplication;
 
@@ -25,7 +25,7 @@ describe('strategy plan catalog discovery fallback', () => {
     await app.close();
   });
 
-  it('preview reports discovery_fallback when profile has no catalog but scan has products', async () => {
+  it('approved strategy plan preview uses discovery_fallback when profile catalog empty', async () => {
     const { body: brand } = await createBrand(seed);
     const brandId = brand.data.id as string;
     const prisma = getPrisma();

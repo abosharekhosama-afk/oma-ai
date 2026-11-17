@@ -20,6 +20,10 @@
 - OpenAI **optional ops** — aligned with `AI_LIVE_ENABLED` pattern.
 - Workfront/Frame.io **ops path** partially via plan-requests + deliverables — 005 stops at work request commit.
 
+## Brand-analysis contract audit (T021)
+
+`BRAND_PROFILE_FIELD_KEYS` covers overview-like fields + `catalog.products` / `catalog.services`. **Gaps vs Jasper-like narrative spec:** no dedicated `brand.overview` / `brand.positioning` keys (mapped via `brand.description` + `brand.messaging`); no separate `competitors` or `content_pillars` fields (strategy-owned). **Apply paths:** proposals for listed keys only; unlisted Jasper sections remain manual or strategy slice.
+
 ## Open unknowns
 
 | ID       | Unknown                                       | Default                                                                   |

@@ -1,6 +1,6 @@
 # DP-005-001 — Catalog materialization into profile
 
-**Status**: `PROPOSED` (default **Option B** if Owner silent at implement)
+**Status**: `OWNER_APPROVED` — **Option B** (implement default, 2026-11-17)
 **Feature**: `005-scan-analysis-strategy-closure`
 
 ## Question
