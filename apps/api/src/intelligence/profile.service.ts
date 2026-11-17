@@ -410,7 +410,10 @@ export class ProfileService {
       targetId: versionId,
       correlationId,
     });
-    return { materialized: true as const, identity_completeness: computeBrandIdentityCompleteness(merged) };
+    return {
+      materialized: true as const,
+      identity_completeness: computeBrandIdentityCompleteness(merged),
+    };
   }
 
   async tryMaterializeCatalogBeforeApprove(

@@ -56,23 +56,20 @@ describe('brand identity sections closure', () => {
   });
 
   it('reconciles accepted narrative insights into sections', () => {
-    const merged = reconcileIdentitySectionsFromInsights(
-      { overview: {} },
-      [
-        {
-          fieldKey: 'brand.tone',
-          textValue: 'Calm and direct',
-          valueJson: null,
-          reviewStatus: 'ACCEPTED',
-        },
-        {
-          fieldKey: 'brand.audiences',
-          textValue: 'SMB marketers',
-          valueJson: null,
-          reviewStatus: 'PENDING',
-        },
-      ],
-    );
+    const merged = reconcileIdentitySectionsFromInsights({ overview: {} }, [
+      {
+        fieldKey: 'brand.tone',
+        textValue: 'Calm and direct',
+        valueJson: null,
+        reviewStatus: 'ACCEPTED',
+      },
+      {
+        fieldKey: 'brand.audiences',
+        textValue: 'SMB marketers',
+        valueJson: null,
+        reviewStatus: 'PENDING',
+      },
+    ]);
     expect(merged.tone).toEqual({ summary: 'Calm and direct' });
     expect(merged.audiences).toBeUndefined();
     const completeness = computeBrandIdentityCompleteness(merged as Record<string, unknown>);

@@ -216,7 +216,9 @@ export function applyAcceptedInsightClaimToSections(
     const mergedVisual = visualIdentityFromObservations([{ fieldKey, valueJson: rowJson }]);
     const next = { ...current };
     const visual = {
-      ...(typeof next.visual_identity === 'object' && next.visual_identity ? next.visual_identity : {}),
+      ...(typeof next.visual_identity === 'object' && next.visual_identity
+        ? next.visual_identity
+        : {}),
       ...mergedVisual,
     } as Record<string, unknown>;
     next.visual_identity = visual;

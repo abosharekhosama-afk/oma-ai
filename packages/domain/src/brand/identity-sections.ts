@@ -32,7 +32,10 @@ export type BrandIdentityCompleteness = {
   narrative_ready: boolean;
 };
 
-function sectionHasContent(key: BrandIdentitySectionKey, sections: Record<string, unknown>): boolean {
+function sectionHasContent(
+  key: BrandIdentitySectionKey,
+  sections: Record<string, unknown>,
+): boolean {
   const value = sections[key];
   if (value == null) return false;
   if (typeof value === 'string') return value.trim().length > 0;
