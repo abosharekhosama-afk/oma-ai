@@ -1790,13 +1790,11 @@ export class ContentService {
     }
     const assets = await getPrisma().mediaAsset.findMany({
       where: tenantWhere(tenantId, { id: { in: ids }, brandId }),
-      select: { mime: true, size: true, width: true, height: true },
+      select: { mime: true, size: true },
     });
     return assets.map((a) => ({
       mime: a.mime,
       sizeBytes: Number(a.size),
-      width: a.width,
-      height: a.height,
     }));
   }
 
