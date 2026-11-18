@@ -1,5 +1,6 @@
 import type { ApprovalPolicy } from './states';
 import { resolveContentWorkflow, type WorkflowSource } from './workflow';
+import { validateMediaForNetwork, type MediaAssetInfo } from '../social/media-constraints';
 
 /**
  * Schedule readiness (DEC-023).
@@ -19,6 +20,8 @@ export const SCHEDULE_BLOCKERS = [
   'NO_CONNECTED_ACCOUNT',
   'ACCOUNT_NOT_CONNECTED',
   'CHANNEL_NOT_CONNECTED',
+  'MEDIA_REQUIRED',
+  'MEDIA_POLICY',
 ] as const;
 export type ScheduleBlockerCode = (typeof SCHEDULE_BLOCKERS)[number];
 
@@ -28,6 +31,8 @@ export type ScheduleBlocker = {
   social_page_id?: string;
   network?: string;
   account_status?: string;
+  /** Domain media validation issue (e.g. media_missing, reel_requires_video). */
+  issue_code?: string;
 };
 
 export type ReadinessTarget = {
@@ -57,6 +62,70 @@ export function scheduleRequiresConnectedAccount(
   env: { SCHEDULE_REQUIRES_CONNECTED_ACCOUNT?: string } = process.env,
 ): boolean {
   return (env.SCHEDULE_REQUIRES_CONNECTED_ACCOUNT ?? '').trim().toLowerCase() !== 'false';
+}
+
+const FEED_ALIASES: Record<string, string> = {
+  instagram: 'instagram',
+  facebook: 'facebook',
+  linkedin: 'linkedin',
+  tiktok: 'tiktok',
+  x: 'x',
+  twitter: 'x',
+};
+
+function normalizeFeedNetwork(raw: string): string | null {
+  const key = raw.trim().toLowerCase();
+  if (!key) return null;
+  if ((FEED_NETWORKS as readonly string[]).includes(key)) return key;
+  return FEED_ALIASES[key] ?? null;
+}
+
+/** Networks to validate before schedule / publish (targets + primary channel). */
+export function publishNetworksForReadiness(channel: string, targets: ReadinessTarget[]): string[] {
+  const out = new Set<string>();
+  for (const t of targets) {
+    const n = normalizeFeedNetwork(t.network);
+    if (n) out.add(n);
+  }
+  for (const part of channel.split(/[,;]/)) {
+    const n = normalizeFeedNetwork(part);
+    if (n) out.add(n);
+  }
+  return [...out];
+}
+
+export function evaluateMediaScheduleBlockers(input: {
+  channel: string;
+  targets: ReadinessTarget[];
+  contentType: string;
+  media: MediaAssetInfo[];
+}): ScheduleBlocker[] {
+  const networks = publishNetworksForReadiness(input.channel, input.targets);
+  if (!networks.length) return [];
+  const blockers: ScheduleBlocker[] = [];
+  for (const network of networks) {
+    const issues = validateMediaForNetwork(network, input.media, {
+      contentType: input.contentType,
+    });
+    for (const issue of issues) {
+      if (issue.severity !== 'error') continue;
+      blockers.push({
+        code: issue.code === 'media_missing' ? 'MEDIA_REQUIRED' : 'MEDIA_POLICY',
+        network,
+        issue_code: issue.code,
+      });
+    }
+  }
+  return blockers;
+}
+
+export function mergeScheduleReadiness(
+  base: ScheduleReadiness,
+  extra: ScheduleBlocker[],
+): ScheduleReadiness {
+  if (!extra.length) return base;
+  const blockers = [...base.blockers, ...extra];
+  return { ready: base.ready && extra.length === 0, blockers };
 }
 
 export function evaluateScheduleReadiness(input: ScheduleReadinessInput): ScheduleReadiness {

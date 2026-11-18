@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   accountBlockers,
   calendarPlacement,
+  evaluateMediaScheduleBlockers,
   evaluateScheduleReadiness,
   postScheduleBlockers,
   scheduleRequiresConnectedAccount,
@@ -15,6 +16,28 @@ const base = (over: Partial<ScheduleReadinessInput> = {}): ScheduleReadinessInpu
   targets: [{ socialPageId: 'p1', network: 'INSTAGRAM', status: 'CONNECTED' }],
   requireConnectedAccount: true,
   ...over,
+});
+
+describe('evaluateMediaScheduleBlockers', () => {
+  it('requires media for Instagram feed posts', () => {
+    const blockers = evaluateMediaScheduleBlockers({
+      channel: 'instagram',
+      targets: [{ socialPageId: 'p1', network: 'INSTAGRAM', status: 'CONNECTED' }],
+      contentType: 'POST',
+      media: [],
+    });
+    expect(blockers.map((b) => b.code)).toContain('MEDIA_REQUIRED');
+  });
+
+  it('passes when a photo is attached', () => {
+    const blockers = evaluateMediaScheduleBlockers({
+      channel: 'instagram',
+      targets: [{ socialPageId: 'p1', network: 'INSTAGRAM', status: 'CONNECTED' }],
+      contentType: 'POST',
+      media: [{ mime: 'image/jpeg', sizeBytes: 1000 }],
+    });
+    expect(blockers).toEqual([]);
+  });
 });
 
 describe('evaluateScheduleReadiness', () => {

@@ -18,7 +18,7 @@
 
 ## Lifecycle (verified target)
 
-`Request → convert-to-task → Task → convert-to-deliverable → review → Content approve → schedule`
+`Request → convert-to-task → Task → convert-to-deliverable → review → deliverable approve materializes draft ContentItem → user Content approve → schedule`
 
 E2E: `tests/e2e/production-ops-surfaces.e2e.ts`, `tests/e2e/stage4-requests-tasks.e2e.ts`, `tests/e2e/w1-content-workflow.e2e.ts`.
 

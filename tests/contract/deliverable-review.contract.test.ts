@@ -108,6 +108,13 @@ describe('deliverable review production lock', () => {
     ).find((v) => v.id === detail.body.data.approved_version_id);
     expect(pinned?.status).toBe('APPROVED');
     expect(pinned?.immutable).toBe(true);
+
+    expect(detail.body.data.content_id).toBeTruthy();
+    const content = await api(`/api/v1/content/${detail.body.data.content_id}`);
+    expect(content.res.status).toBe(200);
+    expect(content.body.data.approval_state).toBe('NOT_REQUESTED');
+    expect(content.body.data.schedule_state).toBe('UNSCHEDULED');
+    expect(content.body.data.status).toBe('DRAFT');
   });
 
   it('rejects a second approve and a version on an approved deliverable', async () => {

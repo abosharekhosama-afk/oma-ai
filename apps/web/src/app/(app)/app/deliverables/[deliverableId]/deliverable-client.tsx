@@ -466,10 +466,14 @@ export default function DeliverableDetailClient() {
       }
       // Reload the full detail so versions, approved pin, comments stay in sync.
       const payload = await getDeliverableDetail(row.id);
-      setRow(toDeliverableRowFromDetail(payload));
+      const next = toDeliverableRowFromDetail(payload);
+      setRow(next);
       setDecisionOpen(null);
       setDecisionReason('');
       toast.push(t('demo.review.decisionSaved'), 'success');
+      if (decisionOpen === 'APPROVED' && next.contentId) {
+        toast.push(t('demo.deliverable.handoffReady'), 'default');
+      }
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {

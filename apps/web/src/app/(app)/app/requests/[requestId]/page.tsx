@@ -31,6 +31,11 @@ import {
 } from '../../../../../lib/content-api';
 import { formatCommentTime } from '../../../../../lib/calendar-today';
 import {
+  ChannelChoiceCards,
+  channelsArrayToPickerValue,
+  pickerValueToChannels,
+} from '../../../../../components/content/channel-choice-cards';
+import {
   allowedNextStatuses,
   canConvertRequest,
   canTransitionApiRequestStatus,
@@ -639,27 +644,22 @@ export default function RequestDetailPage() {
                         testId="demo-brief-deliverable"
                         onChange={(v) => patchBriefCopy('deliverableType', v)}
                       />
-                      <label className="oma-brief-field">
+                      <div className="oma-brief-field oma-brief-field--channels">
                         <span className="oma-brief-field__label">{t('demo.brief.channels')}</span>
-                        <Input
-                          data-testid="demo-brief-channels"
-                          value={safeCopy(briefDraft.channels, locale)}
-                          onChange={(e) => {
+                        <ChannelChoiceCards
+                          brandId={row?.brandId}
+                          value={channelsArrayToPickerValue(briefDraft?.channels)}
+                          multiple
+                          locale={locale}
+                          testId="demo-brief-channels"
+                          onChange={(v) => {
                             setBriefDraft((b) =>
-                              b
-                                ? {
-                                    ...b,
-                                    channels: e.target.value
-                                      .split(',')
-                                      .map((c) => c.trim())
-                                      .filter(Boolean),
-                                  }
-                                : b,
+                              b ? { ...b, channels: pickerValueToChannels(v) } : b,
                             );
                             setDirty(true);
                           }}
                         />
-                      </label>
+                      </div>
                     </div>
                     <div className="oma-brief-col">
                       <label className="oma-brief-field">

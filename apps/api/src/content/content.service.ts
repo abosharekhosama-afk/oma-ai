@@ -19,6 +19,8 @@ import {
   policyToApprovalMode,
   workspaceModeToPolicy,
   evaluateScheduleReadiness,
+  evaluateMediaScheduleBlockers,
+  mergeScheduleReadiness,
   scheduleRequiresConnectedAccount,
   calendarPlacement,
   aiReviewRequired,
@@ -251,7 +253,7 @@ function mapContent(
     policy,
   );
   const targets = readinessTargetsFromRow(row);
-  const readiness = targets
+  const baseReadiness = targets
     ? evaluateScheduleReadiness({
         workflow: workflowSource(row),
         policy,
@@ -260,6 +262,23 @@ function mapContent(
         requireConnectedAccount: scheduleRequiresConnectedAccount(),
         ai: aiInput(row),
       })
+    : null;
+  const hasMedia =
+    Boolean(row.previewAssetId) ||
+    Boolean(row.previewAssetUrl) ||
+    ((row as { mediaAssetIds?: string[] }).mediaAssetIds?.length ?? 0) > 0;
+  const readiness = baseReadiness
+    ? mergeScheduleReadiness(
+        baseReadiness,
+        hasMedia
+          ? []
+          : evaluateMediaScheduleBlockers({
+              channel: row.channel,
+              targets: targets ?? [],
+              contentType: String(row.contentType),
+              media: [],
+            }),
+      )
     : null;
   const calendar = calendarPlacement({
     status: row.status,
@@ -1750,6 +1769,35 @@ export class ContentService {
    * Readiness for a loaded row. Loads the legacy single `socialPageId` account when the
    * post has no publish-target rows, so the check never trusts an unloaded relation.
    */
+  private async mediaAssetsForContent(
+    tenantId: string,
+    brandId: string,
+    row: {
+      previewAssetId: string | null;
+      previewAssetUrl: string | null;
+      mediaAssetIds?: string[];
+      contentType: string;
+    },
+  ) {
+    const ids = [
+      ...(row.mediaAssetIds ?? []),
+      ...(row.previewAssetId && !(row.mediaAssetIds ?? []).includes(row.previewAssetId)
+        ? [row.previewAssetId]
+        : []),
+    ].filter(Boolean);
+    if (!ids.length) {
+      return row.previewAssetUrl ? [{ mime: 'image/jpeg' as const }] : [];
+    }
+    const assets = await getPrisma().mediaAsset.findMany({
+      where: tenantWhere(tenantId, { id: { in: ids }, brandId }),
+      select: { mime: true, size: true },
+    });
+    return assets.map((a) => ({
+      mime: a.mime,
+      sizeBytes: Number(a.size),
+    }));
+  }
+
   private async readinessFor(
     row: Parameters<typeof workflowSource>[0] & {
       tenantId: string;
@@ -1759,6 +1807,10 @@ export class ContentService {
       publishTargets: TargetRowLike[];
       aiAssisted?: boolean;
       aiReviewedAt?: Date | null;
+      previewAssetId: string | null;
+      previewAssetUrl: string | null;
+      mediaAssetIds?: string[];
+      contentType: string;
     },
     policy: ApprovalPolicy,
   ): Promise<ScheduleReadiness> {
@@ -1776,7 +1828,7 @@ export class ContentService {
           ? [{ socialPageId: row.socialPageId, network: '', status: 'DISCONNECTED' }]
           : [];
     }
-    return evaluateScheduleReadiness({
+    const base = evaluateScheduleReadiness({
       workflow: workflowSource(row),
       policy,
       channel: row.channel,
@@ -1784,6 +1836,16 @@ export class ContentService {
       requireConnectedAccount: scheduleRequiresConnectedAccount(),
       ai: aiInput(row),
     });
+    const media = await this.mediaAssetsForContent(row.tenantId, row.brandId, row);
+    return mergeScheduleReadiness(
+      base,
+      evaluateMediaScheduleBlockers({
+        channel: row.channel,
+        targets,
+        contentType: String(row.contentType),
+        media,
+      }),
+    );
   }
 
   /** GET /content/:id/schedule-readiness: every blocker, so the UI can show a checklist. */

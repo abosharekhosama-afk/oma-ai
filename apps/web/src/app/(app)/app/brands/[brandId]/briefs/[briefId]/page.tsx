@@ -31,6 +31,11 @@ import {
   type BriefDetail,
 } from '../../../../../../../lib/brief-api';
 import { useLocale, useT } from '../../../../../../../lib/use-locale';
+import {
+  ChannelChoiceCards,
+  channelsArrayToPickerValue,
+  pickerValueToChannels,
+} from '../../../../../../../components/content/channel-choice-cards';
 
 type TextField = Exclude<
   keyof BriefContent,
@@ -186,22 +191,22 @@ export default function BriefDetailPage() {
               </label>
             </div>
           ))}
-          <label>
-            {t('briefs.field.channels')}
-            <Input
-              value={content.channels.join(', ')}
-              disabled={!editable}
-              onChange={(e) =>
+          <fieldset className="oma-brief-channels-field" disabled={!editable}>
+            <span className="oma-compose__label">{t('briefs.field.channels')}</span>
+            <ChannelChoiceCards
+              brandId={brandId}
+              value={channelsArrayToPickerValue(content.channels)}
+              multiple
+              locale={locale}
+              testId="brief-channels-cards"
+              onChange={(v) =>
                 setContent({
                   ...content,
-                  channels: e.target.value
-                    .split(',')
-                    .map((s) => s.trim())
-                    .filter(Boolean),
+                  channels: pickerValueToChannels(v),
                 })
               }
             />
-          </label>
+          </fieldset>
 
           <h3>{t('briefs.field.deliverables')}</h3>
           {content.deliverables.map((d, i) => {

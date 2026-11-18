@@ -103,6 +103,7 @@ export type ApiScheduleBlocker = {
   social_page_id?: string;
   network?: string;
   account_status?: string;
+  issue_code?: string;
 };
 
 export type ApiScheduleReadiness = { ready: boolean; blockers: ApiScheduleBlocker[] };

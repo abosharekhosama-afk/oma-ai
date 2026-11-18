@@ -112,6 +112,14 @@ describe('strategy plan → work requests', () => {
     expect(rows.every((r) => r.briefObjectiveEn.length > 0)).toBe(true);
     expect(rows.every((r) => r.planSourceKey)).toBe(true);
     expect(rows.every((r) => r.dueAt)).toBe(true);
+    expect(rows.every((r) => r.contentId)).toBe(true);
+
+    const contents = await getPrisma().contentItem.findMany({
+      where: { tenantId: seed.tenantId, id: { in: rows.map((r) => r.contentId!).filter(Boolean) } },
+    });
+    expect(contents.length).toBe(rows.length);
+    expect(contents.every((c) => c.approvalState === 'NOT_REQUESTED')).toBe(true);
+    expect(contents.every((c) => c.status === 'DRAFT')).toBe(true);
 
     const convertRes = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/convert-tasks`,
