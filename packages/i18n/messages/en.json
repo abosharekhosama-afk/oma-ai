@@ -648,6 +648,7 @@
   "brand.discovery.selectAll": "Select all on this page",
   "brand.discovery.mergeSelectedCount": "{count} selected",
   "brand.discovery.openProfile": "Open profile",
+  "brand.discovery.openProfilesList": "Open brand profiles",
   "brand.discovery.profileCatalogHint": "Need more products or services? Pick them from discovery and merge into this profile.",
   "brand.discovery.catalogBulkAccept": "Accept all pending catalog insights",
   "brand.discovery.catalogBulkAcceptHint": "Catalog fields from scan or merge still need your confirmation.",

@@ -224,6 +224,10 @@ export class BrandService {
       where: tenantWhere(tenantId, { brandId }),
       orderBy: { createdAt: 'desc' },
     });
+    const latestProfile = await getPrisma().profileVersion.findFirst({
+      where: tenantWhere(tenantId, { brandId }),
+      orderBy: { createdAt: 'desc' },
+    });
     return {
       data: {
         id: brand.id,
@@ -232,6 +236,8 @@ export class BrandService {
         version: brand.version,
         current_approved_profile_version_id: brand.currentApprovedProfileVersionId,
         current_approved_strategy_id: brand.currentApprovedStrategyId,
+        latest_profile_status: latestProfile?.status ?? null,
+        latest_profile_version_id: latestProfile?.id ?? null,
         website: source
           ? {
               website_source_id: source.id,

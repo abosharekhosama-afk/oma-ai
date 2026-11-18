@@ -188,7 +188,14 @@ export function StrategyAiAssistant({
       )}
 
       {message ? (
-        <div role="status" className="oma-stack">
+        <div
+          role="status"
+          className={`oma-stack${
+            message === 'strategy.ai.usedProfile' || message === 'strategy.ai.accepted'
+              ? ' oma-banner oma-banner-info'
+              : ''
+          }`}
+        >
           <p>{message.startsWith('strategy.') ? t(message) : message}</p>
           {message === 'strategy.ai.accepted' ? (
             <div className="oma-banner oma-banner-info" data-testid="strategy-ai-next-steps">

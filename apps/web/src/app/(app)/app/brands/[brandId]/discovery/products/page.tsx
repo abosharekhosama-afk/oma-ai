@@ -123,14 +123,12 @@ export default function DiscoveryProductsPage() {
           return;
         }
         setScanId(latest);
-        const profilePromise =
-          brandRes.data.latest_profile_version_id &&
-          brandRes.data.latest_profile_status &&
-          brandRes.data.latest_profile_status !== 'APPROVED'
-            ? api<{ data: ProfileDetail }>(
-                `/api/v1/brands/${brandId}/profiles/${brandRes.data.latest_profile_version_id}`,
-              )
-            : Promise.resolve(null);
+        const profileId = brandRes.data.latest_profile_version_id;
+        const profileStatus = brandRes.data.latest_profile_status;
+        const profileEditable = profileId && profileStatus && profileStatus !== 'APPROVED';
+        const profilePromise = profileEditable
+          ? api<{ data: ProfileDetail }>(`/api/v1/brands/${brandId}/profiles/${profileId}`)
+          : Promise.resolve(null);
         const [scanRes, productsRes, evidenceRes, pagesRes, profileRes] = await Promise.all([
           api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${latest}`),
           fetchAllProducts(brandId, latest),
@@ -335,14 +333,22 @@ export default function DiscoveryProductsPage() {
 
           <DiscoveryCatalogMergeBar
             brandId={brandId}
-            scanId={scanId}
+            scanId={scanId ?? ''}
             products={products}
             profile={profile}
+            latestProfileStatus={brand.latest_profile_status}
             onMerged={() => {
               void (async () => {
-                if (!brand.latest_profile_version_id) return;
+                const brandRes = await api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`);
+                setBrand(brandRes.data);
+                const id = brandRes.data.latest_profile_version_id;
+                const status = brandRes.data.latest_profile_status;
+                if (!id || !status || status === 'APPROVED') {
+                  setProfile(null);
+                  return;
+                }
                 const res = await api<{ data: ProfileDetail }>(
-                  `/api/v1/brands/${brandId}/profiles/${brand.latest_profile_version_id}`,
+                  `/api/v1/brands/${brandId}/profiles/${id}`,
                 );
                 setProfile(res.data);
               })();
