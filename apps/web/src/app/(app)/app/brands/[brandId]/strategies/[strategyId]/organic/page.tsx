@@ -19,7 +19,12 @@ import { StrategySubnav } from '../../../../../../../../components/strategy/stra
 import { TrackTabs } from '../../../../../../../../components/strategy/track-tabs';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
-import { useT } from '../../../../../../../../lib/use-locale';
+import { useLocale, useT } from '../../../../../../../../lib/use-locale';
+import {
+  ChannelChoiceCards,
+  pickerValueToTrackListText,
+  trackListTextToPickerValue,
+} from '../../../../../../../../components/content/channel-choice-cards';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyPlanEditor } from '../../../../../../../../components/strategy/strategy-plan-editor';
 import {
@@ -41,6 +46,7 @@ async function loadLatestVersion(brandId: string, strategyId: string) {
 
 export default function StrategyOrganicPage() {
   const t = useT();
+  const locale = useLocale();
   const params = useParams<{ brandId: string; strategyId: string }>();
   const { brandId, strategyId } = params;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
@@ -167,17 +173,19 @@ export default function StrategyOrganicPage() {
                 placeholder={t('strategy.organic.listPlaceholder')}
               />
             </label>
-            <label className="oma-field-span">
-              {t('strategy.organic.channels')}
-              <TextArea
-                value={channels}
-                onChange={(e) => setChannels(e.target.value)}
-                disabled={!editable}
-                rows={3}
-                data-testid="organic-channels"
-                placeholder={t('strategy.organic.listPlaceholder')}
-              />
-            </label>
+            <div className="oma-field-span">
+              <span className="oma-compose__label">{t('strategy.organic.channels')}</span>
+              <fieldset disabled={!editable}>
+                <ChannelChoiceCards
+                  brandId={brandId}
+                  value={trackListTextToPickerValue(channels)}
+                  multiple
+                  locale={locale}
+                  testId="organic-channels"
+                  onChange={(v) => setChannels(pickerValueToTrackListText(v))}
+                />
+              </fieldset>
+            </div>
             <label className="oma-field-span">
               {t('strategy.organic.formats')}
               <TextArea

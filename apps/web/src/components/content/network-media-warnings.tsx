@@ -38,7 +38,7 @@ export function NetworkMediaWarnings(props: {
 }) {
   const isAr = props.locale.toLowerCase().startsWith('ar');
   const networks = resolveNetworks(props.channel, props.pageNetworks);
-  if (!networks.length || !props.media.length) return null;
+  if (!networks.length) return null;
 
   const assets: MediaAssetInfo[] = props.media.map((m) => ({
     mime: m.mime,
@@ -52,7 +52,7 @@ export function NetworkMediaWarnings(props: {
     const issues = validateMediaForNetwork(network, assets, { contentType: props.contentType });
     const c = NETWORK_MEDIA_CONSTRAINTS[network];
     const lines = issues.map((i) => (isAr ? i.message.ar : i.message.en));
-    if (lines.length || (c && (network === 'tiktok' || network === 'instagram'))) {
+    if (lines.length || c) {
       blocks.push({
         network,
         notes: isAr ? c.notes.ar : c.notes.en,

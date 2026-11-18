@@ -19,6 +19,34 @@ const LABELS: Record<SocialNetwork, { en: string; ar: string }> = {
   x: { en: 'X', ar: 'إكس' },
   whatsapp: { en: 'WhatsApp', ar: 'واتساب' },
 };
+export function channelsArrayToPickerValue(channels: string[] | null | undefined): string {
+  return (channels ?? [])
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
+export function pickerValueToChannels(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Multiline strategy organic list ↔ picker value. */
+export function trackListTextToPickerValue(text: string): string {
+  return channelsArrayToPickerValue(
+    text
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean),
+  );
+}
+
+export function pickerValueToTrackListText(value: string): string {
+  return pickerValueToChannels(value).join('\n');
+}
+
 const CHANNEL_VALUES: Record<SocialNetwork, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',

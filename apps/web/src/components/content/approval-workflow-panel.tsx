@@ -116,6 +116,9 @@ export function ApprovalWorkflowPanel({
 
   const blockers = row.scheduleReadiness?.blockers ?? [];
   const codes = new Set(blockers.map((b) => b.code));
+  const mediaBlocker = blockers.find(
+    (b) => b.code === 'MEDIA_REQUIRED' || b.code === 'MEDIA_POLICY',
+  );
   const checks: Array<{ key: string; label: string; state: CheckState; hint?: string }> = [
     {
       key: 'approval',
@@ -137,6 +140,18 @@ export function ApprovalWorkflowPanel({
           ? t('approvalFlow.check.account_disconnected')
           : codes.has('CHANNEL_NOT_CONNECTED')
             ? t('approvalFlow.check.channel_not_connected')
+            : undefined,
+    },
+    {
+      key: 'media',
+      label: t('approvalFlow.check.media'),
+      state: codes.has('MEDIA_REQUIRED') || codes.has('MEDIA_POLICY') ? 'blocked' : 'ok',
+      hint: codes.has('MEDIA_REQUIRED')
+        ? t('approvalFlow.check.media_required')
+        : codes.has('MEDIA_POLICY')
+          ? t('approvalFlow.check.media_policy')
+          : mediaBlocker?.network
+            ? `${mediaBlocker.network}: ${mediaBlocker.issue_code ?? ''}`.trim()
             : undefined,
     },
   ];

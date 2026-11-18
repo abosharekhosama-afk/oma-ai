@@ -1,4 +1,4 @@
-import { FALLBACK_SCHEDULE_TZ } from '@oma/domain/browser';
+import { FALLBACK_SCHEDULE_TZ, validateMediaForNetwork } from '@oma/domain/browser';
 import { resolveContentWorkflow, type ApprovalPolicy } from '@oma/demo';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ScheduleRow } from './demo/stage6-schedule';
@@ -50,6 +50,19 @@ export function contentToScheduleRow(
     (opts?.timezone && opts.timezone.trim()) ||
     FALLBACK_SCHEDULE_TZ;
 
+  const preview = (item as { previewAsset?: string }).previewAsset ?? publishing.previewAssetUrl;
+  const hasMedia =
+    Boolean(preview) ||
+    Boolean(publishing.mediaAssetIds?.length) ||
+    Boolean(publishing.previewAssetId);
+  const previewMime = (publishing as { previewMime?: string | null }).previewMime ?? 'image/jpeg';
+  const mediaAssets = hasMedia ? [{ mime: previewMime }] : [];
+  const mediaErrors = item.channel
+    ? validateMediaForNetwork(item.channel, mediaAssets, { contentType: item.contentType }).filter(
+        (i) => i.severity === 'error',
+      )
+    : [];
+
   return {
     id: item.id,
     contentId: item.id,
@@ -78,6 +91,14 @@ export function contentToScheduleRow(
         check: { en: 'Channel selected', ar: 'تم اختيار القناة' },
         ok: Boolean(item.channel),
         kind: 'channel',
+      },
+      {
+        check: {
+          en: mediaErrors[0]?.message.en ?? 'Media meets publishing rules for the selected channel',
+          ar: mediaErrors[0]?.message.ar ?? 'الوسائط تلبي قواعد النشر للقناة المحددة',
+        },
+        ok: mediaErrors.length === 0,
+        kind: 'content',
       },
       {
         check: { en: 'Publishing account connected', ar: 'حساب النشر متصل' },
