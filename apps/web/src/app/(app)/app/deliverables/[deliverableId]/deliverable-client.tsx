@@ -472,7 +472,7 @@ export default function DeliverableDetailClient() {
       setDecisionReason('');
       toast.push(t('demo.review.decisionSaved'), 'success');
       if (decisionOpen === 'APPROVED' && next.contentId) {
-        toast.push(t('demo.deliverable.handoffReady'), 'info');
+        toast.push(t('demo.deliverable.handoffReady'), 'default');
       }
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
