@@ -50,11 +50,13 @@ export function contentToScheduleRow(
     (opts?.timezone && opts.timezone.trim()) ||
     FALLBACK_SCHEDULE_TZ;
 
-  const preview = (item as { previewAsset?: string }).previewAsset ?? publishing.previewAssetUrl;
+  const preview =
+    (item as { previewAsset?: string }).previewAsset ??
+    (publishing as { previewAsset?: string }).previewAsset;
   const hasMedia =
     Boolean(preview) ||
     Boolean(publishing.mediaAssetIds?.length) ||
-    Boolean(publishing.previewAssetId);
+    Boolean((publishing as { preview_asset_id?: string | null }).preview_asset_id);
   const previewMime = (publishing as { previewMime?: string | null }).previewMime ?? 'image/jpeg';
   const mediaAssets = hasMedia ? [{ mime: previewMime }] : [];
   const mediaErrors = item.channel
