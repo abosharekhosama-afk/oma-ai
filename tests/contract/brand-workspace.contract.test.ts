@@ -35,6 +35,10 @@ describe('brand workspace contract', () => {
     const body = await res.json();
     expect(body.data.id).toBe(created.data.id);
     expect(body.data.version).toBeTypeOf('number');
+    expect(body.data).toMatchObject({
+      latest_profile_version_id: null,
+      latest_profile_status: null,
+    });
   });
 
   it('PATCH /brands/:id updates name with version', async () => {

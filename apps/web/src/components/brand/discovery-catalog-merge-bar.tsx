@@ -16,12 +16,15 @@ export function DiscoveryCatalogMergeBar({
   scanId,
   products,
   profile,
+  latestProfileStatus,
   onMerged,
 }: {
   brandId: string;
   scanId: string;
   products: DiscoveredProduct[];
   profile: ProfileDetail | null;
+  /** When profile is not loaded (e.g. APPROVED), still show the correct blocker message. */
+  latestProfileStatus?: string | null;
   onMerged: () => void;
 }) {
   const t = useT();
@@ -82,8 +85,11 @@ export function DiscoveryCatalogMergeBar({
     }
   }
 
+  const profileLocked =
+    !editableProfile && (latestProfileStatus === 'APPROVED' || profile?.status === 'APPROVED');
+
   return (
-    <details className="oma-discovery-merge" data-testid="discovery-catalog-merge">
+    <details className="oma-discovery-merge" open data-testid="discovery-catalog-merge">
       <summary className="oma-discovery-merge__summary">
         <strong>{t('brand.discovery.mergeTitle')}</strong>
         {editableProfile ? <span className="oma-muted">{selectionLabel}</span> : null}
@@ -91,8 +97,20 @@ export function DiscoveryCatalogMergeBar({
       <div className="oma-discovery-merge__body">
         <p className="oma-muted">{t('brand.discovery.mergeHint')}</p>
 
-        {!profile ? (
-          <p role="status">{t('brand.discovery.mergeNoProfile')}</p>
+        {profileLocked ? (
+          <div className="oma-stack" role="status">
+            <p>{t('brand.discovery.mergeProfileLocked')}</p>
+            <Link href={`/app/brands/${brandId}/profiles`} className="oma-text-link">
+              {t('brand.discovery.openProfilesList')}
+            </Link>
+          </div>
+        ) : !profile ? (
+          <div className="oma-stack" role="status">
+            <p>{t('brand.discovery.mergeNoProfile')}</p>
+            <Link href={`/app/brands/${brandId}/profiles`} className="oma-text-link">
+              {t('brand.discovery.openProfilesList')}
+            </Link>
+          </div>
         ) : !editableProfile ? (
           <p role="status">{t('brand.discovery.mergeProfileLocked')}</p>
         ) : (
