@@ -22,9 +22,10 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
     const blocked = await api.act(post.id, 'schedule', { scheduledAt: inDays(2) });
     expect(blocked.status).toBe(409);
     expect(blocked.body.error?.code).toBe('SCHEDULE_BLOCKED');
-    expect(blocked.body.error?.details[0]).toMatchObject({
-      blockers: [{ code: 'NO_CONNECTED_ACCOUNT' }],
-    });
+    const scheduleBlockers = blocked.body.error?.details[0]?.blockers as Array<{ code: string }>;
+    expect(scheduleBlockers.map((b) => b.code)).toEqual(
+      expect.arrayContaining(['NO_CONNECTED_ACCOUNT']),
+    );
 
     const facebook = await seedSocialPage(seed, brandId, { network: 'FACEBOOK' });
     await api.targets(post.id, [facebook]);
@@ -37,6 +38,7 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
 
     const instagram = await seedSocialPage(seed, brandId, { network: 'INSTAGRAM' });
     await api.targets(post.id, [facebook, instagram]);
+    expect((await api.attachTestMedia(brandId, post.id)).status).toBe(200);
     expect((await api.readiness(post.id)).body.data.ready).toBe(true);
 
     const ok = await api.act(post.id, 'schedule', { scheduledAt: inDays(2) });
@@ -53,6 +55,7 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
     const page = await seedSocialPage(seed, brandId);
     const post = (await api.create(brandId)).body.data;
     await api.targets(post.id, [page]);
+    expect((await api.attachTestMedia(brandId, post.id)).status).toBe(200);
     expect((await api.act(post.id, 'schedule', { scheduledAt: inDays(1) })).status).toBe(201);
 
     await getPrisma().socialPage.update({ where: { id: page }, data: { status: 'NEEDS_REAUTH' } });
@@ -96,6 +99,7 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
     expect(post.schedule_state).toBe('UNSCHEDULED');
 
     await api.targets(post.id, [page]);
+    expect((await api.attachTestMedia(brandId, post.id)).status).toBe(200);
     const scheduledAt = inDays(5);
     const scheduled = (await api.act(post.id, 'schedule', { scheduledAt })).body.data;
     expect(scheduled.planned_at).toBe(planned);
@@ -120,6 +124,7 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
 
     const bare = (await api.create(brandId)).body.data;
     await api.targets(bare.id, [page]);
+    expect((await api.attachTestMedia(brandId, bare.id)).status).toBe(200);
     const at = inDays(6);
     await api.act(bare.id, 'schedule', { scheduledAt: at });
     const back = (await api.act(bare.id, 'unschedule')).body.data;
@@ -139,8 +144,10 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
     expect(approved.body.auto_schedule).toMatchObject({
       attempted: true,
       scheduled: false,
-      blockers: [{ code: 'NO_CONNECTED_ACCOUNT' }],
     });
+    expect(approved.body.auto_schedule?.blockers.map((b) => b.code)).toEqual(
+      expect.arrayContaining(['NO_CONNECTED_ACCOUNT']),
+    );
     const row = await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post.id } });
     expect(row.lastPublishSkipReason).toBe('Auto-schedule blocked: NO_CONNECTED_ACCOUNT');
   });

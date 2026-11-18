@@ -64,7 +64,46 @@ export function contentApi(seed: BrandSeed, headers?: Record<string, string>) {
       call('POST', `/content/${id}/publish-target`, { socialPageIds }),
     list: (brandId: string, query = '') =>
       call<ContentRow[]>('GET', `/brands/${brandId}/content${query}`),
+    attachTestMedia: async (brandId: string, contentId: string) => {
+      const assetId = newId();
+      await getPrisma().mediaAsset.create({
+        data: {
+          id: assetId,
+          tenantId: seed.tenantId,
+          brandId,
+          kind: 'IMAGE',
+          workdriveFileId: `wd-test-${assetId.slice(-8)}`,
+          name: 'post-test.jpg',
+          mime: 'image/jpeg',
+          size: BigInt(2048),
+          createdBy: seed.userId,
+        },
+      });
+      return call('PATCH', `/content/${contentId}`, { media_asset_ids: [assetId] });
+    },
   };
+}
+
+/** JPEG asset valid for Instagram/Facebook schedule-readiness checks in integration tests. */
+export async function seedContentImageAsset(
+  seed: BrandSeed,
+  brandId: string,
+): Promise<string> {
+  const assetId = newId();
+  await getPrisma().mediaAsset.create({
+    data: {
+      id: assetId,
+      tenantId: seed.tenantId,
+      brandId,
+      kind: 'IMAGE',
+      workdriveFileId: `wd-test-${assetId.slice(-8)}`,
+      name: 'post-test.jpg',
+      mime: 'image/jpeg',
+      size: BigInt(2048),
+      createdBy: seed.userId,
+    },
+  });
+  return assetId;
 }
 
 export async function seedSocialPage(

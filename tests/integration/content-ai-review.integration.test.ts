@@ -59,13 +59,18 @@ describe('AI-assisted content needs a human review before scheduling (DEC-024)',
     const post = created.body.data as typeof created.body.data & AiView;
     expect(post.ai).toMatchObject({ assisted: true, run_ids: [run], review_required: true });
     await api.targets(post.id, [page]);
+    expect((await api.attachTestMedia(brandId, post.id)).status).toBe(200);
 
     const blocked = await api.act(post.id, 'schedule', { scheduledAt: inDays(1) });
     expect(blocked.status).toBe(409);
-    expect(blocked.body.error?.details[0]).toMatchObject({
-      policy: 'NONE',
-      blockers: [{ code: 'AI_REVIEW_REQUIRED' }],
-    });
+    const detail = blocked.body.error?.details[0] as {
+      policy?: string;
+      blockers: Array<{ code: string }>;
+    };
+    expect(detail).toMatchObject({ policy: 'NONE' });
+    expect(detail.blockers.map((b) => b.code)).toEqual(
+      expect.arrayContaining(['AI_REVIEW_REQUIRED']),
+    );
 
     const reviewed = await api.act(post.id, 'ai-review', { note: 'Checked claims' });
     expect(reviewed.status).toBe(201);

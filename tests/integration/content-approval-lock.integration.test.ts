@@ -28,6 +28,7 @@ describe('approval lock covers every publishable mutation path (DEC-025)', () =>
     }
     const post = (await api.create(brandId)).body.data;
     expect((await api.targets(post.id, pages)).status).toBe(201);
+    expect((await api.attachTestMedia(brandId, post.id)).status).toBe(200);
     expect((await api.act(post.id, 'request-approval')).status).toBe(201);
     const approved = await api.act(post.id, 'approve');
     expect(approved.body.data.approval_state).toBe('APPROVED');
