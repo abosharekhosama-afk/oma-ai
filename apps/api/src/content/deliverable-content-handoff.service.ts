@@ -21,7 +21,11 @@ type HandoffContext = {
   correlationId?: string;
 };
 
-async function loadHandoffContext(tenantId: string, deliverableId: string, approvedVersionId: string) {
+async function loadHandoffContext(
+  tenantId: string,
+  deliverableId: string,
+  approvedVersionId: string,
+) {
   const deliverable = await getPrisma().workDeliverable.findFirst({
     where: tenantWhere(tenantId, { id: deliverableId }),
   });
@@ -121,8 +125,7 @@ export async function handoffApprovedDeliverableToContent(
 
   await billingService.assertWriteAccess(ctx.tenantId);
 
-  const existingContentId =
-    deliverable.contentId ?? task?.contentId ?? request?.contentId ?? null;
+  const existingContentId = deliverable.contentId ?? task?.contentId ?? request?.contentId ?? null;
   const media = await resolvePostMedia(ctx.tenantId, deliverable.brandId, version, deliverable);
   const channel = deliverableHandoffChannel(request?.channels);
   const contentType: ContentType = deliverableHandoffContentType(request?.formats);
@@ -136,10 +139,7 @@ export async function handoffApprovedDeliverableToContent(
   }
 
   const captionEn =
-    request?.briefKeyMessageEn?.trim() ||
-    task?.descriptionEn?.trim() ||
-    deliverable.titleEn ||
-    '';
+    request?.briefKeyMessageEn?.trim() || task?.descriptionEn?.trim() || deliverable.titleEn || '';
   const captionAr =
     request?.briefKeyMessageAr?.trim() ||
     task?.descriptionAr?.trim() ||

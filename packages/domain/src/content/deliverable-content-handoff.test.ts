@@ -10,9 +10,9 @@ describe('deliverable-content-handoff', () => {
   it('hands off CONTENT requests and channel-backed design work', () => {
     expect(shouldHandoffDeliverableToContent({ requestType: 'CONTENT' })).toBe(true);
     expect(shouldHandoffDeliverableToContent({ requestType: 'REVIEW' })).toBe(false);
-    expect(
-      shouldHandoffDeliverableToContent({ requestType: 'DESIGN', channels: ['tiktok'] }),
-    ).toBe(true);
+    expect(shouldHandoffDeliverableToContent({ requestType: 'DESIGN', channels: ['tiktok'] })).toBe(
+      true,
+    );
     expect(shouldHandoffDeliverableToContent({ requestType: 'DESIGN', channels: [] })).toBe(false);
   });
 

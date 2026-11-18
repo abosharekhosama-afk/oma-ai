@@ -988,12 +988,16 @@ export class OpsService {
       correlationId,
     });
     if (normalized === 'approve' && pinned.approvedVersionId) {
-      await handoffApprovedDeliverableToContent(this.audit, {
-        tenantId,
-        actorUserId,
-        deliverableId,
-        correlationId,
-      }, pinned.approvedVersionId);
+      await handoffApprovedDeliverableToContent(
+        this.audit,
+        {
+          tenantId,
+          actorUserId,
+          deliverableId,
+          correlationId,
+        },
+        pinned.approvedVersionId,
+      );
     }
     const fresh = await getPrisma().workDeliverable.findFirst({
       where: tenantWhere(tenantId, { id: deliverableId }),
