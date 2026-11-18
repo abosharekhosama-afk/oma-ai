@@ -18,6 +18,7 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
   it('blocks scheduling without a connected account for the channel, then allows it', async () => {
     const { seed, brandId, api } = await setup();
     const post = (await api.create(brandId)).body.data;
+    expect((await api.attachTestMedia(brandId, post.id)).status).toBe(200);
 
     const blocked = await api.act(post.id, 'schedule', { scheduledAt: inDays(2) });
     expect(blocked.status).toBe(409);

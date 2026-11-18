@@ -71,7 +71,7 @@ export function contentApi(seed: BrandSeed, headers?: Record<string, string>) {
           id: assetId,
           tenantId: seed.tenantId,
           brandId,
-          kind: 'IMAGE',
+          kind: 'posts',
           workdriveFileId: `wd-test-${assetId.slice(-8)}`,
           name: 'post-test.jpg',
           mime: 'image/jpeg',
