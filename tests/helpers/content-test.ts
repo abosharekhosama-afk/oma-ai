@@ -85,10 +85,7 @@ export function contentApi(seed: BrandSeed, headers?: Record<string, string>) {
 }
 
 /** JPEG asset valid for Instagram/Facebook schedule-readiness checks in integration tests. */
-export async function seedContentImageAsset(
-  seed: BrandSeed,
-  brandId: string,
-): Promise<string> {
+export async function seedContentImageAsset(seed: BrandSeed, brandId: string): Promise<string> {
   const assetId = newId();
   await getPrisma().mediaAsset.create({
     data: {
