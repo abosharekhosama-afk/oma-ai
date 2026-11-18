@@ -193,7 +193,7 @@ export function startIngestionProcessor(
           !(await advanceScanIfActive(prisma, scan.id, {
             status: 'CRAWLING',
             startedAt: new Date(),
-            progressPercent: 5,
+            progressPercent: 2,
             // Recorded on the attempt that used it: the API process can be
             // reconfigured later and must not restate this scan's provenance.
             connectorMode: brandConnectorMode(),
@@ -216,16 +216,6 @@ export function startIngestionProcessor(
           }
         }
 
-        if (
-          !(await advanceScanIfActive(prisma, scan.id, {
-            status: 'EXTRACTING',
-            progressPercent: 30,
-          }))
-        ) {
-          await markScanCancelled(prisma, scan.id, jobRun.id);
-          return { ok: true, cancelled: true };
-        }
-
         const stillAuthorized = await reauthz(jobRun.tenantId, jobRun.actorUserId);
         if (!stillAuthorized) {
           await prisma.jobRun.update({
@@ -244,14 +234,58 @@ export function startIngestionProcessor(
           throw new Error('worker reauthz failed mid-scan');
         }
 
-        const counts = await runExtractionForScan({
-          tenantId: scan.tenantId,
-          brandId: scan.brandId,
-          scanAttemptId: scan.id,
-          startUrl: scan.websiteSource.normalizedUrl,
-          connector,
-          config: data.config,
-        });
+        let lastProgressWrite = 0;
+        let lastProgressPercent = -1;
+        const reportScanProgress = async (patch: {
+          progressPercent: number;
+          status?: 'CRAWLING' | 'EXTRACTING';
+          pagesFetched?: number;
+          pagesFailed?: number;
+          pagesSkipped?: number;
+        }) => {
+          const now = Date.now();
+          const statusChange = patch.status !== undefined;
+          const bigJump = patch.progressPercent - lastProgressPercent >= 2;
+          if (
+            !statusChange &&
+            !bigJump &&
+            now - lastProgressWrite < 1200 &&
+            patch.pagesFetched === undefined
+          ) {
+            return;
+          }
+          lastProgressWrite = now;
+          lastProgressPercent = patch.progressPercent;
+          const active = await advanceScanIfActive(prisma, scan.id, {
+            ...(patch.status ? { status: patch.status } : {}),
+            progressPercent: patch.progressPercent,
+            ...(patch.pagesFetched !== undefined ? { pagesFetched: patch.pagesFetched } : {}),
+            ...(patch.pagesFailed !== undefined ? { pagesFailed: patch.pagesFailed } : {}),
+            ...(patch.pagesSkipped !== undefined ? { pagesSkipped: patch.pagesSkipped } : {}),
+          });
+          if (!active) {
+            throw new Error('scan_cancelled');
+          }
+        };
+
+        let counts;
+        try {
+          counts = await runExtractionForScan({
+            tenantId: scan.tenantId,
+            brandId: scan.brandId,
+            scanAttemptId: scan.id,
+            startUrl: scan.websiteSource.normalizedUrl,
+            connector,
+            config: data.config,
+            onProgress: reportScanProgress,
+          });
+        } catch (err) {
+          if (err instanceof Error && err.message === 'scan_cancelled') {
+            await markScanCancelled(prisma, scan.id, jobRun.id);
+            return { ok: true, cancelled: true };
+          }
+          throw err;
+        }
 
         const observations = await prisma.extractedObservation.findMany({
           where: { scanAttemptId: scan.id },
