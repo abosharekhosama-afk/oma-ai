@@ -3,7 +3,7 @@ import { DetailShimmer } from '../../../../../components/ui/shimmer';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../lib/api';
 import type { BrandDetail, Paginated, ScanDetail } from '../../../../../lib/brand-types';
 import {
@@ -25,6 +25,9 @@ import { buildBrandJourneySteps, brandPrimaryNextStep } from '../../../../../lib
 import { BrandPipelineOutcome } from '../../../../../components/brand/brand-pipeline-outcome';
 import { BrandHubCard } from '../../../../../components/brand/brand-hub-card';
 
+const SCAN_TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
+const SCAN_POLL_MS = 2000;
+
 export default function BrandDetailPage() {
   const t = useT();
   const params = useParams<{ brandId: string }>();
@@ -36,6 +39,20 @@ export default function BrandDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
+
+  const refreshActiveScan = useCallback(
+    async (scanId: string) => {
+      const scan = await api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${scanId}`);
+      setScanDetail(scan.data);
+      setScanHistory((prev) => prev.map((row) => (row.id === scan.data.id ? scan.data : row)));
+      setBrand((prev) =>
+        prev?.latest_scan?.id === scan.data.id
+          ? { ...prev, latest_scan: { ...prev.latest_scan, ...scan.data } }
+          : prev,
+      );
+    },
+    [brandId],
+  );
 
   useEffect(() => {
     api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`)
@@ -67,6 +84,16 @@ export default function BrandDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [brandId]);
+
+  useEffect(() => {
+    const scanId = scanDetail?.id;
+    const status = scanDetail?.status;
+    if (!scanId || !status || SCAN_TERMINAL.has(status)) return;
+    const id = window.setInterval(() => {
+      refreshActiveScan(scanId).catch(() => undefined);
+    }, SCAN_POLL_MS);
+    return () => window.clearInterval(id);
+  }, [scanDetail?.id, scanDetail?.status, refreshActiveScan]);
 
   const journey = useMemo(() => (brand ? buildBrandJourneySteps(brand, t) : []), [brand, t]);
 

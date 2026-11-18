@@ -21,6 +21,9 @@ import {
   type ExtractedProduct,
   parseSitemapXml,
   resolveJsRenderMode,
+  scanCatalogProgressPercent,
+  scanCrawlProgressPercent,
+  scanSitemapProgressPercent,
   shouldAdoptRenderedExtraction,
   productMediaUrlCount,
   shouldUseJsRender,
@@ -217,6 +220,14 @@ async function persistCatalogObservations(input: {
   }
 }
 
+export type ScanExtractionProgress = {
+  progressPercent: number;
+  status?: 'CRAWLING' | 'EXTRACTING';
+  pagesFetched?: number;
+  pagesFailed?: number;
+  pagesSkipped?: number;
+};
+
 export async function runExtractionForScan(input: {
   tenantId: string;
   brandId: string;
@@ -224,6 +235,7 @@ export async function runExtractionForScan(input: {
   startUrl: string;
   connector: WebsiteConnectorPort;
   config?: CrawlConfig;
+  onProgress?: (patch: ScanExtractionProgress) => Promise<void>;
 }) {
   const maxPages = input.config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50);
   const maxDepth = input.config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3);
@@ -286,6 +298,11 @@ export async function runExtractionForScan(input: {
     }
   };
 
+  const report = input.onProgress;
+  const emitProgress = async (patch: ScanExtractionProgress) => {
+    if (report) await report(patch);
+  };
+
   const startHost = new URL(input.startUrl).host;
   try {
     const robotsInfo = await input.connector.inspectRobots(startHost);
@@ -326,6 +343,14 @@ export async function runExtractionForScan(input: {
   } catch {
     // robots/sitemap discovery is best-effort
   }
+
+  await emitProgress({
+    progressPercent: scanSitemapProgressPercent(),
+    status: 'CRAWLING',
+    pagesFetched,
+    pagesFailed,
+    pagesSkipped,
+  });
 
   while (queue.length > 0 && pagesFetched < maxPages && Date.now() < deadline) {
     const current = queue.shift();
@@ -513,6 +538,13 @@ export async function runExtractionForScan(input: {
       }
 
       pagesFetched += 1;
+      await emitProgress({
+        progressPercent: scanCrawlProgressPercent(pagesFetched, maxPages),
+        status: 'CRAWLING',
+        pagesFetched,
+        pagesFailed,
+        pagesSkipped,
+      });
 
       if (current.depth < maxDepth && !extracted.nofollow) {
         for (const link of extracted.links) {
@@ -531,6 +563,14 @@ export async function runExtractionForScan(input: {
       pagesFailed += 1;
     }
   }
+
+  await emitProgress({
+    progressPercent: scanCatalogProgressPercent(),
+    status: 'EXTRACTING',
+    pagesFetched,
+    pagesFailed,
+    pagesSkipped,
+  });
 
   Object.assign(
     catalogStats,
