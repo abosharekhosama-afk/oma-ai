@@ -11,7 +11,7 @@
 3. **Profile** — review insights, approve immutable version.
 4. **Strategy** — foundation + organic/paid tracks, evidence links.
 5. **AI propose** — `POST .../ai/propose` fills empty draft fields only after accept.
-6. **Approve strategy** → plan-to-requests (pillars + **catalog product/service** lines) → tasks → content.
+6. **Approve strategy** → plan-to-requests creates **WorkRequest** rows **and draft ContentItem** rows per plan line (user must still approve content before publish) → tasks → deliverable approve refreshes media → content approve → schedule.
 
 ## What is implemented on `004`
 

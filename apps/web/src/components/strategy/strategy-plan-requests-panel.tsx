@@ -149,7 +149,11 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
     setMessage(null);
     try {
       const res = await api<{
-        data: { created_request_ids: string[]; skipped_plan_source_keys: string[] };
+        data: {
+          created_request_ids: string[];
+          created_content_ids?: string[];
+          skipped_plan_source_keys: string[];
+        };
       }>(`${base}/plan-to-requests/commit`, {
         method: 'POST',
         body: JSON.stringify({
@@ -162,7 +166,11 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
         }),
       });
       if (res.data.created_request_ids.length > 0) {
-        setMessage(t('strategy.review.requestsCreated'));
+        setMessage(
+          (res.data.created_content_ids?.length ?? 0) > 0
+            ? t('strategy.review.requestsAndCalendarCreated')
+            : t('strategy.review.requestsCreated'),
+        );
       } else if (res.data.skipped_plan_source_keys.length > 0) {
         setMessage(t('strategy.review.requestsAlreadyExist'));
       }

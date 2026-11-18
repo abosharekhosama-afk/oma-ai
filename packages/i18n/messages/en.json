@@ -394,6 +394,7 @@
   "strategy.review.unknowns": "I acknowledge unknowns and assumptions",
   "strategy.review.createRequests": "Create production requests from plan",
   "strategy.review.requestsCreated": "Production requests created from this strategy.",
+  "strategy.review.requestsAndCalendarCreated": "Production requests and calendar draft posts were created. Approve each post in Content before scheduling or publishing.",
   "strategy.review.requestsAlreadyExist": "Selected items were already created as requests.",
   "strategy.review.planPreviewTitle": "Plan → production requests",
   "strategy.review.planPreviewHint": "Review pillars and campaign lines from this approved package. Commit only what you want in the queue.",

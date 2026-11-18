@@ -1,0 +1,147 @@
+import { getPrisma, tenantWhere } from '@oma/db';
+import {
+  deliverableHandoffChannel,
+  deliverableHandoffContentType,
+  deliverableHandoffMayUpdateExistingContent,
+  newId,
+  planDraftTrack,
+  shouldCreatePlanContentDraft,
+  type PlanWorkRequestDraft,
+} from '@oma/domain';
+import { brandTimezone } from '../brand/brand.service';
+import { loadApprovalConfig } from './content-lock';
+import { billingService } from '../billing/billing.service';
+import type { AuditService } from '../audit/audit.service';
+
+type PlanContentCtx = {
+  tenantId: string;
+  brandId: string;
+  actorUserId: string;
+  requestId: string;
+  strategyId: string;
+  strategyVersionId: string;
+  correlationId?: string;
+};
+
+/**
+ * Materialize a draft ContentItem from an approved strategy plan row (WorkRequest source).
+ * Does not request or grant publish approval.
+ */
+export async function createStrategyPlanContentDraft(
+  audit: AuditService,
+  ctx: PlanContentCtx,
+  draft: PlanWorkRequestDraft,
+  defaults: { campaignId?: string | null; dueAt?: Date | null },
+): Promise<{ contentId: string; created: boolean } | null> {
+  if (!shouldCreatePlanContentDraft(draft)) return null;
+  await billingService.assertWriteAccess(ctx.tenantId);
+
+  const request = await getPrisma().workRequest.findFirst({
+    where: tenantWhere(ctx.tenantId, { id: ctx.requestId, brandId: ctx.brandId }),
+  });
+  if (!request) return null;
+
+  if (request.contentId) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(ctx.tenantId, { id: request.contentId }),
+    });
+    if (current) return { contentId: request.contentId, created: false };
+  }
+
+  const channel = deliverableHandoffChannel(draft.channels);
+  const contentType = deliverableHandoffContentType(draft.formats);
+  const track = planDraftTrack(draft);
+  const campaignId = defaults.campaignId ?? request.campaignId ?? null;
+
+  const { requiredApprovers } = await loadApprovalConfig(ctx.tenantId, ctx.brandId);
+  const contentId = newId();
+  await getPrisma().contentItem.create({
+    data: {
+      id: contentId,
+      tenantId: ctx.tenantId,
+      brandId: ctx.brandId,
+      campaignId,
+      titleEn: draft.title.en,
+      titleAr: draft.title.ar,
+      captionEn: draft.brief.keyMessage.en || null,
+      captionAr: draft.brief.keyMessage.ar || null,
+      contentType,
+      channel,
+      track,
+      status: 'DRAFT',
+      approvalState: 'NOT_REQUESTED',
+      scheduleState: 'UNSCHEDULED',
+      plannedAt: defaults.dueAt ?? request.dueAt ?? null,
+      timezone: await brandTimezone(ctx.tenantId, ctx.brandId),
+      approverRequired: requiredApprovers,
+      approverApproved: 0,
+      labels: ['strategy-plan', draft.plan_source_key],
+      createdBy: ctx.actorUserId,
+    },
+  });
+
+  await getPrisma().workRequest.update({
+    where: { id: ctx.requestId },
+    data: { contentId },
+  });
+
+  await audit.write({
+    actorUserId: ctx.actorUserId,
+    tenantId: ctx.tenantId,
+    action: 'content.strategy_plan_handoff.create',
+    targetType: 'ContentItem',
+    targetId: contentId,
+    beforeRef: `${ctx.strategyId}:${ctx.strategyVersionId}`,
+    afterRef: draft.plan_source_key,
+    correlationId: ctx.correlationId,
+  });
+
+  return { contentId, created: true };
+}
+
+export async function refreshStrategyPlanContentFromDraft(
+  audit: AuditService,
+  ctx: PlanContentCtx,
+  draft: PlanWorkRequestDraft,
+  contentId: string,
+): Promise<void> {
+  const current = await getPrisma().contentItem.findFirst({
+    where: tenantWhere(ctx.tenantId, { id: contentId }),
+  });
+  if (!current) return;
+  if (
+    !deliverableHandoffMayUpdateExistingContent({
+      approvalState: current.approvalState,
+      scheduleState: current.scheduleState,
+      archivedAt: current.archivedAt,
+    })
+  ) {
+    return;
+  }
+
+  await getPrisma().contentItem.update({
+    where: { id: contentId },
+    data: {
+      titleEn: draft.title.en,
+      titleAr: draft.title.ar,
+      captionEn: draft.brief.keyMessage.en || null,
+      captionAr: draft.brief.keyMessage.ar || null,
+      channel: deliverableHandoffChannel(draft.channels),
+      contentType: deliverableHandoffContentType(draft.formats),
+      track: planDraftTrack(draft),
+      labels: ['strategy-plan', draft.plan_source_key],
+      updatedAt: new Date(),
+    },
+  });
+
+  await audit.write({
+    actorUserId: ctx.actorUserId,
+    tenantId: ctx.tenantId,
+    action: 'content.strategy_plan_handoff.refresh',
+    targetType: 'ContentItem',
+    targetId: contentId,
+    beforeRef: ctx.requestId,
+    afterRef: draft.plan_source_key,
+    correlationId: ctx.correlationId,
+  });
+}

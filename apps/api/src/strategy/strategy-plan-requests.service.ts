@@ -17,6 +17,10 @@ import { AuditService } from '../audit/audit.service';
 import { OpsService } from '../content/ops.service';
 import { parseOptionalDate } from '../content/content.service';
 import { enrichCatalogOfferingsWithApprovedMedia } from '../catalog/catalog.service';
+import {
+  createStrategyPlanContentDraft,
+  refreshStrategyPlanContentFromDraft,
+} from '../content/plan-content-handoff.service';
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   if (!raw) return fallback;
@@ -373,6 +377,7 @@ export class StrategyPlanRequestsService {
         : drafts;
 
     const created: string[] = [];
+    const createdContent: string[] = [];
     const skipped: string[] = [];
 
     for (const draft of selected) {
@@ -404,11 +409,27 @@ export class StrategyPlanRequestsService {
         afterRef: `${strategyId}:${versionId}:${draft.plan_source_key}`,
         correlationId,
       });
+      const content = await createStrategyPlanContentDraft(
+        this.audit,
+        {
+          tenantId,
+          brandId,
+          actorUserId,
+          requestId: row.id,
+          strategyId,
+          strategyVersionId: versionId,
+          correlationId,
+        },
+        draft,
+        { campaignId: defaults.campaignId, dueAt: defaults.dueAt ?? null },
+      );
+      if (content?.created) createdContent.push(content.contentId);
     }
 
     return {
       data: {
         created_request_ids: created,
+        created_content_ids: createdContent,
         skipped_plan_source_keys: skipped,
         strategy_version_id: versionId,
         catalog_source,
@@ -595,6 +616,37 @@ export class StrategyPlanRequestsService {
         afterRef: `${strategyId}:${versionId}:${request.planSourceKey}`,
         correlationId,
       });
+      if (request.contentId) {
+        await refreshStrategyPlanContentFromDraft(
+          this.audit,
+          {
+            tenantId,
+            brandId,
+            actorUserId,
+            requestId,
+            strategyId,
+            strategyVersionId: versionId,
+            correlationId,
+          },
+          draft,
+          request.contentId,
+        );
+      } else {
+        await createStrategyPlanContentDraft(
+          this.audit,
+          {
+            tenantId,
+            brandId,
+            actorUserId,
+            requestId,
+            strategyId,
+            strategyVersionId: versionId,
+            correlationId,
+          },
+          draft,
+          { campaignId: request.campaignId, dueAt: request.dueAt },
+        );
+      }
     }
     return {
       data: {

@@ -394,6 +394,7 @@
   "strategy.review.unknowns": "أقرّ بالمجهولات والافتراضات",
   "strategy.review.createRequests": "إنشاء طلبات إنتاج من الخطة",
   "strategy.review.requestsCreated": "تم إنشاء طلبات الإنتاج من هذه الاستراتيجية.",
+  "strategy.review.requestsAndCalendarCreated": "تم إنشاء طلبات الإنتاج ومسودات منشورات في التقويم. وافق على كل منشور في المحتوى قبل الجدولة أو النشر.",
   "strategy.review.requestsAlreadyExist": "العناصر المحددة موجودة مسبقاً كطلبات.",
   "strategy.review.planPreviewTitle": "الخطة ← طلبات الإنتاج",
   "strategy.review.planPreviewHint": "راجع الركائز وخطوط الحملة في الحزمة المعتمدة. أنشئ فقط ما تريد إدخاله في قائمة الانتظار.",
