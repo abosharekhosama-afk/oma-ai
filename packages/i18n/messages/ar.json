@@ -1125,6 +1125,7 @@
   "demo.review.reasonRequired": "السبب مطلوب",
   "demo.review.invalidTransition": "انتقال مراجعة غير صالح للحالة الحالية",
   "demo.review.decisionSaved": "تم حفظ قرار المراجعة",
+  "demo.deliverable.handoffReady": "تم إنشاء مسودة منشور في التقويم. وافق عليها هناك قبل الجدولة أو النشر.",
   "demo.review.annotationSaved": "تم حفظ التعليق المرئي",
   "demo.review.commentSaved": "تم حفظ التعليق",
   "demo.review.revisionAdded": "تمت إضافة المراجعة",

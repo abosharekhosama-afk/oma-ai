@@ -1125,6 +1125,7 @@
   "demo.review.reasonRequired": "A reason is required",
   "demo.review.invalidTransition": "Invalid review transition for current state",
   "demo.review.decisionSaved": "Review decision saved",
+  "demo.deliverable.handoffReady": "A draft post was created in the calendar. Approve it there before scheduling or publishing.",
   "demo.review.annotationSaved": "Annotation saved",
   "demo.review.commentSaved": "Comment saved",
   "demo.review.revisionAdded": "Revision added",

@@ -14,6 +14,7 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { mediaPlaybackUrl } from '../media/media.service';
+import { handoffApprovedDeliverableToContent } from './deliverable-content-handoff.service';
 
 type LocaleInput = { en: string; ar?: string } | string;
 
@@ -986,7 +987,18 @@ export class OpsService {
       afterRef: pinned.approvedVersionId ?? step.next,
       correlationId,
     });
-    const [data] = await this.enrichDeliverables([pinned.row]);
+    if (normalized === 'approve' && pinned.approvedVersionId) {
+      await handoffApprovedDeliverableToContent(this.audit, {
+        tenantId,
+        actorUserId,
+        deliverableId,
+        correlationId,
+      }, pinned.approvedVersionId);
+    }
+    const fresh = await getPrisma().workDeliverable.findFirst({
+      where: tenantWhere(tenantId, { id: deliverableId }),
+    });
+    const [data] = await this.enrichDeliverables([fresh ?? pinned.row]);
     return { data };
   }
 

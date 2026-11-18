@@ -12,6 +12,7 @@ export * from './strategy';
 export * from './content';
 export * from './content/publish-rollup';
 export * from './work/deliverable-review-policy';
+export * from './content/deliverable-content-handoff';
 export * from './work/brief-readiness';
 export * from './jobs/outbox';
 export * from './ports/mail-provider.port';
