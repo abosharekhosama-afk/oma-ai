@@ -4,7 +4,6 @@ import {
   calendarPlacement,
   evaluateMediaScheduleBlockers,
   evaluateScheduleReadiness,
-  mergeScheduleReadiness,
   postScheduleBlockers,
   scheduleRequiresConnectedAccount,
   type ScheduleReadinessInput,
