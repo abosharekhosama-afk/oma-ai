@@ -92,7 +92,7 @@ export async function seedContentImageAsset(seed: BrandSeed, brandId: string): P
       id: assetId,
       tenantId: seed.tenantId,
       brandId,
-      kind: 'IMAGE',
+      kind: 'posts',
       workdriveFileId: `wd-test-${assetId.slice(-8)}`,
       name: 'post-test.jpg',
       mime: 'image/jpeg',
