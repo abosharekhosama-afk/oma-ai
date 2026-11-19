@@ -73,7 +73,7 @@ describe('brandPrimaryNextStep', () => {
     expect(next.label).toBe('brand.detail.createStrategyCta');
   });
 
-  it('opens current strategy when pointer set', () => {
+  it('suggests plan-to-requests when strategy approved and no requests', () => {
     const next = brandPrimaryNextStep(
       'b1',
       baseBrand({
@@ -88,7 +88,29 @@ describe('brandPrimaryNextStep', () => {
         current_approved_strategy_id: 'st9',
       }),
       t,
+      { work_request_count: 0, content_count: 0 },
     );
-    expect(next.href).toBe('/app/brands/b1/strategies/st9');
+    expect(next.href).toBe('/app/brands/b1/strategies/st9/review');
+    expect(next.label).toBe('brand.detail.planRequestsCta');
+  });
+
+  it('suggests content calendar when requests exist', () => {
+    const next = brandPrimaryNextStep(
+      'b1',
+      baseBrand({
+        website: {
+          website_source_id: 'w',
+          normalized_url: 'https://ex.test',
+          validation_status: 'VALID',
+          source_revision: 1,
+        },
+        current_approved_profile_version_id: 'p1',
+        current_approved_strategy_id: 'st9',
+        latest_scan: { id: 's1', status: 'SUCCEEDED', job_run_id: 'j', connector_mode: 'LIVE' },
+      }),
+      t,
+      { work_request_count: 3, content_count: 0 },
+    );
+    expect(next.href).toBe('/app/content');
   });
 });

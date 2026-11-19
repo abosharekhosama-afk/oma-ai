@@ -183,6 +183,10 @@ export function journeyStepHref(
       return `${base}/intelligence`;
     case 'strategy':
       return `${base}/strategies`;
+    case 'plan':
+      return `${base}/strategies`;
+    case 'content':
+      return '/app/content';
     default:
       return base;
   }

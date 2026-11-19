@@ -39,6 +39,52 @@ export function ProfileStrategyHandoffBanner({
   );
 }
 
+export function StrategyPlanHandoffBanner({
+  brandId,
+  strategyId,
+}: {
+  brandId: string;
+  strategyId: string;
+}) {
+  const t = useT();
+  const href = `/app/brands/${brandId}/strategies/${strategyId}/review`;
+
+  return (
+    <StatusBanner className="oma-banner oma-banner-info" testId="strategy-plan-handoff">
+      <strong>{t('brand.strategy.planHandoffTitle')}</strong>
+      <p>{t('brand.strategy.planHandoffBody')}</p>
+      <div className="oma-chip-row">
+        <Link href={href} className="oma-text-link" data-testid="strategy-plan-handoff-cta">
+          {t('brand.detail.planRequestsCta')}
+        </Link>
+      </div>
+    </StatusBanner>
+  );
+}
+
+export function StrategyContentHandoffBanner({ brandId }: { brandId: string }) {
+  const t = useT();
+
+  return (
+    <StatusBanner className="oma-banner oma-banner-info" testId="strategy-content-handoff">
+      <strong>{t('brand.strategy.contentHandoffTitle')}</strong>
+      <p>{t('brand.strategy.contentHandoffBody')}</p>
+      <div className="oma-chip-row">
+        <Link
+          href="/app/content"
+          className="oma-text-link"
+          data-testid="strategy-content-handoff-cta"
+        >
+          {t('brand.detail.contentCalendarCta')}
+        </Link>
+        <Link href={`/app/brands/${brandId}/briefs`} className="oma-text-link">
+          {t('brand.nav.briefs')}
+        </Link>
+      </div>
+    </StatusBanner>
+  );
+}
+
 export function ScanCatalogHonestyBanner({
   scan,
 }: {
