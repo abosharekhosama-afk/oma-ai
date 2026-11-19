@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { BrandPipelineHints } from '../../lib/brand-pipeline-hints';
 import type { BrandDetail, ScanDetail } from '../../lib/brand-types';
 import { buildBrandPipelineStages, pipelineEndGoal } from '../../lib/brand-pipeline-outcome';
 import { useT } from '../../lib/use-locale';
@@ -9,14 +10,16 @@ export function BrandPipelineOutcome({
   brandId,
   brand,
   scan,
+  hints,
 }: {
   brandId: string;
   brand: BrandDetail;
   scan: ScanDetail | null;
+  hints?: BrandPipelineHints | null;
 }) {
   const t = useT();
-  const stages = buildBrandPipelineStages(brandId, brand, scan, t);
-  const endGoal = pipelineEndGoal(t, brand);
+  const stages = buildBrandPipelineStages(brandId, brand, scan, t, hints);
+  const endGoal = pipelineEndGoal(t, brand, hints);
 
   return (
     <section

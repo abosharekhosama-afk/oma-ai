@@ -22,8 +22,17 @@ import { Panel } from '../../../../../components/ui/page-header';
 import { ErrorState } from '../../../../../components/ui/empty-state';
 import { useT } from '../../../../../lib/use-locale';
 import { buildBrandJourneySteps, brandPrimaryNextStep } from '../../../../../lib/brand-journey';
+import {
+  loadBrandPipelineHints,
+  type BrandPipelineHints,
+} from '../../../../../lib/brand-pipeline-hints';
+import {
+  StrategyContentHandoffBanner,
+  StrategyPlanHandoffBanner,
+} from '../../../../../components/brand/brand-context-banners';
 import { BrandPipelineOutcome } from '../../../../../components/brand/brand-pipeline-outcome';
 import { BrandHubCard } from '../../../../../components/brand/brand-hub-card';
+import { hasBrandContent, hasPlanRequestsCommitted } from '../../../../../lib/brand-pipeline-hints';
 
 const SCAN_TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
 const SCAN_POLL_MS = 2000;
@@ -39,6 +48,7 @@ export default function BrandDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
+  const [pipelineHints, setPipelineHints] = useState<BrandPipelineHints | null>(null);
 
   const refreshActiveScan = useCallback(
     async (scanId: string) => {
@@ -95,7 +105,20 @@ export default function BrandDetailPage() {
     return () => window.clearInterval(id);
   }, [scanDetail?.id, scanDetail?.status, refreshActiveScan]);
 
-  const journey = useMemo(() => (brand ? buildBrandJourneySteps(brand, t) : []), [brand, t]);
+  useEffect(() => {
+    if (!brand?.current_approved_strategy_id) {
+      setPipelineHints(null);
+      return;
+    }
+    void loadBrandPipelineHints(brandId)
+      .then(setPipelineHints)
+      .catch(() => setPipelineHints({ work_request_count: 0, content_count: 0 }));
+  }, [brandId, brand?.current_approved_strategy_id]);
+
+  const journey = useMemo(
+    () => (brand ? buildBrandJourneySteps(brand, t, pipelineHints) : []),
+    [brand, t, pipelineHints],
+  );
 
   if (denied)
     return <PermissionDenied message={t('errors.brandNoAccess') || t('errors.permission')} />;
@@ -114,7 +137,7 @@ export default function BrandDetailPage() {
   }
 
   const scan = brand.latest_scan;
-  const nextStep = brandPrimaryNextStep(brandId, brand, t);
+  const nextStep = brandPrimaryNextStep(brandId, brand, t, pipelineHints);
 
   return (
     <BrandWorkspaceShell
@@ -225,7 +248,26 @@ export default function BrandDetailPage() {
             </dl>
           </Panel>
 
-          <BrandPipelineOutcome brandId={brandId} brand={brand} scan={scanDetail} />
+          {brand.current_approved_strategy_id &&
+          pipelineHints &&
+          !hasPlanRequestsCommitted(pipelineHints) ? (
+            <StrategyPlanHandoffBanner
+              brandId={brandId}
+              strategyId={brand.current_approved_strategy_id}
+            />
+          ) : null}
+          {pipelineHints &&
+          hasPlanRequestsCommitted(pipelineHints) &&
+          !hasBrandContent(pipelineHints) ? (
+            <StrategyContentHandoffBanner brandId={brandId} />
+          ) : null}
+
+          <BrandPipelineOutcome
+            brandId={brandId}
+            brand={brand}
+            scan={scanDetail}
+            hints={pipelineHints}
+          />
 
           {scanDetail ? (
             <Panel title={t('brand.coverage.title')} labelledBy="brand-coverage">

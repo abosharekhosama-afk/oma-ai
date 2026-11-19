@@ -1,3 +1,5 @@
+import type { BrandPipelineHints } from './brand-pipeline-hints';
+import { hasBrandContent, hasPlanRequestsCommitted } from './brand-pipeline-hints';
 import type { BrandDetail, ScanDetail } from './brand-types';
 
 export type PipelineStage = {
@@ -13,6 +15,7 @@ export function buildBrandPipelineStages(
   brand: BrandDetail,
   scan: ScanDetail | null,
   t: (key: string) => string,
+  hints?: BrandPipelineHints | null,
 ): PipelineStage[] {
   const scanDone =
     scan && (scan.status === 'SUCCEEDED' || scan.status === 'PARTIAL' || scan.status === 'FAILED');
@@ -24,6 +27,9 @@ export function buildBrandPipelineStages(
   const analysisOk = analysisDone || scan?.analysis_status === 'SKIPPED';
   const profileApproved = Boolean(brand.current_approved_profile_version_id);
   const strategyReady = Boolean(brand.current_approved_strategy_id);
+  const strategyId = brand.current_approved_strategy_id;
+  const planDone = hasPlanRequestsCommitted(hints);
+  const contentDone = hasBrandContent(hints);
 
   const discoveryDetail = summary
     ? t('brand.pipeline.discoveryDetail')
@@ -41,6 +47,27 @@ export function buildBrandPipelineStages(
         .replace('{max}', String(maxPages || '—'))
         .replace('{status}', scan.status)
     : t('brand.pipeline.scanTodo');
+
+  const planReviewHref = strategyId
+    ? `/app/brands/${brandId}/strategies/${strategyId}/review`
+    : `/app/brands/${brandId}/strategies/new`;
+
+  const planState: PipelineStage['state'] = !strategyReady
+    ? 'blocked'
+    : planDone
+      ? 'done'
+      : 'current';
+
+  const contentState: PipelineStage['state'] = !strategyReady
+    ? 'blocked'
+    : contentDone
+      ? 'done'
+      : planDone
+        ? 'current'
+        : 'todo';
+
+  const requestCount = hints?.work_request_count ?? 0;
+  const contentCount = hints?.content_count ?? 0;
 
   return [
     {
@@ -99,32 +126,51 @@ export function buildBrandPipelineStages(
         : profileApproved
           ? t('brand.pipeline.strategyBuild')
           : t('brand.pipeline.strategyBlocked'),
-      href: brand.current_approved_strategy_id
-        ? `/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}`
+      href: strategyId
+        ? `/app/brands/${brandId}/strategies/${strategyId}`
         : `/app/brands/${brandId}/strategies/new`,
       state: strategyReady ? 'done' : profileApproved ? 'current' : 'blocked',
     },
     {
-      id: 'production',
-      label: t('brand.pipeline.production'),
-      detail: strategyReady
-        ? summary && (summary.products > 0 || summary.services > 0)
-          ? t('brand.pipeline.productionCatalog')
-              .replace('{products}', String(summary.products))
-              .replace('{services}', String(summary.services))
-          : t('brand.pipeline.productionReady')
-        : t('brand.pipeline.productionBlocked'),
-      href: brand.current_approved_strategy_id
-        ? `/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}/review`
-        : `/app/brands/${brandId}/strategies/new`,
-      state: strategyReady ? 'current' : 'blocked',
+      id: 'plan_requests',
+      label: t('brand.pipeline.planRequests'),
+      detail: !strategyReady
+        ? t('brand.pipeline.planRequestsBlocked')
+        : planDone
+          ? t('brand.pipeline.planRequestsDone').replace('{count}', String(requestCount))
+          : t('brand.pipeline.planRequestsBuild'),
+      href: planReviewHref,
+      state: planState,
+    },
+    {
+      id: 'content',
+      label: t('brand.pipeline.content'),
+      detail: !strategyReady
+        ? t('brand.pipeline.contentBlocked')
+        : contentDone
+          ? t('brand.pipeline.contentDone').replace('{count}', String(contentCount))
+          : planDone
+            ? t('brand.pipeline.contentBuild')
+            : t('brand.pipeline.contentAwaitPlan'),
+      href: `/app/content`,
+      state: contentState,
     },
   ];
 }
 
-export function pipelineEndGoal(t: (key: string) => string, brand: BrandDetail): string {
+export function pipelineEndGoal(
+  t: (key: string) => string,
+  brand: BrandDetail,
+  hints?: BrandPipelineHints | null,
+): string {
+  if (hasBrandContent(hints)) {
+    return t('brand.pipeline.endGoalContentLive');
+  }
+  if (hasPlanRequestsCommitted(hints)) {
+    return t('brand.pipeline.endGoalContentCalendar');
+  }
   if (brand.current_approved_strategy_id) {
-    return t('brand.pipeline.endGoalProduction');
+    return t('brand.pipeline.endGoalPlanRequests');
   }
   if (brand.current_approved_profile_version_id) {
     return t('brand.pipeline.endGoalBuildStrategy');
