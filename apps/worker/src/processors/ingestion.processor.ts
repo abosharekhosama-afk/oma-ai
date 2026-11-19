@@ -335,7 +335,7 @@ export function startIngestionProcessor(
                 .filter((o) => isRequiredForApproval(o.fieldKey) && o.isUnknown)
                 .map((o) => o.fieldKey),
           unknown_fields: observations.filter((o) => o.isUnknown).map((o) => o.fieldKey),
-          ai_availability: 'NOT_CONFIGURED',
+          ai_availability: brandAiAvailabilityAfterScanComplete(),
         };
 
         const authorizedBeforeComplete = await reauthz(jobRun.tenantId, jobRun.actorUserId);

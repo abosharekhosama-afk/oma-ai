@@ -214,17 +214,18 @@ export default function ScanDetailPage() {
       latestScanId={scan.id}
       journey={journey}
     >
-      <AiUnavailableBanner
-        aiAvailability={scan.ai_availability}
-        analysisStatus={scan.analysis_status}
-        analysisErrorCode={scan.analysis_error_code}
-        platformAvailability={platformAiAvailability}
-        canRequestAnalysis={canRequestAnalysis}
-        onRequestAnalysis={canRequestAnalysis ? () => void handleAnalyze() : undefined}
-        requestBusy={busy}
-      />
-
-      <ConnectorModeBanner mode={scan.connector_mode} />
+      <div className="oma-plx-brand-status-rail oma-plx-brand-status-rail--scan">
+        <ConnectorModeBanner mode={scan.connector_mode} compact />
+        <AiUnavailableBanner
+          aiAvailability={scan.ai_availability}
+          analysisStatus={scan.analysis_status}
+          analysisErrorCode={scan.analysis_error_code}
+          platformAvailability={platformAiAvailability}
+          canRequestAnalysis={canRequestAnalysis}
+          onRequestAnalysis={canRequestAnalysis ? () => void handleAnalyze() : undefined}
+          requestBusy={busy}
+        />
+      </div>
 
       <BrandPlxSection
         title={t('brand.scan.progressTitle')}

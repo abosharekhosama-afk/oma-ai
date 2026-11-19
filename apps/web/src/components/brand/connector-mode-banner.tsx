@@ -27,14 +27,41 @@ export function ConnectorModeChip({ mode }: { mode: ConnectorMode | null | undef
   );
 }
 
-export function ConnectorModeBanner({ mode }: { mode: ConnectorMode }) {
+export function ConnectorModeBanner({
+  mode,
+  compact = false,
+}: {
+  mode: ConnectorMode;
+  /** Scan / discovery: one-line provenance instead of a full-height banner. */
+  compact?: boolean;
+}) {
   const t = useT();
   if (mode === 'LIVE') {
+    if (compact) {
+      return (
+        <p className="oma-plx-brand-connector-note" role="note" data-testid="connector-mode-note">
+          <span className="oma-badge">{t('brand.connector.liveChip')}</span>
+          <span className="oma-muted">{t('brand.connector.liveBodyShort')}</span>
+        </p>
+      );
+    }
     return (
       <div className="oma-banner oma-banner-info" role="note">
         <strong>{t('brand.connector.liveTitle')}</strong>
         <p>{t('brand.connector.liveBody')}</p>
       </div>
+    );
+  }
+  if (compact) {
+    return (
+      <p className="oma-plx-brand-connector-note oma-plx-brand-connector-note--warn" role="note">
+        <ConnectorModeChip mode={mode} />
+        <span className="oma-muted">
+          {mode === 'FIXTURE'
+            ? t('brand.connector.fixtureBody')
+            : t('brand.connector.notConfiguredBody')}
+        </span>
+      </p>
     );
   }
   return (

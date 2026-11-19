@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useT } from '../../lib/use-locale';
 
@@ -26,42 +27,61 @@ export function AiUnavailableBanner({
   requestBusy,
 }: AiUnavailableBannerProps) {
   const t = useT();
+  const apiReady = platformAvailability === 'AVAILABLE';
+  const workerMissing = aiAvailability === 'NOT_CONFIGURED' || aiAvailability === 'UNAVAILABLE';
+
+  const action =
+    canRequestAnalysis && onRequestAnalysis ? (
+      <Button
+        type="primary"
+        size="small"
+        disabled={requestBusy}
+        onClick={() => onRequestAnalysis()}
+      >
+        {t('brand.ai.rerun')}
+      </Button>
+    ) : null;
 
   if (analysisStatus === 'QUEUED' || analysisStatus === 'ANALYZING') {
     return (
-      <div className="oma-banner oma-banner-info" role="status" data-testid="ai-analysis-status">
+      <AiStrip variant="info" testId="ai-analysis-status">
         <strong>{t('brand.ai.analyzingTitle')}</strong>
         <p>{t('brand.ai.analyzingBody')}</p>
-      </div>
+      </AiStrip>
     );
   }
 
   if (analysisStatus === 'ANALYZED') {
     return (
-      <div className="oma-banner oma-banner-info" role="status" data-testid="ai-analysis-status">
+      <AiStrip variant="info" testId="ai-analysis-status">
         <strong>{t('brand.ai.analyzedTitle')}</strong>
         <p>{t('brand.ai.analyzedBody')}</p>
-      </div>
+      </AiStrip>
     );
   }
 
   if (analysisStatus === 'FAILED') {
     return (
-      <div className="oma-banner oma-banner-warning" role="status" data-testid="ai-analysis-status">
+      <AiStrip variant="warning" testId="ai-analysis-status" action={apiReady ? action : null}>
         <strong>{t('brand.ai.failedTitle')}</strong>
         <p>{t('brand.ai.failedBody')}</p>
         {analysisErrorCode ? <p className="oma-muted">{analysisErrorCode}</p> : null}
-        {platformAvailability === 'AVAILABLE' &&
-          canRequestAnalysis &&
-          onRequestAnalyze(onRequestAnalysis, requestBusy, t)}
-      </div>
+      </AiStrip>
     );
   }
 
   if (analysisStatus === 'SKIPPED' || analysisStatus === 'NOT_REQUESTED') {
-    if (platformAvailability === 'AVAILABLE' && canRequestAnalysis && onRequestAnalysis) {
+    if (apiReady && workerMissing) {
       return (
-        <div className="oma-banner oma-banner-info" role="status" data-testid="ai-analysis-status">
+        <AiStrip variant="info" testId="ai-analysis-status" action={action}>
+          <strong>{t('brand.ai.workerSetupTitle')}</strong>
+          <p>{t('brand.ai.workerSetupBody')}</p>
+        </AiStrip>
+      );
+    }
+    if (apiReady && canRequestAnalysis && onRequestAnalysis) {
+      return (
+        <AiStrip variant="info" testId="ai-analysis-status" action={action}>
           <strong>{t('brand.ai.pendingTitle')}</strong>
           <p>
             {analysisErrorCode === 'PLAN_FEATURE_REQUIRED'
@@ -70,50 +90,60 @@ export function AiUnavailableBanner({
                 ? t('brand.ai.workerSetupBody')
                 : t('brand.ai.pendingBody')}
           </p>
-          {onRequestAnalyze(onRequestAnalysis, requestBusy, t)}
-        </div>
+        </AiStrip>
       );
     }
   }
 
   if (budgetExhausted || platformAvailability === 'BUDGET_EXHAUSTED') {
     return (
-      <div className="oma-banner oma-banner-warning" role="status" data-testid="ai-budget-banner">
+      <AiStrip variant="warning" testId="ai-budget-banner">
         <strong>{t('brand.ai.budgetTitle')}</strong>
         <p>{t('brand.ai.budgetBody')}</p>
-      </div>
+      </AiStrip>
     );
   }
 
-  if (aiAvailability !== 'NOT_CONFIGURED' && aiAvailability !== 'UNAVAILABLE') return null;
+  if (!workerMissing) return null;
+
+  if (apiReady) {
+    return (
+      <AiStrip variant="info" testId="ai-analysis-status" action={action}>
+        <strong>{t('brand.ai.workerSetupTitle')}</strong>
+        <p>{t('brand.ai.workerSetupBody')}</p>
+      </AiStrip>
+    );
+  }
 
   return (
-    <div className="oma-banner oma-banner-warning" role="status" data-testid="ai-analysis-status">
-      <strong>{t('brand.ai.unavailableTitle')}</strong>
-      <p>
-        {platformAvailability === 'AVAILABLE'
-          ? t('brand.ai.workerSetupBody')
-          : t('brand.ai.unavailableBody')}
-      </p>
-      <p className="oma-muted">{t('brand.ai.setupChecklist')}</p>
-      {platformAvailability === 'AVAILABLE' &&
-        canRequestAnalysis &&
-        onRequestAnalyze(onRequestAnalysis, requestBusy, t)}
-    </div>
+    <AiStrip variant="muted" testId="ai-analysis-status">
+      <strong>{t('brand.ai.manualTitle')}</strong>
+      <p>{t('brand.ai.unavailableBody')}</p>
+    </AiStrip>
   );
 }
 
-function onRequestAnalyze(
-  onRequestAnalysis: (() => void) | undefined,
-  requestBusy: boolean | undefined,
-  t: (key: string) => string,
-) {
-  if (!onRequestAnalysis) return null;
+function AiStrip({
+  variant,
+  testId,
+  action,
+  children,
+}: {
+  variant: 'info' | 'warning' | 'muted';
+  testId: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  const klass =
+    variant === 'warning'
+      ? 'oma-plx-brand-ai-strip oma-plx-brand-ai-strip--warning'
+      : variant === 'muted'
+        ? 'oma-plx-brand-ai-strip oma-plx-brand-ai-strip--muted'
+        : 'oma-plx-brand-ai-strip';
   return (
-    <div className="oma-form-actions">
-      <Button type="primary" disabled={requestBusy} onClick={() => onRequestAnalysis()}>
-        {t('brand.ai.rerun')}
-      </Button>
+    <div className={klass} role="status" data-testid={testId}>
+      <div className="oma-plx-brand-ai-strip__copy">{children}</div>
+      {action ? <div className="oma-plx-brand-ai-strip__actions">{action}</div> : null}
     </div>
   );
 }
