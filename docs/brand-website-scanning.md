@@ -74,6 +74,10 @@ Without a binary, coverage reports `js_render_errors: ["PLAYWRIGHT_LAUNCH_FAILED
 
 After installing Chromium, **start a new scan** — previous scan rows are immutable.
 
+### Cancelling scans
+
+UI cancel sets `ScanAttempt` + `JobRun` to `CANCELLED`, removes **queued** BullMQ ingestion/analysis jobs when `REDIS_URL` is available, and the worker **polls abort every ~400ms** during sitemap/crawl/JS render. Playwright is shut down after each ingestion job to reduce memory on small workers.
+
 Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`, and up to five distinct `js_render_errors` codes for operations debugging.
 
 ## Product catalog extraction

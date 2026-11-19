@@ -313,7 +313,22 @@ export class ScanService {
       targetId: scanId,
       correlationId,
     });
-    return { data: this.serializeScan(updated) };
+    if (scan.jobRunId) {
+      const { cancelScanQueueJobs } = await import('./cancel-scan-jobs');
+      await cancelScanQueueJobs({
+        tenantId,
+        scanAttemptId: scanId,
+        ingestionJobRunId: scan.jobRunId,
+      }).catch(() => undefined);
+    }
+    await getPrisma().scanAttempt.updateMany({
+      where: { id: scanId, status: 'CANCELLED' },
+      data: { analysisStatus: 'SKIPPED', progressPercent: 100 },
+    });
+    const after = await getPrisma().scanAttempt.findFirst({
+      where: tenantWhere(tenantId, { id: scanId, brandId }),
+    });
+    return { data: this.serializeScan(after ?? updated) };
   }
 
   async retry(

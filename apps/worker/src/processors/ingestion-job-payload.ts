@@ -16,9 +16,9 @@ export type IngestionJobPayload = {
   };
 };
 
-export function bullIngestionJobId(jobRunId: string): string {
-  return `ingestion-${jobRunId}`;
-}
+import { bullIngestionJobId as bullIngestionJobIdFromDomain } from '@oma/domain';
+
+export const bullIngestionJobId = bullIngestionJobIdFromDomain;
 
 export function buildIngestionJobData(input: {
   jobRunId: string;
