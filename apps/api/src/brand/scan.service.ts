@@ -25,6 +25,10 @@ export class ScanService {
     private readonly brands: BrandService,
   ) {}
 
+  defaultScanConfig() {
+    return this.clampConfig(undefined);
+  }
+
   private clampConfig(config?: ScanConfig) {
     const maxPages = Math.min(config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50), 100);
     const maxDepth = Math.min(config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3), 5);

@@ -63,6 +63,12 @@ export class ScanController {
     });
   }
 
+  @Get('config/defaults')
+  async defaults(@Req() req: Request, @Param('brandId') _brandId: string) {
+    this.requireTenant(req);
+    return { data: scanService.defaultScanConfig() };
+  }
+
   @Get(':scanId')
   async get(
     @Req() req: Request,
