@@ -6,7 +6,7 @@ import { useT } from '../../lib/use-locale';
 
 type Counts = { pages?: number | null; products?: number | null };
 
-/** One place to move between the discovery summary, pages and products (replaces ad-hoc links). */
+/** Discovery sub-navigation: summary, pages, products. */
 export function DiscoveryTabs({ brandId, counts }: { brandId: string; counts?: Counts }) {
   const t = useT();
   const pathname = usePathname();
@@ -28,7 +28,7 @@ export function DiscoveryTabs({ brandId, counts }: { brandId: string; counts?: C
   ];
   return (
     <nav
-      className="oma-plx-deliv-groups oma-plx-brand-discovery-tabs"
+      className="oma-discovery-tabs"
       aria-label={t('brand.discovery.tabsLabel')}
       data-testid="discovery-tabs"
     >
@@ -39,11 +39,11 @@ export function DiscoveryTabs({ brandId, counts }: { brandId: string; counts?: C
             key={tab.id}
             href={tab.href}
             aria-current={active ? 'page' : undefined}
-            className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
+            className={`oma-discovery-tabs__tab${active ? ' is-active' : ''}`}
           >
             <span>{tab.label}</span>
             {tab.count != null ? (
-              <span className="oma-plx-reviews-tabs__count">{tab.count}</span>
+              <span className="oma-discovery-tabs__count">{tab.count}</span>
             ) : null}
           </Link>
         );
