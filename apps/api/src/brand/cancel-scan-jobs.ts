@@ -9,6 +9,16 @@ function redisConnection(): Redis | null {
   return new Redis(url, { maxRetriesPerRequest: null, enableReadyCheck: false });
 }
 
+/** BullMQ states where the job is not executing — safe to remove from Redis. */
+function isRemovableBullJobState(state: string): boolean {
+  return (
+    state === 'waiting' ||
+    state === 'delayed' ||
+    state === 'prioritized' ||
+    state === 'waiting-children'
+  );
+}
+
 /** Best-effort: drop queued BullMQ work; active scans rely on cooperative cancel in the worker. */
 export async function cancelScanQueueJobs(input: {
   tenantId: string;
@@ -24,7 +34,7 @@ export async function cancelScanQueueJobs(input: {
     const ingestionJob = await ingestionQueue.getJob(bullIngestionJobId(input.ingestionJobRunId));
     if (ingestionJob) {
       const state = await ingestionJob.getState();
-      if (state === 'waiting' || state === 'delayed' || state === 'paused') {
+      if (isRemovableBullJobState(state)) {
         await ingestionJob.remove();
       }
     }
@@ -47,7 +57,7 @@ export async function cancelScanQueueJobs(input: {
       const job = await analysisQueue.getJob(bullAnalysisJobId(run.id));
       if (job) {
         const state = await job.getState();
-        if (state === 'waiting' || state === 'delayed' || state === 'paused') {
+        if (isRemovableBullJobState(state)) {
           await job.remove();
         }
       }
