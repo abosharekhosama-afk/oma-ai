@@ -75,6 +75,10 @@ const nextConfig = (phase: string): NextConfig => {
           ],
         },
         {
+          source: '/app/:path*',
+          headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+        },
+        {
           source: '/:path*',
           headers: [
             { key: 'X-Content-Type-Options', value: 'nosniff' },

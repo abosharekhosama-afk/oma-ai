@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { resolveLocale, t } from '@oma/i18n';
 import { LandingPage } from '../components/landing/landing-page';
+import { LandingJsonLd } from '../components/landing/landing-json-ld';
+import { absolutePublicUrl, publicSiteIndexable } from '../lib/public-site';
 
 export async function generateMetadata(): Promise<Metadata> {
   const jar = await cookies();
@@ -11,13 +13,18 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = t(locale, 'landing.meta.description');
   const ogTitle = t(locale, 'landing.meta.ogTitle');
   const ogDescription = t(locale, 'landing.meta.ogDescription');
+  const canonical = absolutePublicUrl('/');
   return {
     title,
     description,
+    ...(publicSiteIndexable()
+      ? { alternates: { canonical } }
+      : { robots: { index: false, follow: false } }),
     openGraph: {
       title: ogTitle,
       description: ogDescription,
       type: 'website',
+      url: canonical,
       locale: locale === 'ar' ? 'ar_SA' : 'en_US',
       alternateLocale: locale === 'ar' ? ['en_US'] : ['ar_SA'],
       siteName: 'OMA',
@@ -38,5 +45,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Public marketing landing is the stable entry point, regardless of stale session cookies. */
 export default function HomePage() {
-  return <LandingPage />;
+  return (
+    <>
+      <LandingJsonLd />
+      <LandingPage />
+    </>
+  );
 }
