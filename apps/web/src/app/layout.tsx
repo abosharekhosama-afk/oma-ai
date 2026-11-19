@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { JetBrains_Mono, Noto_Sans_Arabic } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
+import { publicSiteIndexable, resolvePublicSiteUrl } from '../lib/public-site';
 import { OmaAntdProvider } from '../components/ui/oma-antd-provider';
 import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
@@ -22,9 +23,24 @@ const notoArabic = Noto_Sans_Arabic({
   display: 'swap',
 });
 
+const siteUrl = resolvePublicSiteUrl();
+
 export const metadata: Metadata = {
-  title: 'OMA AI',
-  description: 'OMA AI by IMKAN',
+  metadataBase: siteUrl,
+  title: {
+    default: 'OMA AI',
+    template: '%s · OMA AI',
+  },
+  description: 'OMA AI by IMKAN — content planning and collaboration for agencies and brands.',
+  applicationName: 'OMA',
+  ...(publicSiteIndexable()
+    ? {
+        robots: { index: true, follow: true },
+        alternates: { canonical: '/' },
+      }
+    : {
+        robots: { index: false, follow: false },
+      }),
 };
 
 /** Default viewport for all devices. Mobile 70% scale uses CSS zoom, not meta scale. */
