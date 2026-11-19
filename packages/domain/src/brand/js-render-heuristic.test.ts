@@ -13,6 +13,7 @@ describe('js-render-heuristic', () => {
   it('defaults to auto rendering when no explicit mode is configured', () => {
     expect(resolveJsRenderMode(undefined)).toBe('auto');
     expect(resolveJsRenderMode('off')).toBe('off');
+    expect(resolveJsRenderMode('force')).toBe('always');
   });
 
   it('detects empty root + module script', () => {
@@ -48,6 +49,15 @@ describe('js-render-heuristic', () => {
         pageUrl: 'https://shop.test/product/shoe',
         productCount: 1,
         productMediaCount: 0,
+      }),
+    ).toBe(true);
+    expect(
+      shouldUseJsRender({
+        mode: 'auto',
+        html: '<html><body><main></main></body></html>',
+        pageUrl: 'https://shop.test/products/widget-x',
+        productCount: 0,
+        knownFieldCount: 0,
       }),
     ).toBe(true);
   });

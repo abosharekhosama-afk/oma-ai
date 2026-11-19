@@ -134,6 +134,16 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
     } catch {
       // SPAs may never reach networkidle; continue with a short settle delay.
     }
+    const waitSelector = process.env.BRAND_SCANNER_JS_WAIT_SELECTOR?.trim();
+    if (waitSelector) {
+      try {
+        await page.waitForSelector(waitSelector, {
+          timeout: Math.min(12_000, Math.max(2_000, Math.floor(timeoutMs / 3))),
+        });
+      } catch {
+        // Grid selectors vary by site; settle delay still applies.
+      }
+    }
     await page.waitForTimeout(Math.min(4_000, Math.max(800, Math.floor(timeoutMs / 8))));
 
     const html = await page.content();

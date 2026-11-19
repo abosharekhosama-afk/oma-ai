@@ -17,6 +17,20 @@ describe('extractors', () => {
     expect(r.pageTitle).toBeTruthy();
   });
 
+  it('extracts a JSON-LD Product without platform markers', () => {
+    const html = `<!doctype html><html><head>
+      <script type="application/ld+json">{
+        "@context":"https://schema.org",
+        "@type":"Product",
+        "name":"Schema Widget",
+        "offers":{"@type":"Offer","price":"42.00","priceCurrency":"USD"}
+      }</script>
+    </head><body><h1>Fallback title</h1></body></html>`;
+    const r = extractFromHtml('https://generic.test/items/schema-widget', html);
+    expect(r.products.some((p) => p.name === 'Schema Widget')).toBe(true);
+    expect(r.products[0]?.priceAmount).toBe('42');
+  });
+
   it('captures lazy-loaded gallery images on a product detail page', () => {
     const html = `<!doctype html><html><head>
       <meta property="og:image" content="https://brand.test/hero.jpg" />

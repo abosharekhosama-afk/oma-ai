@@ -75,7 +75,7 @@ export function isListingUrl(raw: string): boolean {
   try {
     const path = new URL(raw).pathname.toLowerCase();
     if (isProductDetailUrl(raw)) return false;
-    return /\/(collections?|categories|category|product-category|shop|store|catalog|catalogue|products?|brands?|tags?)(\/|$)/.test(
+    return /\/(collections?|categories|category|product-category|shop|store|catalog|catalogue|products?|brands?|tags?|items?|offerings?|portfolio|متجر|منتجات|خدمات|عروض)(\/|$)/iu.test(
       path,
     );
   } catch {

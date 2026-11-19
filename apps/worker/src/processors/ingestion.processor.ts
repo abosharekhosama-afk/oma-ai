@@ -326,6 +326,9 @@ export function startIngestionProcessor(
           catalog_platform_error: counts.catalog?.platformError ?? null,
           products_with_media: counts.catalog?.productsWithMedia ?? 0,
           product_media_imported: counts.catalog?.productMediaImported ?? 0,
+          products_persisted: counts.catalog?.productsPersisted ?? 0,
+          js_render_adopted: counts.pagesJsRendered ?? 0,
+          stop_reason: counts.stopReason ?? 'queue_empty',
           required_missing: usable
             ? []
             : observations
