@@ -8,6 +8,8 @@ export * from './discovery-tiers';
 export * from './scan-transitions';
 export * from './scan-progress';
 export * from './scan-crawl-stop';
+export * from './scan-abort';
+export * from './bull-ingestion';
 export * from './immutability';
 export * from './approval-eligibility';
 export * from './info-state';

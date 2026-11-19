@@ -4,12 +4,15 @@ import {
   brandConnectorMode,
   createWebsiteConnector,
   isRequiredForApproval,
+  isScanCancelledError,
+  SCAN_CANCELLED_MESSAGE,
   type WebsiteConnectorPort,
 } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { Worker, type Job } from 'bullmq';
 import type IORedis from 'ioredis';
 import { runExtractionForScan } from '../brand/extraction.service';
+import { shutdownRenderedFetchBrowser } from '../brand/rendered-page-fetch';
 import { createProfileDraftFromScan } from '../brand/profile-draft.service';
 import { enqueueBrandAnalysis } from '@oma/db';
 import { handleLateScanResult } from '../brand/late-result.service';
@@ -133,7 +136,10 @@ export function startIngestionProcessor(
         const jobRun = await prisma.jobRun.findUnique({ where: { id: jobRunId } });
         if (!jobRun) throw new Error(`job_run not found: ${jobRunId}`);
         if (jobRun.status === 'SUCCEEDED') return { ok: true, skipped: true };
-        if (jobRun.status === 'DEAD' || jobRun.status === 'CANCELLED') {
+        if (jobRun.status === 'CANCELLED') {
+          return { ok: true, cancelled: true };
+        }
+        if (jobRun.status === 'DEAD') {
           throw new Error(`job_run terminal: ${jobRun.status}`);
         }
 
@@ -236,6 +242,29 @@ export function startIngestionProcessor(
 
         let lastProgressWrite = 0;
         let lastProgressPercent = -1;
+        let cancelLatch = false;
+        let lastAbortProbe = 0;
+        const shouldAbort = async () => {
+          if (cancelLatch) return true;
+          const now = Date.now();
+          if (now - lastAbortProbe < 400) return false;
+          lastAbortProbe = now;
+          const [attempt, run] = await Promise.all([
+            prisma.scanAttempt.findUnique({
+              where: { id: scan.id },
+              select: { status: true, cancelRequestedAt: true },
+            }),
+            prisma.jobRun.findUnique({
+              where: { id: jobRun.id },
+              select: { status: true },
+            }),
+          ]);
+          cancelLatch =
+            attempt?.status === 'CANCELLED' ||
+            attempt?.cancelRequestedAt != null ||
+            run?.status === 'CANCELLED';
+          return cancelLatch;
+        };
         const reportScanProgress = async (patch: {
           progressPercent: number;
           status?: 'CRAWLING' | 'EXTRACTING';
@@ -264,7 +293,7 @@ export function startIngestionProcessor(
             ...(patch.pagesSkipped !== undefined ? { pagesSkipped: patch.pagesSkipped } : {}),
           });
           if (!active) {
-            throw new Error('scan_cancelled');
+            throw new Error(SCAN_CANCELLED_MESSAGE);
           }
         };
 
@@ -278,9 +307,10 @@ export function startIngestionProcessor(
             connector,
             config: data.config,
             onProgress: reportScanProgress,
+            shouldAbort,
           });
         } catch (err) {
-          if (err instanceof Error && err.message === 'scan_cancelled') {
+          if (isScanCancelledError(err)) {
             await markScanCancelled(prisma, scan.id, jobRun.id);
             return { ok: true, cancelled: true };
           }
@@ -415,6 +445,12 @@ export function startIngestionProcessor(
 
         return { ok: true, status: finalStatus, job_run_id: jobRun.id };
       } catch (error) {
+        if (isScanCancelledError(error)) {
+          if (jobRunId && data.scan_attempt_id) {
+            await markScanCancelled(prisma, data.scan_attempt_id, jobRunId).catch(() => undefined);
+          }
+          return { ok: true, cancelled: true };
+        }
         const attempts = Number(job.opts.attempts ?? 1);
         const finalAttempt = job.attemptsMade + 1 >= attempts;
         if (finalAttempt && jobRunId && data.scan_attempt_id) {
@@ -428,6 +464,8 @@ export function startIngestionProcessor(
           }
         }
         throw error;
+      } finally {
+        await shutdownRenderedFetchBrowser().catch(() => undefined);
       }
     },
     { connection, prefix: process.env.BULLMQ_PREFIX || 'oma', concurrency: 1 },

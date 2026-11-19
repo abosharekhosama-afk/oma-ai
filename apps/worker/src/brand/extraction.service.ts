@@ -28,6 +28,7 @@ import {
   scanCatalogProgressPercent,
   scanCrawlProgressPercent,
   scanSitemapProgressPercent,
+  SCAN_CANCELLED_MESSAGE,
   shouldAdoptRenderedExtraction,
   productMediaUrlCount,
   shouldUseJsRender,
@@ -239,6 +240,12 @@ export type ScanExtractionProgress = {
   pagesSkipped?: number;
 };
 
+async function ensureScanNotAborted(shouldAbort?: () => Promise<boolean>) {
+  if (shouldAbort && (await shouldAbort())) {
+    throw new Error(SCAN_CANCELLED_MESSAGE);
+  }
+}
+
 export async function runExtractionForScan(input: {
   tenantId: string;
   brandId: string;
@@ -247,6 +254,7 @@ export async function runExtractionForScan(input: {
   connector: WebsiteConnectorPort;
   config?: CrawlConfig;
   onProgress?: (patch: ScanExtractionProgress) => Promise<void>;
+  shouldAbort?: () => Promise<boolean>;
 }) {
   const maxPages = input.config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50);
   const maxDepth = input.config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3);
@@ -316,6 +324,7 @@ export async function runExtractionForScan(input: {
   };
 
   const startHost = new URL(input.startUrl).host;
+  await ensureScanNotAborted(input.shouldAbort);
   try {
     const robotsInfo = await input.connector.inspectRobots(startHost);
     const seedTargets = fixtureCrawl
@@ -324,9 +333,17 @@ export async function runExtractionForScan(input: {
     const sitemapDocs = [...new Set(seedTargets)].slice(0, maxSitemapDocuments);
     let docsFetched = 0;
     while (sitemapDocs.length > 0 && docsFetched < maxSitemapDocuments && Date.now() < deadline) {
+      await ensureScanNotAborted(input.shouldAbort);
       const sitemapUrl = sitemapDocs.shift();
       if (!sitemapUrl) break;
       docsFetched += 1;
+      await emitProgress({
+        progressPercent: scanSitemapProgressPercent(),
+        status: 'CRAWLING',
+        pagesFetched,
+        pagesFailed,
+        pagesSkipped,
+      });
       try {
         const fetched = await input.connector.fetchPublic({
           url: sitemapUrl,
@@ -365,6 +382,7 @@ export async function runExtractionForScan(input: {
   });
 
   while (queue.length > 0 && pagesFetched < maxPages && Date.now() < deadline) {
+    await ensureScanNotAborted(input.shouldAbort);
     const current = queue.shift();
     if (!current) break;
     let normalizedUrl = current.url;
@@ -456,6 +474,7 @@ export async function runExtractionForScan(input: {
         }) &&
         (jsRenderMode === 'always' || jsRenderBudget > 0);
       if (wantsJsRender) {
+        await ensureScanNotAborted(input.shouldAbort);
         if (jsRenderMode !== 'always') jsRenderBudget -= 1;
         pagesJsRenderAttempted += 1;
         try {
