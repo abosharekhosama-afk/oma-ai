@@ -44,7 +44,10 @@ export function ProfileVersionCard({
         : t('brand.versions.aiUnavailable');
 
   return (
-    <li className="oma-plx-listening-card oma-profile-version-card" data-testid="profile-version-card">
+    <li
+      className="oma-plx-listening-card oma-profile-version-card"
+      data-testid="profile-version-card"
+    >
       <header className="oma-profile-version-card__head">
         <div className="oma-profile-version-card__title-row">
           <Link href={profileHref} className="oma-profile-version-card__title">
@@ -109,10 +112,7 @@ export function ProfileVersionCard({
           </Link>
         ) : null}
         {approvedProfileId && version.id !== approvedProfileId ? (
-          <Link
-            href={`${profileHref}/compare`}
-            className="oma-text-link"
-          >
+          <Link href={`${profileHref}/compare`} className="oma-text-link">
             {t('brand.profile.compare')}
           </Link>
         ) : null}

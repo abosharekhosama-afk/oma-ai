@@ -1,3 +1,8 @@
+import {
+  workerHeartbeatRedisKey,
+  workerHeartbeatAgeSeconds,
+  workerHeartbeatStale,
+} from '@oma/domain';
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
@@ -30,6 +35,13 @@ export class PlatformHealthController {
       consumer_heartbeat: string | null;
     }> = [];
 
+    let workerHeartbeat: string | null = null;
+    try {
+      workerHeartbeat = await redis.get(workerHeartbeatRedisKey());
+    } catch {
+      workerHeartbeat = null;
+    }
+
     try {
       for (const name of MONITORED_QUEUES) {
         const q = new Queue(name, { connection: redis, prefix });
@@ -51,12 +63,17 @@ export class PlatformHealthController {
       await redis.quit().catch(() => undefined);
     }
 
+    const ageSeconds = workerHeartbeatAgeSeconds(workerHeartbeat);
     return {
       data: {
         prefix,
         queues,
-        worker_heartbeat: null,
-        note: 'Queue depth only; worker liveness is unknown unless WORKER_HEARTBEAT_KEY is configured.',
+        worker_heartbeat: workerHeartbeat,
+        worker_heartbeat_age_seconds: ageSeconds,
+        worker_alive: workerHeartbeat ? !workerHeartbeatStale(workerHeartbeat) : false,
+        note: workerHeartbeat
+          ? 'Worker heartbeat from Redis; ingestion may still backlog if scans are heavy.'
+          : 'No worker heartbeat in Redis — confirm Worker is running and shares REDIS_URL + BULLMQ_PREFIX with API.',
       },
     };
   }
