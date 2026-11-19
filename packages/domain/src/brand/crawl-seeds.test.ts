@@ -3,6 +3,8 @@ import {
   buildMarketingSeedUrls,
   buildSitemapSeedUrls,
   isCatalogLikePath,
+  isLowValueCrawlPath,
+  isProductLikePathname,
   parseExtraPathSeeds,
 } from './crawl-seeds';
 
@@ -26,6 +28,20 @@ describe('crawl-seeds', () => {
 
   it('detects catalog-like paths', () => {
     expect(isCatalogLikePath('/en/products/widget')).toBe(true);
+    expect(isCatalogLikePath('/منتجات/العاب')).toBe(true);
     expect(isCatalogLikePath('/about-us')).toBe(false);
+  });
+
+  it('detects product-like and low-value paths', () => {
+    expect(isProductLikePathname('/ar/shop')).toBe(true);
+    expect(isProductLikePathname('/privacy-policy')).toBe(false);
+    expect(isLowValueCrawlPath('/en/blog/post-1')).toBe(true);
+    expect(isLowValueCrawlPath('/ar/contact')).toBe(false);
+  });
+
+  it('includes Arabic marketing seeds', () => {
+    const urls = buildMarketingSeedUrls('https://brand.test').map((u) => decodeURIComponent(u));
+    expect(urls.some((u) => u.endsWith('/منتجات'))).toBe(true);
+    expect(urls.some((u) => u.endsWith('/خدمات'))).toBe(true);
   });
 });

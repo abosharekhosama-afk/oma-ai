@@ -9,10 +9,13 @@ import {
   contentHash,
   discoveryTierForField,
   extractFromHtml,
+  inferCrawlStopReason,
   isBrandFixtureConnectorEnabled,
   isCatalogLikePath,
   isInCrawlScope,
+  isLowValueCrawlPath,
   isProductDetailUrl,
+  isProductLikePathname,
   maxProductMediaFromEnv,
   newId,
   productDedupeKey,
@@ -62,12 +65,19 @@ function enqueueCrawlUrl(
   }
   try {
     // Single-product pages carry the product's own gallery and facts — crawl them first.
-    if (productPagesFirst && isProductDetailUrl(url)) {
+    const path = new URL(url).pathname;
+    if (isLowValueCrawlPath(path)) {
+      queue.push(entry);
+      return;
+    }
+    if (
+      productPagesFirst &&
+      (isProductDetailUrl(url) || isProductLikePathname(path) || isCatalogLikePath(path))
+    ) {
       queue.unshift(entry);
       return;
     }
-    const path = new URL(url).pathname;
-    if (isCatalogLikePath(path)) {
+    if (isCatalogLikePath(path) || isProductLikePathname(path)) {
       // After product pages, before everything else.
       const firstOther = queue.findIndex((q) => !isProductDetailUrl(q.url));
       if (firstOther < 0) queue.push(entry);
@@ -428,7 +438,7 @@ export async function runExtractionForScan(input: {
         catalogStats.platformError = platform.error;
         catalogStats.platformProducts = platform.products.length;
         for (const product of platform.products) catalog.add(product);
-        // The platform already gave us every product; crawl pages in the normal order.
+        // Optional boost only: empty platform API must not reduce page-crawl priority.
         if (platform.products.length > 0) productPagesFirst = false;
       }
       let extracted = extractFromHtml(fetched.finalUrl, htmlBody);
@@ -440,6 +450,7 @@ export async function runExtractionForScan(input: {
           pageUrl: normalizedUrl,
           productCount: extracted.products.length,
           productMediaCount: productMediaUrlCount(extracted.products),
+          knownFieldCount: extracted.fields.filter((f) => !f.isUnknown).length,
         })
       ) {
         pagesJsRenderAttempted += 1;
@@ -552,7 +563,12 @@ export async function runExtractionForScan(input: {
           try {
             const next = canonicalizeUrl(new URL(link.href, fetched.finalUrl).toString());
             if (isInCrawlScope(input.startUrl, next)) {
-              enqueueCrawlUrl(queue, next, current.depth + 1, false, productPagesFirst);
+              const nextPath = new URL(next).pathname;
+              const urgent =
+                isProductDetailUrl(next) ||
+                isProductLikePathname(nextPath) ||
+                isCatalogLikePath(nextPath);
+              enqueueCrawlUrl(queue, next, current.depth + 1, urgent, productPagesFirst);
             }
           } catch {
             // skip bad links
@@ -589,6 +605,13 @@ export async function runExtractionForScan(input: {
     scanAttemptId: input.scanAttemptId,
   });
 
+  const stopReason = inferCrawlStopReason({
+    queueLength: queue.length,
+    pagesFetched,
+    maxPages,
+    deadlineMs: deadline,
+  });
+
   return {
     pagesFetched,
     pagesFailed,
@@ -600,6 +623,7 @@ export async function runExtractionForScan(input: {
     jsRenderErrorDetails,
     jsRenderLaunchDetail,
     jsRenderMode,
+    stopReason,
     catalog: catalogStats,
   };
 }

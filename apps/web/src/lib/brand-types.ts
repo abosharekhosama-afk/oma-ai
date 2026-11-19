@@ -75,6 +75,12 @@ export type ScanDetail = {
     pages_discovered?: number;
     products_discovered?: number;
     services_discovered?: number;
+    products_persisted?: number;
+    js_render_adopted?: number;
+    stop_reason?: string;
+    catalog_platform?: string | null;
+    catalog_platform_products?: number;
+    catalog_platform_error?: string | null;
   } | null;
   job_run_id: string;
   error_code: string | null;

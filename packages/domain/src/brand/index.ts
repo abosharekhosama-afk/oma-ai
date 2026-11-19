@@ -7,6 +7,7 @@ export * from './extractors';
 export * from './discovery-tiers';
 export * from './scan-transitions';
 export * from './scan-progress';
+export * from './scan-crawl-stop';
 export * from './immutability';
 export * from './approval-eligibility';
 export * from './info-state';
