@@ -1,10 +1,5 @@
 export type ScanCrawlStopReason =
-  | 'queue_empty'
-  | 'max_pages'
-  | 'deadline'
-  | 'max_depth'
-  | 'cancelled'
-  | 'error';
+  'queue_empty' | 'max_pages' | 'deadline' | 'max_depth' | 'cancelled' | 'error';
 
 /** Why the crawl loop exited (advisory for coverage JSON). */
 export function inferCrawlStopReason(input: {
