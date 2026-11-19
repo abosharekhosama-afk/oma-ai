@@ -65,3 +65,4 @@ export * from './analytics/optimal-send-times';
 export * from './analytics/publish-queue';
 export * from './work/brief-entity';
 export * from './work/brief-legacy';
+export * from './platform/worker-heartbeat';

@@ -34,6 +34,10 @@ OPENAI_API_KEY=...
 
 **Do not** set `BRAND_FIXTURE_CONNECTOR=1` for real-site closure proof.
 
+### Render / managed hosting
+
+For **Render** (or similar small Postgres + 512MB–1GB Worker), use [`docs/RENDER_OPERATIONS_STABILITY.md`](../../docs/RENDER_OPERATIONS_STABILITY.md): `connection_limit` on `DATABASE_URL`, `BRAND_SCANNER_JS_RENDER_MODE=auto`, sane JS timeouts, Worker RAM, and `WORKER_OUTBOX_TICK_MS` if pool timeouts appear during scans.
+
 ### Ops smoke (CHK010 helper)
 
 With API running locally or on staging:
@@ -42,7 +46,7 @@ With API running locally or on staging:
 API_BASE=https://your-api-host scripts/closure-005/ops-smoke.sh
 ```
 
-Confirm Worker logs show an ingestion job consumed within **2 minutes** after enqueueing a scan (manual sign-off on `checklists/requirements.md` CHK010).
+`ops-smoke.sh` checks `worker_alive` when `jq` is installed. Then enqueue a scan and confirm `ingestion.active` drains within **2 minutes** (manual sign-off on `checklists/requirements.md` CHK010).
 
 ---
 
