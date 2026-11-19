@@ -127,12 +127,15 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
       );
     }
 
-    try {
-      await page.waitForLoadState('networkidle', {
-        timeout: Math.min(15_000, Math.max(3_000, Math.floor(timeoutMs / 2))),
-      });
-    } catch {
-      // SPAs may never reach networkidle; continue with a short settle delay.
+    const networkIdleMs = Number(process.env.BRAND_SCANNER_JS_NETWORK_IDLE_MS ?? 6_000);
+    if (networkIdleMs > 0) {
+      try {
+        await page.waitForLoadState('networkidle', {
+          timeout: Math.min(networkIdleMs, Math.max(2_000, Math.floor(timeoutMs / 2))),
+        });
+      } catch {
+        // SPAs may never reach networkidle; continue with a short settle delay.
+      }
     }
     const waitSelector = process.env.BRAND_SCANNER_JS_WAIT_SELECTOR?.trim();
     if (waitSelector) {
@@ -144,7 +147,10 @@ export async function fetchRenderedPageHtml(url: string): Promise<string> {
         // Grid selectors vary by site; settle delay still applies.
       }
     }
-    await page.waitForTimeout(Math.min(4_000, Math.max(800, Math.floor(timeoutMs / 8))));
+    const settleMs = Number(process.env.BRAND_SCANNER_JS_SETTLE_MS ?? 1_500);
+    if (settleMs > 0) {
+      await page.waitForTimeout(Math.min(settleMs, Math.max(400, Math.floor(timeoutMs / 6))));
+    }
 
     const html = await page.content();
     if (html.length > Number(process.env.BRAND_MAX_BYTES ?? 1_000_000)) {

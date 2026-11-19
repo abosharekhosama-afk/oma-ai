@@ -1,5 +1,5 @@
 import { parse as parseHtml } from 'node-html-parser';
-import { isCatalogLikePath, isProductLikePathname } from './crawl-seeds';
+import { isCatalogLikePath, isLowValueCrawlPath, isProductLikePathname } from './crawl-seeds';
 import type { ExtractedProduct } from './extractors';
 import { isProductDetailUrl } from './product-detection';
 
@@ -50,6 +50,7 @@ export function shouldUseJsRender(input: {
   const mediaCount = input.productMediaCount ?? 0;
   const knownFields = input.knownFieldCount ?? 0;
   if (looksLikeSpaShell(input.html)) return true;
+  if (input.mode === 'auto' && isLowValueCrawlPath(path)) return false;
   const productLike = isProductLikePathname(path) || isCatalogLikePath(path);
   const detailUrl = isProductDetailUrl(input.pageUrl);
   if (productLike && input.productCount === 0) return true;

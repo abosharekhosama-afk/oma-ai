@@ -46,6 +46,10 @@ When the worker has `playwright-core` and Chromium available, set:
 | `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000` | Per-page render timeout                                                                                                               |
 | `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`  | Block fonts and non-image media during render to save RAM                                                                             |
 | `BRAND_SCANNER_JS_BLOCK_IMAGES`          | `false` | Optional low-memory mode; blocks images too, but can prevent lazy-loaded product galleries from being discovered                      |
+| `BRAND_SCANNER_JS_RENDER_MAX_PAGES`      | `20`    | In `auto`, max Playwright renders per scan (`unlimited` or `0` = no cap). Static crawl continues for all pages.                        |
+| `BRAND_SCANNER_JS_NETWORK_IDLE_MS`       | `6000`  | Wait for `networkidle` (ms); set `0` to skip and rely on settle only (faster, thinner SPAs).                                          |
+| `BRAND_SCANNER_JS_SETTLE_MS`             | `1500`  | Extra delay after load before snapshot HTML (set `0` to skip).                                                                        |
+| `BRAND_SCANNER_JS_WAIT_SELECTOR`         | (none)  | Optional CSS selector to wait for (e.g. product grid) before capture.                                                                 |
 
 `auto` keeps static fetch first; Playwright runs only when heuristics say JS is likely required. Images
 remain enabled during rendered scans so lazy loaders can populate product galleries. In `always` mode,

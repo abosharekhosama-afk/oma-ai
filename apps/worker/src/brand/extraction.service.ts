@@ -16,6 +16,7 @@ import {
   isLowValueCrawlPath,
   isProductDetailUrl,
   isProductLikePathname,
+  maxJsRenderPagesFromEnv,
   maxProductMediaFromEnv,
   newId,
   productDedupeKey,
@@ -291,6 +292,7 @@ export async function runExtractionForScan(input: {
   const jsRenderErrorDetails: string[] = [];
   let jsRenderLaunchDetail: string | null = null;
   const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
+  let jsRenderBudget = maxJsRenderPagesFromEnv();
 
   const recordJsRenderError = (code: string, detail?: string) => {
     if (code === 'PLAYWRIGHT_LAUNCH_FAILED') {
@@ -443,7 +445,7 @@ export async function runExtractionForScan(input: {
       }
       let extracted = extractFromHtml(fetched.finalUrl, htmlBody);
       let pageUsedRendered = false;
-      if (
+      const wantsJsRender =
         shouldUseJsRender({
           mode: jsRenderMode,
           html: htmlBody,
@@ -451,8 +453,10 @@ export async function runExtractionForScan(input: {
           productCount: extracted.products.length,
           productMediaCount: productMediaUrlCount(extracted.products),
           knownFieldCount: extracted.fields.filter((f) => !f.isUnknown).length,
-        })
-      ) {
+        }) &&
+        (jsRenderMode === 'always' || jsRenderBudget > 0);
+      if (wantsJsRender) {
+        if (jsRenderMode !== 'always') jsRenderBudget -= 1;
         pagesJsRenderAttempted += 1;
         try {
           const renderedHtml = await fetchRenderedPageHtml(fetched.finalUrl);

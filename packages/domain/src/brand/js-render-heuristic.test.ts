@@ -60,6 +60,14 @@ describe('js-render-heuristic', () => {
         knownFieldCount: 0,
       }),
     ).toBe(true);
+    expect(
+      shouldUseJsRender({
+        mode: 'auto',
+        html: '<html><body><article>Post</article></body></html>',
+        pageUrl: 'https://shop.test/blog/launch',
+        productCount: 0,
+      }),
+    ).toBe(false);
   });
 
   it('always mode adopts render even without product delta', () => {
