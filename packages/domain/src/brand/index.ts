@@ -9,6 +9,7 @@ export * from './scan-transitions';
 export * from './scan-progress';
 export * from './scan-crawl-stop';
 export * from './scan-abort';
+export * from './scan-bounds';
 export * from './bull-ingestion';
 export * from './immutability';
 export * from './approval-eligibility';

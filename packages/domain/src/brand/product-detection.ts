@@ -57,7 +57,9 @@ export function isProductDetailUrl(raw: string): boolean {
     .filter(Boolean);
   if (segments.length === 0) return false;
   const last = segments[segments.length - 1]!;
-  if (/^p\d{3,}$/i.test(last)) return true; // Salla
+  if (/^p\d{3,}$/i.test(last)) return true; // Salla / iGroup short URLs
+  if (/\/-\/p\d+/i.test(url.pathname)) return true; // iGroup redirect-style product paths
+  if (/^\d{6,}-/i.test(last)) return true; // iGroup SKU-slug product pages
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i]!.toLowerCase();
     if (/^(products?|product-page|item|items|p|منتج|المنتجات|منتجات)$/.test(seg)) {

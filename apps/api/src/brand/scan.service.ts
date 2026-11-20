@@ -6,6 +6,9 @@ import {
   catalogOfferingsFromDiscoveryRows,
   estimateCatalogContentRequests,
   isTerminalScanStatus,
+  marketingSeedDeferThreshold,
+  marketingSeedPathsEnabled,
+  clampScanMaxPages,
   newId,
 } from '@oma/domain';
 import { billingService } from '../billing/billing.service';
@@ -26,11 +29,16 @@ export class ScanService {
   ) {}
 
   defaultScanConfig() {
-    return this.clampConfig(undefined);
+    const bounds = this.clampConfig(undefined);
+    return {
+      ...bounds,
+      marketing_seeds_enabled: marketingSeedPathsEnabled(),
+      marketing_seed_defer_min_sitemap_urls: marketingSeedDeferThreshold(),
+    };
   }
 
   private clampConfig(config?: ScanConfig) {
-    const maxPages = Math.min(config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50), 100);
+    const maxPages = clampScanMaxPages(config?.max_pages, process.env);
     const maxDepth = Math.min(config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3), 5);
     const maxDuration = Math.min(
       config?.max_duration_seconds ?? Number(process.env.BRAND_MAX_DURATION_SECONDS ?? 600),

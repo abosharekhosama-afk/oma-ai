@@ -27,7 +27,7 @@ When the connector is `disabled`, the URL can still be saved so a profile can ex
 - Identifies itself with `BRAND_SCANNER_USER_AGENT`, sends `Accept-Language`, and accepts gzip/br.
 - Limits per-host concurrency and adds a polite delay. `429` / `503` responses honor `Retry-After` with bounded retries.
 - Fetches and parses `robots.txt` (user-agent groups, `Allow` / `Disallow` with `*` and `$`, longest-match with Allow winning ties, `Crawl-delay`, `Sitemap`). A missing file (404) allows crawling; a 5xx response is treated conservatively as disallow (RFC 9309).
-- Seeds additional URLs from sitemap indexes and common locations (`/sitemap.xml`, `/wp-sitemap.xml`, …). Generic marketing paths (`/products`, `/shop`, …) are probed **only when the sitemap yields fewer than `BRAND_SCANNER_MARKETING_SEEDS_MIN_SITEMAP_URLS` (default 12)**. Missing seeds (HTTP 404/410) are recorded as `SKIPPED_LIMIT` + `MARKETING_SEED_MISS` and do not inflate `pages_failed` (including percent-encoded Arabic seed paths). Disable entirely with `BRAND_SCANNER_MARKETING_SEEDS=off` or custom `BRAND_SCANNER_PATH_SEEDS`. Rate limits (`HTTP 429`) are retried with backoff; duplicate canonical pages are deduplicated (`/` vs `/en`).
+- Seeds additional URLs from sitemap indexes and common locations (`/sitemap.xml`, `/wp-sitemap.xml`, …). Generic marketing paths (`/products`, `/shop`, …) are probed **only when the sitemap yields fewer than `BRAND_SCANNER_MARKETING_SEEDS_MIN_SITEMAP_URLS` (default 1)** and the homepage bootstrap did not already populate the queue. Seeds are enqueued **after** the start URL and sitemap URLs (not ahead of them). When no sitemap URLs were found, the worker prefetches the homepage once to enqueue in-scope nav links before optional seeds. Missing seeds (HTTP 404/410) are recorded as `SKIPPED_LIMIT` + `MARKETING_SEED_MISS` and do not inflate `pages_failed` (including percent-encoded Arabic seed paths). Exhausted `429` responses are `HTTP_429_RATE_LIMIT` (skipped, not failed). Disable seeds entirely with `BRAND_SCANNER_MARKETING_SEEDS=off` or custom `BRAND_SCANNER_PATH_SEEDS`. Duplicate canonical pages are deduplicated (`/` vs `/en`).
 - Prioritizes catalog-like paths in the crawl queue when link budget is tight.
 - Canonicalizes URLs (fragments and tracking parameters such as `utm_*` are stripped) and respects `link rel=canonical` plus `meta robots` `nofollow` when discovering links.
 - Extracts title, description, JSON-LD, **products/services** (see below), organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
@@ -79,6 +79,16 @@ After installing Chromium, **start a new scan** — previous scan rows are immut
 UI cancel sets `ScanAttempt` + `JobRun` to `CANCELLED`, removes **queued** BullMQ ingestion/analysis jobs when `REDIS_URL` is available, and the worker **polls abort every ~400ms** during sitemap/crawl/JS render. Playwright is shut down after each ingestion job to reduce memory on small workers.
 
 Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`, and up to five distinct `js_render_errors` codes for operations debugging.
+
+## Full catalog coverage (400+ products)
+
+A scan is **not** “every HTML page on the domain.” Products arrive from:
+
+1. **Platform catalog API** (best for large stores) — one iGroup/Shopify/Woo call can return hundreds of SKUs when bundle config is detected.
+2. **Sitemap + product-detail crawls** — each product page consumes one unit of `max_pages` (default env **120**, hard cap `BRAND_SCAN_MAX_PAGES_CAP` default **250**).
+3. **Post-scan reconciliation** — `POST …/catalog/reimport-media` re-syncs products from the platform API against an existing scan.
+
+If you see ~30 products on a 400-SKU site, typical causes are: `max_pages` too low, iGroup API config not loaded from JS bundles, or rate limits (429). On Render Worker set e.g. `BRAND_MAX_PAGES=200`, `BRAND_SCAN_MAX_PAGES_CAP=400`, `BRAND_MAX_DURATION_SECONDS=1200`, `BRAND_SCANNER_DELAY_MS=1000`, ensure `BRAND_PLATFORM_ADAPTERS=1`, then re-scan.
 
 ## Product catalog extraction
 
@@ -141,7 +151,8 @@ Running it twice yields the same rows and links. Media import needs a connected 
 | ----------------------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
 | `BRAND_WEBSITE_CONNECTOR`           | unset (`live`, unless fixture flag is on) | Adapter selection                                                |
 | `BRAND_FIXTURE_CONNECTOR`           | unset                                     | `1` enables fixtures outside production                          |
-| `BRAND_MAX_PAGES`                   | `50`                                      | Maximum HTML pages per scan                                      |
+| `BRAND_MAX_PAGES`                   | `50` (example **120**)                    | Target HTML pages per scan (clamped by cap below)                |
+| `BRAND_SCAN_MAX_PAGES_CAP`          | `250`                                     | Hard max pages API/worker accept per scan                        |
 | `BRAND_MAX_DEPTH`                   | `3`                                       | Maximum link depth                                               |
 | `BRAND_MAX_DURATION_SECONDS`        | `600`                                     | Scan wall-clock limit                                            |
 | `BRAND_MAX_BYTES`                   | `1000000`                                 | Maximum response body size                                       |
