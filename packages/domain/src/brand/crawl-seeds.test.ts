@@ -47,10 +47,12 @@ describe('crawl-seeds', () => {
   });
 
   it('disables marketing seeds when env off', () => {
-    expect(buildMarketingSeedUrls('https://brand.test', { BRAND_SCANNER_MARKETING_SEEDS: 'off' })).toEqual(
-      [],
+    expect(
+      buildMarketingSeedUrls('https://brand.test', { BRAND_SCANNER_MARKETING_SEEDS: 'off' }),
+    ).toEqual([]);
+    expect(isMarketingSeedPathname('/products', { BRAND_SCANNER_MARKETING_SEEDS: 'off' })).toBe(
+      false,
     );
-    expect(isMarketingSeedPathname('/products', { BRAND_SCANNER_MARKETING_SEEDS: 'off' })).toBe(false);
     expect(isMarketingSeedPathname('/products')).toBe(true);
   });
 

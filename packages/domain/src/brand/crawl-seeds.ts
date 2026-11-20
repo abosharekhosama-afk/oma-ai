@@ -72,7 +72,10 @@ export function normalizePathnameForComparison(pathname: string): string {
   return path || '/';
 }
 
-export function isMarketingSeedPathname(pathname: string, env: NodeJS.ProcessEnv = process.env): boolean {
+export function isMarketingSeedPathname(
+  pathname: string,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
   if (!marketingSeedPathsEnabled(env)) return false;
   const normalized = normalizePathnameForComparison(pathname);
   const raw = env.BRAND_SCANNER_PATH_SEEDS?.trim();
