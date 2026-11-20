@@ -23,7 +23,7 @@ import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand
 import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
-import { StatusChip, statusLabel } from '../../../../../../../components/ui/status-chip';
+import { statusLabel } from '../../../../../../../components/ui/status-chip';
 import { DiscoveryTabs } from '../../../../../../../components/brand/discovery-tabs';
 import { DiscoveryPageCard } from '../../../../../../../components/brand/discovery-page-card';
 import { filterDiscoveryPages } from '../../../../../../../lib/discovery-filter';
