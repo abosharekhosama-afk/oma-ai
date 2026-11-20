@@ -308,6 +308,7 @@ export async function runExtractionForScan(input: {
   const maxFetchAttempts =
     maxPages + Math.max(0, Number(process.env.BRAND_SCANNER_MAX_FAILED_ATTEMPTS ?? '20') || 20);
   let urlsFromSitemap = 0;
+  let urlsFromHomeBootstrap = 0;
 
   const recordJsRenderError = (code: string, detail?: string) => {
     if (code === 'PLAYWRIGHT_LAUNCH_FAILED') {
@@ -381,11 +382,65 @@ export async function runExtractionForScan(input: {
     // robots/sitemap discovery is best-effort
   }
 
-  const deferMarketing = urlsFromSitemap >= marketingSeedDeferThreshold();
+  if (
+    !fixtureCrawl &&
+    urlsFromSitemap < marketingSeedDeferThreshold() &&
+    queue.length <= 1 &&
+    Date.now() < deadline
+  ) {
+    await ensureScanNotAborted(input.shouldAbort);
+    try {
+      const homeUrl = canonicalizeUrl(input.startUrl);
+      const fetched = await input.connector.fetchPublic({ url: homeUrl, maxBytes });
+      if (fetched.status < 400) {
+        if (!platformChecked) {
+          platformChecked = true;
+          const platform = await fetchPlatformCatalog({
+            startUrl: fetched.finalUrl,
+            homeHtml: fetched.body,
+            connector: input.connector,
+            deadline,
+            maxProducts,
+            mediaCap,
+          });
+          catalogStats.platform = platform.detection?.platform ?? null;
+          catalogStats.platformEvidence = platform.detection?.evidence ?? null;
+          catalogStats.platformError = platform.error;
+          catalogStats.platformProducts = platform.products.length;
+          for (const product of platform.products) catalog.add(product);
+          if (platform.products.length > 0) productPagesFirst = false;
+        }
+        const extracted = extractFromHtml(fetched.finalUrl, fetched.body);
+        for (const link of extracted.links) {
+          if (link.rel.includes('nofollow')) continue;
+          try {
+            const next = canonicalizeUrl(new URL(link.href, fetched.finalUrl).toString());
+            if (!isInCrawlScope(input.startUrl, next)) continue;
+            const nextPath = new URL(next).pathname;
+            const urgent =
+              isProductDetailUrl(next) ||
+              isProductLikePathname(nextPath) ||
+              isCatalogLikePath(nextPath);
+            enqueueCrawlUrl(queue, next, 1, urgent, productPagesFirst);
+            urlsFromHomeBootstrap += 1;
+          } catch {
+            // skip bad links
+          }
+        }
+      }
+    } catch {
+      // homepage bootstrap is best-effort
+    }
+  }
+
+  const deferMarketing =
+    urlsFromSitemap >= marketingSeedDeferThreshold() ||
+    urlsFromHomeBootstrap >= 8 ||
+    queue.length >= 12;
   if (!fixtureCrawl && !deferMarketing && marketingSeedPathsEnabled()) {
     for (const seedUrl of buildMarketingSeedUrls(input.startUrl)) {
       if (isInCrawlScope(input.startUrl, seedUrl)) {
-        enqueueCrawlUrl(queue, canonicalizeUrl(seedUrl), 1, true);
+        enqueueCrawlUrl(queue, canonicalizeUrl(seedUrl), 1, false);
       }
     }
   }
@@ -477,6 +532,28 @@ export async function runExtractionForScan(input: {
               contentType: fetched.contentType,
               fetchStatus: 'SKIPPED_LIMIT',
               failureReason: 'MARKETING_SEED_MISS',
+            },
+          });
+          continue;
+        }
+        if (fetched.status === 429) {
+          pagesSkipped += 1;
+          if (failedPageSamples.length < maxFailedSamples) {
+            failedPageSamples.push({ url: normalizedUrl, reason: 'HTTP_429_RATE_LIMIT' });
+          }
+          await getPrisma().discoveredPage.create({
+            data: {
+              id: newId(),
+              tenantId: input.tenantId,
+              brandId: input.brandId,
+              scanAttemptId: input.scanAttemptId,
+              url: normalizedUrl,
+              canonicalUrl: fetched.finalUrl,
+              canonicalHash: canonicalHash(fetched.finalUrl),
+              httpStatus: fetched.status,
+              contentType: fetched.contentType,
+              fetchStatus: 'SKIPPED_LIMIT',
+              failureReason: 'HTTP_429_RATE_LIMIT',
             },
           });
           continue;
@@ -714,6 +791,7 @@ export async function runExtractionForScan(input: {
     pagesFetched,
     pagesFailed,
     pagesSkipped,
+    urlsFromHomeBootstrap,
     failedPageSamples,
     pagesJsRendered,
     pagesJsRenderAttempted,

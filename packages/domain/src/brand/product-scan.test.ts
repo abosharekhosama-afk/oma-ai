@@ -257,6 +257,9 @@ describe('platform adapters', () => {
     expect(detectStorefrontPlatform('<script src="https://cdn.salla.network/x.js">')).toMatchObject(
       { platform: 'salla' },
     );
+    expect(detectStorefrontPlatform('<a href="/en/-/c1037795821">catalog</a>')).toMatchObject({
+      platform: 'igroup',
+    });
     expect(detectStorefrontPlatform('<html></html>')).toBeNull();
   });
 

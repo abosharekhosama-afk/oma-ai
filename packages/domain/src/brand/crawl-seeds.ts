@@ -84,8 +84,9 @@ export function isMarketingSeedPathname(
 }
 
 export function marketingSeedDeferThreshold(env: NodeJS.ProcessEnv = process.env): number {
-  const n = Number(env.BRAND_SCANNER_MARKETING_SEEDS_MIN_SITEMAP_URLS ?? '12');
-  return Number.isFinite(n) && n >= 0 ? n : 12;
+  /** Default 1: any sitemap URL defers generic /shop probes (universal sites with real maps). */
+  const n = Number(env.BRAND_SCANNER_MARKETING_SEEDS_MIN_SITEMAP_URLS ?? '1');
+  return Number.isFinite(n) && n >= 0 ? n : 1;
 }
 
 export function parseExtraPathSeeds(env: NodeJS.ProcessEnv = process.env): string[] {

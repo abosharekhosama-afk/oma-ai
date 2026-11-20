@@ -359,6 +359,8 @@ export function startIngestionProcessor(
           products_persisted: counts.catalog?.productsPersisted ?? 0,
           js_render_adopted: counts.pagesJsRendered ?? 0,
           stop_reason: counts.stopReason ?? 'queue_empty',
+          urls_from_home_bootstrap:
+            typeof counts.urlsFromHomeBootstrap === 'number' ? counts.urlsFromHomeBootstrap : 0,
           failed_pages: counts.failedPageSamples ?? [],
           required_missing: usable
             ? []

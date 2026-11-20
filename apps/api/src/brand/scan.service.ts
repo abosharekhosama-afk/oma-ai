@@ -6,6 +6,8 @@ import {
   catalogOfferingsFromDiscoveryRows,
   estimateCatalogContentRequests,
   isTerminalScanStatus,
+  marketingSeedDeferThreshold,
+  marketingSeedPathsEnabled,
   newId,
 } from '@oma/domain';
 import { billingService } from '../billing/billing.service';
@@ -26,7 +28,12 @@ export class ScanService {
   ) {}
 
   defaultScanConfig() {
-    return this.clampConfig(undefined);
+    const bounds = this.clampConfig(undefined);
+    return {
+      ...bounds,
+      marketing_seeds_enabled: marketingSeedPathsEnabled(),
+      marketing_seed_defer_min_sitemap_urls: marketingSeedDeferThreshold(),
+    };
   }
 
   private clampConfig(config?: ScanConfig) {
