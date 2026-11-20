@@ -243,7 +243,10 @@ export default function DiscoveryPagesPage() {
               <p>{t('brand.discovery.pagesEmpty')}</p>
             </div>
           ) : (
-            <ul className="oma-plx-brand-data-grid oma-discovery-pages-grid" data-testid="discovery-pages-cards">
+            <ul
+              className="oma-plx-brand-data-grid oma-discovery-pages-grid"
+              data-testid="discovery-pages-cards"
+            >
               {visiblePages.map((page) => (
                 <DiscoveryPageCard
                   key={page.id}
