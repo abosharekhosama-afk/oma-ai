@@ -98,6 +98,8 @@ describe('product media urls', () => {
 describe('product detection', () => {
   it('classifies product detail vs listing urls', () => {
     expect(isProductDetailUrl('https://shop.test/ar/products/item-12')).toBe(true);
+    expect(isProductDetailUrl('https://oud.test/en/-/p729697311')).toBe(true);
+    expect(isProductDetailUrl('https://oud.test/en/0301020565-ramz-red-100-ml')).toBe(true);
     expect(isProductDetailUrl('https://shop.test/products')).toBe(false);
     expect(isProductDetailUrl('https://shop.test/index.php?route=x&product_id=9')).toBe(true);
     expect(isListingUrl('https://shop.test/collections/toys')).toBe(true);

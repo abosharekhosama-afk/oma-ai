@@ -63,8 +63,13 @@ export async function fetchPlatformCatalog(input: {
   let requests = 0;
   let detection = detectStorefrontPlatform(input.homeHtml);
 
-  if (!detection && looksLikeSpaShell(input.homeHtml)) {
-    for (const scriptUrl of sameOriginScriptUrls(input.homeHtml, input.startUrl)) {
+  const needsIgroupBundle =
+    (!detection && looksLikeSpaShell(input.homeHtml)) ||
+    (detection?.platform === 'igroup' && !detection.igroup);
+
+  if (needsIgroupBundle) {
+    const scriptCap = envNumber('BRAND_PLATFORM_SCRIPT_BUNDLES', 5);
+    for (const scriptUrl of sameOriginScriptUrls(input.homeHtml, input.startUrl, scriptCap)) {
       if (Date.now() > input.deadline) break;
       try {
         requests += 1;
@@ -125,10 +130,14 @@ export async function fetchPlatformCatalog(input: {
         products.push(...batch);
       }
     } else if (detection.platform === 'igroup' && detection.igroup) {
-      const locale = htmlLang(input.homeHtml) ?? 'ar';
-      const url = igroupContentUrl(detection.igroup, locale);
-      const host = new URL(url).host;
-      if ((await input.connector.evaluateRobots(host, pathOf(url))) !== 'DISALLOW') {
+      const locales = [...new Set([htmlLang(input.homeHtml) ?? 'en', 'ar', 'en'])].filter(
+        Boolean,
+      ) as string[];
+      for (const locale of locales) {
+        if (products.length >= input.maxProducts || Date.now() > input.deadline) break;
+        const url = igroupContentUrl(detection.igroup, locale);
+        const host = new URL(url).host;
+        if ((await input.connector.evaluateRobots(host, pathOf(url))) === 'DISALLOW') continue;
         requests += 1;
         const res = await input.connector.fetchPublic({
           url,
@@ -136,15 +145,16 @@ export async function fetchPlatformCatalog(input: {
           maxBytes,
           headers: igroupHeaders(detection.igroup),
         });
-        if (res.status < 400) {
-          products.push(
-            ...parseIgroupContent(JSON.parse(res.body), {
-              siteOrigin: origin,
-              locale,
-              expected: detection.igroup,
-              cap: input.mediaCap,
-            }),
-          );
+        if (res.status >= 400) continue;
+        const batch = parseIgroupContent(JSON.parse(res.body), {
+          siteOrigin: origin,
+          locale,
+          expected: detection.igroup,
+          cap: input.mediaCap,
+        });
+        if (batch.length > products.length) {
+          products.length = 0;
+          products.push(...batch);
         }
       }
     }

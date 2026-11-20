@@ -80,6 +80,16 @@ UI cancel sets `ScanAttempt` + `JobRun` to `CANCELLED`, removes **queued** BullM
 
 Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`, and up to five distinct `js_render_errors` codes for operations debugging.
 
+## Full catalog coverage (400+ products)
+
+A scan is **not** “every HTML page on the domain.” Products arrive from:
+
+1. **Platform catalog API** (best for large stores) — one iGroup/Shopify/Woo call can return hundreds of SKUs when bundle config is detected.
+2. **Sitemap + product-detail crawls** — each product page consumes one unit of `max_pages` (default env **120**, hard cap `BRAND_SCAN_MAX_PAGES_CAP` default **250**).
+3. **Post-scan reconciliation** — `POST …/catalog/reimport-media` re-syncs products from the platform API against an existing scan.
+
+If you see ~30 products on a 400-SKU site, typical causes are: `max_pages` too low, iGroup API config not loaded from JS bundles, or rate limits (429). On Render Worker set e.g. `BRAND_MAX_PAGES=200`, `BRAND_SCAN_MAX_PAGES_CAP=400`, `BRAND_MAX_DURATION_SECONDS=1200`, `BRAND_SCANNER_DELAY_MS=1000`, ensure `BRAND_PLATFORM_ADAPTERS=1`, then re-scan.
+
 ## Product catalog extraction
 
 Products are only created from **product detail pages** or a store's **public catalog API**.
@@ -141,7 +151,8 @@ Running it twice yields the same rows and links. Media import needs a connected 
 | ----------------------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
 | `BRAND_WEBSITE_CONNECTOR`           | unset (`live`, unless fixture flag is on) | Adapter selection                                                |
 | `BRAND_FIXTURE_CONNECTOR`           | unset                                     | `1` enables fixtures outside production                          |
-| `BRAND_MAX_PAGES`                   | `50`                                      | Maximum HTML pages per scan                                      |
+| `BRAND_MAX_PAGES`                   | `50` (example **120**)                    | Target HTML pages per scan (clamped by cap below)                |
+| `BRAND_SCAN_MAX_PAGES_CAP`          | `250`                                     | Hard max pages API/worker accept per scan                        |
 | `BRAND_MAX_DEPTH`                   | `3`                                       | Maximum link depth                                               |
 | `BRAND_MAX_DURATION_SECONDS`        | `600`                                     | Scan wall-clock limit                                            |
 | `BRAND_MAX_BYTES`                   | `1000000`                                 | Maximum response body size                                       |

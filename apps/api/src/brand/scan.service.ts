@@ -8,6 +8,7 @@ import {
   isTerminalScanStatus,
   marketingSeedDeferThreshold,
   marketingSeedPathsEnabled,
+  clampScanMaxPages,
   newId,
 } from '@oma/domain';
 import { billingService } from '../billing/billing.service';
@@ -37,7 +38,7 @@ export class ScanService {
   }
 
   private clampConfig(config?: ScanConfig) {
-    const maxPages = Math.min(config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50), 100);
+    const maxPages = clampScanMaxPages(config?.max_pages, process.env);
     const maxDepth = Math.min(config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3), 5);
     const maxDuration = Math.min(
       config?.max_duration_seconds ?? Number(process.env.BRAND_MAX_DURATION_SECONDS ?? 600),

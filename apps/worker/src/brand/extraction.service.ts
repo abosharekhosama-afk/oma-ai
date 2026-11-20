@@ -7,6 +7,7 @@ import {
   isMarketingSeedPathname,
   marketingSeedDeferThreshold,
   marketingSeedPathsEnabled,
+  clampScanMaxPages,
   canonicalHash,
   canonicalizeUrl,
   contentHash,
@@ -263,7 +264,7 @@ export async function runExtractionForScan(input: {
   onProgress?: (patch: ScanExtractionProgress) => Promise<void>;
   shouldAbort?: () => Promise<boolean>;
 }) {
-  const maxPages = input.config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50);
+  const maxPages = clampScanMaxPages(input.config?.max_pages, process.env);
   const maxDepth = input.config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3);
   const maxBytes = Number(process.env.BRAND_MAX_BYTES ?? 1_000_000);
   const maxSitemapDocuments = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 5);
@@ -370,7 +371,18 @@ export async function runExtractionForScan(input: {
         }
         for (const loc of parsed.urls) {
           if (isInCrawlScope(input.startUrl, loc)) {
-            enqueueCrawlUrl(queue, canonicalizeUrl(loc), 1);
+            const next = canonicalizeUrl(loc);
+            let urgent = false;
+            try {
+              const nextPath = new URL(next).pathname;
+              urgent =
+                isProductDetailUrl(next) ||
+                isProductLikePathname(nextPath) ||
+                isCatalogLikePath(nextPath);
+            } catch {
+              // keep default priority
+            }
+            enqueueCrawlUrl(queue, next, 1, urgent, productPagesFirst);
             urlsFromSitemap += 1;
           }
         }
