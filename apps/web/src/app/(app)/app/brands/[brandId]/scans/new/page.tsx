@@ -20,10 +20,10 @@ import { ConnectorModeBanner } from '../../../../../../../components/brand/conne
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 
-const DEFAULT_BOUNDS = {
-  max_pages: 50,
-  max_depth: 3,
-  max_duration_seconds: 600,
+type ScanBounds = {
+  max_pages: number;
+  max_depth: number;
+  max_duration_seconds: number;
 };
 
 export default function NewScanPage() {
@@ -32,6 +32,7 @@ export default function NewScanPage() {
   const params = useParams<{ brandId: string }>();
   const brandId = params.brandId;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
+  const [bounds, setBounds] = useState<ScanBounds | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,8 +40,14 @@ export default function NewScanPage() {
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
-    api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`)
-      .then((res) => setBrand(res.data))
+    Promise.all([
+      api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`),
+      api<{ data: ScanBounds }>(`/api/v1/brands/${brandId}/scans/config/defaults`),
+    ])
+      .then(([brandRes, boundsRes]) => {
+        setBrand(brandRes.data);
+        setBounds(boundsRes.data);
+      })
       .catch((err) => {
         if (isPermissionDenied(err)) setDenied(true);
         else setError(getApiError(err).message);
@@ -50,6 +57,7 @@ export default function NewScanPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!bounds) return;
     setBusy(true);
     setError(null);
     try {
@@ -57,7 +65,7 @@ export default function NewScanPage() {
         `/api/v1/brands/${brandId}/scans`,
         {
           method: 'POST',
-          body: JSON.stringify({ trigger: 'START', config: DEFAULT_BOUNDS }),
+          body: JSON.stringify({ trigger: 'START', config: bounds }),
           idempotencyKey: newIdempotencyKey('brand:scan'),
         },
       );
@@ -72,7 +80,7 @@ export default function NewScanPage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (loading) return <DetailShimmer />;
-  if (!brand) {
+  if (!brand || !bounds) {
     return (
       <div className="oma-card" role="alert">
         <p style={{ color: 'var(--status-danger)' }}>{error ?? t('common.notFound')}</p>
@@ -106,19 +114,20 @@ export default function NewScanPage() {
         <p className="oma-muted">{t('brand.scan.setupHint')}</p>
         <div className="oma-scan-bounds" aria-labelledby="scan-bounds-title">
           <h3 id="scan-bounds-title">{t('brand.scan.boundsTitle')}</h3>
+          <p className="oma-muted">{t('brand.scan.boundsFromEnv')}</p>
           <dl className="oma-detail-dl">
             <div>
               <dt>{t('brand.scan.maxPages')}</dt>
-              <dd>{DEFAULT_BOUNDS.max_pages}</dd>
+              <dd>{bounds.max_pages}</dd>
             </div>
             <div>
               <dt>{t('brand.scan.maxDepth')}</dt>
-              <dd>{DEFAULT_BOUNDS.max_depth}</dd>
+              <dd>{bounds.max_depth}</dd>
             </div>
             <div>
               <dt>{t('brand.scan.maxDuration')}</dt>
               <dd>
-                {DEFAULT_BOUNDS.max_duration_seconds} {t('brand.scan.seconds')}
+                {bounds.max_duration_seconds} {t('brand.scan.seconds')}
               </dd>
             </div>
           </dl>
@@ -137,11 +146,13 @@ export default function NewScanPage() {
               {error}
             </p>
           ) : null}
-          <div className="oma-form-actions">
-            <Button type="primary" disabled={busy || !confirmed} htmlType="submit">
+          <div className="oma-button-row">
+            <Button type="primary" htmlType="submit" disabled={!confirmed || busy} loading={busy}>
               {t('brand.scan.start')}
             </Button>
-            <Link href={`/app/brands/${brandId}`}>{t('common.cancel')}</Link>
+            <Link href={`/app/brands/${brandId}/scans`} className="oma-text-link">
+              {t('common.cancel')}
+            </Link>
           </div>
         </form>
       </div>

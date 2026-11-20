@@ -1353,3 +1353,54 @@ video.oma-media-carousel__media {
     align-items: flex-start;
   }
 }
+
+.oma-discovery-page-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.oma-discovery-page-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oma-discovery-page-card__title {
+  margin: 0;
+  font-size: var(--oma-text-md, 1rem);
+  line-height: 1.35;
+}
+
+.oma-discovery-page-card__chips {
+  flex-wrap: wrap;
+}
+
+.oma-discovery-page-card__meta {
+  display: grid;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.oma-discovery-page-card__meta dt {
+  font-size: var(--oma-text-xs, 0.75rem);
+  color: var(--oma-muted-fg, #667);
+  margin: 0;
+}
+
+.oma-discovery-page-card__meta dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.oma-discovery-page-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.oma-discovery-pages-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}

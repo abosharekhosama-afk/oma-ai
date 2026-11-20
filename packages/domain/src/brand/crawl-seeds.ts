@@ -50,9 +50,34 @@ export const CATALOG_PATH_PATTERN =
 const LOW_VALUE_CRAWL_PATTERN =
   /\/(privacy|terms|legal|cookie|cookies|gdpr|blog|news|press|careers|jobs|login|sign-?in|signup|sign-up|register|account|cart|checkout|wishlist)(\/|$)/i;
 
+function marketingSeedsDisabled(env: NodeJS.ProcessEnv): boolean {
+  const raw = env.BRAND_SCANNER_MARKETING_SEEDS?.trim().toLowerCase();
+  if (raw === '0' || raw === 'false' || raw === 'off' || raw === 'no') return true;
+  const paths = env.BRAND_SCANNER_PATH_SEEDS?.trim().toLowerCase();
+  return paths === '0' || paths === 'off' || paths === 'false' || paths === 'none';
+}
+
+export function marketingSeedPathsEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return !marketingSeedsDisabled(env);
+}
+
+export function isMarketingSeedPathname(pathname: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!marketingSeedPathsEnabled(env)) return false;
+  const normalized = pathname.replace(/\/+$/, '') || '/';
+  const raw = env.BRAND_SCANNER_PATH_SEEDS?.trim();
+  const paths = raw ? parseExtraPathSeeds(env) : [...DEFAULT_MARKETING_PATH_SEEDS];
+  return paths.some((p) => (p.replace(/\/+$/, '') || '/') === normalized);
+}
+
+export function marketingSeedDeferThreshold(env: NodeJS.ProcessEnv = process.env): number {
+  const n = Number(env.BRAND_SCANNER_MARKETING_SEEDS_MIN_SITEMAP_URLS ?? '12');
+  return Number.isFinite(n) && n >= 0 ? n : 12;
+}
+
 export function parseExtraPathSeeds(env: NodeJS.ProcessEnv = process.env): string[] {
   const raw = env.BRAND_SCANNER_PATH_SEEDS?.trim();
-  if (!raw) return [...DEFAULT_MARKETING_PATH_SEEDS];
+  if (!raw) return marketingSeedsDisabled(env) ? [] : [...DEFAULT_MARKETING_PATH_SEEDS];
+  if (marketingSeedsDisabled(env)) return [];
   return raw
     .split(',')
     .map((part) => part.trim())
@@ -64,6 +89,7 @@ export function buildMarketingSeedUrls(
   startUrl: string,
   env: NodeJS.ProcessEnv = process.env,
 ): string[] {
+  if (!marketingSeedPathsEnabled(env)) return [];
   let base: URL;
   try {
     base = new URL(startUrl);

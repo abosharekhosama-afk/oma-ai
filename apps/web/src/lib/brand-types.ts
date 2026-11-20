@@ -112,6 +112,8 @@ export type DiscoveredPage = {
   fetch_status: string;
   http_status: number | null;
   locale_hint: string | null;
+  failure_reason?: string | null;
+  content_type?: string | null;
 };
 
 export type CatalogProductMedia = {

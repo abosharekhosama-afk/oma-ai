@@ -2,7 +2,7 @@
 import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 
 import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
-import { Button, CheckboxField, SearchInput, SelectField } from '@oma/ui/controls';
+import { CheckboxField, SearchInput, SelectField } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -25,6 +25,7 @@ import { EvidenceSidePanel } from '../../../../../../../components/brand/evidenc
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip, statusLabel } from '../../../../../../../components/ui/status-chip';
 import { DiscoveryTabs } from '../../../../../../../components/brand/discovery-tabs';
+import { DiscoveryPageCard } from '../../../../../../../components/brand/discovery-page-card';
 import { filterDiscoveryPages } from '../../../../../../../lib/discovery-filter';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -61,6 +62,7 @@ export default function DiscoveryPagesPage() {
   const [fetchStatus, setFetchStatus] = useState('');
   const [query, setQuery] = useState('');
   const [evidenceOnly, setEvidenceOnly] = useState(false);
+  const [hideSeedProbes, setHideSeedProbes] = useState(true);
 
   useEffect(() => {
     async function load() {
@@ -74,7 +76,7 @@ export default function DiscoveryPagesPage() {
         }
         setScanId(latest);
         const qs = new URLSearchParams();
-        qs.set('limit', '100');
+        qs.set('limit', '200');
         if (classification) qs.set('classification', classification);
         if (fetchStatus) qs.set('fetch_status', fetchStatus);
         const pagesPath = `/api/v1/brands/${brandId}/scans/${latest}/pages${
@@ -113,8 +115,9 @@ export default function DiscoveryPagesPage() {
         query,
         evidenceOnly,
         evidenceByPage,
+        hideSeedProbes,
       }),
-    [pages, query, evidenceOnly, evidenceByPage],
+    [pages, query, evidenceOnly, evidenceByPage, hideSeedProbes],
   );
   const filterHint = useMemo(
     () =>
@@ -207,6 +210,13 @@ export default function DiscoveryPagesPage() {
               />{' '}
               {t('brand.discovery.evidenceAvailable')}
             </label>
+            <label className="oma-checkbox-label">
+              <CheckboxField
+                checked={hideSeedProbes}
+                onChange={(e) => setHideSeedProbes(e.target.checked)}
+              />{' '}
+              {t('brand.discovery.hideSeedProbes')}
+            </label>
             {filterHint ? (
               <div className="oma-filter-chips">
                 {query ? <span className="oma-filter-chip">{query}</span> : null}
@@ -233,47 +243,19 @@ export default function DiscoveryPagesPage() {
               <p>{t('brand.discovery.pagesEmpty')}</p>
             </div>
           ) : (
-            <ul className="oma-plx-brand-data-grid" data-testid="discovery-pages-cards">
-              {visiblePages.map((page) => {
-                const linkedEvidence = evidenceByPage[page.id];
-                return (
-                  <li
-                    key={page.id}
-                    className={`oma-plx-listening-card oma-plx-brand-catalog-card${
-                      linkedEvidence && evidenceId === linkedEvidence ? ' is-selected' : ''
-                    }`}
-                  >
-                    <div className="oma-work-row" style={{ border: 0, padding: 0 }}>
-                      <div>
-                        <strong dir="auto">{page.title ?? page.url}</strong>
-                        <div className="oma-work-row-meta">
-                          <StatusChip status={page.classification} />
-                          <StatusChip status={page.fetch_status} />
-                          <a
-                            href={page.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="oma-ltr"
-                          >
-                            {page.canonical_url}
-                          </a>
-                        </div>
-                      </div>
-                      {linkedEvidence ? (
-                        <Button
-                          type="default"
-                          data-testid={`view-evidence-${page.id}`}
-                          onClick={() => setEvidenceId(linkedEvidence)}
-                        >
-                          {t('brand.evidence.view')}
-                        </Button>
-                      ) : (
-                        <span className="oma-muted">{t('brand.evidence.none')}</span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
+            <ul className="oma-plx-brand-data-grid oma-discovery-pages-grid" data-testid="discovery-pages-cards">
+              {visiblePages.map((page) => (
+                <DiscoveryPageCard
+                  key={page.id}
+                  page={page}
+                  evidenceId={evidenceByPage[page.id]}
+                  onViewEvidence={
+                    evidenceByPage[page.id]
+                      ? () => setEvidenceId(evidenceByPage[page.id]!)
+                      : undefined
+                  }
+                />
+              ))}
             </ul>
           )}
         </>
