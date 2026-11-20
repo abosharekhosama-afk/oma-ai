@@ -48,7 +48,7 @@ export const CATALOG_PATH_PATTERN =
   /\/(products?|product-category|collections?|shop|store|catalog(?:ue)?|items?|services?|solutions?|offerings?|portfolio|pricing|plans|menu|categories|متجر|منتجات|منتج|خدمات|خدمة|تسوق|عروض)(\/|$)/iu;
 
 const LOW_VALUE_CRAWL_PATTERN =
-  /\/(privacy|terms|legal|cookie|cookies|gdpr|blog|news|press|careers|jobs|login|sign-?in|signup|sign-up|register|account|cart|checkout|wishlist)(\/|$)/i;
+  /\/(privacy|terms|legal|cookie|cookies|gdpr|blog|news|press|careers|jobs|login|sign-?in|signup|sign-up|register|account|cart|checkout|wishlist|cdn-cgi)(\/|$)/i;
 
 function marketingSeedsDisabled(env: NodeJS.ProcessEnv): boolean {
   const raw = env.BRAND_SCANNER_MARKETING_SEEDS?.trim().toLowerCase();
@@ -61,12 +61,23 @@ export function marketingSeedPathsEnabled(env: NodeJS.ProcessEnv = process.env):
   return !marketingSeedsDisabled(env);
 }
 
+/** Decode percent-encoding so `/عروض` seeds match crawled `/%D8%B9%D8%B1%D9%88%D8%B6`. */
+export function normalizePathnameForComparison(pathname: string): string {
+  let path = (pathname || '/').replace(/\/+$/, '') || '/';
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    // keep encoded segment when malformed
+  }
+  return path || '/';
+}
+
 export function isMarketingSeedPathname(pathname: string, env: NodeJS.ProcessEnv = process.env): boolean {
   if (!marketingSeedPathsEnabled(env)) return false;
-  const normalized = pathname.replace(/\/+$/, '') || '/';
+  const normalized = normalizePathnameForComparison(pathname);
   const raw = env.BRAND_SCANNER_PATH_SEEDS?.trim();
   const paths = raw ? parseExtraPathSeeds(env) : [...DEFAULT_MARKETING_PATH_SEEDS];
-  return paths.some((p) => (p.replace(/\/+$/, '') || '/') === normalized);
+  return paths.some((p) => normalizePathnameForComparison(p) === normalized);
 }
 
 export function marketingSeedDeferThreshold(env: NodeJS.ProcessEnv = process.env): number {
