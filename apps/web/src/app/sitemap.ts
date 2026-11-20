@@ -14,10 +14,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = resolvePublicSiteUrl();
   const now = new Date();
 
-  return PUBLIC_INDEXABLE_PATHS.map((path) => ({
+  return PUBLIC_INDEXABLE_PATHS.map((path) => {
+    const changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'] =
+      path === '/' ? 'weekly' : 'monthly';
+    return {
     url: absolutePublicUrl(path === '/' ? '/' : path),
     lastModified: now,
-    changeFrequency: path === '/' ? 'weekly' : 'monthly',
+    changeFrequency,
     priority: path === '/' ? 1 : path === '/login' || path === '/register' ? 0.6 : 0.4,
     alternates: {
       languages: {
@@ -25,5 +28,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ar: absolutePublicUrl(path === '/' ? '/' : path),
       },
     },
-  })).filter((entry) => entry.url.startsWith(base.origin));
+  };
+  }).filter((entry) => entry.url.startsWith(base.origin));
 }
