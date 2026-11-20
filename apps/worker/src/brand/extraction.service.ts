@@ -1,4 +1,4 @@
-import { getPrisma } from '@oma/db';
+import { getPrisma, Prisma } from '@oma/db';
 import {
   buildCatalogFieldValue,
   classifyJsRenderError,
@@ -54,6 +54,10 @@ type CrawlConfig = {
 function pagePath(url: string): string {
   const parsed = new URL(url);
   return `${parsed.pathname || '/'}${parsed.search}`;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function enqueueCrawlUrl(
@@ -283,6 +287,8 @@ export async function runExtractionForScan(input: {
   };
 
   const visited = new Set<string>();
+  const seenCanonicalHashes = new Set<string>();
+  const rateLimitRetries = new Map<string, number>();
   const queue: { url: string; depth: number }[] = [];
   enqueueCrawlUrl(queue, canonicalizeUrl(input.startUrl), 0, true);
   const fixtureCrawl = isBrandFixtureConnectorEnabled();
@@ -412,6 +418,12 @@ export async function runExtractionForScan(input: {
     if (visited.has(hash)) continue;
     visited.add(hash);
 
+    const crawledPathname = new URL(normalizedUrl).pathname;
+    if (crawledPathname.includes('/cdn-cgi/')) {
+      pagesSkipped += 1;
+      continue;
+    }
+
     const host = new URL(normalizedUrl).host;
     const robots = await input.connector.evaluateRobots(host, pagePath(normalizedUrl));
     if (robots === 'DISALLOW') {
@@ -439,6 +451,16 @@ export async function runExtractionForScan(input: {
         maxBytes,
       });
       if (fetched.status >= 400) {
+        if (fetched.status === 429) {
+          const rateTries = rateLimitRetries.get(hash) ?? 0;
+          if (rateTries < 3) {
+            rateLimitRetries.set(hash, rateTries + 1);
+            visited.delete(hash);
+            enqueueCrawlUrl(queue, normalizedUrl, current.depth, false);
+            await sleep(2000 * (rateTries + 1));
+            continue;
+          }
+        }
         const seedMiss = isMarketingSeedPathname(pagePath(normalizedUrl));
         if (seedMiss) {
           pagesSkipped += 1;
@@ -550,6 +572,12 @@ export async function runExtractionForScan(input: {
         extracted.canonicalUrl && isInCrawlScope(input.startUrl, extracted.canonicalUrl)
           ? canonicalizeUrl(extracted.canonicalUrl)
           : canonicalizeUrl(fetched.finalUrl);
+      const pageCanonHash = canonicalHash(pageCanonical);
+      if (seenCanonicalHashes.has(pageCanonHash)) {
+        pagesSkipped += 1;
+        continue;
+      }
+      seenCanonicalHashes.add(pageCanonHash);
       const pageId = newId();
       await getPrisma().discoveredPage.create({
         data: {
@@ -638,6 +666,10 @@ export async function runExtractionForScan(input: {
         }
       }
     } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        pagesSkipped += 1;
+        continue;
+      }
       pagesFailed += 1;
       const reason = err instanceof Error ? err.message.slice(0, 120) : 'FETCH_ERROR';
       if (failedPageSamples.length < maxFailedSamples) {

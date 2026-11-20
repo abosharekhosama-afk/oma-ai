@@ -47,10 +47,23 @@ describe('crawl-seeds', () => {
   });
 
   it('disables marketing seeds when env off', () => {
-    expect(buildMarketingSeedUrls('https://brand.test', { BRAND_SCANNER_MARKETING_SEEDS: 'off' })).toEqual(
-      [],
+    expect(
+      buildMarketingSeedUrls('https://brand.test', { BRAND_SCANNER_MARKETING_SEEDS: 'off' }),
+    ).toEqual([]);
+    expect(isMarketingSeedPathname('/products', { BRAND_SCANNER_MARKETING_SEEDS: 'off' })).toBe(
+      false,
     );
-    expect(isMarketingSeedPathname('/products', { BRAND_SCANNER_MARKETING_SEEDS: 'off' })).toBe(false);
     expect(isMarketingSeedPathname('/products')).toBe(true);
+  });
+
+  it('matches percent-encoded Arabic marketing seed paths', () => {
+    expect(isMarketingSeedPathname('/%D8%B9%D8%B1%D9%88%D8%B6')).toBe(true);
+    expect(isMarketingSeedPathname('/%D9%85%D9%86%D8%AA%D8%AC%D8%A7%D8%AA')).toBe(true);
+    expect(isMarketingSeedPathname('/%D8%AA%D8%B3%D9%88%D9%82')).toBe(true);
+    expect(isMarketingSeedPathname('/en/fragrances')).toBe(false);
+  });
+
+  it('treats cdn-cgi as low-value crawl path', () => {
+    expect(isLowValueCrawlPath('/cdn-cgi/l/email-protection')).toBe(true);
   });
 });

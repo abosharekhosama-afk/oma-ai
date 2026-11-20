@@ -19,9 +19,7 @@ export function DiscoveryPageCard({
   const crawledUrl = page.url !== page.canonical_url ? page.url : null;
   const failureKey = page.failure_reason ? `brand.discovery.failure.${page.failure_reason}` : null;
   const failureLabel =
-    failureKey && t(failureKey) !== failureKey
-      ? t(failureKey)
-      : (page.failure_reason ?? null);
+    failureKey && t(failureKey) !== failureKey ? t(failureKey) : (page.failure_reason ?? null);
 
   return (
     <li
@@ -49,7 +47,12 @@ export function DiscoveryPageCard({
         <div>
           <dt>{t('brand.discovery.fieldUrl')}</dt>
           <dd>
-            <a href={displayUrl} target="_blank" rel="noopener noreferrer" className="oma-ltr oma-text-link">
+            <a
+              href={displayUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="oma-ltr oma-text-link"
+            >
               {displayUrl}
             </a>
           </dd>
@@ -88,7 +91,12 @@ export function DiscoveryPageCard({
 
       <div className="oma-discovery-page-card__actions">
         {evidenceId && onViewEvidence ? (
-          <button type="button" className="oma-text-link" data-testid={`view-evidence-${page.id}`} onClick={onViewEvidence}>
+          <button
+            type="button"
+            className="oma-text-link"
+            data-testid={`view-evidence-${page.id}`}
+            onClick={onViewEvidence}
+          >
             {t('brand.evidence.view')}
           </button>
         ) : (
