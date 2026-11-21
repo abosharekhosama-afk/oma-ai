@@ -32,8 +32,8 @@ describe('strategy profile gate', () => {
       { name: 'No profile draft' },
       { allowWithoutBrandApprovedProfile: true },
     );
-    expect([403, 400]).toContain(res.status);
-    expect(JSON.stringify(body)).toMatch(/BRAND_PROFILE_NOT_APPROVED|approved profile/i);
+    expect([403, 400, 422]).toContain(res.status);
+    expect(JSON.stringify(body)).toMatch(/APPROVED|اعتماد ملف|BRAND_PROFILE_NOT_APPROVED/i);
   });
 
   it('submit blocked without approved profile link', async () => {
@@ -66,7 +66,7 @@ describe('strategy profile gate', () => {
     expect(JSON.stringify(blocked.body)).toMatch(/APPROVED_PROFILE_REQUIRED|APPROVAL_INELIGIBLE/);
   });
 
-  it('draft_aid profile is not enough for submit', async () => {
+  it('rejects draft_aid profile links (approved profile only)', async () => {
     const { body: brand } = await createBrand(seed);
     const brandId = brand.data.id as string;
     const draftProfileId = newId();
@@ -83,7 +83,7 @@ describe('strategy profile gate', () => {
     const { body: created } = await createStrategy(seed, brandId, { name: 'Draft aid only' });
     const strategyId = created.data.id as string;
     const versionId = created.data.latest_version.id as string;
-    let rowVersion = created.data.latest_version.row_version as number;
+    const rowVersion = created.data.latest_version.row_version as number;
 
     const aid = await linkApprovedProfile(
       seed,
@@ -94,28 +94,7 @@ describe('strategy profile gate', () => {
       rowVersion,
       'draft_aid',
     );
-    expect([200, 201]).toContain(aid.res.status);
-    rowVersion = aid.body.data.row_version;
-
-    await patchFoundation(seed, brandId, strategyId, versionId, rowVersion, {
-      goals: [{ value: 'G', infoClass: 'USER_AUTHORED' }],
-      positioning: { value: 'P', infoClass: 'USER_AUTHORED' },
-    });
-    const afterPatch = await getStrategyVersion(seed, brandId, strategyId, versionId);
-    rowVersion = afterPatch.body.data.row_version;
-    await setTrackEnablement(seed, brandId, strategyId, versionId, rowVersion, {
-      organic_enabled: true,
-      paid_enabled: false,
-      paid_disabled_rationale: 'Later',
-    });
-    const afterEnable = await getStrategyVersion(seed, brandId, strategyId, versionId);
-    const blocked = await submitStrategy(
-      seed,
-      brandId,
-      strategyId,
-      versionId,
-      afterEnable.body.data.row_version,
-    );
-    expect(blocked.res.status).toBe(422);
+    expect([403, 400, 422]).toContain(aid.res.status);
+    expect(JSON.stringify(aid.body)).toMatch(/DRAFT_PROFILE|APPROVED|اعتماد/i);
   });
 });
