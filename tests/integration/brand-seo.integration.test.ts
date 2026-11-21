@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
 import { authHeaders, createBrand, seedBrandTenant } from '../helpers/brand-test';
 
 describe('brand SEO visibility (integration)', () => {
