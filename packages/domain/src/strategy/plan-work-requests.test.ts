@@ -62,7 +62,9 @@ describe('buildPlanWorkRequestDrafts', () => {
       audiences: [{ name: 'Shoppers' }],
       catalogOfferings: offerings,
     });
-    const catalogCount = drafts.filter((d) => d.plan_source_key.includes(':catalog:product:')).length;
+    const catalogCount = drafts.filter((d) =>
+      d.plan_source_key.includes(':catalog:product:'),
+    ).length;
     expect(catalogCount).toBe(16);
   });
 

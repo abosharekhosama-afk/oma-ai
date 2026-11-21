@@ -14,7 +14,10 @@ import {
   isTenantRequired,
 } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
-import { BrandPlxPageHead, BrandPlxSection } from '../../../../../../../components/brand/brand-plx-section';
+import {
+  BrandPlxPageHead,
+  BrandPlxSection,
+} from '../../../../../../../components/brand/brand-plx-section';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../lib/use-locale';
@@ -90,7 +93,11 @@ export default function NewStrategyPage() {
           <p className="oma-muted" role="note">
             {profileReady ? t('strategy.new.profileReady') : t('strategy.warning.missingProfile')}
           </p>
-          <form className="oma-panel oma-stack" onSubmit={onSubmit} data-testid="strategy-create-form">
+          <form
+            className="oma-panel oma-stack"
+            onSubmit={onSubmit}
+            data-testid="strategy-create-form"
+          >
             <label className="oma-field-span">
               {t('strategy.new.name')}
               <Input

@@ -32,7 +32,12 @@ function pushList(
   }
 }
 
-function pushOne(items: StrategyAiProposalItem[], field: string, value: unknown, kind = 'proposal') {
+function pushOne(
+  items: StrategyAiProposalItem[],
+  field: string,
+  value: unknown,
+  kind = 'proposal',
+) {
   const text = value == null ? '' : String(value).trim();
   if (!text) return;
   items.push({ field, value: text, kind });

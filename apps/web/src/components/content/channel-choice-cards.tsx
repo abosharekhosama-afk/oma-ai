@@ -84,9 +84,7 @@ function ChannelDropdownPicker({
       ? isAr
         ? 'اختر القنوات…'
         : 'Select channels…'
-      : selectedNetworks
-          .map((key) => LABELS[key][isAr ? 'ar' : 'en'])
-          .join(isAr ? '، ' : ', ');
+      : selectedNetworks.map((key) => LABELS[key][isAr ? 'ar' : 'en']).join(isAr ? '، ' : ', ');
 
   return (
     <div className="oma-channel-dropdown" data-testid={testId}>
@@ -344,7 +342,7 @@ export function ChannelChoiceCards({
   }
 
   if (variant === 'dropdown') {
-  return (
+    return (
       <ChannelDropdownPicker
         testId={testId}
         isAr={isAr}
