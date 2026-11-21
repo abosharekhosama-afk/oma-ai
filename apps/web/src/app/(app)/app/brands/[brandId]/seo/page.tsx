@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '../../../../../../lib/api';
 import { apiMutate } from '../../../../../../lib/brand-api';
+import type { BrandDetail } from '../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
+import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 import { useT } from '../../../../../../lib/use-locale';
 
 type SeoHealthResponse = {
@@ -41,6 +43,7 @@ type SeoAnalytics = {
 export default function BrandSeoPage() {
   const { brandId } = useParams<{ brandId: string }>();
   const t = useT();
+  const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [health, setHealth] = useState<SeoHealthResponse['data'] | null>(null);
   const [analytics, setAnalytics] = useState<SeoAnalytics['data'] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,10 +52,12 @@ export default function BrandSeoPage() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const [h, a] = await Promise.all([
+      const [brandRes, h, a] = await Promise.all([
+        api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`),
         api<SeoHealthResponse>(`/api/v1/brands/${brandId}/seo/health`),
         api<SeoAnalytics>(`/api/v1/brands/${brandId}/seo/analytics?period=30`),
       ]);
+      setBrand(brandRes.data);
       setHealth(h.data);
       setAnalytics(a.data);
     } catch (e) {
@@ -79,7 +84,7 @@ export default function BrandSeoPage() {
     try {
       await apiMutate(`/api/v1/brands/${brandId}/seo/search-console/connect-fixture`, {
         method: 'POST',
-        body: {},
+        body: JSON.stringify({}),
       });
       await syncGsc();
     } finally {
@@ -87,8 +92,10 @@ export default function BrandSeoPage() {
     }
   };
 
+  if (!brand) return <DetailShimmer />;
+
   return (
-    <BrandWorkspaceShell brandId={brandId} section="evidence">
+    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <div className="oma-stack oma-stack--lg" data-testid="brand-seo-page">
         <header>
           <h1 className="oma-page-title">{t('brand.seo.title')}</h1>
