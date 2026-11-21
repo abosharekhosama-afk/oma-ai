@@ -1,12 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '../../../../../../lib/api';
-import { apiMutate } from '../../../../../../lib/brand-api';
+import { apiMutate, getApiError, isPermissionDenied } from '../../../../../../lib/brand-api';
 import type { BrandDetail } from '../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
+import {
+  BrandPlxPageHead,
+  BrandPlxSection,
+} from '../../../../../../components/brand/brand-plx-section';
 import { DetailShimmer } from '../../../../../../components/ui/shimmer';
+import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
+import { buildBrandJourneySteps } from '../../../../../../lib/brand-journey';
 import { useT } from '../../../../../../lib/use-locale';
 
 type SeoHealthResponse = {
@@ -46,34 +52,56 @@ export default function BrandSeoPage() {
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [health, setHealth] = useState<SeoHealthResponse['data'] | null>(null);
   const [analytics, setAnalytics] = useState<SeoAnalytics['data'] | null>(null);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [analyticsDenied, setAnalyticsDenied] = useState(false);
+  const [denied, setDenied] = useState(false);
+
+  const loadSeo = useCallback(async () => {
+    setAnalyticsDenied(false);
+    const [healthRes, analyticsRes] = await Promise.allSettled([
+      api<SeoHealthResponse>(`/api/v1/brands/${brandId}/seo/health`),
+      api<SeoAnalytics>(`/api/v1/brands/${brandId}/seo/analytics?period=30`),
+    ]);
+    let pageError: string | null = null;
+    if (healthRes.status === 'fulfilled') setHealth(healthRes.value.data);
+    else pageError = getApiError(healthRes.reason).message;
+    if (analyticsRes.status === 'fulfilled') setAnalytics(analyticsRes.value.data);
+    else if (isPermissionDenied(analyticsRes.reason)) setAnalyticsDenied(true);
+    else if (!pageError) pageError = getApiError(analyticsRes.reason).message;
+    if (pageError) setError(pageError);
+  }, [brandId]);
 
   const load = useCallback(async () => {
     setError(null);
+    setLoading(true);
     try {
-      const [brandRes, h, a] = await Promise.all([
-        api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`),
-        api<SeoHealthResponse>(`/api/v1/brands/${brandId}/seo/health`),
-        api<SeoAnalytics>(`/api/v1/brands/${brandId}/seo/analytics?period=30`),
-      ]);
+      const brandRes = await api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`);
       setBrand(brandRes.data);
-      setHealth(h.data);
-      setAnalytics(a.data);
+      await loadSeo();
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('common.error'));
+      if (isPermissionDenied(e)) setDenied(true);
+      else setError(getApiError(e).message);
+    } finally {
+      setLoading(false);
     }
-  }, [brandId, t]);
+  }, [brandId, loadSeo]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
+  const journey = useMemo(() => (brand ? buildBrandJourneySteps(brand, t) : []), [brand, t]);
+
   const syncGsc = async () => {
     setBusy(true);
+    setError(null);
     try {
       await apiMutate(`/api/v1/brands/${brandId}/seo/search-console/sync`, { method: 'POST' });
-      await load();
+      await loadSeo();
+    } catch (e) {
+      setError(getApiError(e).message);
     } finally {
       setBusy(false);
     }
@@ -81,31 +109,50 @@ export default function BrandSeoPage() {
 
   const connectFixture = async () => {
     setBusy(true);
+    setError(null);
     try {
       await apiMutate(`/api/v1/brands/${brandId}/seo/search-console/connect-fixture`, {
         method: 'POST',
         body: JSON.stringify({}),
       });
       await syncGsc();
+    } catch (e) {
+      setError(getApiError(e).message);
     } finally {
       setBusy(false);
     }
   };
 
-  if (!brand) return <DetailShimmer />;
+  if (denied) return <PermissionDenied message={t('errors.permission')} />;
+  if (loading) return <DetailShimmer />;
+  if (!brand) {
+    return (
+      <div className="oma-plx-listening-card" role="alert">
+        {error ?? t('common.notFound')}
+      </div>
+    );
+  }
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
-      <div className="oma-stack oma-stack--lg" data-testid="brand-seo-page">
-        <header>
-          <h1 className="oma-page-title">{t('brand.seo.title')}</h1>
-          <p className="oma-page-lead">{t('brand.seo.lead')}</p>
-        </header>
+    <BrandWorkspaceShell
+      brandId={brandId}
+      brandName={brand.name}
+      brandLogoUrl={brand.logo_url}
+      websiteUrl={brand.website?.normalized_url}
+      scanStatus={brand.latest_scan?.status}
+      latestScanId={brand.latest_scan?.id}
+      journey={journey}
+    >
+      <div className="oma-seo-page" data-testid="brand-seo-page">
+        <BrandPlxPageHead title={t('brand.seo.title')} description={t('brand.seo.lead')} />
 
-        {error ? <p className="oma-callout oma-callout--error">{error}</p> : null}
+        {error ? (
+          <p className="oma-callout oma-callout--info" role="status">
+            {error}
+          </p>
+        ) : null}
 
-        <section className="oma-card oma-card--padded">
-          <h2 className="oma-heading-sm">{t('brand.seo.siteHealth')}</h2>
+        <BrandPlxSection title={t('brand.seo.siteHealth')} testId="brand-seo-health">
           {health?.audit ? (
             <>
               <p>
@@ -126,15 +173,14 @@ export default function BrandSeoPage() {
               ) : null}
             </>
           ) : (
-            <p className="oma-text-muted">{t('brand.seo.noAudit')}</p>
+            <p className="oma-muted">{t('brand.seo.noAudit')}</p>
           )}
-        </section>
+        </BrandPlxSection>
 
-        <section className="oma-card oma-card--padded">
-          <h2 className="oma-heading-sm">{t('brand.seo.searchConsole')}</h2>
-          <p className="oma-text-muted">
+        <BrandPlxSection title={t('brand.seo.searchConsole')} testId="brand-seo-gsc">
+          <p className="oma-muted">
             {t('brand.seo.gscStatus')}: {health?.search_console.status ?? '—'} (
-            {health?.search_console.gsc_mode})
+            {health?.search_console.gsc_mode ?? '—'})
           </p>
           <div className="oma-chip-row">
             <button
@@ -154,11 +200,12 @@ export default function BrandSeoPage() {
               {t('brand.seo.syncGsc')}
             </button>
           </div>
-        </section>
+        </BrandPlxSection>
 
-        <section className="oma-card oma-card--padded">
-          <h2 className="oma-heading-sm">{t('brand.seo.visibility')}</h2>
-          {analytics ? (
+        <BrandPlxSection title={t('brand.seo.visibility')} testId="brand-seo-visibility">
+          {analyticsDenied ? (
+            <p className="oma-muted">{t('brand.seo.analyticsDenied')}</p>
+          ) : analytics ? (
             <ul className="oma-list-plain">
               <li>
                 {t('brand.seo.gscClicks')}: {analytics.totals.gsc_clicks} /{' '}
@@ -168,8 +215,10 @@ export default function BrandSeoPage() {
                 {t('brand.seo.publishedPosts')}: {analytics.totals.published_posts}
               </li>
             </ul>
-          ) : null}
-          {analytics?.search_queries?.length ? (
+          ) : (
+            <p className="oma-muted">{t('brand.seo.noQueries')}</p>
+          )}
+          {!analyticsDenied && analytics?.search_queries?.length ? (
             <table className="oma-table oma-table--compact">
               <thead>
                 <tr>
@@ -188,10 +237,10 @@ export default function BrandSeoPage() {
                 ))}
               </tbody>
             </table>
-          ) : (
-            <p className="oma-text-muted">{t('brand.seo.noQueries')}</p>
-          )}
-        </section>
+          ) : !analyticsDenied ? (
+            <p className="oma-muted">{t('brand.seo.noQueries')}</p>
+          ) : null}
+        </BrandPlxSection>
       </div>
     </BrandWorkspaceShell>
   );
