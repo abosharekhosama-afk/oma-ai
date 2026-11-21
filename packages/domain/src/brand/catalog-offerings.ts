@@ -12,9 +12,9 @@ export type CatalogOffering = CatalogSummaryItem & {
   primary_media_view_url?: string;
 };
 
-/** Organic plan-to-requests includes every catalog product/service (no batch cap). */
-export const DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS = 10_000;
-export const DEFAULT_MAX_CATALOG_SERVICE_REQUESTS = 10_000;
+/** Organic plan-to-requests catalog batch cap (products/services per approved strategy commit). */
+export const DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS = 500;
+export const DEFAULT_MAX_CATALOG_SERVICE_REQUESTS = 500;
 /** Paid catalog lines stay capped to keep planning scopes manageable. */
 export const DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS = 50;
 

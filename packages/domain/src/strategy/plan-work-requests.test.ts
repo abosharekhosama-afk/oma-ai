@@ -45,7 +45,7 @@ describe('buildPlanWorkRequestDrafts', () => {
     expect(drafts[0]?.plan_source_key).toBe('paid:objective:0');
   });
 
-  it('creates organic catalog requests for every product (no 8-cap)', () => {
+  it('creates organic catalog requests up to catalog cap (500)', () => {
     const offerings = Array.from({ length: 16 }, (_, i) => ({
       kind: 'product' as const,
       slug: `product-${i}`,
