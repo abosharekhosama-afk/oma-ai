@@ -369,11 +369,13 @@ export async function ensurePaidSubmitReady(
     needsAlloc || needsAud || needsTotal
       ? minimalPaidV2PlanForSubmit
       : {
-          allocations: paid.allocations.map((a: { share_pct: number; platform: string; objective: string }) => ({
-            platform: a.platform,
-            objective: a.objective,
-            share_pct: a.share_pct,
-          })),
+          allocations: paid.allocations.map(
+            (a: { share_pct: number; platform: string; objective: string }) => ({
+              platform: a.platform,
+              objective: a.objective,
+              share_pct: a.share_pct,
+            }),
+          ),
           audiences: paid.audiences,
           experiments: paid.experiments ?? [],
         },
