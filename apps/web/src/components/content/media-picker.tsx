@@ -464,7 +464,8 @@ export function MediaPickerDialog({
         if (nextScope === 'organization' && !folderId) setOrgRoot(labeled);
         if (nextScope === 'brand' && !folderId) setBrandRoot(labeled);
         if (labeled.brand_folder && nextScope === 'brand' && !folderId) setBrandRoot(labeled);
-        const listScope = nextScope === 'organization' || nextScope === 'all' ? nextScope : undefined;
+        const listScope =
+          nextScope === 'organization' || nextScope === 'all' ? nextScope : undefined;
         void mediaApi
           .list(brandId, kind, storageSource ?? undefined, {
             limit: ASSET_LIST_LIMIT,

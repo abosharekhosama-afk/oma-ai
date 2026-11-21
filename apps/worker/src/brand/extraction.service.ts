@@ -47,6 +47,7 @@ import {
 } from './rendered-page-fetch';
 import { syncProductScanMedia } from './catalog-product-media';
 import { fetchPlatformCatalog } from './platform-catalog';
+import { loadCrawlCheckpoint } from './crawl-checkpoint';
 
 type CrawlConfig = {
   max_pages?: number;
@@ -274,7 +275,6 @@ export async function runExtractionForScan(input: {
   const configuredMaxSitemap = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 12);
   const maxSitemapDocuments = Math.max(configuredMaxSitemap, Math.min(32, Math.ceil(maxPages / 6)));
   const sitemapUrlParseLimit = Math.min(Math.max(maxPages * 4, 200), 5000);
-  const deadline = Date.now() + (input.config?.max_duration_seconds ?? 600) * 1000;
 
   const mediaCap = maxProductMediaFromEnv();
   const maxProducts = Math.max(1, Number(process.env.BRAND_MAX_PRODUCTS ?? 1000) || 1000);
@@ -302,6 +302,19 @@ export async function runExtractionForScan(input: {
   let pagesFetched = 0;
   let pagesFailed = 0;
   let pagesSkipped = 0;
+
+  const checkpoint = await loadCrawlCheckpoint(input.scanAttemptId);
+  const resuming = checkpoint.priorPageCount > 0;
+  if (resuming) {
+    for (const hash of checkpoint.visited) visited.add(hash);
+    pagesFetched = checkpoint.pagesFetched;
+    pagesFailed = checkpoint.pagesFailed;
+    pagesSkipped = checkpoint.pagesSkipped;
+    platformChecked = checkpoint.platformChecked;
+  }
+
+  const durationSec = input.config?.max_duration_seconds ?? 600;
+  const deadline = Date.now() + durationSec * 1000;
   let pagesJsRendered = 0;
   let pagesJsRenderAttempted = 0;
   let pagesJsRenderFailed = 0;
@@ -339,6 +352,16 @@ export async function runExtractionForScan(input: {
   const emitProgress = async (patch: ScanExtractionProgress) => {
     if (report) await report(patch);
   };
+
+  if (resuming) {
+    await emitProgress({
+      progressPercent: scanCrawlProgressPercent(pagesFetched, maxPages),
+      status: 'CRAWLING',
+      pagesFetched,
+      pagesFailed,
+      pagesSkipped,
+    });
+  }
 
   const startHost = new URL(input.startUrl).host;
   await ensureScanNotAborted(input.shouldAbort);

@@ -125,6 +125,24 @@ export class ScanController {
     );
   }
 
+  @Post(':scanId/resume')
+  @HttpCode(202)
+  @UseGuards(CsrfGuard)
+  async resume(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('scanId') scanId: string,
+  ) {
+    this.requireTenant(req);
+    return scanService.resume(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      scanId,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post(':scanId/retry')
   @HttpCode(202)
   @UseGuards(CsrfGuard)

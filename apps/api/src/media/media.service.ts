@@ -1154,7 +1154,10 @@ export class MediaService {
         (f.id === brandFolderId || brandAtFolder != null) &&
         files.length === 0
       ) {
-        const listing = brandAtFolder != null || f.id === brandFolderId ? f : await c.client.getFolder(brandFolderId);
+        const listing =
+          brandAtFolder != null || f.id === brandFolderId
+            ? f
+            : await c.client.getFolder(brandFolderId);
         const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
         const kids = listing.folders.filter((child) => flattenNames.includes(child.name));
         if (kids.length) {
@@ -1199,10 +1202,10 @@ export class MediaService {
         : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, rawFolders);
       const mappedFolderLabel = allScope
         ? 'All files'
-        : brandAtFolder?.name ??
+        : (brandAtFolder?.name ??
           (f.id === brandFolderId || f.name === brand.id
             ? brand.name
-            : (humanPath[humanPath.length - 1]?.name ?? f.name));
+            : (humanPath[humanPath.length - 1]?.name ?? f.name)));
       return {
         data: {
           folder: {

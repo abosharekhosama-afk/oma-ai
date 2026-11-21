@@ -180,6 +180,29 @@ export default function ScanDetailPage() {
     }
   }
 
+  const handleResume = useCallback(async () => {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const res = await apiMutate<{ data: ScanDetail }>(
+        `/api/v1/brands/${brandId}/scans/${scanId}/resume`,
+        { method: 'POST', body: JSON.stringify({}) },
+      );
+      setScan(res.data);
+    } catch (err) {
+      setActionError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [brandId, scanId]);
+
+  const autoResumeRef = useRef(false);
+  useEffect(() => {
+    if (!scan?.stalled || autoResumeRef.current) return;
+    autoResumeRef.current = true;
+    void handleResume();
+  }, [scan?.stalled, handleResume]);
+
   async function handleRetry() {
     setBusy(true);
     setActionError(null);
@@ -463,6 +486,11 @@ export default function ScanDetailPage() {
           </p>
         ) : null}
         <div className="oma-form-actions oma-scan-actions">
+          {inProgress && scan.stalled ? (
+            <Button type="primary" disabled={busy} onClick={() => void handleResume()}>
+              {t('brand.scan.resume')}
+            </Button>
+          ) : null}
           {inProgress ? (
             <Button type="default" disabled={busy} onClick={() => void handleCancel()}>
               {t('brand.scan.cancel')}
