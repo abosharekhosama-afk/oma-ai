@@ -161,7 +161,7 @@ export async function snapshotUsage(tenantId: string, periodStart: Date): Promis
       where: {
         tenantId,
         status: { not: 'MISSING' },
-        OR: [{ storageProvider: 'OMA_INTERNAL' }, { storageProvider: null }],
+        storageProvider: 'OMA_INTERNAL',
       },
       _sum: { size: true },
     }),
@@ -188,7 +188,7 @@ export async function snapshotUsage(tenantId: string, periodStart: Date): Promis
     scheduled_posts_per_month: scheduled,
     posts_per_month: scheduled,
     posts_total,
-    storage_bytes: Number(storageAgg._sum.size ?? 0n),
+    storage_bytes: Number(storageAgg._sum?.size ?? 0n),
     ai_credits_per_month: credits,
     ai_runs_per_month: credits,
     listening_keywords: keywords,
