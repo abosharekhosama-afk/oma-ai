@@ -191,12 +191,6 @@ export function MediaThumb({ asset, t }: { asset: MediaAsset; t: Tr }) {
   return <span className="oma-mp-thumb oma-mp-thumb--file">{asset.name.split('.').pop()}</span>;
 }
 
-function mosaicHue(name: string) {
-  let h = 0;
-  for (let i = 0; i < name.length; i += 1) h = (h + name.charCodeAt(i) * 17) % 360;
-  return h;
-}
-
 function fileToItem(
   file: WorkDriveBrowseFile,
   brandId: string,
@@ -272,41 +266,6 @@ function usageLabel(count: number, t: Tr) {
   if (count <= 0) return null;
   if (count === 1) return t('media.postCount').replace('{n}', '1');
   return t('media.postsCount').replace('{n}', String(count));
-}
-
-function FolderMosaic({
-  name,
-  thumbs,
-  selected,
-}: {
-  name: string;
-  thumbs: string[];
-  selected: boolean;
-}) {
-  const hue = mosaicHue(name);
-  const tiles = thumbs.slice(0, 4);
-  return (
-    <span className="oma-ml-mosaic" data-selected={selected ? 'true' : 'false'}>
-      {tiles.length
-        ? tiles.map((src) => (
-            <span key={src} className="oma-ml-mosaic__tile">
-              <img src={src} alt="" />
-            </span>
-          ))
-        : [0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className="oma-ml-mosaic__tile"
-              style={{ background: `hsl(${(hue + i * 28) % 360} 62% 72%)` }}
-            />
-          ))}
-      {selected ? (
-        <span className="oma-ml-mosaic__check" aria-hidden>
-          <CheckOutlined />
-        </span>
-      ) : null}
-    </span>
-  );
 }
 
 /** Real media picker: WorkDrive library as a Planable right-side panel. */
