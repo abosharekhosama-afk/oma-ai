@@ -382,7 +382,8 @@ export class ScanService {
     if (!jobRun) {
       throw new DomainError('CONFLICT_STATE', 'Missing job run', 409, 'errors.conflict_state');
     }
-    let config: { max_pages?: number; max_depth?: number; max_duration_seconds?: number } | undefined;
+    let config:
+      { max_pages?: number; max_depth?: number; max_duration_seconds?: number } | undefined;
     try {
       const parsed = JSON.parse(jobRun.payloadJson ?? '{}') as { config?: typeof config };
       config = parsed.config;
@@ -400,12 +401,7 @@ export class ScanService {
       config,
     });
     if (!result.requeued && result.reason === 'redis_unavailable') {
-      throw new DomainError(
-        'CONFLICT_STATE',
-        'Queue unavailable',
-        503,
-        'errors.conflict_state',
-      );
+      throw new DomainError('CONFLICT_STATE', 'Queue unavailable', 503, 'errors.conflict_state');
     }
     await this.audit.write({
       actorUserId,

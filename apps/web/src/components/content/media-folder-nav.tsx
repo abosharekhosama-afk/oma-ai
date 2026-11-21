@@ -21,7 +21,8 @@ function scopeForFolder(
   pathBrandScoped: boolean,
   activeScope: MediaTreeScope,
 ): MediaTreeScope {
-  if (activeScope === 'organization' || activeScope === 'all') return activeScope === 'all' ? 'all' : 'organization';
+  if (activeScope === 'organization' || activeScope === 'all')
+    return activeScope === 'all' ? 'all' : 'organization';
   if (brandFolderId && (folderId === brandFolderId || pathBrandScoped)) return 'brand';
   return 'organization';
 }
@@ -104,7 +105,16 @@ export function MediaFolderNav({
       });
     }
     return crumbs;
-  }, [activeScope, allSelected, brandFolderId, browse, labelFor, orgRoot?.folders, pathBrandScoped, t]);
+  }, [
+    activeScope,
+    allSelected,
+    brandFolderId,
+    browse,
+    labelFor,
+    orgRoot?.folders,
+    pathBrandScoped,
+    t,
+  ]);
 
   const childChips = useMemo((): NavChip[] => {
     if (allSelected) return [];

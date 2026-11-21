@@ -322,10 +322,11 @@ export class BillingService {
       });
     }
     const storageLimit =
-      (await (await import('@oma/db')).resolveAdminStorageLimitBytes(
-        tenantId,
-        plan.limits.storage_bytes ?? null,
-      )) ?? plan.limits.storage_bytes ?? null;
+      (await (
+        await import('@oma/db')
+      ).resolveAdminStorageLimitBytes(tenantId, plan.limits.storage_bytes ?? null)) ??
+      plan.limits.storage_bytes ??
+      null;
     const [invoices, pendingOrders] = await Promise.all([
       getPrisma().billingInvoice.findMany({
         where: { tenantId },

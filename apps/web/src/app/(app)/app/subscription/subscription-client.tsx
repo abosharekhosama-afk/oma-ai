@@ -106,8 +106,7 @@ export default function SubscriptionClient() {
     });
     if (!sub) return filtered;
     if (filtered.some((b) => b.key === 'storage_bytes')) return filtered;
-    const limit =
-      sub.storage_summary?.limit_bytes ?? sub.plan.limits.storage_bytes ?? null;
+    const limit = sub.storage_summary?.limit_bytes ?? sub.plan.limits.storage_bytes ?? null;
     const used =
       sub.storage_summary?.used_bytes ?? sub.usage.storage_bytes ?? wsStorage?.used_bytes ?? 0;
     const pct =
