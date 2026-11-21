@@ -14,7 +14,7 @@ import {
   type CheckoutDto,
   type SubscriptionView,
 } from '../../../../lib/billing-api';
-import { formatBytes, workDriveApi, type WorkspaceStorage } from '../../../../lib/workdrive-api';
+import { workDriveApi, type WorkspaceStorage } from '../../../../lib/workdrive-api';
 import '../billing/billing.css';
 
 const BAR_LABELS: Record<string, { en: string; ar: string }> = {

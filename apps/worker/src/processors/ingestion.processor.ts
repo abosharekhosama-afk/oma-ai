@@ -246,7 +246,7 @@ export function startIngestionProcessor(
 
         let lastProgressWrite = 0;
         let lastProgressPercent = -1;
-        let liveCoverage: Record<string, unknown> = {};
+        const liveCoverage: Record<string, unknown> = {};
         let cancelLatch = false;
         let lastAbortProbe = 0;
         const shouldAbort = async () => {
