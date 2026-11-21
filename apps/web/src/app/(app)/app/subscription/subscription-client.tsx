@@ -14,6 +14,7 @@ import {
   type CheckoutDto,
   type SubscriptionView,
 } from '../../../../lib/billing-api';
+import { formatBytes, workDriveApi, type WorkspaceStorage } from '../../../../lib/workdrive-api';
 import '../billing/billing.css';
 
 const BAR_LABELS: Record<string, { en: string; ar: string }> = {
@@ -52,12 +53,15 @@ export default function SubscriptionClient() {
   const [sub, setSub] = useState<SubscriptionView | null>(null);
   const [checkouts, setCheckouts] = useState<CheckoutDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wsStorage, setWsStorage] = useState<WorkspaceStorage | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const s = await getSubscription();
       setSub(s.data);
+      const st = await workDriveApi.storage().catch(() => null);
+      setWsStorage(st?.data ?? null);
       const check = await listCheckouts().catch(() => ({ data: [] as CheckoutDto[] }));
       setCheckouts(check.data ?? []);
     } catch {
@@ -245,6 +249,21 @@ export default function SubscriptionClient() {
               );
             })}
           </section>
+
+          {wsStorage && wsStorage.mode !== 'USER_WORKDRIVE' ? (
+            <p className="oma-billing__desc" data-testid="subscription-live-storage">
+              {isAr ? 'تخزين OMA الحالي: ' : 'Current OMA storage: '}
+              {wsStorage.limit_bytes == null
+                ? `${formatBytes(wsStorage.used_bytes, isAr ? 'ar' : 'en')} · ${isAr ? 'غير محدود' : 'Unlimited'}`
+                : `${formatBytes(wsStorage.used_bytes, isAr ? 'ar' : 'en')} / ${formatBytes(wsStorage.limit_bytes, isAr ? 'ar' : 'en')}`}
+            </p>
+          ) : wsStorage?.mode === 'USER_WORKDRIVE' ? (
+            <p className="oma-billing__desc" data-testid="subscription-live-storage">
+              {isAr
+                ? 'الملفات الكبيرة تُحسب على WorkDrive الخاص بك؛ شريط التخزين أعلاه يعرض ملفات OMA الداخلية فقط.'
+                : 'Large files use your WorkDrive; the storage bar above counts OMA-internal bytes only.'}
+            </p>
+          ) : null}
 
           {canAdmin ? (
             <p className="oma-sub__admin">

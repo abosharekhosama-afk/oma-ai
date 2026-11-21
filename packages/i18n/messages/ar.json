@@ -2997,6 +2997,8 @@
   "media.canvaConnect": "ربط",
   "media.canvaHide": "إخفاء",
   "media.canvaUnavailable": "Canva غير مربوط في مساحة العمل هذه بعد.",
+  "media.canvaOmaHint": "من Canva: مشاركة → تنزيل، ثم ارفع هنا، أو استخدم «النشر إلى مجلد» إذا كان فريقك يزامن التصديرات إلى مجلد Canva في تخزين OMA.",
+  "media.canvaWorkdriveHint": "صدّر من Canva إلى WorkDrive (نشر إلى مجلد / رفع) داخل مجلد Canva أدناه. اختر «WorkDrive الخاص بي» أعلاه إذا كانت الملفات في مفتاحك.",
   "media.cancelSearch": "إلغاء",
   "media.campaign": "الحملة",
   "media.connectBody": "اربط WorkDrive من الإعدادات، أو اطلب من المسؤول تفعيل تخزين OMA حتى يتمكن الفريق من الرفع.",

@@ -2995,6 +2995,8 @@
   "media.canvaConnect": "Connect",
   "media.canvaHide": "Hide",
   "media.canvaUnavailable": "Canva isn’t connected in this workspace yet.",
+  "media.canvaOmaHint": "Open Canva → Share → Download, then upload here or use Canva’s “Publish to folder” if your team syncs exports to this Canva folder in OMA storage.",
+  "media.canvaWorkdriveHint": "Export from Canva to your WorkDrive (Publish to folder / upload) into the Canva folder shown below. Pick “Your WorkDrive” above if files land in your key.",
   "media.cancelSearch": "Cancel",
   "media.campaign": "Campaign",
   "media.connectBody": "Connect WorkDrive in Settings, or ask an admin to enable OMA storage so the team can upload.",
