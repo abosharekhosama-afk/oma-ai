@@ -19,7 +19,9 @@ function scopeForFolder(
   folderId: string,
   brandFolderId: string | undefined,
   pathBrandScoped: boolean,
+  activeScope: MediaTreeScope,
 ): MediaTreeScope {
+  if (activeScope === 'organization' || activeScope === 'all') return activeScope === 'all' ? 'all' : 'organization';
   if (brandFolderId && (folderId === brandFolderId || pathBrandScoped)) return 'brand';
   return 'organization';
 }
@@ -33,6 +35,7 @@ export function MediaFolderNav({
   brandFolderId,
   allSelected,
   browsing,
+  activeScope,
   onBack,
   onNavigate,
   t,
@@ -45,6 +48,7 @@ export function MediaFolderNav({
   brandFolderId?: string;
   allSelected: boolean;
   browsing: boolean;
+  activeScope: MediaTreeScope;
   onBack: () => void;
   onNavigate: (scope: MediaTreeScope, folderId?: string) => void;
   t: Tr;
@@ -78,7 +82,7 @@ export function MediaFolderNav({
       const roots = (orgRoot?.folders ?? []).map((f) => ({
         id: f.id,
         label: labelFor(f.id, f.name),
-        scope: scopeForFolder(f.id, brandFolderId, false),
+        scope: scopeForFolder(f.id, brandFolderId, false, activeScope),
         active: false,
       }));
       return [allChip, ...roots];
@@ -95,12 +99,12 @@ export function MediaFolderNav({
       crumbs.push({
         id: crumb.id,
         label: labelFor(crumb.id, crumb.name),
-        scope: scopeForFolder(crumb.id, brandFolderId, pathBrandScoped),
+        scope: scopeForFolder(crumb.id, brandFolderId, pathBrandScoped, activeScope),
         active: browse?.folder.id === crumb.id,
       });
     }
     return crumbs;
-  }, [allSelected, brandFolderId, browse, labelFor, orgRoot?.folders, pathBrandScoped, t]);
+  }, [activeScope, allSelected, brandFolderId, browse, labelFor, orgRoot?.folders, pathBrandScoped, t]);
 
   const childChips = useMemo((): NavChip[] => {
     if (allSelected) return [];
@@ -111,10 +115,16 @@ export function MediaFolderNav({
     return folders.map((f) => ({
       id: f.id,
       label: labelFor(f.id, f.name),
-      scope: scopeForFolder(f.id, brandFolderId, pathBrandScoped || f.id === brandFolderId),
+      scope: scopeForFolder(
+        f.id,
+        brandFolderId,
+        pathBrandScoped || f.id === brandFolderId,
+        activeScope,
+      ),
       active: false,
     }));
   }, [
+    activeScope,
     allSelected,
     brandFolderId,
     browse?.folder.id,

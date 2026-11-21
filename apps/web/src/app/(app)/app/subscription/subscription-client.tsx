@@ -106,8 +106,10 @@ export default function SubscriptionClient() {
     });
     if (!sub) return filtered;
     if (filtered.some((b) => b.key === 'storage_bytes')) return filtered;
-    const limit = sub.plan.limits.storage_bytes ?? null;
-    const used = wsStorage?.used_bytes ?? sub.usage.storage_bytes ?? 0;
+    const limit =
+      sub.storage_summary?.limit_bytes ?? sub.plan.limits.storage_bytes ?? null;
+    const used =
+      sub.storage_summary?.used_bytes ?? sub.usage.storage_bytes ?? wsStorage?.used_bytes ?? 0;
     const pct =
       limit == null || limit === 0
         ? limit === 0 && used > 0
@@ -253,12 +255,16 @@ export default function SubscriptionClient() {
               let pct = bar.pct;
               let unlimited = bar.unlimited;
               if (bar.key === 'storage_bytes') {
-                const usageStorage = sub?.usage?.storage_bytes ?? bar.used;
-                used = wsStorage?.used_bytes ?? usageStorage;
-                if (wsStorage?.limit_bytes != null) limit = wsStorage.limit_bytes;
-                else if (limit == null && sub?.plan.limits.storage_bytes != null) {
-                  limit = sub.plan.limits.storage_bytes;
-                }
+                used =
+                  sub.storage_summary?.used_bytes ??
+                  sub.usage.storage_bytes ??
+                  wsStorage?.used_bytes ??
+                  bar.used;
+                limit =
+                  sub.storage_summary?.limit_bytes ??
+                  sub.plan.limits.storage_bytes ??
+                  wsStorage?.limit_bytes ??
+                  bar.limit;
                 unlimited = limit == null;
                 pct =
                   limit == null || limit === 0

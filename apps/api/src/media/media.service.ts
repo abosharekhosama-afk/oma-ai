@@ -376,6 +376,53 @@ export class MediaService {
     return folderId;
   }
 
+  private tenantBrandFoldersCache = new Map<
+    string,
+    Array<{ id: string; name: string; brand_id: string }>
+  >();
+
+  /** Every brand workspace folder under tenants/{tenantId}/brands for organization browse. */
+  private async listTenantBrandFolders(
+    c: {
+      client: WorkDriveClient;
+      conn: { id: string; rootFolderName: string | null };
+      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+      tenantId?: string;
+    },
+    tenantId: string,
+  ): Promise<Array<{ id: string; name: string; brand_id: string }>> {
+    const cacheKey = c.conn.id;
+    const cached = this.tenantBrandFoldersCache.get(cacheKey);
+    if (cached) return cached;
+    const brands = await getPrisma().brandWorkspace.findMany({
+      where: tenantWhere(tenantId, { deletedAt: null }),
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+    const rows: Array<{ id: string; name: string; brand_id: string }> = [];
+    for (const b of brands) {
+      const folderId = await this.brandFolderFor(c, b);
+      rows.push({ id: folderId, name: b.name, brand_id: b.id });
+    }
+    this.tenantBrandFoldersCache.set(cacheKey, rows);
+    return rows;
+  }
+
+  private async brandAtFolder(
+    c: {
+      client: WorkDriveClient;
+      conn: { id: string; rootFolderName: string | null };
+      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+      tenantId?: string;
+    },
+    tenantId: string,
+    folderId: string,
+  ): Promise<{ id: string; name: string; folderId: string } | null> {
+    const rows = await this.listTenantBrandFolders(c, tenantId);
+    const hit = rows.find((r) => r.id === folderId);
+    return hit ? { id: hit.brand_id, name: hit.name, folderId: hit.id } : null;
+  }
+
   /** The brand browsing scope starts at the brand folder, not at one media-kind child. */
   private async brandFolderFor(
     c: {
@@ -584,12 +631,14 @@ export class MediaService {
       const a = byWd.get(f.id);
       const u = a ? usage.get(a.id) : undefined;
       const campaign_ids = u ? [...u.campaignIds] : [];
+      const playbackBrandId = a?.brandId ?? brandId;
       return {
         ...f,
         asset_id: a?.id ?? null,
+        brand_id: a?.brandId ?? null,
         view_url: a
           ? mediaPlaybackUrl(a.id, a.mime)
-          : `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(f.id)}${source ? `&source=${source}` : ''}`,
+          : `/api/v1/brands/${playbackBrandId}/media/file-preview?file_id=${encodeURIComponent(f.id)}${source ? `&source=${source}` : ''}`,
         stream_url: a && a.mime.startsWith('video/') ? `/api/v1/media/${a.id}/stream` : null,
         usage_count: u?.count ?? 0,
         campaign_ids,
@@ -626,16 +675,17 @@ export class MediaService {
   async list(
     tenantId: string,
     brandId: string,
-    q: { kind?: string; cursor?: string; limit?: string; source?: string },
+    q: { kind?: string; cursor?: string; limit?: string; source?: string; scope?: string },
   ) {
     await this.brand(tenantId, brandId);
     const conn = await this.workdrive.status(tenantId);
     const storage = await this.workdrive.storageStatus(tenantId);
     const take = Math.min(Math.max(Number(q.limit) || 40, 1), 100);
     const source = this.workdrive.parseLibrarySource(q.source);
+    const tenantWide = q.scope === 'organization' || q.scope === 'all';
     const rows = await getPrisma().mediaAsset.findMany({
       where: tenantWhere(tenantId, {
-        brandId,
+        ...(tenantWide ? {} : { brandId }),
         ...(q.kind ? { kind: parseKind(q.kind) } : {}),
         ...(source === 'oma' ? { storageProvider: 'OMA_INTERNAL' } : {}),
         ...(source === 'workdrive' ? { storageProvider: 'USER_WORKDRIVE' } : {}),
@@ -1092,13 +1142,19 @@ export class MediaService {
               size: x.size,
               updated_at: x.updatedAt,
             }));
-      // Brand Assets is the brand folder: flatten posts/logos children so the grid is not empty.
-      const atInternalOrgRoot = c.provider === 'OMA_INTERNAL' && !allScope && f.id === tenantRootId;
+      const atInternalOrgRoot =
+        c.provider === 'OMA_INTERNAL' && !allScope && tenantRootId != null && f.id === tenantRootId;
+      const brandAtFolder =
+        c.provider === 'OMA_INTERNAL' && !allScope
+          ? await this.brandAtFolder(c, tenantId, f.id)
+          : null;
+      // Inside a brand folder: flatten posts/logos/deliverables so assets appear without an extra click.
       if (
-        (f.id === brandFolderId || atInternalOrgRoot) &&
-        (files.length === 0 || atInternalOrgRoot)
+        !atInternalOrgRoot &&
+        (f.id === brandFolderId || brandAtFolder != null) &&
+        files.length === 0
       ) {
-        const listing = f.id === brandFolderId ? f : await c.client.getFolder(brandFolderId);
+        const listing = brandAtFolder != null || f.id === brandFolderId ? f : await c.client.getFolder(brandFolderId);
         const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
         const kids = listing.folders.filter((child) => flattenNames.includes(child.name));
         if (kids.length) {
@@ -1119,6 +1175,13 @@ export class MediaService {
           }
         }
       }
+      let rawFolders = f.folders;
+      if (c.provider === 'OMA_INTERNAL' && organizationScope && !allScope) {
+        if (tenantRootId != null && (f.id === tenantRootId || f.name === 'brands')) {
+          const brandRows = await this.listTenantBrandFolders(c, tenantId);
+          rawFolders = brandRows.map((row) => ({ id: row.id, name: row.name }));
+        }
+      }
       const decorated = await this.decorateBrowseFiles(tenantId, brandId, files, c.source);
       const fileLimit = q.file_limit ? Math.min(Math.max(Number(q.file_limit) || 0, 1), 120) : null;
       const fileOffset = Math.max(Number(q.file_offset) || 0, 0);
@@ -1133,12 +1196,13 @@ export class MediaService {
         : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, path);
       const humanFolders = allScope
         ? []
-        : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, f.folders);
+        : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, rawFolders);
       const mappedFolderLabel = allScope
         ? 'All files'
-        : f.id === brandFolderId || f.name === brand.id
-          ? brand.name
-          : (humanPath[humanPath.length - 1]?.name ?? f.name);
+        : brandAtFolder?.name ??
+          (f.id === brandFolderId || f.name === brand.id
+            ? brand.name
+            : (humanPath[humanPath.length - 1]?.name ?? f.name));
       return {
         data: {
           folder: {
