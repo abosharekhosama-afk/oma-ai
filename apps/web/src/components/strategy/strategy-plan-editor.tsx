@@ -65,6 +65,8 @@ export function StrategyPlanEditor({
     content_gaps: [],
   });
   const [paid, setPaid] = useState<PaidPlan>({ allocations: [], audiences: [], experiments: [] });
+  const [paidBudget, setPaidBudget] = useState('');
+  const [paidCurrency, setPaidCurrency] = useState('USD');
   const [proposal, setProposal] = useState<PlanProposal | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'saved' | 'error'; text: string } | null>(null);
@@ -75,6 +77,8 @@ export function StrategyPlanEditor({
       setPlan(res.data);
       setOrganic(res.data.organic);
       setPaid(res.data.paid);
+      setPaidBudget(res.data.paid.budget_amount ?? '');
+      setPaidCurrency(res.data.paid.budget_currency ?? 'USD');
     } catch (err) {
       setStatus({ kind: 'error', text: getApiError(err).message });
     }
@@ -95,6 +99,8 @@ export function StrategyPlanEditor({
     setPlan(res.data);
     setOrganic(res.data.organic);
     setPaid(res.data.paid);
+    setPaidBudget(res.data.paid.budget_amount ?? '');
+    setPaidCurrency(res.data.paid.budget_currency ?? 'USD');
     setStatus({ kind: 'saved', text: message });
   }
 
@@ -105,7 +111,10 @@ export function StrategyPlanEditor({
       const res =
         track === 'organic'
           ? await putOrganicPlan(brandId, strategyId, versionId, plan.row_version, organic)
-          : await putPaidPlan(brandId, strategyId, versionId, plan.row_version, paid);
+          : await putPaidPlan(brandId, strategyId, versionId, plan.row_version, paid, {
+              amount: paidBudget,
+              currency: paidCurrency,
+            });
       apply(res, t('strategy.saved'));
     } catch (err) {
       setStatus({ kind: 'error', text: getApiError(err).message });
@@ -265,14 +274,38 @@ export function StrategyPlanEditor({
       {track === 'organic' ? (
         <OrganicTables plan={organic} onChange={setOrganic} editable={editable} t={t} />
       ) : (
-        <PaidTables
-          plan={paid}
-          onChange={setPaid}
-          editable={editable}
-          t={t}
-          budget={plan.paid.budget_amount}
-          currency={plan.paid.budget_currency}
-        />
+        <>
+          <section className="oma-form-section oma-plan-budget-row" data-testid="plan-paid-budget">
+            <div className="oma-form-grid">
+              <label>
+                {t('strategy.paid.budget')}
+                <Input
+                  value={paidBudget}
+                  onChange={(e) => setPaidBudget(e.target.value)}
+                  disabled={!editable}
+                  data-testid="plan-paid-budget-amount"
+                />
+              </label>
+              <label>
+                {t('strategy.plan.budgetCurrency')}
+                <Input
+                  value={paidCurrency}
+                  onChange={(e) => setPaidCurrency(e.target.value)}
+                  disabled={!editable}
+                  data-testid="plan-paid-budget-currency"
+                />
+              </label>
+            </div>
+          </section>
+          <PaidTables
+            plan={paid}
+            onChange={setPaid}
+            editable={editable}
+            t={t}
+            budget={paidBudget.trim() || null}
+            currency={paidCurrency}
+          />
+        </>
       )}
 
       {warnings.length ? (

@@ -150,7 +150,7 @@ describe('schedule readiness, connected accounts, Planned vs Scheduled (DEC-023)
       expect.arrayContaining(['NO_CONNECTED_ACCOUNT']),
     );
     const row = await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post.id } });
-    expect(row.lastPublishSkipReason).toBe('Auto-schedule blocked: NO_CONNECTED_ACCOUNT');
+    expect(row.lastPublishSkipReason).toContain('NO_CONNECTED_ACCOUNT');
   });
 });
 

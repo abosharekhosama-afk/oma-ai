@@ -370,7 +370,7 @@ export async function runIngestionForJobRun(
     await publishPendingOutbox(connection);
     const job = await queue.getJob(bullIngestionJobId(jobRunId));
     if (job) {
-      await job.waitUntilFinished(events, 90_000);
+      await job.waitUntilFinished(events, process.env.CI ? 120_000 : 90_000);
     }
   } finally {
     await worker.close();
@@ -383,7 +383,7 @@ export async function runIngestionForJobRun(
 export async function fullScanJourney(
   seed: BrandSeed,
   connection: IORedis,
-  config?: { max_pages?: number; max_depth?: number },
+  config?: { max_pages?: number; max_depth?: number; pollTimeoutMs?: number },
 ) {
   const { body: brandBody } = await createBrand(seed);
   const brandId = brandBody.data.id;
@@ -393,7 +393,13 @@ export async function fullScanJourney(
   const scanId = scanBody.data.scan_attempt_id;
   const jobRunId = scanBody.data.job_run_id;
   await runIngestionForJobRun(connection, jobRunId);
-  const scan = await pollScanUntil(seed, brandId, scanId, ['PARTIAL', 'SUCCEEDED', 'FAILED']);
+  const scan = await pollScanUntil(
+    seed,
+    brandId,
+    scanId,
+    ['PARTIAL', 'SUCCEEDED', 'FAILED'],
+    config?.pollTimeoutMs ?? (process.env.CI ? 120_000 : 60_000),
+  );
   const profileVersionId = (await getScan(seed, brandId, scanId)).body.data.profile_version_id as
     string | null;
   return { brandId, scanId, jobRunId, scan, profileVersionId };

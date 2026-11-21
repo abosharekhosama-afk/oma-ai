@@ -21,6 +21,7 @@ import {
   createStrategyPlanContentDraft,
   refreshStrategyPlanContentFromDraft,
 } from '../content/plan-content-handoff.service';
+import { readStrategyPlan } from './strategy-plan.service';
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   if (!raw) return fallback;
@@ -191,12 +192,18 @@ export class StrategyPlanRequestsService {
     return finish(fromDiscovery, 'discovery_fallback', scan.id);
   }
 
-  private buildDrafts(
+  private async buildDrafts(
     version: Awaited<ReturnType<typeof this.loadApprovedVersion>>,
     catalogOfferings: CatalogOffering[],
   ) {
     const organic = version.organicTrack;
     const paid = version.paidTrack;
+    const paidPlan = version.paidEnabled
+      ? (await readStrategyPlan(getPrisma(), version.id)).paid
+      : null;
+    const paidBudgetRaw = paid?.budgetAmount != null ? Number(paid.budgetAmount) : null;
+    const paidBudgetAmount =
+      paidBudgetRaw != null && Number.isFinite(paidBudgetRaw) ? paidBudgetRaw : null;
     return buildPlanWorkRequestDrafts({
       strategyName: version.strategy.name,
       foundation: parseJson(version.foundationJson, {}),
@@ -220,6 +227,8 @@ export class StrategyPlanRequestsService {
         : null,
       audiences: version.audiences.map((a) => ({ name: a.name, description: a.description })),
       catalogOfferings,
+      paidPlan,
+      paidBudgetAmount: Number.isFinite(paidBudgetAmount) ? paidBudgetAmount : null,
     });
   }
 
@@ -235,7 +244,7 @@ export class StrategyPlanRequestsService {
       brandId,
       version,
     );
-    const drafts = this.buildDrafts(version, catalogOfferings);
+    const drafts = await this.buildDrafts(version, catalogOfferings);
     const existing = await getPrisma().workRequest.findMany({
       where: { tenantId, strategyVersionId: versionId },
       select: { planSourceKey: true },
@@ -369,7 +378,7 @@ export class StrategyPlanRequestsService {
       version,
       { auditFallback: true, actorUserId, correlationId },
     );
-    const drafts = this.buildDrafts(version, catalogOfferings);
+    const drafts = await this.buildDrafts(version, catalogOfferings);
     const defaults = await this.resolveCommitDefaults(tenantId, brandId, input.defaults);
     const selected =
       input.plan_source_keys && input.plan_source_keys.length > 0
@@ -494,7 +503,7 @@ export class StrategyPlanRequestsService {
       brandId,
       version,
     );
-    const drafts = this.buildDrafts(version, catalogOfferings);
+    const drafts = await this.buildDrafts(version, catalogOfferings);
     const prior = await getPrisma().workRequest.findMany({
       where: {
         tenantId,
@@ -557,7 +566,7 @@ export class StrategyPlanRequestsService {
       brandId,
       version,
     );
-    const drafts = this.buildDrafts(version, catalogOfferings);
+    const drafts = await this.buildDrafts(version, catalogOfferings);
     const draftByKey = new Map(drafts.map((d) => [d.plan_source_key, d]));
     const impact = await this.planRequestImpact(tenantId, brandId, strategyId, versionId);
     const driftedIds = new Set(

@@ -21,6 +21,7 @@ import { SelectCompany } from '../../../../../../../../components/shell/select-c
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
+import { StrategyTrackEnablement } from '../../../../../../../../components/strategy/strategy-track-enablement';
 import {
   readFoundationText,
   textToFoundationGoals,
@@ -139,6 +140,15 @@ export default function StrategyFoundationPage() {
         versionEditable={editable}
         onLinked={() => void load()}
       />
+      {editable ? (
+        <StrategyTrackEnablement
+          brandId={brandId}
+          strategyId={strategyId}
+          version={version}
+          editable={editable}
+          onUpdated={(next) => setVersion(next)}
+        />
+      ) : null}
       {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
       <div className="oma-doc-canvas oma-editor-shell" data-testid="strategy-document-canvas">
         <nav className="oma-doc-outline" aria-label={t('strategy.foundation.title')}>

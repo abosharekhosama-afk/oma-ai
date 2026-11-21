@@ -557,8 +557,9 @@ export class StrategyPlanService {
     body: Record<string, unknown>,
     correlationId?: string,
   ) {
-    const { row_version: rowVersion, ...rest } = body ?? {};
+    const { row_version: rowVersion, budget_amount, budget_currency, ...rest } = body ?? {};
     const plan = parsePaidPlan(rest);
+    const scope = { tenantId, brandId, versionId };
     return this.guardedWrite(
       tenantId,
       actorUserId,
@@ -567,7 +568,33 @@ export class StrategyPlanService {
       versionId,
       rowVersion,
       ['paid'],
-      (tx) => writePaidPlan(tx, { tenantId, brandId, versionId }, plan),
+      async (tx) => {
+        await writePaidPlan(tx, scope, plan);
+        const track = await tx.strategyPaidTrack.findUnique({
+          where: { strategyVersionId: versionId },
+        });
+        if (track) {
+          const objectives = plan.allocations.map((a) => ({
+            platform: a.platform,
+            objective: a.objective,
+            share_pct: a.share_pct,
+          }));
+          await tx.strategyPaidTrack.update({
+            where: { id: track.id },
+            data: {
+              campaignObjectivesJson: JSON.stringify(objectives),
+              ...(budget_amount !== undefined
+                ? {
+                    budgetAmount:
+                      budget_amount == null || budget_amount === '' ? null : String(budget_amount),
+                  }
+                : {}),
+              ...(budget_currency !== undefined ? { budgetCurrency: String(budget_currency) } : {}),
+              rowVersion: { increment: 1 },
+            },
+          });
+        }
+      },
       correlationId,
     );
   }

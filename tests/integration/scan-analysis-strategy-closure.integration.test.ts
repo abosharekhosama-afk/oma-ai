@@ -81,6 +81,7 @@ describe('scan-analysis-strategy operational closure (005 T035/T040)', () => {
         category: 'Retail',
         priceAmount: '99',
         priceCurrency: 'SAR',
+        dedupeKey: `product:fallback-${scanId}`,
       },
     });
 

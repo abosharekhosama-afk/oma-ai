@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { getStrategyPlan } from '../../lib/strategy-plan-api';
 import { readFoundationText, trackListToText } from '../../lib/strategy-foundation-format';
 import type { StrategyVersionDetail } from '../../lib/strategy-types';
 import { useT } from '../../lib/use-locale';
@@ -22,7 +24,48 @@ export function StrategyDraftPreview({ brandId, strategyId, version }: Props) {
   const channels = organic ? trackListToText(organic.channels) : '';
   const formats = organic ? trackListToText(organic.formats) : '';
 
-  const hasContent = Boolean(goals || positioning || keyMessages || pillars || channels || formats);
+  const [paidSummary, setPaidSummary] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!version.paid_enabled) {
+      setPaidSummary(null);
+      return;
+    }
+    let cancelled = false;
+    void getStrategyPlan(brandId, strategyId, version.id)
+      .then((res) => {
+        if (cancelled) return;
+        const paid = res.data.paid;
+        const lines: string[] = [];
+        if (paid.budget_amount) {
+          lines.push(
+            `${t('strategy.paid.budget')}: ${paid.budget_amount} ${paid.budget_currency ?? ''}`.trim(),
+          );
+        }
+        if (paid.allocations.length > 0) {
+          lines.push(
+            paid.allocations.map((a) => `${a.platform}/${a.objective} ${a.share_pct}%`).join(' · '),
+          );
+        }
+        if (paid.audiences.length > 0) {
+          lines.push(paid.audiences.map((a) => a.name).join(' · '));
+        }
+        if (paid.experiments.length > 0) {
+          lines.push(paid.experiments.map((e) => e.name).join(' · '));
+        }
+        setPaidSummary(lines.length ? lines.join('\n\n') : null);
+      })
+      .catch(() => {
+        if (!cancelled) setPaidSummary(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [brandId, strategyId, version.id, version.paid_enabled, t]);
+
+  const hasContent = Boolean(
+    goals || positioning || keyMessages || pillars || channels || formats || paidSummary,
+  );
 
   if (!hasContent) {
     return (
@@ -66,6 +109,9 @@ export function StrategyDraftPreview({ brandId, strategyId, version }: Props) {
             title={t('strategy.nav.organic')}
             text={[pillars, channels, formats].filter(Boolean).join('\n\n')}
           />
+        ) : null}
+        {version.paid_enabled && paidSummary ? (
+          <PreviewBlock title={t('strategy.nav.paid')} text={paidSummary} />
         ) : null}
         <Link
           href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
