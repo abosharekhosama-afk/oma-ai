@@ -8,6 +8,7 @@ import { analyticsService } from './analytics.service';
 import { optimalTimesService } from './optimal-times.service';
 import { analyticsCache, normaliseParams } from './analytics-cache';
 import { billingService } from '../billing/billing.service';
+import { seoService } from '../container';
 
 @Controller('api/v1/analytics')
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -138,5 +139,30 @@ export class AnalyticsController {
       socialPageIds,
       date,
     });
+  }
+
+  /** GET /api/v1/analytics/seo?brandId=&period=30 */
+  @Get('seo')
+  @RequireCapabilities('analytics.read')
+  async seo(
+    @Req() req: Request,
+    @Query('brandId') brandId?: string,
+    @Query('period') period?: string,
+  ) {
+    if (!req.oma?.tenantId) {
+      throw new DomainError(
+        'TENANT_REQUIRED',
+        'Active tenant required',
+        409,
+        'errors.tenant_required',
+      );
+    }
+    if (!brandId?.trim()) {
+      throw new DomainError('VALIDATION_FAILED', 'brandId is required', 400, 'errors.validation');
+    }
+    const tenantId = req.oma.tenantId;
+    await billingService.assertFeature(tenantId, 'analytics');
+    const days = Math.min(90, Math.max(7, Number(period ?? 30) || 30));
+    return seoService.analyticsSeo(tenantId, brandId.trim(), days);
   }
 }
