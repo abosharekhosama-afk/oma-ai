@@ -4,7 +4,7 @@ import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 import { Button, TextArea } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../lib/brand-types';
 import type { StrategyVersionDetail } from '../../../../../../../../lib/strategy-types';
@@ -25,7 +25,10 @@ import {
   readFoundationText,
   textToFoundationGoals,
 } from '../../../../../../../../lib/strategy-foundation-format';
-
+import {
+  StrategyCreationJourney,
+  newStrategyJourneySteps,
+} from '../../../../../../../../components/strategy/strategy-creation-journey';
 export default function StrategyFoundationPage() {
   const t = useT();
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -65,6 +68,16 @@ export default function StrategyFoundationPage() {
     void load();
   }, [load]);
 
+  const journeySteps = useMemo(
+    () =>
+      newStrategyJourneySteps(brandId, strategyId, t).map((step) => {
+        if (step.id === 'create') return { ...step, state: 'done' as const };
+        if (step.id === 'foundation') return { ...step, state: 'current' as const };
+        return step;
+      }),
+    [brandId, strategyId, t],
+  );
+
   async function onSave(e: FormEvent) {
     e.preventDefault();
     if (!version) return;
@@ -103,6 +116,7 @@ export default function StrategyFoundationPage() {
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.foundation.title')} />
+      <StrategyCreationJourney brandId={brandId} steps={journeySteps} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant
           brandId={brandId}

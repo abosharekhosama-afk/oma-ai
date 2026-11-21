@@ -104,7 +104,8 @@ export function buildPlanWorkRequestDrafts(input: {
       input.organic?.channels?.map(readLabel).filter(Boolean) ??
       (input.organic ? [] : ['Social', 'Web']);
     const formats = input.organic?.formats?.map(readLabel).filter(Boolean) ?? ['Post', 'Story'];
-    for (const product of catalogProducts.slice(0, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS)) {
+    const productCap = Math.min(catalogProducts.length, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS);
+    for (const product of catalogProducts.slice(0, productCap)) {
       const focus = product.category ? `${product.name} (${product.category})` : product.name;
       const mediaNote = product.primary_media_view_url
         ? ` Use approved catalog product media in WorkDrive as the visual anchor.`
@@ -129,7 +130,8 @@ export function buildPlanWorkRequestDrafts(input: {
         },
       });
     }
-    for (const service of catalogServices.slice(0, DEFAULT_MAX_CATALOG_SERVICE_REQUESTS)) {
+    const serviceCap = Math.min(catalogServices.length, DEFAULT_MAX_CATALOG_SERVICE_REQUESTS);
+    for (const service of catalogServices.slice(0, serviceCap)) {
       const desc =
         service.description?.trim() ||
         `Organic content explaining scanned service “${service.name}”.`;

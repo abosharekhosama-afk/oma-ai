@@ -180,6 +180,7 @@ export default function StrategyOrganicPage() {
                   brandId={brandId}
                   value={trackListTextToPickerValue(channels)}
                   multiple
+                  variant="dropdown"
                   locale={locale}
                   testId="organic-channels"
                   onChange={(v) => setChannels(pickerValueToTrackListText(v))}

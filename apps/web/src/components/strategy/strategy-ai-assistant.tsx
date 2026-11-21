@@ -5,7 +5,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { api } from '../../lib/api';
 import { getApiError } from '../../lib/brand-api';
-import { groupProposalItems, type StrategyAiProposalItem } from '../../lib/strategy-ai-ui';
+import {
+  groupProposalItems,
+  strategyProposalToItems,
+  type StrategyAiProposalItem,
+} from '../../lib/strategy-ai-ui';
 import { useT } from '../../lib/use-locale';
 import { AiHonestyBanner } from './honesty-banners';
 
@@ -76,9 +80,15 @@ export function StrategyAiAssistant({
         `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/ai/propose`,
         { method: 'POST', body: '{}' },
       );
+      const items = strategyProposalToItems(res.data?.proposal);
+      if (!items.length) {
+        setProposal(null);
+        setError(t('strategy.ai.emptyProposal'));
+        return;
+      }
       setProposal({
         run_id: res.data?.run_id ?? '',
-        items: res.data?.proposal?.items ?? [],
+        items,
       });
       setMessage(
         res.data?.used_approved_profile

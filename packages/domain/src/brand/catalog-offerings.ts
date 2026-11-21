@@ -12,9 +12,11 @@ export type CatalogOffering = CatalogSummaryItem & {
   primary_media_view_url?: string;
 };
 
-export const DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS = 8;
-export const DEFAULT_MAX_CATALOG_SERVICE_REQUESTS = 4;
-export const DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS = 3;
+/** Organic plan-to-requests includes every catalog product/service (no batch cap). */
+export const DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS = 10_000;
+export const DEFAULT_MAX_CATALOG_SERVICE_REQUESTS = 10_000;
+/** Paid catalog lines stay capped to keep planning scopes manageable. */
+export const DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS = 50;
 
 export function slugForCatalogName(name: string): string {
   const slug = name
