@@ -94,7 +94,8 @@ export class ScanService {
       error_detail: scan.errorDetail ?? null,
       started_at: scan.startedAt?.toISOString() ?? null,
       finished_at: scan.finishedAt?.toISOString() ?? null,
-      progress_updated_at: scan.progressUpdatedAt?.toISOString() ?? scan.startedAt?.toISOString() ?? null,
+      progress_updated_at:
+        scan.progressUpdatedAt?.toISOString() ?? scan.startedAt?.toISOString() ?? null,
     };
   }
 
