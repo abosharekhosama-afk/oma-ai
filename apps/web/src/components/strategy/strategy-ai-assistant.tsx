@@ -7,6 +7,7 @@ import { api } from '../../lib/api';
 import { getApiError } from '../../lib/brand-api';
 import {
   groupProposalItems,
+  proposalFieldLabel,
   strategyProposalToItems,
   type StrategyAiProposalItem,
 } from '../../lib/strategy-ai-ui';
@@ -23,6 +24,10 @@ type Props = {
   paidEnabled: boolean;
   onApplied?: () => void;
 };
+
+function humanSectionTitle(section: string) {
+  return section.replace(/_/g, ' ').replace(/^(\w)/, (c) => c.toUpperCase());
+}
 
 type ProposeResponse = {
   data?: {
@@ -141,13 +146,16 @@ export function StrategyAiAssistant({
   const profileId = linkedProfileVersionId;
 
   return (
-    <section className="oma-panel oma-stack" data-testid="strategy-ai-assistant">
-      <header>
+    <section
+      className="oma-panel oma-stack oma-strategy-ai-panel oma-strategy-ai-panel--compact"
+      data-testid="strategy-ai-assistant"
+    >
+      <header className="oma-strategy-ai-panel__head">
         <h3>{t('strategy.ai.panelTitle')}</h3>
         <p className="oma-muted">{t('strategy.ai.panelHint')}</p>
       </header>
 
-      <AiHonestyBanner availability={aiAvailability} />
+      {aiAvailability !== 'AVAILABLE' ? <AiHonestyBanner availability={aiAvailability} /> : null}
 
       {strategyAiMode !== 'live' ? (
         <p className="oma-banner oma-banner-warning" role="status">
@@ -161,27 +169,23 @@ export function StrategyAiAssistant({
         </p>
       ) : null}
 
-      <dl className="oma-detail-dl">
-        <div>
-          <dt>{t('strategy.ai.sourceProfile')}</dt>
-          <dd>
-            {profileId ? (
-              <Link href={`/app/brands/${brandId}/profiles/${profileId}`} className="oma-text-link">
-                {t('brand.detail.viewProfile')}
-              </Link>
-            ) : (
-              <span className="oma-muted">{t('strategy.ai.linkProfileFirst')}</span>
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt>{t('strategy.overview.tracks')}</dt>
-          <dd>
-            {organicEnabled ? t('strategy.nav.organic') : '—'} ·{' '}
-            {paidEnabled ? t('strategy.nav.paid') : '—'}
-          </dd>
-        </div>
-      </dl>
+      <div className="oma-strategy-ai-meta-row">
+        <span className="oma-muted">{t('strategy.ai.sourceProfile')}:</span>
+        {profileId ? (
+          <Link href={`/app/brands/${brandId}/profiles/${profileId}`} className="oma-text-link">
+            {t('brand.detail.viewProfile')}
+          </Link>
+        ) : (
+          <span className="oma-muted">{t('strategy.ai.linkProfileFirst')}</span>
+        )}
+        <span className="oma-strategy-ai-meta-row__dot" aria-hidden>
+          ·
+        </span>
+        <span className="oma-muted">
+          {organicEnabled ? t('strategy.nav.organic') : '—'} /{' '}
+          {paidEnabled ? t('strategy.nav.paid') : '—'}
+        </span>
+      </div>
 
       {!editable ? (
         <p className="oma-muted" role="status">
@@ -241,19 +245,33 @@ export function StrategyAiAssistant({
       ) : null}
 
       {proposal && proposal.items.length > 0 ? (
-        <div className="oma-stack" data-testid="strategy-ai-proposal-preview">
+        <div
+          className="oma-stack oma-strategy-ai-proposal"
+          data-testid="strategy-ai-proposal-preview"
+        >
           <p className="oma-badge">{t('strategy.ai.proposalBanner')}</p>
           {[...grouped.entries()].map(([section, items]) => (
-            <div key={section}>
-              <h4>{t(`strategy.ai.section.${section}`) || section}</h4>
-              <ul>
+            <div key={section} className="oma-strategy-ai-proposal__section">
+              <h4 className="oma-strategy-ai-proposal__section-title">
+                {t(`strategy.ai.section.${section}`) !== `strategy.ai.section.${section}`
+                  ? t(`strategy.ai.section.${section}`)
+                  : humanSectionTitle(section)}
+              </h4>
+              <ul className="oma-social-card-grid">
                 {items.map((item: StrategyAiProposalItem) => (
-                  <li key={`${item.field}-${item.value.slice(0, 24)}`}>
-                    <strong>{item.field}</strong>
-                    {item.kind ? (
-                      <span className="oma-badge oma-badge-muted"> {item.kind}</span>
+                  <li
+                    key={`${item.field}-${item.value.slice(0, 24)}`}
+                    className="oma-social-proposal-card"
+                  >
+                    <span className="oma-social-proposal-card__label">
+                      {proposalFieldLabel(item.field, t)}
+                    </span>
+                    <p className="oma-social-proposal-card__value">{item.value}</p>
+                    {item.kind && item.kind !== 'proposal' ? (
+                      <span className="oma-badge oma-badge-muted oma-social-proposal-card__kind">
+                        {item.kind}
+                      </span>
                     ) : null}
-                    <p>{item.value}</p>
                   </li>
                 ))}
               </ul>

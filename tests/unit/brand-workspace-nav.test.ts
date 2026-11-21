@@ -1,22 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { brandNavSection } from '../../apps/web/src/lib/brand-workspace-nav';
+import { isBrandStrategyDetailRoute } from '../../apps/web/src/lib/brand-workspace-nav';
 
-describe('brandNavSection', () => {
-  const brandId = '01BRAND';
+describe('isBrandStrategyDetailRoute', () => {
+  const brandId = 'b1';
 
-  it('classifies merged evidence routes', () => {
-    expect(brandNavSection(`/app/brands/${brandId}/connect`, brandId)).toBe('evidence');
-    expect(brandNavSection(`/app/brands/${brandId}/scans/x`, brandId)).toBe('evidence');
-    expect(brandNavSection(`/app/brands/${brandId}/evidence`, brandId)).toBe('evidence');
+  it('returns true on strategy version routes', () => {
+    expect(
+      isBrandStrategyDetailRoute(`/app/brands/${brandId}/strategies/s1/organic`, brandId),
+    ).toBe(true);
   });
 
-  it('classifies strategy hub routes', () => {
-    expect(brandNavSection(`/app/brands/${brandId}/intelligence`, brandId)).toBe('strategy');
-    expect(brandNavSection(`/app/brands/${brandId}/profiles`, brandId)).toBe('strategy');
-    expect(brandNavSection(`/app/brands/${brandId}/strategies/x`, brandId)).toBe('strategy');
-  });
-
-  it('uses overview for brand home', () => {
-    expect(brandNavSection(`/app/brands/${brandId}`, brandId)).toBe('overview');
+  it('returns false on hub list and new', () => {
+    expect(isBrandStrategyDetailRoute(`/app/brands/${brandId}/strategies`, brandId)).toBe(false);
+    expect(isBrandStrategyDetailRoute(`/app/brands/${brandId}/strategies/new`, brandId)).toBe(
+      false,
+    );
   });
 });

@@ -14,6 +14,7 @@ import {
   buildBrandEvidenceSubnav,
   buildBrandPrimaryNav,
   buildBrandStrategySubnav,
+  isBrandStrategyDetailRoute,
   journeyStepHref,
   withJourneyState,
 } from '../../lib/brand-workspace-nav';
@@ -81,8 +82,11 @@ export function BrandWorkspaceShell({
     section === 'evidence'
       ? withJourneyState(buildBrandEvidenceSubnav(brandId, latestScanId, t), journey)
       : null;
+  const inStrategyDetail = isBrandStrategyDetailRoute(pathname, brandId);
   const strategySubnav =
-    section === 'strategy' ? withJourneyState(buildBrandStrategySubnav(brandId, t), journey) : null;
+    section === 'strategy' && !inStrategyDetail
+      ? withJourneyState(buildBrandStrategySubnav(brandId, t), journey)
+      : null;
   // The journey strip only renders on the overview; inside a section its progress is folded
   // into the sub-nav tabs (same destinations — no second row of links).
   const showJourney = section === 'overview' && journey && journey.length > 0;

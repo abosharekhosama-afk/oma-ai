@@ -116,7 +116,7 @@ export default function StrategyFoundationPage() {
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.foundation.title')} />
-      <StrategyCreationJourney brandId={brandId} steps={journeySteps} />
+      <StrategyCreationJourney brandId={brandId} steps={journeySteps} collapsible />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant
           brandId={brandId}
