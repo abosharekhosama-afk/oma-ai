@@ -55,22 +55,23 @@ export default function BrandSeoPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gscError, setGscError] = useState<string | null>(null);
+  const [gscNotice, setGscNotice] = useState<string | null>(null);
   const [analyticsDenied, setAnalyticsDenied] = useState(false);
   const [denied, setDenied] = useState(false);
 
   const loadSeo = useCallback(async () => {
     setAnalyticsDenied(false);
+    setError(null);
     const [healthRes, analyticsRes] = await Promise.allSettled([
       api<SeoHealthResponse>(`/api/v1/brands/${brandId}/seo/health`),
       api<SeoAnalytics>(`/api/v1/brands/${brandId}/seo/analytics?period=30`),
     ]);
-    let pageError: string | null = null;
     if (healthRes.status === 'fulfilled') setHealth(healthRes.value.data);
-    else pageError = getApiError(healthRes.reason).message;
+    else setError(getApiError(healthRes.reason).message);
     if (analyticsRes.status === 'fulfilled') setAnalytics(analyticsRes.value.data);
     else if (isPermissionDenied(analyticsRes.reason)) setAnalyticsDenied(true);
-    else if (!pageError) pageError = getApiError(analyticsRes.reason).message;
-    if (pageError) setError(pageError);
+    else if (healthRes.status === 'fulfilled') setError(getApiError(analyticsRes.reason).message);
   }, [brandId]);
 
   const load = useCallback(async () => {
@@ -96,12 +97,14 @@ export default function BrandSeoPage() {
 
   const syncGsc = async () => {
     setBusy(true);
-    setError(null);
+    setGscError(null);
     try {
       await apiMutate(`/api/v1/brands/${brandId}/seo/search-console/sync`, { method: 'POST' });
       await loadSeo();
+      setGscError(null);
+      setGscNotice(null);
     } catch (e) {
-      setError(getApiError(e).message);
+      setGscError(isPermissionDenied(e) ? t('brand.seo.gscDenied') : getApiError(e).message);
     } finally {
       setBusy(false);
     }
@@ -109,15 +112,18 @@ export default function BrandSeoPage() {
 
   const connectFixture = async () => {
     setBusy(true);
-    setError(null);
+    setGscError(null);
+    setGscNotice(null);
     try {
       await apiMutate(`/api/v1/brands/${brandId}/seo/search-console/connect-fixture`, {
         method: 'POST',
         body: JSON.stringify({}),
       });
-      await syncGsc();
+      await apiMutate(`/api/v1/brands/${brandId}/seo/search-console/sync`, { method: 'POST' });
+      await loadSeo();
+      setGscNotice(t('brand.seo.gscConnected'));
     } catch (e) {
-      setError(getApiError(e).message);
+      setGscError(isPermissionDenied(e) ? t('brand.seo.gscDenied') : getApiError(e).message);
     } finally {
       setBusy(false);
     }
@@ -147,7 +153,7 @@ export default function BrandSeoPage() {
         <BrandPlxPageHead title={t('brand.seo.title')} description={t('brand.seo.lead')} />
 
         {error ? (
-          <p className="oma-callout oma-callout--info" role="status">
+          <p className="oma-callout oma-callout--warning" role="alert">
             {error}
           </p>
         ) : null}
@@ -182,6 +188,24 @@ export default function BrandSeoPage() {
             {t('brand.seo.gscStatus')}: {health?.search_console.status ?? '—'} (
             {health?.search_console.gsc_mode ?? '—'})
           </p>
+          {gscNotice ? (
+            <p
+              className="oma-callout oma-callout--success"
+              role="status"
+              data-testid="brand-seo-gsc-notice"
+            >
+              {gscNotice}
+            </p>
+          ) : null}
+          {gscError ? (
+            <p
+              className="oma-callout oma-callout--warning"
+              role="alert"
+              data-testid="brand-seo-gsc-error"
+            >
+              {gscError}
+            </p>
+          ) : null}
           <div className="oma-chip-row">
             <button
               type="button"

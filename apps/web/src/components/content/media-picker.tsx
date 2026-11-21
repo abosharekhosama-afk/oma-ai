@@ -483,6 +483,21 @@ export function MediaPickerDialog({
         if (org.status === 'rejected' && brand.status === 'rejected') {
           setError(getApiError(org.reason).message);
         }
+        if (org.status === 'fulfilled' && brand.status === 'fulfilled') {
+          const orgData = org.value.data;
+          const brandData = brand.value.data;
+          const orgFiles = orgData.files?.length ?? 0;
+          const orgFolders = orgData.folders?.length ?? 0;
+          const brandFiles = brandData.files?.length ?? 0;
+          const brandFolders = brandData.folders?.length ?? 0;
+          const orgLooksEmpty = orgFiles === 0 && orgFolders <= 1;
+          const brandHasLibrary = brandFiles > 0 || brandFolders > 0;
+          if (orgLooksEmpty && brandHasLibrary) {
+            setBrowse(brandData);
+            setScope('brand');
+            setSelectedFolderId(brandData.folder.id);
+          }
+        }
       } catch (e) {
         setError(getApiError(e).message);
       } finally {
@@ -676,7 +691,8 @@ export function MediaPickerDialog({
       for (const a of lib.assets) {
         if (seen.has(a.id)) continue;
         const assetSrc = assetSource(a);
-        if (storageSource && assetSrc && assetSrc !== storageSource) continue;
+        if (storageSource && assetSrc && assetSrc !== storageSource && a.storage_provider != null)
+          continue;
         seen.add(a.id);
         mapped.push(assetToItem(a));
       }
@@ -916,12 +932,19 @@ export function MediaPickerDialog({
         canvaFolder = { id: created.data.id, name: created.data.name ?? 'Canva' };
       }
       invalidateMediaCache(brandId);
+      setScope('brand');
       await openFolder('brand', canvaFolder.id);
       setCanvaHint(
         viewingWorkDrive || src === 'workdrive'
           ? t('media.canvaWorkdriveHint')
           : t('media.canvaOmaHint'),
       );
+      requestAnimationFrame(() => {
+        document.querySelector('[data-testid="media-canva-hint"]')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      });
     } catch (e) {
       setError(getApiError(e).message);
     } finally {

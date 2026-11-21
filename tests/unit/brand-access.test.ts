@@ -3,6 +3,36 @@ import { brandRoleAllows, capabilitiesForBrandRole, SYSTEM_PROFILES } from '@oma
 import { brandScopeClause, runWithBrandScope, scopeArgs } from '@oma/db';
 import { CapabilitiesGuard } from '../../apps/api/src/common/guards/capabilities.guard';
 import { parseBrandSettings, parseLogoUrl } from '../../apps/api/src/brand/brand-input';
+import { membershipIsWorkspaceAdmin } from '../../apps/api/src/brand/brand-access';
+
+describe('workspace admin membership', () => {
+  it('treats company owners and tenant.manage grants as workspace admins', () => {
+    expect(
+      membershipIsWorkspaceAdmin({
+        displayRole: 'Owner',
+        grants: [],
+      }),
+    ).toBe(true);
+    expect(
+      membershipIsWorkspaceAdmin({
+        displayRole: 'Member',
+        grants: [{ capabilityCode: 'tenant.manage', sourceProfileCode: 'ADMIN' }],
+      }),
+    ).toBe(true);
+    expect(
+      membershipIsWorkspaceAdmin({
+        displayRole: 'Member',
+        grants: [{ capabilityCode: 'brand.read', sourceProfileCode: 'COMPANY_OWNER' }],
+      }),
+    ).toBe(true);
+    expect(
+      membershipIsWorkspaceAdmin({
+        displayRole: 'Editor',
+        grants: [{ capabilityCode: 'content.create', sourceProfileCode: 'WRITER' }],
+      }),
+    ).toBe(false);
+  });
+});
 
 describe('brand roles', () => {
   const writer = SYSTEM_PROFILES.ADMIN!;

@@ -3,7 +3,11 @@ import { Reflector } from '@nestjs/core';
 import { capabilitiesForBrandRole, DomainError, hasCapability, SYSTEM_PROFILES } from '@oma/domain';
 import { getPrisma, tenantWhere, withoutBrandScope } from '@oma/db';
 import { REQUIRE_CAPABILITIES_KEY } from '../decorators/require-capabilities.decorator';
-import { resolveBrandAccess, type BrandAccess } from '../../brand/brand-access';
+import {
+  membershipIsWorkspaceAdmin,
+  resolveBrandAccess,
+  type BrandAccess,
+} from '../../brand/brand-access';
 import type { Request } from 'express';
 
 const routeRequirements: Record<string, string[]> = {
@@ -771,10 +775,14 @@ export class CapabilitiesGuard implements CanActivate {
     ) {
       caps = [...(SYSTEM_PROFILES.COMPANY_OWNER ?? [])];
     }
+    if (memberships.some((m) => membershipIsWorkspaceAdmin(m))) {
+      caps = [...new Set([...caps, ...(SYSTEM_PROFILES.COMPANY_OWNER ?? [])])];
+    }
+    const workspaceAdmin = hasCapability(caps, 'tenant.manage');
     // Per-brand access: when the request targets one brand, non-admins must be a member of it
     // and their brand role narrows their workspace capabilities.
     const access = req.brandAccess ?? (await resolveBrandAccess(req.oma.tenantId, req.oma.userId));
-    if (!access.all) {
+    if (!access.all && !workspaceAdmin) {
       const brandId = await targetBrandId(req, req.oma.tenantId);
       if (brandId) {
         const role = access.roles.get(brandId);
