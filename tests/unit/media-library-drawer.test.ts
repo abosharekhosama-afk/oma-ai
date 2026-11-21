@@ -11,6 +11,7 @@ function read(rel: string): string {
 describe('Planable media library side panel', () => {
   it('renders a right-side library with search, folders, filters, upload, and create folder', () => {
     const picker = read('apps/web/src/components/content/media-picker.tsx');
+    const nav = read('apps/web/src/components/content/media-folder-nav.tsx');
     expect(picker).toContain("variant = 'drawer'");
     expect(picker).toContain('oma-ml--panel');
     expect(picker).toContain('oma-ml--drawer');
@@ -19,10 +20,11 @@ describe('Planable media library side panel', () => {
     expect(picker).toContain('media-filters');
     expect(picker).toContain('media-create-folder');
     expect(picker).toContain('media.brandAssets');
-    expect(picker).toContain('media.allAssets');
-    expect(picker).toContain('media-folder-tree');
+    expect(nav).toContain('media.allAssets');
+    expect(picker).toContain('media-folder-nav');
     expect(picker).toContain('openFolder(nextScope, folderId)');
-    expect(picker).toContain('MediaFolderTree');
+    expect(picker).toContain('MediaFolderNav');
+    expect(nav).toContain('media-all-assets');
     expect(picker).toContain('media-canva-banner');
     expect(picker).toContain('mediaApi.createFolder');
     expect(picker).toContain("scope === 'brand'");
@@ -44,8 +46,8 @@ describe('Planable media library side panel', () => {
     expect(css).toContain('.oma-ml-grid');
     expect(css).toContain('repeat(4, minmax(0, 1fr))');
     expect(css).toContain('.oma-ml-canva');
-    expect(css).toContain('.oma-ml-tree');
-    expect(css).toContain('.oma-ml-split');
+    expect(css).toContain('.oma-ml-folder');
+    expect(css).toContain('.oma-ml-folders');
     expect(css).toContain('.oma-ml-source');
     expect(css).toContain('.oma-ml-used');
     expect(css).toContain('.oma-ml-play');

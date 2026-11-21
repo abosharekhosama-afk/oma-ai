@@ -8347,6 +8347,30 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   padding-bottom: 2px;
   scrollbar-width: thin;
 }
+.oma-ml-folder__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: #6b7280;
+}
+.oma-ml-folder__icon--back {
+  transform: scaleX(-1);
+}
+[dir='rtl'] .oma-ml-folder__icon--back {
+  transform: none;
+}
+.oma-ml-folder--back {
+  border-style: dashed;
+  max-width: 120px;
+}
+.oma-ml-folder--child {
+  border-color: #e0e7ff;
+  background: #f8faff;
+}
+.oma-ml-gridwrap[data-loading='true'] .oma-ml-grid {
+  opacity: 0.72;
+  pointer-events: none;
+}
 .oma-ml-folder {
   display: inline-flex;
   align-items: center;
