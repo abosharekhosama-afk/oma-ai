@@ -490,19 +490,35 @@ export function MediaPickerDialog({
       setVisibleGridCount(GRID_RENDER_STEP);
       try {
         const src = storageSource ?? undefined;
-        const org = await mediaApi.browse(brandId, kind, undefined, 'organization', src, {
-          file_limit: BROWSE_FILE_LIMIT,
-          file_offset: 0,
-        });
-        const from = org.data.source;
+        const page = { file_limit: BROWSE_FILE_LIMIT, file_offset: 0 };
+        const [org, brand] = await Promise.allSettled([
+          mediaApi.browse(brandId, kind, undefined, 'organization', src, page),
+          mediaApi.browse(brandId, kind, undefined, 'brand', src, page),
+        ]);
+        const from =
+          org.status === 'fulfilled'
+            ? org.value.data.source
+            : brand.status === 'fulfilled'
+              ? brand.value.data.source
+              : null;
         if (!storageSource && (from === 'oma' || from === 'workdrive')) {
           setStorageSource(from);
           persistSource(from);
         }
-        setOrgRoot(org.data);
-        setBrowse(org.data);
-        setScope('organization');
-        setSelectedFolderId(org.data.folder.id);
+        if (brand.status === 'fulfilled') setBrandRoot(brand.value.data);
+        if (org.status === 'fulfilled') {
+          setOrgRoot(org.value.data);
+          setBrowse(org.value.data);
+          setScope('organization');
+          setSelectedFolderId(org.value.data.folder.id);
+        } else if (brand.status === 'fulfilled') {
+          setBrowse(brand.value.data);
+          setScope('brand');
+          setSelectedFolderId(brand.value.data.folder.id);
+        }
+        if (org.status === 'rejected' && brand.status === 'rejected') {
+          setError(getApiError(org.reason).message);
+        }
       } catch (e) {
         setError(getApiError(e).message);
       } finally {
@@ -596,14 +612,24 @@ export function MediaPickerDialog({
   }, [orgRoot, browse, scope, brandFolder?.id]);
 
   const items = useMemo(() => {
+    const atOrgRoot =
+      scope === 'organization' &&
+      Boolean(orgRoot) &&
+      !allSelected &&
+      !brandSelected &&
+      (selectedFolderId === orgRoot?.folder.id || selectedFolderId === browse?.folder.id);
     const source = allSelected ? browse : brandSelected ? (brandRoot ?? browse) : browse;
-    const files = source?.files ?? [];
+    let files = source?.files ?? [];
+    if (atOrgRoot && files.length === 0 && (brandRoot?.files?.length ?? 0) > 0) {
+      files = brandRoot!.files;
+    }
     const mapped = files.map((f) => fileToItem(f, brandId || '', kind, storageSource ?? undefined));
     const seen = new Set(mapped.map((i) => i.key));
     if ((allSelected || !brandSelected) && lib?.assets.length) {
       for (const a of lib.assets) {
         if (seen.has(a.id)) continue;
-        if (storageSource && assetSource(a) !== storageSource) continue;
+        const assetSrc = assetSource(a);
+        if (storageSource && assetSrc && assetSrc !== storageSource) continue;
         seen.add(a.id);
         mapped.push(assetToItem(a));
       }
@@ -656,35 +682,40 @@ export function MediaPickerDialog({
     uploaders,
     sort,
     storageSource,
+    orgRoot,
+    selectedFolderId,
+    scope,
   ]);
 
   const facets = browse?.filter_facets || orgRoot?.filter_facets || brandRoot?.filter_facets;
   const filterCount = usage.size + types.size + campaigns.size + uploaders.size;
   const visibleItems = items.slice(0, visibleGridCount);
-  const quotaUsed =
-    storageSource === 'oma'
-      ? (browse?.storage_used_bytes ??
-        lib?.storage_used_bytes ??
-        workspaceStorage?.used_bytes ??
-        null)
+  const viewingWorkDrive = storageSource === 'workdrive';
+  const quotaUsed = viewingWorkDrive
+    ? null
+    : (workspaceStorage?.used_bytes ??
+      lib?.storage_used_bytes ??
+      browse?.storage_used_bytes ??
+      null);
+  const quotaLimit = viewingWorkDrive
+    ? null
+    : (workspaceStorage?.limit_bytes ??
+      lib?.storage_limit_bytes ??
+      browse?.storage_limit_bytes ??
+      null);
+  const quotaPct =
+    quotaUsed != null && quotaLimit != null && quotaLimit > 0
+      ? Math.min(100, (quotaUsed / quotaLimit) * 100)
       : null;
-  const quotaLimit =
-    storageSource === 'oma'
-      ? (browse?.storage_limit_bytes ??
-        lib?.storage_limit_bytes ??
-        workspaceStorage?.limit_bytes ??
-        null)
-      : null;
-  const quotaLabel =
-    quotaUsed != null
+  const quotaLabel = viewingWorkDrive
+    ? t('media.quotaByos')
+    : quotaUsed != null
       ? quotaLimit == null
         ? `${formatBytes(quotaUsed, locale)} · ${t('storage.usage.unlimited')}`
         : t('storage.usage.of')
             .replace('{used}', formatBytes(quotaUsed, locale))
             .replace('{limit}', formatBytes(quotaLimit, locale))
-      : storageSource === 'workdrive'
-        ? t('media.quotaByos')
-        : null;
+      : null;
 
   const folderScope: 'brand' | 'organization' = scope === 'brand' ? 'brand' : 'organization';
   const uploadToFolderId = allSelected
@@ -720,6 +751,10 @@ export function MediaPickerDialog({
       onPick(a);
       if (variant === 'drawer') onClose();
       else {
+        void workDriveApi
+          .storage()
+          .then((r) => setWorkspaceStorage(r.data))
+          .catch(() => undefined);
         await loadLibrary();
         await openFolder(scope, allSelected ? undefined : selectedFolderId || undefined);
       }
@@ -884,9 +919,14 @@ export function MediaPickerDialog({
           {storageSource === 'workdrive' ? t('media.viewingWorkDrive') : t('media.viewingOma')}
         </p>
         {quotaLabel ? (
-          <p className="oma-ml-quota" data-testid="media-storage-quota">
-            {quotaLabel}
-          </p>
+          <div className="oma-ml-quota" data-testid="media-storage-quota">
+            <p>{quotaLabel}</p>
+            {quotaPct != null ? (
+              <span className="oma-ml-progress__bar" aria-hidden>
+                <span style={{ width: `${quotaPct}%` }} />
+              </span>
+            ) : null}
+          </div>
         ) : null}
       </div>
       {sourceBlocked ? (
