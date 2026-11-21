@@ -4,6 +4,25 @@ import type { BrandMemberRole } from '@oma/domain';
 /** `all` = every brand in the tenant (not limited by BrandMember rows). */
 export type BrandAccess = { all: true } | { all: false; roles: Map<string, BrandMemberRole> };
 
+type GrantRow = { capabilityCode: string; sourceProfileCode: string | null };
+type MembershipRow = {
+  displayRole: string | null;
+  grants: GrantRow[];
+};
+
+/** Workspace-wide brand visibility (not narrowed by per-brand member roles). */
+export function membershipIsWorkspaceAdmin(m: MembershipRow): boolean {
+  const role = (m.displayRole ?? '').toLowerCase();
+  if (role === 'owner' || role === 'administrator' || role === 'admin') return true;
+  return m.grants.some(
+    (g) =>
+      g.capabilityCode === 'tenant.manage' ||
+      g.sourceProfileCode === 'COMPANY_OWNER' ||
+      g.sourceProfileCode === 'PLATFORM_OWNER' ||
+      g.sourceProfileCode === 'ADMIN',
+  );
+}
+
 /**
  * Resolve which brands a user may see in the active tenant.
  *
@@ -24,6 +43,17 @@ export async function resolveBrandAccess(tenantId: string, userId: string): Prom
       select: { id: true },
     });
     if (admin) return { all: true } as const;
+    const memberships = await prisma.membership.findMany({
+      where: { tenantId, userId, status: 'ACTIVE' },
+      select: {
+        displayRole: true,
+        grants: {
+          where: { revokedAt: null },
+          select: { capabilityCode: true, sourceProfileCode: true },
+        },
+      },
+    });
+    if (memberships.some(membershipIsWorkspaceAdmin)) return { all: true } as const;
     const rows = await prisma.brandMember.findMany({
       where: { tenantId, userId },
       select: { brandId: true, role: true },

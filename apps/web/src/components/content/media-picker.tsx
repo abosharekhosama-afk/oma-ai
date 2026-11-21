@@ -12,6 +12,7 @@ import {
   UploadOutlined,
 } from '../ui/lucide-icons';
 import { MediaSurface } from './media-surface';
+import { MediaFolderTree } from './media-folder-tree';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getApiError } from '../../lib/brand-api';
@@ -190,12 +191,6 @@ export function MediaThumb({ asset, t }: { asset: MediaAsset; t: Tr }) {
   return <span className="oma-mp-thumb oma-mp-thumb--file">{asset.name.split('.').pop()}</span>;
 }
 
-function mosaicHue(name: string) {
-  let h = 0;
-  for (let i = 0; i < name.length; i += 1) h = (h + name.charCodeAt(i) * 17) % 360;
-  return h;
-}
-
 function fileToItem(
   file: WorkDriveBrowseFile,
   brandId: string,
@@ -271,41 +266,6 @@ function usageLabel(count: number, t: Tr) {
   if (count <= 0) return null;
   if (count === 1) return t('media.postCount').replace('{n}', '1');
   return t('media.postsCount').replace('{n}', String(count));
-}
-
-function FolderMosaic({
-  name,
-  thumbs,
-  selected,
-}: {
-  name: string;
-  thumbs: string[];
-  selected: boolean;
-}) {
-  const hue = mosaicHue(name);
-  const tiles = thumbs.slice(0, 4);
-  return (
-    <span className="oma-ml-mosaic" data-selected={selected ? 'true' : 'false'}>
-      {tiles.length
-        ? tiles.map((src) => (
-            <span key={src} className="oma-ml-mosaic__tile">
-              <img src={src} alt="" />
-            </span>
-          ))
-        : [0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className="oma-ml-mosaic__tile"
-              style={{ background: `hsl(${(hue + i * 28) % 360} 62% 72%)` }}
-            />
-          ))}
-      {selected ? (
-        <span className="oma-ml-mosaic__check" aria-hidden>
-          <CheckOutlined />
-        </span>
-      ) : null}
-    </span>
-  );
 }
 
 /** Real media picker: WorkDrive library as a Planable right-side panel. */
@@ -652,22 +612,23 @@ export function MediaPickerDialog({
     !allSelected && brandFolder && selectedFolderId === brandFolder.id && scope === 'brand',
   );
 
-  const chipFolders = useMemo(() => {
-    const root = orgRoot ?? (scope === 'organization' ? browse : null);
-    const others = (root?.folders ?? []).filter((f) => f.id !== brandFolder?.id);
-    return others;
-  }, [orgRoot, browse, scope, brandFolder?.id]);
+  const breadcrumb = useMemo(() => {
+    if (allSelected) return [{ id: '__all__', name: t('media.allAssets') }];
+    return browse?.path?.length
+      ? browse.path
+      : [{ id: browse?.folder.id ?? '', name: browse?.folder.name ?? t('media.folder') }];
+  }, [allSelected, browse, t]);
 
   const items = useMemo(() => {
-    const atOrgRoot =
+    const atWorkspaceRoot =
       scope === 'organization' &&
       Boolean(orgRoot) &&
       !allSelected &&
       !brandSelected &&
-      (selectedFolderId === orgRoot?.folder.id || selectedFolderId === browse?.folder.id);
-    const source = allSelected ? browse : brandSelected ? (brandRoot ?? browse) : browse;
+      selectedFolderId === orgRoot?.folder.id;
+    const source = allSelected ? browse : browse;
     let files = source?.files ?? [];
-    if (atOrgRoot && files.length === 0 && (brandRoot?.files?.length ?? 0) > 0) {
+    if (atWorkspaceRoot && files.length === 0 && (brandRoot?.files?.length ?? 0) > 0) {
       files = brandRoot!.files;
     }
     const mapped = files.map((f) => fileToItem(f, brandId || '', kind, storageSource ?? undefined));
@@ -676,7 +637,8 @@ export function MediaPickerDialog({
       for (const a of lib.assets) {
         if (seen.has(a.id)) continue;
         const assetSrc = assetSource(a);
-        if (storageSource && assetSrc && assetSrc !== storageSource) continue;
+        if (storageSource && assetSrc && assetSrc !== storageSource && a.storage_provider != null)
+          continue;
         seen.add(a.id);
         mapped.push(assetToItem(a));
       }
@@ -916,12 +878,19 @@ export function MediaPickerDialog({
         canvaFolder = { id: created.data.id, name: created.data.name ?? 'Canva' };
       }
       invalidateMediaCache(brandId);
+      setScope('brand');
       await openFolder('brand', canvaFolder.id);
       setCanvaHint(
         viewingWorkDrive || src === 'workdrive'
           ? t('media.canvaWorkdriveHint')
           : t('media.canvaOmaHint'),
       );
+      requestAnimationFrame(() => {
+        document.querySelector('[data-testid="media-canva-hint"]')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      });
     } catch (e) {
       setError(getApiError(e).message);
     } finally {
@@ -1253,106 +1222,101 @@ export function MediaPickerDialog({
         </div>
       ) : null}
 
-      <div className="oma-ml-folders" data-testid="media-folders">
-        <button
-          type="button"
-          className="oma-ml-folder"
-          data-testid="media-all-assets"
-          data-active={allSelected ? 'true' : 'false'}
-          onClick={() => void openFolder('all')}
-        >
-          <FolderMosaic
-            name={t('media.allAssets')}
-            thumbs={(browse?.files ?? orgRoot?.files ?? [])
-              .filter((f) => f.mime.startsWith('image/') && f.view_url)
-              .slice(0, 4)
-              .map((f) => f.view_url as string)}
-            selected={allSelected}
+      <div className="oma-ml-split">
+        {brandId ? (
+          <MediaFolderTree
+            brandId={brandId}
+            kind={kind}
+            storageSource={storageSource}
+            orgRoot={orgRoot}
+            brandRoot={brandRoot}
+            brandFolderId={brandFolder?.id}
+            brandName={t('media.brandAssets')}
+            workspaceLabel={lib?.workdrive.org_name ?? orgRoot?.root_name ?? null}
+            browse={browse}
+            selectedFolderId={selectedFolderId}
+            allSelected={allSelected}
+            browsing={browsing}
+            onNavigate={(nextScope, folderId) => void openFolder(nextScope, folderId)}
+            t={t}
           />
-          <span>{t('media.allAssets')}</span>
-        </button>
-        {chipFolders.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            className="oma-ml-folder"
-            data-active={
-              selectedFolderId === f.id && !brandSelected && !allSelected ? 'true' : 'false'
-            }
-            onClick={() => void openFolder('organization', f.id)}
-          >
-            <FolderMosaic
-              name={f.name}
-              thumbs={[]}
-              selected={selectedFolderId === f.id && !brandSelected}
-            />
-            <span>{f.name}</span>
-          </button>
-        ))}
-        {brandFolder ? (
-          <button
-            type="button"
-            className="oma-ml-folder"
-            data-testid="media-brand-assets"
-            data-active={brandSelected ? 'true' : 'false'}
-            onClick={() => void openFolder('brand', brandFolder.id)}
-          >
-            <FolderMosaic
-              name={t('media.brandAssets')}
-              thumbs={(brandRoot?.files ?? [])
-                .filter((f) => f.mime.startsWith('image/') && f.view_url)
-                .slice(0, 4)
-                .map((f) => f.view_url as string)}
-              selected={brandSelected}
-            />
-            <span>{t('media.brandAssets')}</span>
-          </button>
         ) : null}
-      </div>
-
-      <div className="oma-ml-gridwrap" data-testid="media-browser" aria-busy={browsing}>
-        {browsing && !browse && !items.length ? (
-          <MediaShimmer rows={6} />
-        ) : items.length ? (
-          <>
-            <div className="oma-ml-grid" data-testid="media-files">
-              {visibleItems.map((item, index) => {
-                const badge = usageLabel(item.usageCount, t);
-                return (
+        <div className="oma-ml-split__main">
+          {!allSelected && breadcrumb.length > 1 ? (
+            <nav
+              className="oma-ml-crumb"
+              aria-label={t('media.folderTree')}
+              data-testid="media-breadcrumb"
+            >
+              {breadcrumb.map((crumb, idx) => (
+                <span key={crumb.id} className="oma-ml-crumb__item">
+                  {idx > 0 ? (
+                    <span className="oma-ml-crumb__sep" aria-hidden>
+                      /
+                    </span>
+                  ) : null}
                   <button
-                    key={item.key}
                     type="button"
-                    className="oma-ml-item"
-                    data-testid="media-browser-file"
-                    disabled={item.missing}
-                    title={item.missing ? t('media.missing') : item.name}
-                    onClick={() => void pickFile(item)}
+                    className="oma-ml-crumb__btn"
+                    disabled={idx === breadcrumb.length - 1}
+                    onClick={() => {
+                      if (crumb.id === '__all__') void openFolder('all');
+                      else if (brandFolder && crumb.id === brandFolder.id)
+                        void openFolder('brand', crumb.id);
+                      else void openFolder('organization', crumb.id);
+                    }}
                   >
-                    <LazyMediaThumb item={item} t={t} badge={badge} eager={index < 24} />
-                    <span className="oma-ml-item__name">{item.name}</span>
+                    <span dir="auto">{crumb.name}</span>
                   </button>
-                );
-              })}
-            </div>
-            {visibleGridCount < items.length || browse?.files_has_more || lib?.next_cursor ? (
-              <div
-                ref={gridSentinelRef}
-                className="oma-ml-grid-sentinel"
-                data-testid="media-grid-sentinel"
-                aria-hidden
-              />
-            ) : null}
-            {browseLoadingMore || assetsLoadingMore ? (
-              <p className="oma-bs-hint" data-testid="media-loading-more">
-                {t('media.loadingMore')}
+                </span>
+              ))}
+            </nav>
+          ) : null}
+          <div className="oma-ml-gridwrap" data-testid="media-browser" aria-busy={browsing}>
+            {browsing && !browse && !items.length ? (
+              <MediaShimmer rows={6} />
+            ) : items.length ? (
+              <>
+                <div className="oma-ml-grid" data-testid="media-files">
+                  {visibleItems.map((item, index) => {
+                    const badge = usageLabel(item.usageCount, t);
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        className="oma-ml-item"
+                        data-testid="media-browser-file"
+                        disabled={item.missing}
+                        title={item.missing ? t('media.missing') : item.name}
+                        onClick={() => void pickFile(item)}
+                      >
+                        <LazyMediaThumb item={item} t={t} badge={badge} eager={index < 24} />
+                        <span className="oma-ml-item__name">{item.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {visibleGridCount < items.length || browse?.files_has_more || lib?.next_cursor ? (
+                  <div
+                    ref={gridSentinelRef}
+                    className="oma-ml-grid-sentinel"
+                    data-testid="media-grid-sentinel"
+                    aria-hidden
+                  />
+                ) : null}
+                {browseLoadingMore || assetsLoadingMore ? (
+                  <p className="oma-bs-hint" data-testid="media-loading-more">
+                    {t('media.loadingMore')}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <p className="oma-mp-empty">
+                {query.trim() ? t('media.emptySearch') : t('media.emptyFolder')}
               </p>
-            ) : null}
-          </>
-        ) : (
-          <p className="oma-mp-empty">
-            {query.trim() ? t('media.emptySearch') : t('media.emptyFolder')}
-          </p>
-        )}
+            )}
+          </div>
+        </div>
       </div>
     </>
   );

@@ -98,7 +98,7 @@ export class SeoController {
 
   @Get('api/v1/brands/:brandId/seo/analytics')
   @UseGuards(AuthGuard, CapabilitiesGuard)
-  @RequireCapabilities('analytics.read')
+  @RequireCapabilities('brand.read')
   analytics(
     @Req() req: Request,
     @Param('brandId') brandId: string,

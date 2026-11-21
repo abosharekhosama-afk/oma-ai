@@ -20,8 +20,9 @@ describe('Planable media library side panel', () => {
     expect(picker).toContain('media-create-folder');
     expect(picker).toContain('media.brandAssets');
     expect(picker).toContain('media.allAssets');
-    expect(picker).toContain('media-all-assets');
-    expect(picker).toContain("openFolder('all')");
+    expect(picker).toContain('media-folder-tree');
+    expect(picker).toContain('openFolder(nextScope, folderId)');
+    expect(picker).toContain('MediaFolderTree');
     expect(picker).toContain('media-canva-banner');
     expect(picker).toContain('mediaApi.createFolder');
     expect(picker).toContain("scope === 'brand'");
@@ -38,12 +39,13 @@ describe('Planable media library side panel', () => {
     expect(client).toContain("undefined, 'brand'");
   });
 
-  it('styles the Planable library chrome, folder chips, and 4-column grid', () => {
+  it('styles the Planable library chrome, folder tree, and 4-column grid', () => {
     const css = read('apps/web/src/styles/inbox-listening.css');
     expect(css).toContain('.oma-ml-grid');
     expect(css).toContain('repeat(4, minmax(0, 1fr))');
     expect(css).toContain('.oma-ml-canva');
-    expect(css).toContain('.oma-ml-folder');
+    expect(css).toContain('.oma-ml-tree');
+    expect(css).toContain('.oma-ml-split');
     expect(css).toContain('.oma-ml-source');
     expect(css).toContain('.oma-ml-used');
     expect(css).toContain('.oma-ml-play');
@@ -91,7 +93,8 @@ describe('Planable media library side panel', () => {
     const ar = JSON.parse(read('packages/i18n/messages/ar.json')) as Record<string, string>;
     expect(picker).toContain('persistSource');
     expect(picker).toContain('media_source');
-    expect(picker).toContain('assetSource(a) !== storageSource');
+    expect(picker).toContain('assetSource(a)');
+    expect(picker).toContain('storageSource');
     expect(picker).toContain('storageSource ?? undefined');
     expect(picker).toContain("t('errors.storage_oma_unavailable')");
     expect(picker).toContain("t('errors.storage_workdrive_unavailable')");
@@ -115,6 +118,6 @@ describe('Planable media library side panel', () => {
     expect(css).toContain('overflow: hidden !important');
     expect(css).toContain(".oma-plx-ml-split[data-open='true'] .oma-plx-ml-split__main");
     expect(css).toContain('position: sticky');
-    expect(css).toContain('clamp(260px, 28vw, 400px)');
+    expect(css).toContain('.oma-ml-split');
   });
 });

@@ -8211,6 +8211,135 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   background: #eef2ff;
   color: #1d4ed8;
 }
+.oma-ml-split {
+  display: grid;
+  grid-template-columns: minmax(168px, 220px) minmax(0, 1fr);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+.oma-ml-split__main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+.oma-ml-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  max-height: min(52vh, 420px);
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+}
+.oma-ml-tree__group {
+  padding-inline-start: calc(var(--oma-tree-depth, 0) * 12px);
+}
+.oma-ml-tree__rowwrap {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  border-radius: 8px;
+}
+.oma-ml-tree__rowwrap[data-active='true'] .oma-ml-tree__row {
+  background: #eef2ff;
+  color: #1d4ed8;
+}
+.oma-ml-tree__toggle,
+.oma-ml-tree__row {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+.oma-ml-tree__toggle {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  flex: 0 0 24px;
+  color: #6b7280;
+  border-radius: 6px;
+}
+.oma-ml-tree__toggle:hover {
+  background: #f3f4f6;
+}
+.oma-ml-tree__toggle [data-open='false'] {
+  transform: rotate(-90deg);
+}
+.oma-ml-tree__spacer {
+  display: inline-block;
+  width: 24px;
+  flex: 0 0 24px;
+}
+.oma-ml-tree__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding: 5px 6px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111;
+  text-align: start;
+}
+.oma-ml-tree__row:hover {
+  background: #f3f4f6;
+}
+.oma-ml-tree__row[data-active='true'] {
+  background: #eef2ff;
+  color: #1d4ed8;
+}
+.oma-ml-tree__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: #6b7280;
+}
+.oma-ml-tree__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-ml-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.oma-ml-crumb__btn {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+}
+.oma-ml-crumb__btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+.oma-ml-crumb__btn:disabled {
+  color: #111;
+  cursor: default;
+}
+.oma-ml-crumb__sep {
+  margin-inline: 2px;
+  opacity: 0.65;
+}
+.oma-ml--expanded .oma-ml-split {
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+}
 .oma-ml-folders {
   display: flex;
   gap: 8px;
