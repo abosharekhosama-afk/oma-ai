@@ -3017,6 +3017,8 @@
   "media.folder": "مجلد",
   "media.folderName": "اسم المجلد",
   "media.folders": "المجلدات",
+  "media.folderTree": "شجرة مجلدات مساحة العمل",
+  "media.workspaceRoot": "مكتبة المؤسسة",
   "media.latestFirst": "الأحدث أولاً",
   "media.missing": "حُذف هذا الملف من WorkDrive. ارفعه مجددًا أو اختر ملفًا آخر.",
   "media.missingShort": "الملف مفقود",
