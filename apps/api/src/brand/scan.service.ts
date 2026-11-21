@@ -6,6 +6,10 @@ import {
   catalogOfferingsFromDiscoveryRows,
   estimateCatalogContentRequests,
   isTerminalScanStatus,
+  marketingSeedDeferThreshold,
+  marketingSeedPathsEnabled,
+  clampScanMaxPages,
+  isScanProgressStalled,
   newId,
 } from '@oma/domain';
 import { billingService } from '../billing/billing.service';
@@ -51,13 +55,13 @@ export class ScanService {
     errorCode: string | null;
     startedAt: Date | null;
     finishedAt: Date | null;
+    progressUpdatedAt?: Date | null;
     errorDetail?: string | null;
   }) {
-    const staleMinutes = Number(process.env.BRAND_SCAN_STALE_MINUTES ?? 45);
-    const stalled =
-      scan.status === 'RUNNING' &&
-      Boolean(scan.startedAt) &&
-      Date.now() - (scan.startedAt as Date).getTime() > staleMinutes * 60 * 1000;
+    const heartbeat = scan.progressUpdatedAt ?? scan.startedAt;
+    const stalled = isScanProgressStalled(scan.status, heartbeat ?? null, {
+      stallSeconds: Number(process.env.BRAND_SCAN_PROGRESS_STALE_SECONDS ?? 90),
+    });
     const coverage = scan.coverageJson ? JSON.parse(scan.coverageJson) : null;
     return {
       id: scan.id,
@@ -81,6 +85,7 @@ export class ScanService {
       error_detail: scan.errorDetail ?? null,
       started_at: scan.startedAt?.toISOString() ?? null,
       finished_at: scan.finishedAt?.toISOString() ?? null,
+      progress_updated_at: scan.progressUpdatedAt?.toISOString() ?? scan.startedAt?.toISOString() ?? null,
     };
   }
 

@@ -4,12 +4,16 @@ import {
   brandConnectorMode,
   createWebsiteConnector,
   isRequiredForApproval,
+  isScanCancelledError,
+  SCAN_CANCELLED_MESSAGE,
   type WebsiteConnectorPort,
 } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { Worker, type Job } from 'bullmq';
 import type IORedis from 'ioredis';
 import { runExtractionForScan } from '../brand/extraction.service';
+import { runSeoAuditForScan } from '../brand/seo-audit-run';
+import { shutdownRenderedFetchBrowser } from '../brand/rendered-page-fetch';
 import { createProfileDraftFromScan } from '../brand/profile-draft.service';
 import { enqueueBrandAnalysis } from '@oma/db';
 import { handleLateScanResult } from '../brand/late-result.service';
@@ -133,7 +137,10 @@ export function startIngestionProcessor(
         const jobRun = await prisma.jobRun.findUnique({ where: { id: jobRunId } });
         if (!jobRun) throw new Error(`job_run not found: ${jobRunId}`);
         if (jobRun.status === 'SUCCEEDED') return { ok: true, skipped: true };
-        if (jobRun.status === 'DEAD' || jobRun.status === 'CANCELLED') {
+        if (jobRun.status === 'CANCELLED') {
+          return { ok: true, cancelled: true };
+        }
+        if (jobRun.status === 'DEAD') {
           throw new Error(`job_run terminal: ${jobRun.status}`);
         }
 
@@ -193,6 +200,7 @@ export function startIngestionProcessor(
           !(await advanceScanIfActive(prisma, scan.id, {
             status: 'CRAWLING',
             startedAt: new Date(),
+            progressUpdatedAt: new Date(),
             progressPercent: 2,
             // Recorded on the attempt that used it: the API process can be
             // reconfigured later and must not restate this scan's provenance.
@@ -236,20 +244,55 @@ export function startIngestionProcessor(
 
         let lastProgressWrite = 0;
         let lastProgressPercent = -1;
+        let liveCoverage: Record<string, unknown> = {};
+        let cancelLatch = false;
+        let lastAbortProbe = 0;
+        const shouldAbort = async () => {
+          if (cancelLatch) return true;
+          const now = Date.now();
+          if (now - lastAbortProbe < 400) return false;
+          lastAbortProbe = now;
+          const [attempt, run] = await Promise.all([
+            prisma.scanAttempt.findUnique({
+              where: { id: scan.id },
+              select: { status: true, cancelRequestedAt: true },
+            }),
+            prisma.jobRun.findUnique({
+              where: { id: jobRun.id },
+              select: { status: true },
+            }),
+          ]);
+          cancelLatch =
+            attempt?.status === 'CANCELLED' ||
+            attempt?.cancelRequestedAt != null ||
+            run?.status === 'CANCELLED';
+          return cancelLatch;
+        };
         const reportScanProgress = async (patch: {
           progressPercent: number;
           status?: 'CRAWLING' | 'EXTRACTING';
           pagesFetched?: number;
           pagesFailed?: number;
           pagesSkipped?: number;
+          sitemapUrlsQueued?: number;
+          sitemapDocumentsFetched?: number;
         }) => {
           const now = Date.now();
           const statusChange = patch.status !== undefined;
-          const bigJump = patch.progressPercent - lastProgressPercent >= 2;
+          const bigJump = patch.progressPercent - lastProgressPercent >= 1;
+          const sitemapPulse =
+            patch.sitemapUrlsQueued !== undefined || patch.sitemapDocumentsFetched !== undefined;
+          if (patch.sitemapUrlsQueued !== undefined) {
+            liveCoverage.sitemap_urls_queued = patch.sitemapUrlsQueued;
+          }
+          if (patch.sitemapDocumentsFetched !== undefined) {
+            liveCoverage.sitemap_documents_fetched = patch.sitemapDocumentsFetched;
+          }
           if (
             !statusChange &&
             !bigJump &&
-            now - lastProgressWrite < 1200 &&
+            !sitemapPulse &&
+            now - lastProgressWrite < 800 &&
             patch.pagesFetched === undefined
           ) {
             return;
@@ -259,12 +302,16 @@ export function startIngestionProcessor(
           const active = await advanceScanIfActive(prisma, scan.id, {
             ...(patch.status ? { status: patch.status } : {}),
             progressPercent: patch.progressPercent,
+            progressUpdatedAt: new Date(),
             ...(patch.pagesFetched !== undefined ? { pagesFetched: patch.pagesFetched } : {}),
             ...(patch.pagesFailed !== undefined ? { pagesFailed: patch.pagesFailed } : {}),
             ...(patch.pagesSkipped !== undefined ? { pagesSkipped: patch.pagesSkipped } : {}),
+            ...(Object.keys(liveCoverage).length > 0
+              ? { coverageJson: JSON.stringify(liveCoverage) }
+              : {}),
           });
           if (!active) {
-            throw new Error('scan_cancelled');
+            throw new Error(SCAN_CANCELLED_MESSAGE);
           }
         };
 
@@ -278,13 +325,24 @@ export function startIngestionProcessor(
             connector,
             config: data.config,
             onProgress: reportScanProgress,
+            shouldAbort,
           });
         } catch (err) {
-          if (err instanceof Error && err.message === 'scan_cancelled') {
+          if (isScanCancelledError(err)) {
             await markScanCancelled(prisma, scan.id, jobRun.id);
             return { ok: true, cancelled: true };
           }
           throw err;
+        }
+
+        try {
+          await runSeoAuditForScan({
+            tenantId: scan.tenantId,
+            brandId: scan.brandId,
+            scanAttemptId: scan.id,
+          });
+        } catch (seoErr) {
+          log.warn(`seo audit skipped scan=${scan.id}: ${String(seoErr)}`);
         }
 
         const observations = await prisma.extractedObservation.findMany({
@@ -321,6 +379,7 @@ export function startIngestionProcessor(
           js_render_error_details: counts.jsRenderErrorDetails ?? [],
           js_render_launch_detail: counts.jsRenderLaunchDetail ?? null,
           js_render_mode: counts.jsRenderMode ?? 'off',
+          scan_engine: counts.scanEngine ?? 'SCRAPE',
           catalog_platform: counts.catalog?.platform ?? null,
           catalog_platform_products: counts.catalog?.platformProducts ?? 0,
           catalog_platform_error: counts.catalog?.platformError ?? null,
@@ -329,13 +388,24 @@ export function startIngestionProcessor(
           products_persisted: counts.catalog?.productsPersisted ?? 0,
           js_render_adopted: counts.pagesJsRendered ?? 0,
           stop_reason: counts.stopReason ?? 'queue_empty',
+          urls_from_home_bootstrap:
+            typeof counts.urlsFromHomeBootstrap === 'number' ? counts.urlsFromHomeBootstrap : 0,
+          sitemap_urls_queued:
+            typeof counts.urlsFromSitemap === 'number' ? counts.urlsFromSitemap : 0,
+          sitemap_documents_fetched:
+            typeof counts.sitemapDocumentsFetched === 'number'
+              ? counts.sitemapDocumentsFetched
+              : typeof liveCoverage.sitemap_documents_fetched === 'number'
+                ? liveCoverage.sitemap_documents_fetched
+                : 0,
+          failed_pages: counts.failedPageSamples ?? [],
           required_missing: usable
             ? []
             : observations
                 .filter((o) => isRequiredForApproval(o.fieldKey) && o.isUnknown)
                 .map((o) => o.fieldKey),
           unknown_fields: observations.filter((o) => o.isUnknown).map((o) => o.fieldKey),
-          ai_availability: 'NOT_CONFIGURED',
+          ai_availability: brandAiAvailabilityAfterScanComplete(),
         };
 
         const authorizedBeforeComplete = await reauthz(jobRun.tenantId, jobRun.actorUserId);
@@ -415,6 +485,12 @@ export function startIngestionProcessor(
 
         return { ok: true, status: finalStatus, job_run_id: jobRun.id };
       } catch (error) {
+        if (isScanCancelledError(error)) {
+          if (jobRunId && data.scan_attempt_id) {
+            await markScanCancelled(prisma, data.scan_attempt_id, jobRunId).catch(() => undefined);
+          }
+          return { ok: true, cancelled: true };
+        }
         const attempts = Number(job.opts.attempts ?? 1);
         const finalAttempt = job.attemptsMade + 1 >= attempts;
         if (finalAttempt && jobRunId && data.scan_attempt_id) {
@@ -428,6 +504,8 @@ export function startIngestionProcessor(
           }
         }
         throw error;
+      } finally {
+        await shutdownRenderedFetchBrowser().catch(() => undefined);
       }
     },
     { connection, prefix: process.env.BULLMQ_PREFIX || 'oma', concurrency: 1 },

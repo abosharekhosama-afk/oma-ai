@@ -771,6 +771,7 @@ model ScanAttempt {
   errorDetail           String?
   startedAt             DateTime?
   finishedAt            DateTime?
+  progressUpdatedAt     DateTime?
   cancelRequestedAt     DateTime?
   createdAt             DateTime                   @default(now())
   brand                 BrandWorkspace             @relation(fields: [brandId], references: [id])

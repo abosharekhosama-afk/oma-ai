@@ -49,6 +49,7 @@ export type ScanDetail = {
   id: string;
   status: string;
   stalled?: boolean;
+  progress_updated_at?: string | null;
   progress_percent: number;
   pages_js_rendered?: number;
   product_media_imported?: number;
@@ -81,6 +82,9 @@ export type ScanDetail = {
     catalog_platform?: string | null;
     catalog_platform_products?: number;
     catalog_platform_error?: string | null;
+    sitemap_urls_queued?: number;
+    sitemap_documents_fetched?: number;
+    urls_from_home_bootstrap?: number;
   } | null;
   job_run_id: string;
   error_code: string | null;

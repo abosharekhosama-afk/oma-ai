@@ -137,7 +137,7 @@ Running it twice yields the same rows and links. Media import needs a connected 
 | `BRAND_MAX_DEPTH`                   | `3`                                       | Maximum link depth                                               |
 | `BRAND_MAX_DURATION_SECONDS`        | `600`                                     | Scan wall-clock limit                                            |
 | `BRAND_MAX_BYTES`                   | `1000000`                                 | Maximum response body size                                       |
-| `BRAND_MAX_SITEMAP_DOCUMENTS`       | `5`                                       | Sitemap files (including indexes) to fetch                       |
+| `BRAND_MAX_SITEMAP_DOCUMENTS`       | `12`                                      | Sitemap files (including indexes) to fetch                       |
 | `BRAND_MAX_PRODUCTS`                | `1000`                                    | Maximum products/services stored per scan                        |
 | `BRAND_MAX_PRODUCT_MEDIA`           | `20`                                      | Images/videos kept per product (max 50)                          |
 | `BRAND_PLATFORM_ADAPTERS`           | on                                        | `0` disables platform catalog APIs (pages only)                  |

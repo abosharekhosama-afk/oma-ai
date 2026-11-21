@@ -1,14 +1,18 @@
-import { getPrisma } from '@oma/db';
+import { getPrisma, Prisma } from '@oma/db';
 import {
   buildCatalogFieldValue,
   classifyJsRenderError,
   buildMarketingSeedUrls,
   buildSitemapSeedUrls,
+  isMarketingSeedPathname,
+  marketingSeedDeferThreshold,
+  marketingSeedPathsEnabled,
+  clampScanMaxPages,
   canonicalHash,
   canonicalizeUrl,
   contentHash,
   discoveryTierForField,
-  extractFromHtml,
+  extractPageContent,
   inferCrawlStopReason,
   isBrandFixtureConnectorEnabled,
   isCatalogLikePath,
@@ -16,6 +20,7 @@ import {
   isLowValueCrawlPath,
   isProductDetailUrl,
   isProductLikePathname,
+  maxJsRenderPagesFromEnv,
   maxProductMediaFromEnv,
   newId,
   productDedupeKey,
@@ -23,10 +28,13 @@ import {
   productUrlKey,
   type ExtractedProduct,
   parseSitemapXml,
-  resolveJsRenderMode,
+  resolveEffectiveJsRenderMode,
+  resolveScanRenderEngine,
+  scanEngineCoverageLabel,
   scanCatalogProgressPercent,
   scanCrawlProgressPercent,
   scanSitemapProgressPercent,
+  SCAN_CANCELLED_MESSAGE,
   shouldAdoptRenderedExtraction,
   productMediaUrlCount,
   shouldUseJsRender,
@@ -49,6 +57,10 @@ type CrawlConfig = {
 function pagePath(url: string): string {
   const parsed = new URL(url);
   return `${parsed.pathname || '/'}${parsed.search}`;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function enqueueCrawlUrl(
@@ -236,7 +248,15 @@ export type ScanExtractionProgress = {
   pagesFetched?: number;
   pagesFailed?: number;
   pagesSkipped?: number;
+  sitemapUrlsQueued?: number;
+  sitemapDocumentsFetched?: number;
 };
+
+async function ensureScanNotAborted(shouldAbort?: () => Promise<boolean>) {
+  if (shouldAbort && (await shouldAbort())) {
+    throw new Error(SCAN_CANCELLED_MESSAGE);
+  }
+}
 
 export async function runExtractionForScan(input: {
   tenantId: string;
@@ -246,11 +266,17 @@ export async function runExtractionForScan(input: {
   connector: WebsiteConnectorPort;
   config?: CrawlConfig;
   onProgress?: (patch: ScanExtractionProgress) => Promise<void>;
+  shouldAbort?: () => Promise<boolean>;
 }) {
-  const maxPages = input.config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50);
+  const maxPages = clampScanMaxPages(input.config?.max_pages, process.env);
   const maxDepth = input.config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3);
   const maxBytes = Number(process.env.BRAND_MAX_BYTES ?? 1_000_000);
-  const maxSitemapDocuments = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 5);
+  const configuredMaxSitemap = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 12);
+  const maxSitemapDocuments = Math.max(
+    configuredMaxSitemap,
+    Math.min(32, Math.ceil(maxPages / 6)),
+  );
+  const sitemapUrlParseLimit = Math.min(Math.max(maxPages * 4, 200), 5000);
   const deadline = Date.now() + (input.config?.max_duration_seconds ?? 600) * 1000;
 
   const mediaCap = maxProductMediaFromEnv();
@@ -271,16 +297,11 @@ export async function runExtractionForScan(input: {
   };
 
   const visited = new Set<string>();
+  const seenCanonicalHashes = new Set<string>();
+  const rateLimitRetries = new Map<string, number>();
   const queue: { url: string; depth: number }[] = [];
   enqueueCrawlUrl(queue, canonicalizeUrl(input.startUrl), 0, true);
   const fixtureCrawl = isBrandFixtureConnectorEnabled();
-  if (!fixtureCrawl) {
-    for (const seedUrl of buildMarketingSeedUrls(input.startUrl)) {
-      if (isInCrawlScope(input.startUrl, seedUrl)) {
-        enqueueCrawlUrl(queue, canonicalizeUrl(seedUrl), 1, true);
-      }
-    }
-  }
   let pagesFetched = 0;
   let pagesFailed = 0;
   let pagesSkipped = 0;
@@ -290,7 +311,16 @@ export async function runExtractionForScan(input: {
   const jsRenderErrors: string[] = [];
   const jsRenderErrorDetails: string[] = [];
   let jsRenderLaunchDetail: string | null = null;
-  const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
+  const scanRenderEngine = resolveScanRenderEngine(process.env);
+  const jsRenderMode = resolveEffectiveJsRenderMode(process.env);
+  let jsRenderBudget = maxJsRenderPagesFromEnv();
+  const failedPageSamples: Array<{ url: string; reason: string }> = [];
+  const maxFailedSamples = 48;
+  const maxFetchAttempts =
+    maxPages + Math.max(0, Number(process.env.BRAND_SCANNER_MAX_FAILED_ATTEMPTS ?? '20') || 20);
+  let urlsFromSitemap = 0;
+  let sitemapDocumentsFetchedTotal = 0;
+  let urlsFromHomeBootstrap = 0;
 
   const recordJsRenderError = (code: string, detail?: string) => {
     if (code === 'PLAYWRIGHT_LAUNCH_FAILED') {
@@ -314,17 +344,32 @@ export async function runExtractionForScan(input: {
   };
 
   const startHost = new URL(input.startUrl).host;
+  await ensureScanNotAborted(input.shouldAbort);
   try {
     const robotsInfo = await input.connector.inspectRobots(startHost);
     const seedTargets = fixtureCrawl
       ? [...robotsInfo.sitemaps]
       : [...new Set([...robotsInfo.sitemaps, ...buildSitemapSeedUrls(input.startUrl)])];
     const sitemapDocs = [...new Set(seedTargets)].slice(0, maxSitemapDocuments);
-    let docsFetched = 0;
-    while (sitemapDocs.length > 0 && docsFetched < maxSitemapDocuments && Date.now() < deadline) {
+    let sitemapDocumentsFetched = 0;
+    while (
+      sitemapDocs.length > 0 &&
+      sitemapDocumentsFetched < maxSitemapDocuments &&
+      Date.now() < deadline
+    ) {
+      await ensureScanNotAborted(input.shouldAbort);
       const sitemapUrl = sitemapDocs.shift();
       if (!sitemapUrl) break;
-      docsFetched += 1;
+      sitemapDocumentsFetched += 1;
+      await emitProgress({
+        progressPercent: scanSitemapProgressPercent(),
+        status: 'CRAWLING',
+        pagesFetched,
+        pagesFailed,
+        pagesSkipped,
+        sitemapUrlsQueued: urlsFromSitemap,
+        sitemapDocumentsFetched,
+      });
       try {
         const fetched = await input.connector.fetchPublic({
           url: sitemapUrl,
@@ -332,10 +377,10 @@ export async function runExtractionForScan(input: {
           accept: 'xml',
         });
         if (fetched.status >= 400) continue;
-        const parsed = parseSitemapXml(fetched.body, maxPages);
+        const parsed = parseSitemapXml(fetched.body, sitemapUrlParseLimit);
         for (const nested of parsed.sitemaps) {
           if (
-            sitemapDocs.length + docsFetched < maxSitemapDocuments &&
+            sitemapDocs.length + sitemapDocumentsFetched < maxSitemapDocuments &&
             isInCrawlScope(input.startUrl, nested)
           ) {
             sitemapDocs.push(nested);
@@ -343,15 +388,100 @@ export async function runExtractionForScan(input: {
         }
         for (const loc of parsed.urls) {
           if (isInCrawlScope(input.startUrl, loc)) {
-            enqueueCrawlUrl(queue, canonicalizeUrl(loc), 1);
+            const next = canonicalizeUrl(loc);
+            let urgent = false;
+            try {
+              const nextPath = new URL(next).pathname;
+              urgent =
+                isProductDetailUrl(next) ||
+                isProductLikePathname(nextPath) ||
+                isCatalogLikePath(nextPath);
+            } catch {
+              // keep default priority
+            }
+            enqueueCrawlUrl(queue, next, 1, urgent, productPagesFirst);
+            urlsFromSitemap += 1;
           }
         }
+        await emitProgress({
+          progressPercent: scanSitemapProgressPercent(),
+          status: 'CRAWLING',
+          pagesFetched,
+          pagesFailed,
+          pagesSkipped,
+          sitemapUrlsQueued: urlsFromSitemap,
+          sitemapDocumentsFetched,
+        });
       } catch {
         // sitemap discovery is best-effort
       }
     }
+    sitemapDocumentsFetchedTotal = sitemapDocumentsFetched;
   } catch {
     // robots/sitemap discovery is best-effort
+  }
+
+  if (
+    !fixtureCrawl &&
+    urlsFromSitemap < marketingSeedDeferThreshold() &&
+    queue.length <= 1 &&
+    Date.now() < deadline
+  ) {
+    await ensureScanNotAborted(input.shouldAbort);
+    try {
+      const homeUrl = canonicalizeUrl(input.startUrl);
+      const fetched = await input.connector.fetchPublic({ url: homeUrl, maxBytes });
+      if (fetched.status < 400) {
+        if (!platformChecked) {
+          platformChecked = true;
+          const platform = await fetchPlatformCatalog({
+            startUrl: fetched.finalUrl,
+            homeHtml: fetched.body,
+            connector: input.connector,
+            deadline,
+            maxProducts,
+            mediaCap,
+          });
+          catalogStats.platform = platform.detection?.platform ?? null;
+          catalogStats.platformEvidence = platform.detection?.evidence ?? null;
+          catalogStats.platformError = platform.error;
+          catalogStats.platformProducts = platform.products.length;
+          for (const product of platform.products) catalog.add(product);
+          if (platform.products.length > 0) productPagesFirst = false;
+        }
+        const extracted = extractPageContent(fetched.finalUrl, fetched.body);
+        for (const link of extracted.links) {
+          if (link.rel.includes('nofollow')) continue;
+          try {
+            const next = canonicalizeUrl(new URL(link.href, fetched.finalUrl).toString());
+            if (!isInCrawlScope(input.startUrl, next)) continue;
+            const nextPath = new URL(next).pathname;
+            const urgent =
+              isProductDetailUrl(next) ||
+              isProductLikePathname(nextPath) ||
+              isCatalogLikePath(nextPath);
+            enqueueCrawlUrl(queue, next, 1, urgent, productPagesFirst);
+            urlsFromHomeBootstrap += 1;
+          } catch {
+            // skip bad links
+          }
+        }
+      }
+    } catch {
+      // homepage bootstrap is best-effort
+    }
+  }
+
+  const deferMarketing =
+    urlsFromSitemap >= marketingSeedDeferThreshold() ||
+    urlsFromHomeBootstrap >= 8 ||
+    queue.length >= 12;
+  if (!fixtureCrawl && !deferMarketing && marketingSeedPathsEnabled()) {
+    for (const seedUrl of buildMarketingSeedUrls(input.startUrl)) {
+      if (isInCrawlScope(input.startUrl, seedUrl)) {
+        enqueueCrawlUrl(queue, canonicalizeUrl(seedUrl), 1, false);
+      }
+    }
   }
 
   await emitProgress({
@@ -362,7 +492,13 @@ export async function runExtractionForScan(input: {
     pagesSkipped,
   });
 
-  while (queue.length > 0 && pagesFetched < maxPages && Date.now() < deadline) {
+  while (
+    queue.length > 0 &&
+    pagesFetched < maxPages &&
+    pagesFetched + pagesFailed < maxFetchAttempts &&
+    Date.now() < deadline
+  ) {
+    await ensureScanNotAborted(input.shouldAbort);
     const current = queue.shift();
     if (!current) break;
     let normalizedUrl = current.url;
@@ -375,6 +511,12 @@ export async function runExtractionForScan(input: {
     const hash = canonicalHash(normalizedUrl);
     if (visited.has(hash)) continue;
     visited.add(hash);
+
+    const crawledPathname = new URL(normalizedUrl).pathname;
+    if (crawledPathname.includes('/cdn-cgi/')) {
+      pagesSkipped += 1;
+      continue;
+    }
 
     const host = new URL(normalizedUrl).host;
     const robots = await input.connector.evaluateRobots(host, pagePath(normalizedUrl));
@@ -403,7 +545,62 @@ export async function runExtractionForScan(input: {
         maxBytes,
       });
       if (fetched.status >= 400) {
+        if (fetched.status === 429) {
+          const rateTries = rateLimitRetries.get(hash) ?? 0;
+          if (rateTries < 3) {
+            rateLimitRetries.set(hash, rateTries + 1);
+            visited.delete(hash);
+            enqueueCrawlUrl(queue, normalizedUrl, current.depth, false);
+            await sleep(2000 * (rateTries + 1));
+            continue;
+          }
+        }
+        const seedMiss = isMarketingSeedPathname(pagePath(normalizedUrl));
+        if (seedMiss) {
+          pagesSkipped += 1;
+          await getPrisma().discoveredPage.create({
+            data: {
+              id: newId(),
+              tenantId: input.tenantId,
+              brandId: input.brandId,
+              scanAttemptId: input.scanAttemptId,
+              url: normalizedUrl,
+              canonicalUrl: fetched.finalUrl,
+              canonicalHash: canonicalHash(fetched.finalUrl),
+              httpStatus: fetched.status,
+              contentType: fetched.contentType,
+              fetchStatus: 'SKIPPED_LIMIT',
+              failureReason: 'MARKETING_SEED_MISS',
+            },
+          });
+          continue;
+        }
+        if (fetched.status === 429) {
+          pagesSkipped += 1;
+          if (failedPageSamples.length < maxFailedSamples) {
+            failedPageSamples.push({ url: normalizedUrl, reason: 'HTTP_429_RATE_LIMIT' });
+          }
+          await getPrisma().discoveredPage.create({
+            data: {
+              id: newId(),
+              tenantId: input.tenantId,
+              brandId: input.brandId,
+              scanAttemptId: input.scanAttemptId,
+              url: normalizedUrl,
+              canonicalUrl: fetched.finalUrl,
+              canonicalHash: canonicalHash(fetched.finalUrl),
+              httpStatus: fetched.status,
+              contentType: fetched.contentType,
+              fetchStatus: 'SKIPPED_LIMIT',
+              failureReason: 'HTTP_429_RATE_LIMIT',
+            },
+          });
+          continue;
+        }
         pagesFailed += 1;
+        if (failedPageSamples.length < maxFailedSamples) {
+          failedPageSamples.push({ url: normalizedUrl, reason: `HTTP_${fetched.status}` });
+        }
         await getPrisma().discoveredPage.create({
           data: {
             id: newId(),
@@ -441,9 +638,9 @@ export async function runExtractionForScan(input: {
         // Optional boost only: empty platform API must not reduce page-crawl priority.
         if (platform.products.length > 0) productPagesFirst = false;
       }
-      let extracted = extractFromHtml(fetched.finalUrl, htmlBody);
+      let extracted = extractPageContent(fetched.finalUrl, htmlBody);
       let pageUsedRendered = false;
-      if (
+      const wantsJsRender =
         shouldUseJsRender({
           mode: jsRenderMode,
           html: htmlBody,
@@ -451,12 +648,15 @@ export async function runExtractionForScan(input: {
           productCount: extracted.products.length,
           productMediaCount: productMediaUrlCount(extracted.products),
           knownFieldCount: extracted.fields.filter((f) => !f.isUnknown).length,
-        })
-      ) {
+        }) &&
+        (jsRenderMode === 'always' || jsRenderBudget > 0);
+      if (wantsJsRender) {
+        await ensureScanNotAborted(input.shouldAbort);
+        if (jsRenderMode !== 'always') jsRenderBudget -= 1;
         pagesJsRenderAttempted += 1;
         try {
           const renderedHtml = await fetchRenderedPageHtml(fetched.finalUrl);
-          const renderedExtracted = extractFromHtml(fetched.finalUrl, renderedHtml);
+          const renderedExtracted = extractPageContent(fetched.finalUrl, renderedHtml);
           const staticKnown = extracted.fields.filter((f) => !f.isUnknown).length;
           const renderedKnown = renderedExtracted.fields.filter((f) => !f.isUnknown).length;
           if (
@@ -488,6 +688,12 @@ export async function runExtractionForScan(input: {
         extracted.canonicalUrl && isInCrawlScope(input.startUrl, extracted.canonicalUrl)
           ? canonicalizeUrl(extracted.canonicalUrl)
           : canonicalizeUrl(fetched.finalUrl);
+      const pageCanonHash = canonicalHash(pageCanonical);
+      if (seenCanonicalHashes.has(pageCanonHash)) {
+        pagesSkipped += 1;
+        continue;
+      }
+      seenCanonicalHashes.add(pageCanonHash);
       const pageId = newId();
       await getPrisma().discoveredPage.create({
         data: {
@@ -575,8 +781,16 @@ export async function runExtractionForScan(input: {
           }
         }
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        pagesSkipped += 1;
+        continue;
+      }
       pagesFailed += 1;
+      const reason = err instanceof Error ? err.message.slice(0, 120) : 'FETCH_ERROR';
+      if (failedPageSamples.length < maxFailedSamples) {
+        failedPageSamples.push({ url: normalizedUrl, reason });
+      }
     }
   }
 
@@ -616,6 +830,10 @@ export async function runExtractionForScan(input: {
     pagesFetched,
     pagesFailed,
     pagesSkipped,
+    urlsFromHomeBootstrap,
+    urlsFromSitemap,
+    sitemapDocumentsFetched: sitemapDocumentsFetchedTotal,
+    failedPageSamples,
     pagesJsRendered,
     pagesJsRenderAttempted,
     pagesJsRenderFailed,
@@ -623,6 +841,7 @@ export async function runExtractionForScan(input: {
     jsRenderErrorDetails,
     jsRenderLaunchDetail,
     jsRenderMode,
+    scanEngine: scanEngineCoverageLabel(scanRenderEngine),
     stopReason,
     catalog: catalogStats,
   };
