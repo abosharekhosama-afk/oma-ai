@@ -72,9 +72,7 @@ export function proposalFieldLabel(field: string, t: (key: string) => string): s
   const sectionKey = `strategy.ai.section.${field.split('.')[0]}`;
   const section = t(sectionKey);
   if (section !== sectionKey) return section;
-  return field
-    .replace(/[_.]/g, ' ')
-    .replace(/^(\w)/, (c) => c.toUpperCase());
+  return field.replace(/[_.]/g, ' ').replace(/^(\w)/, (c) => c.toUpperCase());
 }
 
 export function strategyProposalToItems(proposal: unknown): StrategyAiProposalItem[] {

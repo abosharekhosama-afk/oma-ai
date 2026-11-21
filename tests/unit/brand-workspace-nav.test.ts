@@ -12,6 +12,8 @@ describe('isBrandStrategyDetailRoute', () => {
 
   it('returns false on hub list and new', () => {
     expect(isBrandStrategyDetailRoute(`/app/brands/${brandId}/strategies`, brandId)).toBe(false);
-    expect(isBrandStrategyDetailRoute(`/app/brands/${brandId}/strategies/new`, brandId)).toBe(false);
+    expect(isBrandStrategyDetailRoute(`/app/brands/${brandId}/strategies/new`, brandId)).toBe(
+      false,
+    );
   });
 });
