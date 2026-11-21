@@ -1592,3 +1592,59 @@ video.oma-media-carousel__media {
     padding: 8px 12px;
   }
 }
+
+.oma-brand-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+}
+
+.oma-brand-section-nav > nav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.oma-brand-nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #eceef1;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.oma-brand-nav-back:hover {
+  background: #f4f5f7;
+}
+
+.oma-brand-nav-back__label {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oma-brand-back-only {
+  margin-bottom: 8px;
+}
+
+.oma-plx-brand-nav-head--single {
+  flex-direction: column;
+  gap: 0;
+}
+
+.oma-plx-brand-nav-head--single .oma-brand-section-nav {
+  padding: 0;
+}
+
+[dir='rtl'] .oma-brand-nav-back svg {
+  transform: scaleX(-1);
+}

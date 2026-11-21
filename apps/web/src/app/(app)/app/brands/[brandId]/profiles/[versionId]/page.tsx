@@ -20,6 +20,7 @@ import type {
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { BrandBackLink } from '../../../../../../../components/brand/brand-section-nav';
 import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
 import { ProfileSections } from '../../../../../../../components/brand/profile-sections';
@@ -280,6 +281,7 @@ export default function ProfileEditorPage() {
         />
       }
     >
+      <BrandBackLink href={`/app/brands/${brandId}/profiles`} label={t('brand.nav.profiles')} />
       <BrandPlxPageHead
         title={t('brand.profile.title')}
         actions={
