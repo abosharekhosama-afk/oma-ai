@@ -16,6 +16,7 @@ import { MediaFolderNav } from './media-folder-nav';
 import { displayFolderLabel } from '../../lib/media-folder-display';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { api } from '../../lib/api';
 import { getApiError } from '../../lib/brand-api';
 import {
   formatBytes,
@@ -359,14 +360,27 @@ export function MediaPickerDialog({
   const [workspaceStorage, setWorkspaceStorage] = useState<WorkspaceStorage | null>(null);
   const [canvaBusy, setCanvaBusy] = useState(false);
   const [canvaHint, setCanvaHint] = useState<string | null>(null);
+  const [fetchedBrandName, setFetchedBrandName] = useState<string | null>(null);
 
   const workspaceLabel = lib?.workdrive.org_name ?? orgRoot?.root_name ?? null;
   const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
   const brandDisplayName =
     brandName?.trim() ||
+    fetchedBrandName?.trim() ||
     browse?.brand_folder?.name ||
     brandRoot?.brand_folder?.name ||
     t('media.brandAssets');
+
+  useEffect(() => {
+    if (!open || !brandId) {
+      setFetchedBrandName(null);
+      return;
+    }
+    if (brandName?.trim()) return;
+    void api<{ data: { name: string } }>(`/api/v1/brands/${brandId}`)
+      .then((r) => setFetchedBrandName(r.data.name?.trim() || null))
+      .catch(() => setFetchedBrandName(null));
+  }, [open, brandId, brandName]);
 
   const folderLabelCtx = useCallback(
     () => ({
@@ -485,24 +499,26 @@ export function MediaPickerDialog({
       setError(null);
       try {
         const page = { file_limit: BROWSE_FILE_LIMIT, file_offset: 0 };
-        const [org, brand] = await Promise.allSettled([
+        const [org, brandBrowse] = await Promise.allSettled([
           mediaApi.browse(brandId, kind, undefined, 'organization', src, page),
           mediaApi.browse(brandId, kind, undefined, 'brand', src, page),
         ]);
-        if (brand.status === 'fulfilled') setBrandRoot(applyBrowseLabels(brand.value.data));
         if (org.status === 'fulfilled') {
-          const labeled = applyBrowseLabels(org.value.data);
-          setOrgRoot(labeled);
-          setBrowse(labeled);
-          setScope('organization');
-          setSelectedFolderId(labeled.folder.id);
-        } else if (brand.status === 'fulfilled') {
-          const labeled = applyBrowseLabels(brand.value.data);
+          setOrgRoot(applyBrowseLabels(org.value.data));
+        }
+        if (brandBrowse.status === 'fulfilled') {
+          const labeled = applyBrowseLabels(brandBrowse.value.data);
+          setBrandRoot(labeled);
           setBrowse(labeled);
           setScope('brand');
           setSelectedFolderId(labeled.folder.id);
+        } else if (org.status === 'fulfilled') {
+          const labeled = applyBrowseLabels(org.value.data);
+          setBrowse(labeled);
+          setScope('organization');
+          setSelectedFolderId(labeled.folder.id);
         }
-        if (org.status === 'rejected' && brand.status === 'rejected') {
+        if (org.status === 'rejected' && brandBrowse.status === 'rejected') {
           setError(getApiError(org.reason).message);
         }
       } catch (e) {
@@ -533,22 +549,33 @@ export function MediaPickerDialog({
         { file_limit: BROWSE_FILE_LIMIT, file_offset: nextOffset, skipCache: true },
       );
       setBrowse((prev) =>
-        prev
-          ? {
-              ...r.data,
-              files: [...prev.files, ...r.data.files],
-              files_has_more: r.data.files_has_more,
-              files_total: r.data.files_total,
-              file_offset: prev.file_offset ?? 0,
-            }
-          : r.data,
+        applyBrowseLabels(
+          prev
+            ? {
+                ...r.data,
+                files: [...prev.files, ...r.data.files],
+                files_has_more: r.data.files_has_more,
+                files_total: r.data.files_total,
+                file_offset: prev.file_offset ?? 0,
+              }
+            : r.data,
+        ),
       );
     } catch (e) {
       setError(getApiError(e).message);
     } finally {
       setBrowseLoadingMore(false);
     }
-  }, [brandId, kind, browse, browseLoadingMore, scope, storageSource, selectedFolderId]);
+  }, [
+    applyBrowseLabels,
+    brandId,
+    kind,
+    browse,
+    browseLoadingMore,
+    scope,
+    storageSource,
+    selectedFolderId,
+  ]);
 
   useEffect(() => {
     if (!open || !brandId || !sourceReady) return;
@@ -700,7 +727,7 @@ export function MediaPickerDialog({
     }
     const mapped = files.map((f) => fileToItem(f, brandId || '', kind, storageSource ?? undefined));
     const seen = new Set(mapped.map((i) => i.key));
-    if ((allSelected || !brandSelected) && lib?.assets.length) {
+    if (lib?.assets.length) {
       for (const a of lib.assets) {
         if (seen.has(a.id)) continue;
         const assetSrc = assetSource(a);
