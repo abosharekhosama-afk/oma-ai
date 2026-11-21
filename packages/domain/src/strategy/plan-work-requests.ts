@@ -4,6 +4,7 @@ import {
   DEFAULT_MAX_CATALOG_SERVICE_REQUESTS,
   type CatalogOffering,
 } from '../brand/catalog-offerings';
+import type { PaidPlanInput } from './tracks-v2';
 
 export type PlanWorkRequestDraft = {
   plan_source_key: string;
@@ -54,6 +55,9 @@ export function buildPlanWorkRequestDrafts(input: {
   } | null;
   audiences: Array<{ name: string; description?: string | null }>;
   catalogOfferings?: CatalogOffering[];
+  /** Tracks v2 paid plan (DEC-021); preferred over legacy objectives when present. */
+  paidPlan?: PaidPlanInput | null;
+  paidBudgetAmount?: number | null;
 }): PlanWorkRequestDraft[] {
   const goals = Array.isArray(input.foundation.goals) ? input.foundation.goals : [];
   const keyMessages = Array.isArray(input.foundation.keyMessages)
@@ -66,8 +70,13 @@ export function buildPlanWorkRequestDrafts(input: {
       : '');
   const primaryGoal = readLabel(goals[0]) || 'Deliver the approved organic/paid plan';
   const primaryMessage = readLabel(keyMessages[0]) || positioning || input.strategyName;
-  const audienceName = input.audiences[0]?.name?.trim() || 'Primary audience';
-  const audienceText = input.audiences[0]?.description?.trim() || audienceName;
+  const planAudiences = input.paidPlan?.audiences ?? [];
+  const audienceName =
+    planAudiences[0]?.name?.trim() || input.audiences[0]?.name?.trim() || 'Primary audience';
+  const audienceText =
+    planAudiences[0]?.description?.trim() ||
+    input.audiences[0]?.description?.trim() ||
+    audienceName;
 
   const out: PlanWorkRequestDraft[] = [];
 
@@ -104,7 +113,8 @@ export function buildPlanWorkRequestDrafts(input: {
       input.organic?.channels?.map(readLabel).filter(Boolean) ??
       (input.organic ? [] : ['Social', 'Web']);
     const formats = input.organic?.formats?.map(readLabel).filter(Boolean) ?? ['Post', 'Story'];
-    for (const product of catalogProducts.slice(0, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS)) {
+    const productCap = Math.min(catalogProducts.length, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS);
+    for (const product of catalogProducts.slice(0, productCap)) {
       const focus = product.category ? `${product.name} (${product.category})` : product.name;
       const mediaNote = product.primary_media_view_url
         ? ` Use approved catalog product media in WorkDrive as the visual anchor.`
@@ -129,7 +139,8 @@ export function buildPlanWorkRequestDrafts(input: {
         },
       });
     }
-    for (const service of catalogServices.slice(0, DEFAULT_MAX_CATALOG_SERVICE_REQUESTS)) {
+    const serviceCap = Math.min(catalogServices.length, DEFAULT_MAX_CATALOG_SERVICE_REQUESTS);
+    for (const service of catalogServices.slice(0, serviceCap)) {
       const desc =
         service.description?.trim() ||
         `Organic content explaining scanned service “${service.name}”.`;
@@ -175,7 +186,52 @@ export function buildPlanWorkRequestDrafts(input: {
     }
   }
 
-  if (input.paidEnabled && input.paid) {
+  if (input.paidEnabled && input.paidPlan && input.paidPlan.allocations.length > 0) {
+    const budget = input.paidBudgetAmount;
+    for (let i = 0; i < input.paidPlan.allocations.length; i += 1) {
+      const row = input.paidPlan.allocations[i]!;
+      const channel = row.platform;
+      const objective = row.objective;
+      const share = row.share_pct;
+      const amountNote =
+        budget != null && Number.isFinite(budget)
+          ? ` · ~${((budget * share) / 100).toFixed(2)} planning budget`
+          : '';
+      const title = `${input.strategyName} — ${channel} · ${objective}`;
+      const desc =
+        (row.rationale?.trim() ||
+          `Paid planning allocation ${share}% on ${channel} (${objective}).`) + amountNote;
+      out.push({
+        plan_source_key: `paid:allocation:${i}:${channel}:${objective}`,
+        track: 'paid',
+        title: pair(title),
+        description: pair(desc),
+        channels: [channel],
+        formats: (input.paid?.formats ?? []).map(readLabel).filter(Boolean),
+        brief: {
+          objective: pair(`${objective} on ${channel}`),
+          audience: pair(audienceText),
+          keyMessage: pair(input.paid?.offer_angle?.trim() || primaryMessage),
+        },
+      });
+    }
+    for (let i = 0; i < input.paidPlan.experiments.length; i += 1) {
+      const experiment = input.paidPlan.experiments[i]!;
+      out.push({
+        plan_source_key: `paid:experiment:${i}`,
+        track: 'paid',
+        title: pair(`${input.strategyName} — Test: ${experiment.name}`),
+        description: pair(experiment.hypothesis),
+        channels: experiment.platform ? [experiment.platform] : [],
+        formats: [],
+        brief: {
+          objective: pair(experiment.hypothesis),
+          audience: pair(audienceText),
+          keyMessage: pair(experiment.primary_metric),
+        },
+      });
+    }
+  } else if (input.paidEnabled && input.paid) {
     const objectives = (input.paid.campaign_objectives ?? []).map(readLabel).filter(Boolean);
     const formats = (input.paid.formats ?? []).map(readLabel).filter(Boolean);
     const offer = input.paid.offer_angle?.trim() || '';

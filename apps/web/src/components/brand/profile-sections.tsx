@@ -2,6 +2,7 @@
 import { Button, TextArea } from '@oma/ui/controls';
 
 import type { InsightItem } from '../../lib/brand-types';
+import { formatInsightText } from '../../lib/profile-display';
 import { groupInsightsByFieldAndValue } from '../../lib/brand-scan-ui';
 import { useT } from '../../lib/use-locale';
 
@@ -45,7 +46,15 @@ export function fieldLabel(t: (key: string) => string, fieldKey: string): string
 
 function formatValue(value: unknown, depth = 0): string {
   if (value === null || value === undefined || value === '') return '—';
-  if (typeof value === 'string') return value.trim() || '—';
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return '—';
+    if (depth < 2 && (trimmed.startsWith('{') || trimmed.startsWith('['))) {
+      const human = formatInsightText(trimmed);
+      if (human !== trimmed) return human;
+    }
+    return trimmed;
+  }
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (Array.isArray(value)) {
     const parts = value.map((v) => formatValue(v, depth + 1)).filter((p) => p !== '—');
@@ -193,7 +202,7 @@ export function ProfileSections({
   return (
     <div className="oma-stack oma-plx-brand-profile-canvas" data-testid="brand-intelligence-canvas">
       <div
-        className="oma-plx-listening-panel oma-completeness-rail"
+        className="oma-plx-listening-panel oma-completeness-rail oma-completeness-rail--compact"
         data-testid="brand-profile-completeness"
       >
         <strong>
@@ -205,10 +214,15 @@ export function ProfileSections({
         <span className="oma-muted">
           {filled}/{insights.length || 0}
         </span>
-        <p className="oma-muted">{t('brand.profile.completenessHint')}</p>
+        <p className="oma-muted oma-completeness-rail__hint">
+          {t('brand.profile.completenessHint')}
+        </p>
       </div>
-      <div className="oma-doc-canvas oma-editor-shell oma-plx-brand-editor">
-        <nav className="oma-doc-outline" aria-label={t('brand.profile.outline')}>
+      <div className="oma-doc-canvas oma-editor-shell oma-plx-brand-editor oma-doc-canvas--profile">
+        <nav
+          className="oma-doc-outline oma-doc-outline--segments"
+          aria-label={t('brand.profile.outline')}
+        >
           {sectionKeys.map((key) => (
             <a key={key} href={`#section-${key}`}>
               {sectionTitle(t, key)}
@@ -233,30 +247,25 @@ export function ProfileSections({
                   return (
                     <li
                       key={insight.id}
-                      className="oma-insight-item oma-plx-listening-card oma-plx-brand-insight-card"
+                      className="oma-insight-item oma-plx-listening-card oma-plx-brand-insight-card oma-social-insight-card"
                     >
-                      <div className="oma-insight-header">
-                        <strong>{fieldLabel(t, insight.field_key)}</strong>
-                        <span
-                          className={provenanceBadgeClass(insight.info_state)}
-                          data-testid={`insight-provenance-${insight.info_state}`}
-                        >
-                          {t(`brand.infoState.${insight.info_state}`)}
-                        </span>
-                        <span className="oma-badge oma-badge-muted">
-                          {t(`brand.tier.${insight.discovery_tier}`)}
-                        </span>
-                        {insight.created_by === 'AI' ? (
-                          <span className="oma-badge">{t('brand.ai.generatedBadge')}</span>
-                        ) : null}
-                        {typeof insight.confidence === 'number' ? (
-                          <span className="oma-badge oma-badge-muted">
-                            {t('brand.ai.confidence').replace(
-                              '{value}',
-                              `${Math.round(insight.confidence * 100)}%`,
-                            )}
+                      <div className="oma-insight-header oma-insight-header--compact">
+                        <strong className="oma-insight-header__title">
+                          {fieldLabel(t, insight.field_key)}
+                        </strong>
+                        <span className="oma-insight-header__meta">
+                          <span
+                            className={provenanceBadgeClass(insight.info_state)}
+                            data-testid={`insight-provenance-${insight.info_state}`}
+                          >
+                            {t(`brand.infoState.${insight.info_state}`)}
                           </span>
-                        ) : null}
+                          {insight.discovery_tier === 'REQUIRED_FOR_APPROVAL' ? (
+                            <span className="oma-badge oma-badge-muted">
+                              {t(`brand.tier.${insight.discovery_tier}`)}
+                            </span>
+                          ) : null}
+                        </span>
                       </div>
                       {(() => {
                         const empty =
@@ -285,25 +294,35 @@ export function ProfileSections({
                           />
                         </label>
                       ) : (
-                        <p>{insight.text_value ?? t('brand.profile.emptyValue')}</p>
-                      )}
-                      {dupCount > 0 ? (
-                        <p className="oma-muted" style={{ fontSize: 12 }}>
-                          {t('brand.profile.duplicateEvidence').replace(
-                            '{count}',
-                            String(dupCount + 1),
-                          )}
-                        </p>
-                      ) : null}
-                      {insight.evidence_id ? (
-                        <Button type="link" onClick={() => onViewEvidence?.(insight.evidence_id!)}>
-                          {t('brand.evidence.view')}
-                        </Button>
-                      ) : (
-                        <p className="oma-muted" style={{ fontSize: 12 }}>
-                          {t('brand.evidence.none')}
+                        <p className="oma-insight-value oma-social-insight-card__value">
+                          {formatInsightText(insight.text_value) !== '—'
+                            ? formatInsightText(insight.text_value)
+                            : t('brand.profile.emptyValue')}
                         </p>
                       )}
+                      <div className="oma-insight-footer">
+                        {dupCount > 0 ? (
+                          <span className="oma-muted oma-insight-footer__dup">
+                            {t('brand.profile.duplicateEvidence').replace(
+                              '{count}',
+                              String(dupCount + 1),
+                            )}
+                          </span>
+                        ) : null}
+                        {insight.evidence_id ? (
+                          <Button
+                            type="link"
+                            className="oma-insight-footer__evidence"
+                            onClick={() => onViewEvidence?.(insight.evidence_id!)}
+                          >
+                            {t('brand.evidence.view')}
+                          </Button>
+                        ) : (
+                          <span className="oma-muted oma-insight-footer__dup">
+                            {t('brand.evidence.none')}
+                          </span>
+                        )}
+                      </div>
                     </li>
                   );
                 })}

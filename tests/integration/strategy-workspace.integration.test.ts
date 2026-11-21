@@ -15,6 +15,7 @@ import {
   submitStrategy,
 } from '../helpers/strategy-test';
 import { getPrisma } from '@oma/db';
+import { newId } from '@oma/domain';
 
 describe('strategy workspace integration', () => {
   const closers: Array<() => Promise<void>> = [];
@@ -23,16 +24,20 @@ describe('strategy workspace integration', () => {
     for (const c of closers) await c();
   });
 
-  it('creates draft without approved profile with missing_source warning', async () => {
+  it('rejects strategy create until the brand has an approved profile', async () => {
     const seed = await seedBrandTenant();
     closers.push(async () => seed.app.close());
     const { body: brandBody } = await createBrand(seed);
     const brandId = brandBody.data.id as string;
 
-    const { res, body } = await createStrategy(seed, brandId, { name: 'Draft only' });
-    expect([200, 201]).toContain(res.status);
-    expect(body.data.latest_version.missing_source).toBe(true);
-    expect(body.data.latest_version.evidence_backed).toBe(false);
+    const { res, body } = await createStrategy(
+      seed,
+      brandId,
+      { name: 'Draft only' },
+      { allowWithoutBrandApprovedProfile: true },
+    );
+    expect([403, 400, 422]).toContain(res.status);
+    expect(JSON.stringify(body)).toMatch(/APPROVED|اعتماد ملف|BRAND_PROFILE_NOT_APPROVED/i);
   });
 
   it('package approve does not set current; set_current is explicit; archive clears pointer', async () => {
@@ -87,15 +92,20 @@ describe('strategy workspace integration', () => {
     expect(brandAfter.currentApprovedStrategyId).toBeNull();
   });
 
-  it('draft_aid profile never satisfies submit gate; approved link does', async () => {
+  it('rejects draft_aid links; approved profile link allows submit', async () => {
     const seed = await seedBrandTenant();
     closers.push(async () => seed.app.close());
     const { body: brandBody } = await createBrand(seed);
     const brandId = brandBody.data.id as string;
-    const draftProfileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
-    await getPrisma().profileVersion.update({
-      where: { id: draftProfileId },
-      data: { status: 'DRAFT', approvedAt: null },
+    const draftProfileId = newId();
+    await getPrisma().profileVersion.create({
+      data: {
+        id: draftProfileId,
+        tenantId: seed.tenantId,
+        brandId,
+        status: 'DRAFT',
+        sectionsJson: JSON.stringify({ overview: { name: 'Draft' } }),
+      },
     });
     const approvedId = await seedApprovedProfileVersion(seed.tenantId, brandId);
 
@@ -113,8 +123,19 @@ describe('strategy workspace integration', () => {
       rowVersion,
       'draft_aid',
     );
-    expect([200, 201]).toContain(aid.res.status);
-    rowVersion = aid.body.data.row_version;
+    expect([403, 400, 422]).toContain(aid.res.status);
+
+    const linked = await linkApprovedProfile(
+      seed,
+      brandId,
+      strategyId,
+      versionId,
+      approvedId,
+      rowVersion,
+      'approved',
+    );
+    expect([200, 201]).toContain(linked.res.status);
+    rowVersion = linked.body.data.row_version;
 
     await patchFoundation(seed, brandId, strategyId, versionId, rowVersion, {
       goals: [{ value: 'G', infoClass: 'USER_AUTHORED' }],
@@ -139,19 +160,6 @@ describe('strategy workspace integration', () => {
     const afterEnable = await getStrategyVersion(seed, brandId, strategyId, versionId);
     rowVersion = afterEnable.body.data.row_version;
 
-    const blocked = await submitStrategy(seed, brandId, strategyId, versionId, rowVersion);
-    expect(blocked.res.status).toBe(422);
-
-    const linked = await linkApprovedProfile(
-      seed,
-      brandId,
-      strategyId,
-      versionId,
-      approvedId,
-      rowVersion,
-      'approved',
-    );
-    rowVersion = linked.body.data.row_version;
     const ok = await submitStrategy(seed, brandId, strategyId, versionId, rowVersion);
     expect([200, 201]).toContain(ok.res.status);
     expect(ok.body.data.status).toBe('IN_REVIEW');

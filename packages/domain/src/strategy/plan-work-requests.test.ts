@@ -26,6 +26,50 @@ describe('buildPlanWorkRequestDrafts', () => {
     expect(drafts[0]?.channels).toEqual(['Instagram']);
   });
 
+  it('prefers v2 paid allocations over legacy objectives', () => {
+    const drafts = buildPlanWorkRequestDrafts({
+      strategyName: 'Launch',
+      foundation: { goals: [{ value: 'Leads' }] },
+      organicEnabled: false,
+      paidEnabled: true,
+      organic: null,
+      paid: {
+        campaign_objectives: ['Legacy objective'],
+        formats: ['Static'],
+        offer_angle: 'Free audit',
+      },
+      audiences: [{ name: 'Buyers' }],
+      paidPlan: {
+        allocations: [
+          {
+            platform: 'META',
+            objective: 'TRAFFIC',
+            share_pct: 100,
+            info_class: 'USER_AUTHORED',
+            source: 'MANUAL',
+            evidence_refs: [],
+          },
+        ],
+        audiences: [
+          {
+            key: 'buyers',
+            name: 'Regional buyers',
+            targeting: { locations: [], languages: [], interests: [] },
+            info_class: 'USER_AUTHORED',
+            source: 'MANUAL',
+            evidence_refs: [],
+          },
+        ],
+        experiments: [],
+      },
+      paidBudgetAmount: 5000,
+    });
+    expect(drafts.some((d) => d.plan_source_key.startsWith('paid:allocation:'))).toBe(true);
+    expect(drafts.some((d) => d.plan_source_key === 'paid:objective:0')).toBe(false);
+    const allocation = drafts.find((d) => d.plan_source_key.startsWith('paid:allocation:'));
+    expect(allocation?.brief.audience.en).toContain('Regional buyers');
+  });
+
   it('creates paid objectives when paid track is enabled', () => {
     const drafts = buildPlanWorkRequestDrafts({
       strategyName: 'Launch',
@@ -43,6 +87,29 @@ describe('buildPlanWorkRequestDrafts', () => {
     expect(drafts).toHaveLength(1);
     expect(drafts[0]?.track).toBe('paid');
     expect(drafts[0]?.plan_source_key).toBe('paid:objective:0');
+  });
+
+  it('creates organic catalog requests up to catalog cap (500)', () => {
+    const offerings = Array.from({ length: 16 }, (_, i) => ({
+      kind: 'product' as const,
+      slug: `product-${i}`,
+      name: `Product ${i}`,
+      description: `Desc ${i}`,
+    }));
+    const drafts = buildPlanWorkRequestDrafts({
+      strategyName: 'Catalog',
+      foundation: { goals: [{ value: 'Sales' }] },
+      organicEnabled: true,
+      paidEnabled: false,
+      organic: { channels: ['Instagram'], formats: ['Post'] },
+      paid: null,
+      audiences: [{ name: 'Shoppers' }],
+      catalogOfferings: offerings,
+    });
+    const catalogCount = drafts.filter((d) =>
+      d.plan_source_key.includes(':catalog:product:'),
+    ).length;
+    expect(catalogCount).toBe(16);
   });
 
   it('adds catalog-anchored organic requests for scanned products', () => {

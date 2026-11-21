@@ -502,3 +502,17 @@ export const TableGridOutlined = (p: IconProps) => (
     <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
   </Icon>
 );
+
+/** Expand side panel to full workspace width. */
+export const ExpandPanelOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+  </Icon>
+);
+
+/** Restore side panel to default width. */
+export const ShrinkPanelOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" />
+  </Icon>
+);

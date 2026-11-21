@@ -3,7 +3,11 @@ import { Reflector } from '@nestjs/core';
 import { capabilitiesForBrandRole, DomainError, hasCapability, SYSTEM_PROFILES } from '@oma/domain';
 import { getPrisma, tenantWhere, withoutBrandScope } from '@oma/db';
 import { REQUIRE_CAPABILITIES_KEY } from '../decorators/require-capabilities.decorator';
-import { resolveBrandAccess, type BrandAccess } from '../../brand/brand-access';
+import {
+  membershipIsWorkspaceAdmin,
+  resolveBrandAccess,
+  type BrandAccess,
+} from '../../brand/brand-access';
 import type { Request } from 'express';
 
 const routeRequirements: Record<string, string[]> = {
@@ -87,6 +91,13 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/content/:contentId/publish-target': ['content.schedule'],
   'POST /api/v1/brands/:brandId/website': ['brand.website.connect'],
   'GET /api/v1/brands/:brandId/website': ['brand.read'],
+  'GET /api/v1/brands/:brandId/seo/health': ['brand.read'],
+  'GET /api/v1/brands/:brandId/seo/analytics': ['brand.read'],
+  'GET /api/v1/brands/:brandId/seo/strategy-proposals': ['brand.read'],
+  'POST /api/v1/brands/:brandId/seo/search-console/connect-fixture': ['brand.website.connect'],
+  'POST /api/v1/brands/:brandId/seo/search-console/oauth/start': ['brand.website.connect'],
+  'POST /api/v1/brands/:brandId/seo/search-console/sync': ['brand.website.connect'],
+  'POST /api/v1/brands/:brandId/seo/keywords/research': ['brand.read'],
   'POST /api/v1/brands/:brandId/scans': ['brand.scan.control'],
   'GET /api/v1/brands/:brandId/scans': ['brand.read'],
   'GET /api/v1/brands/:brandId/scans/:scanId': ['brand.read'],
@@ -771,10 +782,14 @@ export class CapabilitiesGuard implements CanActivate {
     ) {
       caps = [...(SYSTEM_PROFILES.COMPANY_OWNER ?? [])];
     }
+    if (memberships.some((m) => membershipIsWorkspaceAdmin(m))) {
+      caps = [...new Set([...caps, ...(SYSTEM_PROFILES.COMPANY_OWNER ?? [])])];
+    }
+    const workspaceAdmin = hasCapability(caps, 'tenant.manage');
     // Per-brand access: when the request targets one brand, non-admins must be a member of it
     // and their brand role narrows their workspace capabilities.
     const access = req.brandAccess ?? (await resolveBrandAccess(req.oma.tenantId, req.oma.userId));
-    if (!access.all) {
+    if (!access.all && !workspaceAdmin) {
       const brandId = await targetBrandId(req, req.oma.tenantId);
       if (brandId) {
         const role = access.roles.get(brandId);

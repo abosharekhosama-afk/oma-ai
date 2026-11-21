@@ -29,8 +29,17 @@ export class ScanService {
     private readonly brands: BrandService,
   ) {}
 
+  defaultScanConfig() {
+    const bounds = this.clampConfig(undefined);
+    return {
+      ...bounds,
+      marketing_seeds_enabled: marketingSeedPathsEnabled(),
+      marketing_seed_defer_min_sitemap_urls: marketingSeedDeferThreshold(),
+    };
+  }
+
   private clampConfig(config?: ScanConfig) {
-    const maxPages = Math.min(config?.max_pages ?? Number(process.env.BRAND_MAX_PAGES ?? 50), 100);
+    const maxPages = clampScanMaxPages(config?.max_pages, process.env);
     const maxDepth = Math.min(config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3), 5);
     const maxDuration = Math.min(
       config?.max_duration_seconds ?? Number(process.env.BRAND_MAX_DURATION_SECONDS ?? 600),
@@ -318,7 +327,22 @@ export class ScanService {
       targetId: scanId,
       correlationId,
     });
-    return { data: this.serializeScan(updated) };
+    if (scan.jobRunId) {
+      const { cancelScanQueueJobs } = await import('./cancel-scan-jobs');
+      await cancelScanQueueJobs({
+        tenantId,
+        scanAttemptId: scanId,
+        ingestionJobRunId: scan.jobRunId,
+      }).catch(() => undefined);
+    }
+    await getPrisma().scanAttempt.updateMany({
+      where: { id: scanId, status: 'CANCELLED' },
+      data: { analysisStatus: 'SKIPPED', progressPercent: 100 },
+    });
+    const after = await getPrisma().scanAttempt.findFirst({
+      where: tenantWhere(tenantId, { id: scanId, brandId }),
+    });
+    return { data: this.serializeScan(after ?? updated) };
   }
 
   async retry(

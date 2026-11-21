@@ -55,6 +55,9 @@ export function detectStorefrontPlatform(html: string): PlatformDetection | null
   if (/zid\.store|zidcdn|media\.zid\.store|window\.zid/i.test(head)) {
     return { platform: 'zid', evidence: 'zid markers in HTML' };
   }
+  if (/VITE_IGROUP_|igroup-api|api\.igroup\.|\/-\/[cp]\d{6,}|redirect\/pages\/\d+/i.test(head)) {
+    return { platform: 'igroup', evidence: 'igroup / headless storefront markers in HTML' };
+  }
   return null;
 }
 

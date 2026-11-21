@@ -14,6 +14,7 @@ import {
   buildBrandEvidenceSubnav,
   buildBrandPrimaryNav,
   buildBrandStrategySubnav,
+  brandWorkspaceNavMode,
   journeyStepHref,
   withJourneyState,
 } from '../../lib/brand-workspace-nav';
@@ -77,12 +78,15 @@ export function BrandWorkspaceShell({
   }, [brandId, brandLogoUrl]);
   const section = brandNavSection(pathname, brandId);
   const primaryLinks = buildBrandPrimaryNav(brandId, t);
-  const evidenceSubnav =
-    section === 'evidence'
+  const navMode = brandWorkspaceNavMode(pathname, brandId);
+  const strategySubnav =
+    navMode === 'strategy-only'
+      ? withJourneyState(buildBrandStrategySubnav(brandId, t), journey)
+      : null;
+  const evidenceSubnavForMode =
+    navMode === 'evidence-only'
       ? withJourneyState(buildBrandEvidenceSubnav(brandId, latestScanId, t), journey)
       : null;
-  const strategySubnav =
-    section === 'strategy' ? withJourneyState(buildBrandStrategySubnav(brandId, t), journey) : null;
   // The journey strip only renders on the overview; inside a section its progress is folded
   // into the sub-nav tabs (same destinations — no second row of links).
   const showJourney = section === 'overview' && journey && journey.length > 0;
@@ -130,38 +134,48 @@ export function BrandWorkspaceShell({
       ) : null}
 
       <section className="oma-plx-listening-panel oma-plx-brand-panel">
-        <header className="oma-plx-deliv-panel__head oma-plx-brand-nav-head">
-          <nav
-            className="oma-plx-deliv-groups oma-plx-brand-nav oma-plx-brand-nav--primary oma-brand-nav"
-            aria-label={t('brand.nav.label')}
-          >
-            {primaryLinks.map((link) => {
-              const active = link.match(pathname);
-              return (
-                <Link
-                  key={link.id}
-                  href={link.href}
-                  role="tab"
-                  aria-current={active ? 'page' : undefined}
-                  className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
-                  data-testid={`brand-nav-${link.id}`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-          {evidenceSubnav ? (
-            <div className="oma-plx-brand-subnav-wrap">
-              <BrandWorkspaceSubnav links={evidenceSubnav} ariaLabel={t('brand.nav.evidenceSub')} />
-            </div>
-          ) : null}
-          {strategySubnav ? (
-            <div className="oma-plx-brand-subnav-wrap">
-              <BrandWorkspaceSubnav links={strategySubnav} ariaLabel={t('brand.nav.strategySub')} />
-            </div>
-          ) : null}
-        </header>
+        {navMode !== 'none' ? (
+          <header className="oma-plx-deliv-panel__head oma-plx-brand-nav-head oma-plx-brand-nav-head--single">
+            {navMode === 'primary-only' ? (
+              <nav
+                className="oma-plx-deliv-groups oma-plx-brand-nav oma-plx-brand-nav--primary oma-brand-nav"
+                aria-label={t('brand.nav.label')}
+              >
+                {primaryLinks.map((link) => {
+                  const active = link.match(pathname);
+                  return (
+                    <Link
+                      key={link.id}
+                      href={link.href}
+                      role="tab"
+                      aria-current={active ? 'page' : undefined}
+                      className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
+                      data-testid={`brand-nav-${link.id}`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            ) : null}
+            {evidenceSubnavForMode ? (
+              <BrandWorkspaceSubnav
+                links={evidenceSubnavForMode}
+                ariaLabel={t('brand.nav.evidenceSub')}
+                backHref={`/app/brands/${brandId}`}
+                backLabel={t('brand.nav.overview')}
+              />
+            ) : null}
+            {strategySubnav ? (
+              <BrandWorkspaceSubnav
+                links={strategySubnav}
+                ariaLabel={t('brand.nav.strategySub')}
+                backHref={`/app/brands/${brandId}`}
+                backLabel={t('brand.nav.overview')}
+              />
+            ) : null}
+          </header>
+        ) : null}
         <div className="oma-plx-deliv-panel__body oma-plx-brand-panel__body">
           <div
             className={

@@ -17,7 +17,7 @@ import {
 import type { BrandDetail, ScanDetail } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
-import { ConnectorModeBanner } from '../../../../../../../components/brand/connector-mode-banner';
+import { BrandBackLink } from '../../../../../../../components/brand/brand-section-nav';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip, statusLabel } from '../../../../../../../components/ui/status-chip';
 import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
@@ -250,17 +250,18 @@ export default function ScanDetailPage() {
       latestScanId={scan.id}
       journey={journey}
     >
-      <AiUnavailableBanner
-        aiAvailability={scan.ai_availability}
-        analysisStatus={scan.analysis_status}
-        analysisErrorCode={scan.analysis_error_code}
-        platformAvailability={platformAiAvailability}
-        canRequestAnalysis={canRequestAnalysis}
-        onRequestAnalysis={canRequestAnalysis ? () => void handleAnalyze() : undefined}
-        requestBusy={busy}
-      />
-
-      <ConnectorModeBanner mode={scan.connector_mode} />
+      <BrandBackLink href={`/app/brands/${brandId}/evidence`} label={t('brand.nav.evidenceHub')} />
+      <div className="oma-plx-brand-status-rail oma-plx-brand-status-rail--scan">
+        <AiUnavailableBanner
+          aiAvailability={scan.ai_availability}
+          analysisStatus={scan.analysis_status}
+          analysisErrorCode={scan.analysis_error_code}
+          platformAvailability={platformAiAvailability}
+          canRequestAnalysis={canRequestAnalysis}
+          onRequestAnalysis={canRequestAnalysis ? () => void handleAnalyze() : undefined}
+          requestBusy={busy}
+        />
+      </div>
 
       <BrandPlxSection
         title={t('brand.scan.progressTitle')}

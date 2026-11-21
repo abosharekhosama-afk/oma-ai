@@ -2,12 +2,13 @@ import { parse as parseHtml } from 'node-html-parser';
 
 /** Where a product record came from — strongest first. */
 export type ProductExtractionSource =
-  'PLATFORM_API' | 'JSON_LD' | 'MICRODATA' | 'OPEN_GRAPH' | 'DOM_DETAIL';
+  'PLATFORM_API' | 'JSON_LD' | 'HYDRATION_JSON' | 'MICRODATA' | 'OPEN_GRAPH' | 'DOM_DETAIL';
 
 /** Default confidence per extraction source (0..1). */
 export const SOURCE_CONFIDENCE: Record<ProductExtractionSource, number> = {
   PLATFORM_API: 0.97,
   JSON_LD: 0.92,
+  HYDRATION_JSON: 0.86,
   MICRODATA: 0.85,
   OPEN_GRAPH: 0.75,
   DOM_DETAIL: 0.7,

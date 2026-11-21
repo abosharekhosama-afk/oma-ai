@@ -37,6 +37,108 @@ export function withJourneyState(
   });
 }
 
+const ULID_RE = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isBrandRecordId(segment: string): boolean {
+  return ULID_RE.test(segment) || UUID_RE.test(segment);
+}
+
+const BRAND_TRAIL_SEGMENT_KEYS: Record<string, string> = {
+  connect: 'brand.nav.website',
+  scans: 'brand.nav.scan',
+  discovery: 'brand.nav.discovery',
+  seo: 'brand.nav.seo',
+  evidence: 'brand.nav.evidenceHub',
+  intelligence: 'brand.nav.intelligenceHub',
+  profiles: 'brand.nav.profiles',
+  strategies: 'brand.nav.strategies',
+  briefs: 'brand.nav.briefs',
+  settings: 'brand.nav.settings',
+  organic: 'strategy.nav.organic',
+  paid: 'strategy.nav.paid',
+  edit: 'strategy.nav.foundation',
+  review: 'strategy.nav.review',
+  versions: 'strategy.nav.versions',
+  compare: 'brand.profile.compare',
+  products: 'brand.discovery.productsTitle',
+  pages: 'brand.discovery.pagesTitle',
+  new: 'common.new',
+};
+
+/** Human tail for shell breadcrumb on brand routes (no raw record ids). */
+export function brandPathTailLabel(
+  pathname: string,
+  brandId: string,
+  t: (key: string) => string,
+): string | null {
+  const prefix = `/app/brands/${brandId}/`;
+  if (!pathname.startsWith(prefix)) return null;
+  const segments = pathname.slice(prefix.length).split('/').filter(Boolean);
+  if (segments.length === 0) return null;
+  const last = segments[segments.length - 1]!;
+  if (isBrandRecordId(last) && segments.length >= 2) {
+    const parent = segments[segments.length - 2]!;
+    if (parent === 'profiles') return t('brand.profile.title');
+    if (parent === 'strategies') return t('strategy.nav.overview');
+    if (parent === 'scans') return t('brand.nav.scan');
+    if (parent === 'briefs') return t('briefs.title');
+  }
+  let i = segments.length - 1;
+  while (i >= 0 && isBrandRecordId(segments[i]!)) i--;
+  if (i < 0) {
+    if (segments.some((s) => isBrandRecordId(s))) {
+      const parent = segments.find((s) => !isBrandRecordId(s));
+      if (parent === 'profiles') return t('brand.profile.title');
+      if (parent === 'strategies') return t('strategy.nav.overview');
+      if (parent === 'scans') return t('brand.nav.scan');
+      if (parent === 'briefs') return t('briefs.title');
+    }
+    return null;
+  }
+  const seg = segments[i]!;
+  const i18nKey = BRAND_TRAIL_SEGMENT_KEYS[seg];
+  if (i18nKey) {
+    const label = t(i18nKey);
+    if (label !== i18nKey) return label;
+  }
+  const navKey = `nav.${seg}`;
+  const navLabel = t(navKey);
+  if (navLabel !== navKey) return navLabel;
+  return seg.replace(/[_.-]/g, ' ');
+}
+
+export type BrandWorkspaceNavMode = 'primary-only' | 'evidence-only' | 'strategy-only' | 'none';
+
+export function isBrandDeepWorkspaceRoute(pathname: string, brandId: string): boolean {
+  if (isBrandStrategyDetailRoute(pathname, brandId)) return true;
+  const base = `/app/brands/${brandId}`;
+  if (!pathname.startsWith(`${base}/`)) return false;
+  if (/\/profiles\/[^/]+/.test(pathname)) return true;
+  if (/\/scans\/[^/]+/.test(pathname)) return true;
+  if (/\/briefs\/[^/]+/.test(pathname)) return true;
+  return false;
+}
+
+export function brandWorkspaceNavMode(pathname: string, brandId: string): BrandWorkspaceNavMode {
+  if (isBrandDeepWorkspaceRoute(pathname, brandId)) return 'none';
+  const base = `/app/brands/${brandId}`;
+  if (pathname === base) return 'primary-only';
+  const section = brandNavSection(pathname, brandId);
+  if (section === 'evidence') return 'evidence-only';
+  if (section === 'strategy') return 'strategy-only';
+  return 'primary-only';
+}
+
+/** True when viewing a specific strategy (not the hub list or /new). */
+export function isBrandStrategyDetailRoute(pathname: string, brandId: string): boolean {
+  const prefix = `/app/brands/${brandId}/strategies/`;
+  if (!pathname.startsWith(prefix)) return false;
+  const rest = pathname.slice(prefix.length);
+  if (!rest || rest.startsWith('new')) return false;
+  return /^[^/]+/.test(rest);
+}
+
 export function brandNavSection(pathname: string, brandId: string): BrandNavSection {
   const base = `/app/brands/${brandId}`;
   if (pathname === base) return 'overview';
@@ -45,6 +147,7 @@ export function brandNavSection(pathname: string, brandId: string): BrandNavSect
     pathname.includes('/connect') ||
     pathname.includes('/scans') ||
     pathname.includes('/discovery') ||
+    pathname.includes('/seo') ||
     pathname.includes('/evidence')
   ) {
     return 'evidence';
@@ -125,6 +228,12 @@ export function buildBrandEvidenceSubnav(
       match: (p) => p.includes('/discovery') && !p.includes('/evidence'),
     },
     {
+      id: 'seo',
+      href: `${base}/seo`,
+      label: t('brand.nav.seo'),
+      match: (p) => p.includes('/seo'),
+    },
+    {
       id: 'evidence-hub',
       href: `${base}/evidence`,
       label: t('brand.nav.evidenceHub'),
@@ -183,6 +292,10 @@ export function journeyStepHref(
       return `${base}/intelligence`;
     case 'strategy':
       return `${base}/strategies`;
+    case 'plan':
+      return `${base}/strategies`;
+    case 'content':
+      return '/app/content';
     default:
       return base;
   }

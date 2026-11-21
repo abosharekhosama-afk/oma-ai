@@ -1,5 +1,5 @@
 import { parse as parseHtml } from 'node-html-parser';
-import { isCatalogLikePath, isProductLikePathname } from './crawl-seeds';
+import { isCatalogLikePath, isLowValueCrawlPath, isProductLikePathname } from './crawl-seeds';
 import type { ExtractedProduct } from './extractors';
 import { isProductDetailUrl } from './product-detection';
 
@@ -8,7 +8,7 @@ export type JsRenderMode = 'off' | 'auto' | 'always';
 export function resolveJsRenderMode(raw?: string | null): JsRenderMode {
   // Auto-render only when static HTML looks like an SPA/catalog shell or lacks product media.
   // This keeps ordinary pages cheap while preventing client-rendered stores from yielding empty rows.
-  const value = (raw ?? process.env.BRAND_SCANNER_JS_RENDER_MODE ?? 'auto').toLowerCase();
+  const value = (raw ?? process.env.BRAND_SCANNER_JS_RENDER_MODE ?? 'off').toLowerCase();
   if (value === 'force') return 'always';
   if (value === 'auto' || value === 'always') return value;
   return 'off';
@@ -50,6 +50,7 @@ export function shouldUseJsRender(input: {
   const mediaCount = input.productMediaCount ?? 0;
   const knownFields = input.knownFieldCount ?? 0;
   if (looksLikeSpaShell(input.html)) return true;
+  if (input.mode === 'auto' && isLowValueCrawlPath(path)) return false;
   const productLike = isProductLikePathname(path) || isCatalogLikePath(path);
   const detailUrl = isProductDetailUrl(input.pageUrl);
   if (productLike && input.productCount === 0) return true;

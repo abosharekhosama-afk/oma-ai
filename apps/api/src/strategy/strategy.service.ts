@@ -7,6 +7,7 @@ import {
   canArchiveStrategy,
   canPatchVersionContent,
   evaluatePackageEligibility,
+  evaluatePaidPlanForSubmit,
   evaluateSetCurrentEligibility,
   isAiAnalysisAvailable,
   mustRefuseAiPropose,
@@ -23,7 +24,7 @@ import { buildStrategyProposePrompt } from '@oma/ai';
 import { loadBrandContext } from '../ai/brand-context.service';
 import { runStructuredGeneration } from '../ai/structured-run';
 import { notificationAllowed } from '@oma/domain';
-import { copyStrategyPlan } from './strategy-plan.service';
+import { copyStrategyPlan, readStrategyPlan } from './strategy-plan.service';
 import { AuditService } from '../audit/audit.service';
 
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
@@ -124,6 +125,27 @@ export class StrategyService {
         [{ code: 'MUST_REVISE' }],
       );
     }
+  }
+
+  private async paidPlanSubmitBlockingReasons(version: {
+    id: string;
+    paidEnabled: boolean;
+  }): Promise<string[]> {
+    if (!version.paidEnabled) return [];
+    const [plan, track] = await Promise.all([
+      readStrategyPlan(getPrisma(), version.id),
+      getPrisma().strategyPaidTrack.findUnique({
+        where: { strategyVersionId: version.id },
+        select: { budgetAmount: true },
+      }),
+    ]);
+    const raw = track?.budgetAmount != null ? Number(track.budgetAmount) : null;
+    const budget = raw != null && Number.isFinite(raw) ? raw : null;
+    return evaluatePaidPlanForSubmit({
+      paidEnabled: true,
+      budgetAmount: budget,
+      plan: plan.paid,
+    }).blockingReasons;
   }
 
   private async writeOutbox(
@@ -1200,13 +1222,15 @@ export class StrategyService {
       unknownsAcknowledged: input.unknowns_acknowledged ?? version.unknownsAcknowledged,
       forAction: 'submit',
     });
-    if (!eligibility.eligible) {
+    const paidBlocking = await this.paidPlanSubmitBlockingReasons(version);
+    const submitBlocking = [...eligibility.blockingReasons, ...paidBlocking];
+    if (!eligibility.eligible || paidBlocking.length > 0) {
       throw new DomainError(
         'APPROVAL_INELIGIBLE',
         'Submit blocked',
         422,
         'errors.approval_ineligible',
-        eligibility.blockingReasons.map((r) => ({ code: r })),
+        submitBlocking.map((r) => ({ code: r })),
       );
     }
 
@@ -1312,13 +1336,15 @@ export class StrategyService {
       unknownsAcknowledged: true,
       forAction: 'approve',
     });
-    if (!eligibility.eligible) {
+    const paidBlocking = await this.paidPlanSubmitBlockingReasons(version);
+    const approveBlocking = [...eligibility.blockingReasons, ...paidBlocking];
+    if (!eligibility.eligible || paidBlocking.length > 0) {
       throw new DomainError(
         'APPROVAL_INELIGIBLE',
         'Approve blocked',
         422,
         'errors.approval_ineligible',
-        eligibility.blockingReasons.map((r) => ({ code: r })),
+        approveBlocking.map((r) => ({ code: r })),
       );
     }
 

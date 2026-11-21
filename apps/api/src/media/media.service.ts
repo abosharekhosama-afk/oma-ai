@@ -634,6 +634,9 @@ export class MediaService {
         },
         assets: rows.slice(0, take).map(mapAsset),
         next_cursor: rows.length > take ? rows[take - 1]!.id : null,
+        storage_used_bytes: storage.data.used_bytes,
+        storage_limit_bytes: storage.data.limit_bytes,
+        storage_mode: storage.data.mode,
       },
     };
   }
@@ -996,7 +999,14 @@ export class MediaService {
   async browse(
     tenantId: string,
     brandId: string,
-    q: { folder_id?: string; kind?: string; scope?: string; source?: string },
+    q: {
+      folder_id?: string;
+      kind?: string;
+      scope?: string;
+      source?: string;
+      file_limit?: string;
+      file_offset?: string;
+    },
   ) {
     const brand = await this.brand(tenantId, brandId);
     const kind = q.kind ? parseKind(q.kind) : 'posts';
@@ -1081,6 +1091,14 @@ export class MediaService {
         }
       }
       const decorated = await this.decorateBrowseFiles(tenantId, brandId, files, c.source);
+      const fileLimit = q.file_limit ? Math.min(Math.max(Number(q.file_limit) || 0, 1), 120) : null;
+      const fileOffset = Math.max(Number(q.file_offset) || 0, 0);
+      const decoratedFiles = decorated.files;
+      const pagedFiles =
+        fileLimit != null
+          ? decoratedFiles.slice(fileOffset, fileOffset + fileLimit)
+          : decoratedFiles;
+      const filesTotal = decoratedFiles.length;
       return {
         data: {
           folder: {
@@ -1092,7 +1110,11 @@ export class MediaService {
           brand_folder: { id: brandFolderId, name: brand.name },
           path: allScope ? [{ id: '__all__', name: 'All files' }] : path,
           folders: allScope ? [] : f.folders,
-          files: decorated.files,
+          files: pagedFiles,
+          files_total: filesTotal,
+          files_has_more: fileLimit != null ? fileOffset + pagedFiles.length < filesTotal : false,
+          file_offset: fileOffset,
+          file_limit: fileLimit,
           filter_facets: decorated.filter_facets,
           source: c.source,
           available_sources: {
@@ -1100,6 +1122,8 @@ export class MediaService {
             workdrive: storage.data.byos_connected,
           },
           mode: storage.data.mode,
+          storage_used_bytes: c.source === 'oma' ? storage.data.used_bytes : null,
+          storage_limit_bytes: c.source === 'oma' ? storage.data.limit_bytes : null,
         },
       };
     } catch (e) {

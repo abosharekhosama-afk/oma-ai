@@ -52,6 +52,8 @@ export class DiscoveryService {
         fetch_status: p.fetchStatus,
         http_status: p.httpStatus,
         locale_hint: p.localeHint,
+        failure_reason: p.failureReason,
+        content_type: p.contentType,
       })),
       page: { next_cursor: hasMore ? (data[data.length - 1]?.id ?? null) : null, limit },
     };

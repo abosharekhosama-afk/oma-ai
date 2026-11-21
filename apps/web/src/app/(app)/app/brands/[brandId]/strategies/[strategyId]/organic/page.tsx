@@ -16,7 +16,6 @@ import {
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
-import { TrackTabs } from '../../../../../../../../components/strategy/track-tabs';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useLocale, useT } from '../../../../../../../../lib/use-locale';
@@ -118,7 +117,6 @@ export default function StrategyOrganicPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <TrackTabs brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.organic.title')} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant
@@ -180,6 +178,7 @@ export default function StrategyOrganicPage() {
                   brandId={brandId}
                   value={trackListTextToPickerValue(channels)}
                   multiple
+                  variant="dropdown"
                   locale={locale}
                   testId="organic-channels"
                   onChange={(v) => setChannels(pickerValueToTrackListText(v))}

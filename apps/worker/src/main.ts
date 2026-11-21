@@ -13,6 +13,7 @@ import { startMediaJobs } from './media/media-jobs';
 import { startInboxProcessor } from './processors/inbox.processor';
 import { startListeningProcessor, tickListeningRules } from './processors/listening.processor';
 import { startCatalogProcessor } from './processors/catalog.processor';
+import { startWorkerHeartbeat } from './platform/worker-heartbeat';
 import { Queue } from 'bullmq';
 
 const log = createLogger('worker');
@@ -37,6 +38,8 @@ async function main() {
   const connection = new IORedis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379', {
     maxRetriesPerRequest: null,
   });
+  startWorkerHeartbeat(connection);
+  const outboxTickMs = Number(process.env.WORKER_OUTBOX_TICK_MS ?? '1500');
   startMailProcessor(connection);
   startSocialProcessor(connection);
   startIngestionProcessor(connection);
@@ -45,13 +48,16 @@ async function main() {
   startInboxProcessor(connection);
   startListeningProcessor(connection);
   startCatalogProcessor(connection);
-  setInterval(() => {
-    void publishPendingOutbox(connection).catch((err) => {
-      // Database outages are transient in managed environments. Do not let an
-      // unhandled rejection terminate the worker; the next tick retries.
-      log.error({ err: String(err) }, 'outbox tick failed; will retry');
-    });
-  }, 1500);
+  setInterval(
+    () => {
+      void publishPendingOutbox(connection).catch((err) => {
+        // Database outages are transient in managed environments. Do not let an
+        // unhandled rejection terminate the worker; the next tick retries.
+        log.error({ err: String(err) }, 'outbox tick failed; will retry');
+      });
+    },
+    Number.isFinite(outboxTickMs) && outboxTickMs >= 500 ? outboxTickMs : 1500,
+  );
   // Real social publishing + token refresh (no-op until SOCIAL_TOKEN_ENCRYPTION_KEY is set).
   startSocialJobs(log, connection);
   startMediaJobs(log);

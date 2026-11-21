@@ -20,6 +20,7 @@ import type {
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { BrandBackLink } from '../../../../../../../components/brand/brand-section-nav';
 import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
 import { ProfileSections } from '../../../../../../../components/brand/profile-sections';
@@ -103,6 +104,15 @@ export default function ProfileEditorPage() {
       ...i,
       text_value: pendingEdits[i.id] ?? i.text_value,
     })) ?? [];
+
+  const canQueueAnalysis =
+    editable &&
+    Boolean(profile?.scan_attempt_id) &&
+    profile?.analysis_status !== 'QUEUED' &&
+    profile?.analysis_status !== 'ANALYZING' &&
+    profile?.analysis_status !== 'ANALYZED';
+  const showAnalysisInStatusRail =
+    platformAiAvailability === 'AVAILABLE' && canQueueAnalysis && Boolean(profile?.scan_attempt_id);
 
   async function saveEdits() {
     if (!profile) return;
@@ -271,6 +281,7 @@ export default function ProfileEditorPage() {
         />
       }
     >
+      <BrandBackLink href={`/app/brands/${brandId}/profiles`} label={t('brand.nav.profiles')} />
       <BrandPlxPageHead
         title={t('brand.profile.title')}
         actions={
@@ -283,11 +294,30 @@ export default function ProfileEditorPage() {
         }
       />
 
-      {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
-      {linkedScan ? <ScanCatalogHonestyBanner scan={linkedScan} /> : null}
+      <div className="oma-plx-brand-status-rail oma-plx-brand-status-rail--compact">
+        {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
+        {linkedScan ? (
+          <details className="oma-plx-brand-status-details">
+            <summary>{t('brand.scan.partialTitle')}</summary>
+            <ScanCatalogHonestyBanner scan={linkedScan} />
+          </details>
+        ) : null}
+        <AiUnavailableBanner
+          aiAvailability={profile.ai_availability}
+          analysisStatus={profile.analysis_status}
+          analysisErrorCode={linkedScan?.analysis_error_code}
+          platformAvailability={platformAiAvailability}
+          canRequestAnalysis={canQueueAnalysis && Boolean(profile.scan_attempt_id)}
+          onRequestAnalysis={profile.scan_attempt_id ? () => void handleAnalyze() : undefined}
+          requestBusy={busy}
+        />
+      </div>
 
       {editable && profile.scan_attempt_id ? (
-        <div className="oma-panel" data-testid="profile-discovery-link">
+        <div
+          className="oma-plx-listening-panel oma-plx-brand-inline-link"
+          data-testid="profile-discovery-link"
+        >
           <p className="oma-muted">{t('brand.discovery.profileCatalogHint')}</p>
           <Link href={`/app/brands/${brandId}/discovery/products`} className="oma-text-link">
             {t('brand.discovery.productsTitle')}
@@ -301,22 +331,6 @@ export default function ProfileEditorPage() {
         insights={profile.insights}
         editable={editable}
         onAccepted={() => void loadProfile()}
-      />
-
-      <AiUnavailableBanner
-        aiAvailability={profile.ai_availability}
-        analysisStatus={profile.analysis_status}
-        analysisErrorCode={linkedScan?.analysis_error_code}
-        platformAvailability={platformAiAvailability}
-        canRequestAnalysis={
-          editable &&
-          Boolean(profile.scan_attempt_id) &&
-          profile.analysis_status !== 'QUEUED' &&
-          profile.analysis_status !== 'ANALYZING' &&
-          profile.analysis_status !== 'ANALYZED'
-        }
-        onRequestAnalysis={profile.scan_attempt_id ? () => void handleAnalyze() : undefined}
-        requestBusy={busy}
       />
 
       {profile.status === 'APPROVED' || profile.status === 'SUPERSEDED' ? (
@@ -355,7 +369,10 @@ export default function ProfileEditorPage() {
         onViewEvidence={setEvidenceId}
       />
 
-      {editable && profile.scan_attempt_id && profile.status !== 'APPROVED' ? (
+      {editable &&
+      profile.scan_attempt_id &&
+      profile.status !== 'APPROVED' &&
+      !showAnalysisInStatusRail ? (
         <div className="oma-form-actions">
           <Button
             type="default"

@@ -10,27 +10,21 @@ import { api } from '../../../../../../lib/api';
 import type { BrandDetail, Paginated } from '../../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
+import {
+  ProfileVersionCard,
+  type ProfileVersionCardModel,
+} from '../../../../../../components/brand/profile-version-card';
 import { BrandPlxPageHead } from '../../../../../../components/brand/brand-plx-section';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../components/shell/select-company';
-import { useLocale, useT } from '../../../../../../lib/use-locale';
-
-type ProfileVersionSummary = {
-  id: string;
-  status: string;
-  created_at: string;
-  approved_at: string | null;
-  scan_attempt_id: string | null;
-  ai_availability: string;
-};
+import { useT } from '../../../../../../lib/use-locale';
 
 export default function BrandProfileVersionsPage() {
   const t = useT();
-  const locale = useLocale();
   const params = useParams<{ brandId: string }>();
   const brandId = params.brandId;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
-  const [versions, setVersions] = useState<ProfileVersionSummary[]>([]);
+  const [versions, setVersions] = useState<ProfileVersionCardModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -41,7 +35,7 @@ export default function BrandProfileVersionsPage() {
       try {
         const [brandRes, versionsRes] = await Promise.all([
           api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`),
-          api<Paginated<ProfileVersionSummary>>(`/api/v1/brands/${brandId}/profiles`),
+          api<Paginated<ProfileVersionCardModel>>(`/api/v1/brands/${brandId}/profiles`),
         ]);
         setBrand(brandRes.data);
         setVersions(versionsRes.data);
@@ -79,41 +73,22 @@ export default function BrandProfileVersionsPage() {
           <p style={{ color: 'var(--status-danger)' }}>{error}</p>
         </div>
       ) : versions.length === 0 ? (
-        <div className="oma-card" role="status">
+        <div className="oma-plx-listening-panel oma-brand-empty" role="status">
           <p>{t('brand.versions.empty')}</p>
           <OmaLinkButton href={`/app/brands/${brandId}/scans/new`} type="primary">
             {t('brand.scan.start')}
           </OmaLinkButton>
         </div>
       ) : (
-        <ul className="oma-plx-brand-data-grid" data-testid="profile-version-cards">
+        <ul className="oma-profile-version-grid" data-testid="profile-version-cards">
           {versions.map((version) => (
-            <li key={version.id} className="oma-plx-listening-card oma-plx-brand-catalog-card">
-              <div>
-                <strong>
-                  <Link href={`/app/brands/${brandId}/profiles/${version.id}`}>
-                    {t('brand.profile.title')}
-                  </Link>
-                </strong>
-                <span className="oma-badge">{version.status}</span>
-                {version.id === approvedId ? (
-                  <span className="oma-badge oma-badge-muted">{t('brand.versions.current')}</span>
-                ) : null}
-                {version.ai_availability !== 'AVAILABLE' ? (
-                  <span className="oma-badge oma-badge-muted">
-                    {t('brand.versions.aiUnavailable')}
-                  </span>
-                ) : null}
-              </div>
-              <p className="oma-muted" style={{ fontSize: 14, margin: '0.25rem 0' }}>
-                {t('brand.versions.created')}: {new Date(version.created_at).toLocaleString(locale)}
-                {version.approved_at
-                  ? ` · ${t('brand.versions.approved')}: ${new Date(
-                      version.approved_at,
-                    ).toLocaleString(locale)}`
-                  : ''}
-              </p>
-            </li>
+            <ProfileVersionCard
+              key={version.id}
+              brandId={brandId}
+              version={version}
+              isApprovedCurrent={version.id === approvedId}
+              approvedProfileId={approvedId}
+            />
           ))}
         </ul>
       )}

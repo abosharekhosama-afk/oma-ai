@@ -27,25 +27,35 @@ When the connector is `disabled`, the URL can still be saved so a profile can ex
 - Identifies itself with `BRAND_SCANNER_USER_AGENT`, sends `Accept-Language`, and accepts gzip/br.
 - Limits per-host concurrency and adds a polite delay. `429` / `503` responses honor `Retry-After` with bounded retries.
 - Fetches and parses `robots.txt` (user-agent groups, `Allow` / `Disallow` with `*` and `$`, longest-match with Allow winning ties, `Crawl-delay`, `Sitemap`). A missing file (404) allows crawling; a 5xx response is treated conservatively as disallow (RFC 9309).
-- Seeds additional URLs from sitemap indexes and common locations (`/sitemap.xml`, `/wp-sitemap.xml`, …), plus default marketing paths (`/products`, `/services`, `/shop`, …) and optional `BRAND_SCANNER_PATH_SEEDS`.
+- Seeds additional URLs from sitemap indexes and common locations (`/sitemap.xml`, `/wp-sitemap.xml`, …). Generic marketing paths (`/products`, `/shop`, …) are probed **only when the sitemap yields fewer than `BRAND_SCANNER_MARKETING_SEEDS_MIN_SITEMAP_URLS` (default 1)** and the homepage bootstrap did not already populate the queue. Seeds are enqueued **after** the start URL and sitemap URLs (not ahead of them). When no sitemap URLs were found, the worker prefetches the homepage once to enqueue in-scope nav links before optional seeds. Missing seeds (HTTP 404/410) are recorded as `SKIPPED_LIMIT` + `MARKETING_SEED_MISS` and do not inflate `pages_failed` (including percent-encoded Arabic seed paths). Exhausted `429` responses are `HTTP_429_RATE_LIMIT` (skipped, not failed). Disable seeds entirely with `BRAND_SCANNER_MARKETING_SEEDS=off` or custom `BRAND_SCANNER_PATH_SEEDS`. Duplicate canonical pages are deduplicated (`/` vs `/en`).
 - Prioritizes catalog-like paths in the crawl queue when link budget is tight.
 - Canonicalizes URLs (fragments and tracking parameters such as `utm_*` are stripped) and respects `link rel=canonical` plus `meta robots` `nofollow` when discovering links.
 - Extracts title, description, JSON-LD, **products/services** (see below), organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
 - After the crawl, aggregates discovered products/services into scan-level `catalog.products` / `catalog.services` observations for profile draft and AI analysis.
 
-### JavaScript rendering (optional)
+### Scan engine (default: scrape-first)
 
-By default the crawler parses the initial HTML first and automatically renders SPA/catalog pages when
-the static result is empty or missing product media (`BRAND_SCANNER_JS_RENDER_MODE=auto`).
+Production scans default to **`BRAND_SCAN_ENGINE=scrape-first`**: full HTTP crawl, robots/sitemaps, platform catalog APIs, DOM + JSON-LD extraction, and **embedded hydration JSON** (`__NEXT_DATA__`, `application/json` scripts). **No Chromium** is launched on the worker. Scan coverage records `scan_engine: "SCRAPE"` and `js_render_mode: "off"`.
+
+To restore the previous Playwright path (heavier; needs Chromium on the worker), set `BRAND_SCAN_ENGINE=legacy-js-auto` and tune `BRAND_SCANNER_JS_RENDER_MODE`.
+
+### JavaScript rendering (legacy, optional)
+
+Only used when `BRAND_SCAN_ENGINE=legacy-js-auto`. With `scrape-first`, `BRAND_SCANNER_JS_RENDER_MODE` is ignored.
 
 When the worker has `playwright-core` and Chromium available, set:
 
-| Variable                                 | Default | Purpose                                                                                                                               |
-| ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `BRAND_SCANNER_JS_RENDER_MODE`           | `auto`  | `off` \| `auto` \| `always` — `auto` re-fetches with headless Chromium when the page looks like an SPA shell or has weak catalog data |
-| `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000` | Per-page render timeout                                                                                                               |
-| `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`  | Block fonts and non-image media during render to save RAM                                                                             |
-| `BRAND_SCANNER_JS_BLOCK_IMAGES`          | `false` | Optional low-memory mode; blocks images too, but can prevent lazy-loaded product galleries from being discovered                      |
+| Variable                                 | Default        | Purpose                                                                                                          |
+| ---------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `BRAND_SCAN_ENGINE`                      | `scrape-first` | `scrape-first` \| `legacy-js-auto` — scrape-first disables Playwright                                            |
+| `BRAND_SCANNER_JS_RENDER_MODE`           | `off`          | `off` \| `auto` \| `always` — only when `legacy-js-auto`                                                         |
+| `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000`        | Per-page render timeout                                                                                          |
+| `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`         | Block fonts and non-image media during render to save RAM                                                        |
+| `BRAND_SCANNER_JS_BLOCK_IMAGES`          | `false`        | Optional low-memory mode; blocks images too, but can prevent lazy-loaded product galleries from being discovered |
+| `BRAND_SCANNER_JS_RENDER_MAX_PAGES`      | `20`           | In `auto`, max Playwright renders per scan (`unlimited` or `0` = no cap). Static crawl continues for all pages.  |
+| `BRAND_SCANNER_JS_NETWORK_IDLE_MS`       | `6000`         | Wait for `networkidle` (ms); set `0` to skip and rely on settle only (faster, thinner SPAs).                     |
+| `BRAND_SCANNER_JS_SETTLE_MS`             | `1500`         | Extra delay after load before snapshot HTML (set `0` to skip).                                                   |
+| `BRAND_SCANNER_JS_WAIT_SELECTOR`         | (none)         | Optional CSS selector to wait for (e.g. product grid) before capture.                                            |
 
 `auto` keeps static fetch first; Playwright runs only when heuristics say JS is likely required. Images
 remain enabled during rendered scans so lazy loaders can populate product galleries. In `always` mode,
@@ -70,7 +80,21 @@ Without a binary, coverage reports `js_render_errors: ["PLAYWRIGHT_LAUNCH_FAILED
 
 After installing Chromium, **start a new scan** — previous scan rows are immutable.
 
+### Cancelling scans
+
+UI cancel sets `ScanAttempt` + `JobRun` to `CANCELLED`, removes **queued** BullMQ ingestion/analysis jobs when `REDIS_URL` is available, and the worker **polls abort every ~400ms** during sitemap/crawl/JS render. Playwright is shut down after each ingestion job to reduce memory on small workers.
+
 Scan coverage also reports `pages_js_render_attempted`, `pages_js_render_failed`, and up to five distinct `js_render_errors` codes for operations debugging.
+
+## Full catalog coverage (400+ products)
+
+A scan is **not** “every HTML page on the domain.” Products arrive from:
+
+1. **Platform catalog API** (best for large stores) — one iGroup/Shopify/Woo call can return hundreds of SKUs when bundle config is detected.
+2. **Sitemap + product-detail crawls** — each product page consumes one unit of `max_pages` (default env **120**, hard cap `BRAND_SCAN_MAX_PAGES_CAP` default **250**).
+3. **Post-scan reconciliation** — `POST …/catalog/reimport-media` re-syncs products from the platform API against an existing scan.
+
+If you see ~30 products on a 400-SKU site, typical causes are: `max_pages` too low, iGroup API config not loaded from JS bundles, or rate limits (429). On Render Worker set e.g. `BRAND_MAX_PAGES=200`, `BRAND_SCAN_MAX_PAGES_CAP=400`, `BRAND_MAX_DURATION_SECONDS=1200`, `BRAND_SCANNER_DELAY_MS=1000`, ensure `BRAND_PLATFORM_ADAPTERS=1`, then re-scan.
 
 ## Product catalog extraction
 
@@ -133,7 +157,8 @@ Running it twice yields the same rows and links. Media import needs a connected 
 | ----------------------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
 | `BRAND_WEBSITE_CONNECTOR`           | unset (`live`, unless fixture flag is on) | Adapter selection                                                |
 | `BRAND_FIXTURE_CONNECTOR`           | unset                                     | `1` enables fixtures outside production                          |
-| `BRAND_MAX_PAGES`                   | `50`                                      | Maximum HTML pages per scan                                      |
+| `BRAND_MAX_PAGES`                   | `50` (example **120**)                    | Target HTML pages per scan (clamped by cap below)                |
+| `BRAND_SCAN_MAX_PAGES_CAP`          | `250`                                     | Hard max pages API/worker accept per scan                        |
 | `BRAND_MAX_DEPTH`                   | `3`                                       | Maximum link depth                                               |
 | `BRAND_MAX_DURATION_SECONDS`        | `600`                                     | Scan wall-clock limit                                            |
 | `BRAND_MAX_BYTES`                   | `1000000`                                 | Maximum response body size                                       |

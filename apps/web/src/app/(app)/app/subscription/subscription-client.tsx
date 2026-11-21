@@ -14,6 +14,7 @@ import {
   type CheckoutDto,
   type SubscriptionView,
 } from '../../../../lib/billing-api';
+import { formatBytes, workDriveApi, type WorkspaceStorage } from '../../../../lib/workdrive-api';
 import '../billing/billing.css';
 
 const BAR_LABELS: Record<string, { en: string; ar: string }> = {
@@ -25,7 +26,7 @@ const BAR_LABELS: Record<string, { en: string; ar: string }> = {
   scheduled_posts_per_month: { en: 'Scheduled posts', ar: 'منشورات مجدولة' },
   posts_per_month: { en: 'Scheduled posts', ar: 'منشورات مجدولة' },
   ai_credits_per_month: { en: 'AI credits', ar: 'رصيد الذكاء' },
-  storage_bytes: { en: 'Work Drive storage', ar: 'تخزين مساحة العمل' },
+  storage_bytes: { en: 'OMA storage', ar: 'تخزين OMA' },
   approval_level: { en: 'Approval level', ar: 'مستوى الموافقات' },
   listening_keywords: { en: 'Listening keywords', ar: 'كلمات الاستماع' },
   mentions_per_month: { en: 'Mentions', ar: 'الإشارات' },
@@ -52,12 +53,15 @@ export default function SubscriptionClient() {
   const [sub, setSub] = useState<SubscriptionView | null>(null);
   const [checkouts, setCheckouts] = useState<CheckoutDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wsStorage, setWsStorage] = useState<WorkspaceStorage | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const s = await getSubscription();
       setSub(s.data);
+      const st = await workDriveApi.storage().catch(() => null);
+      setWsStorage(st?.data ?? null);
       const check = await listCheckouts().catch(() => ({ data: [] as CheckoutDto[] }));
       setCheckouts(check.data ?? []);
     } catch {
@@ -222,29 +226,52 @@ export default function SubscriptionClient() {
           <section className="oma-sub__bars" aria-label={copy.title}>
             {bars.map((bar) => {
               const label = isAr ? BAR_LABELS[bar.key]?.ar : BAR_LABELS[bar.key]?.en;
-              const over = !bar.unlimited && bar.limit != null && bar.used >= bar.limit;
+              let used = bar.used;
+              let limit = bar.limit;
+              let pct = bar.pct;
+              let unlimited = bar.unlimited;
+              if (bar.key === 'storage_bytes' && wsStorage && wsStorage.mode !== 'USER_WORKDRIVE') {
+                used = wsStorage.used_bytes;
+                if (wsStorage.limit_bytes != null) limit = wsStorage.limit_bytes;
+                unlimited = limit == null;
+                pct =
+                  limit == null || limit === 0
+                    ? limit === 0 && used > 0
+                      ? 100
+                      : 0
+                    : Math.min(100, Math.round((used / limit) * 100));
+              }
+              const over = !unlimited && limit != null && used >= limit;
               return (
                 <div key={bar.key} className={`oma-sub__bar${over ? ' is-over' : ''}`}>
                   <div className="oma-sub__bar-head">
                     <span>{label ?? bar.key}</span>
-                    <span>{formatUsed(bar.key, bar.used, bar.limit, isAr)}</span>
+                    <span>{formatUsed(bar.key, used, limit, isAr)}</span>
                   </div>
                   <div
                     className="oma-sub__track"
                     role="progressbar"
-                    aria-valuenow={bar.pct}
+                    aria-valuenow={pct}
                     aria-valuemin={0}
                     aria-valuemax={100}
                   >
                     <div
                       className="oma-sub__fill"
-                      style={{ width: `${bar.unlimited ? Math.min(bar.pct || 4, 100) : bar.pct}%` }}
+                      style={{ width: `${unlimited ? Math.min(pct || 4, 100) : pct}%` }}
                     />
                   </div>
                 </div>
               );
             })}
           </section>
+
+          {wsStorage?.mode === 'USER_WORKDRIVE' ? (
+            <p className="oma-billing__desc" data-testid="subscription-live-storage">
+              {isAr
+                ? 'الملفات الكبيرة تُحسب على WorkDrive الخاص بك؛ شريط تخزين OMA أعلاه يعرض الملفات المخزّنة داخلياً فقط.'
+                : 'Large files use your WorkDrive; the OMA storage bar above counts internally stored bytes only.'}
+            </p>
+          ) : null}
 
           {canAdmin ? (
             <p className="oma-sub__admin">

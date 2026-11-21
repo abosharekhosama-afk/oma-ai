@@ -1,12 +1,12 @@
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
-  extractFromHtml,
+  extractPageContent,
   isInCrawlScope,
   maxProductMediaFromEnv,
   productMediaUrlCount,
   productNameKey,
   productUrlKey,
-  resolveJsRenderMode,
+  resolveEffectiveJsRenderMode,
   shouldAdoptRenderedExtraction,
   shouldUseJsRender,
   ProductCatalogAccumulator,
@@ -43,8 +43,8 @@ async function extractPage(
 ): Promise<ExtractedProduct[] | null> {
   const fetched = await connector.fetchPublic({ url, accept: 'html' });
   if (fetched.status < 200 || fetched.status >= 400 || !fetched.body) return null;
-  let extracted = extractFromHtml(fetched.finalUrl, fetched.body);
-  const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
+  let extracted = extractPageContent(fetched.finalUrl, fetched.body);
+  const jsRenderMode = resolveEffectiveJsRenderMode(process.env);
   if (
     shouldUseJsRender({
       mode: jsRenderMode,
@@ -56,7 +56,7 @@ async function extractPage(
   ) {
     try {
       const renderedHtml = await fetchRenderedPageHtml(fetched.finalUrl);
-      const rendered = extractFromHtml(fetched.finalUrl, renderedHtml);
+      const rendered = extractPageContent(fetched.finalUrl, renderedHtml);
       if (
         shouldAdoptRenderedExtraction(
           jsRenderMode,

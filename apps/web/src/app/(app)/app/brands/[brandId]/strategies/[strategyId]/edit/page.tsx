@@ -4,7 +4,7 @@ import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 import { Button, TextArea } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../lib/brand-types';
 import type { StrategyVersionDetail } from '../../../../../../../../lib/strategy-types';
@@ -21,11 +21,15 @@ import { SelectCompany } from '../../../../../../../../components/shell/select-c
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
+import { StrategyTrackEnablement } from '../../../../../../../../components/strategy/strategy-track-enablement';
 import {
   readFoundationText,
   textToFoundationGoals,
 } from '../../../../../../../../lib/strategy-foundation-format';
-
+import {
+  StrategyCreationJourney,
+  newStrategyJourneySteps,
+} from '../../../../../../../../components/strategy/strategy-creation-journey';
 export default function StrategyFoundationPage() {
   const t = useT();
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -65,6 +69,16 @@ export default function StrategyFoundationPage() {
     void load();
   }, [load]);
 
+  const journeySteps = useMemo(
+    () =>
+      newStrategyJourneySteps(brandId, strategyId, t).map((step) => {
+        if (step.id === 'create') return { ...step, state: 'done' as const };
+        if (step.id === 'foundation') return { ...step, state: 'current' as const };
+        return step;
+      }),
+    [brandId, strategyId, t],
+  );
+
   async function onSave(e: FormEvent) {
     e.preventDefault();
     if (!version) return;
@@ -103,6 +117,7 @@ export default function StrategyFoundationPage() {
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.foundation.title')} />
+      <StrategyCreationJourney brandId={brandId} steps={journeySteps} collapsible />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant
           brandId={brandId}
@@ -125,6 +140,15 @@ export default function StrategyFoundationPage() {
         versionEditable={editable}
         onLinked={() => void load()}
       />
+      {editable ? (
+        <StrategyTrackEnablement
+          brandId={brandId}
+          strategyId={strategyId}
+          version={version}
+          editable={editable}
+          onUpdated={(next) => setVersion(next)}
+        />
+      ) : null}
       {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
       <div className="oma-doc-canvas oma-editor-shell" data-testid="strategy-document-canvas">
         <nav className="oma-doc-outline" aria-label={t('strategy.foundation.title')}>

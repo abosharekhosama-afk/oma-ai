@@ -134,6 +134,9 @@ export class ProfileService {
       }),
       orderBy: { createdAt: 'desc' },
       take: limit + 1,
+      include: {
+        scanAttempt: { select: { id: true, status: true, finishedAt: true } },
+      },
     });
     const hasMore = rows.length > limit;
     const data = hasMore ? rows.slice(0, limit) : rows;
@@ -145,6 +148,9 @@ export class ProfileService {
         approved_at: v.approvedAt?.toISOString() ?? null,
         scan_attempt_id: v.scanAttemptId,
         ai_availability: v.aiAvailability,
+        analysis_status: v.analysisStatus,
+        scan_status: v.scanAttempt?.status ?? null,
+        scan_finished_at: v.scanAttempt?.finishedAt?.toISOString() ?? null,
       })),
       page: { next_cursor: hasMore ? (data[data.length - 1]?.id ?? null) : null, limit },
     };

@@ -10,9 +10,9 @@ export type AnalysisJobPayload = {
   idempotency_key?: string | null;
 };
 
-export function bullAnalysisJobId(jobRunId: string): string {
-  return `analysis-${jobRunId}`;
-}
+import { bullAnalysisJobId as bullAnalysisJobIdFromDomain } from '@oma/domain';
+
+export const bullAnalysisJobId = bullAnalysisJobIdFromDomain;
 
 export function buildAnalysisJobData(input: {
   jobRunId: string;

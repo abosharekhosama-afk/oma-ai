@@ -25,6 +25,8 @@
 @import '../styles/mobile-precise-nov03.css';
 @import '../styles/mobile-density.css';
 @import '../styles/strategy-plan-briefs.css';
+@import '../styles/inbox-listening.css';
+@import '../styles/brand-intel.css';
 
 * {
   box-sizing: border-box;
@@ -2552,6 +2554,3 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     }
   }
 }
-
-@import '../styles/inbox-listening.css';
-@import '../styles/brand-intel.css';
