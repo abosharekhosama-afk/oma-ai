@@ -1091,9 +1091,7 @@ export class MediaService {
         }
       }
       const decorated = await this.decorateBrowseFiles(tenantId, brandId, files, c.source);
-      const fileLimit = q.file_limit
-        ? Math.min(Math.max(Number(q.file_limit) || 0, 1), 120)
-        : null;
+      const fileLimit = q.file_limit ? Math.min(Math.max(Number(q.file_limit) || 0, 1), 120) : null;
       const fileOffset = Math.max(Number(q.file_offset) || 0, 0);
       const decoratedFiles = decorated.files;
       const pagedFiles =
@@ -1114,8 +1112,7 @@ export class MediaService {
           folders: allScope ? [] : f.folders,
           files: pagedFiles,
           files_total: filesTotal,
-          files_has_more:
-            fileLimit != null ? fileOffset + pagedFiles.length < filesTotal : false,
+          files_has_more: fileLimit != null ? fileOffset + pagedFiles.length < filesTotal : false,
           file_offset: fileOffset,
           file_limit: fileLimit,
           filter_facets: decorated.filter_facets,
@@ -1125,10 +1122,8 @@ export class MediaService {
             workdrive: storage.data.byos_connected,
           },
           mode: storage.data.mode,
-          storage_used_bytes:
-            c.source === 'oma' ? storage.data.used_bytes : null,
-          storage_limit_bytes:
-            c.source === 'oma' ? storage.data.limit_bytes : null,
+          storage_used_bytes: c.source === 'oma' ? storage.data.used_bytes : null,
+          storage_limit_bytes: c.source === 'oma' ? storage.data.limit_bytes : null,
         },
       };
     } catch (e) {

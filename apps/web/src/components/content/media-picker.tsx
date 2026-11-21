@@ -111,13 +111,7 @@ function MediaShimmer({ rows = 4 }: { rows?: number }) {
   );
 }
 
-function LazyMediaThumb({
-  item,
-  t,
-}: {
-  item: GridItem;
-  t: Tr;
-}) {
+function LazyMediaThumb({ item, t }: { item: GridItem; t: Tr }) {
   const host = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -1195,9 +1189,7 @@ export function MediaPickerDialog({
                 );
               })}
             </div>
-            {visibleGridCount < items.length ||
-            browse?.files_has_more ||
-            lib?.next_cursor ? (
+            {visibleGridCount < items.length || browse?.files_has_more || lib?.next_cursor ? (
               <div
                 ref={gridSentinelRef}
                 className="oma-ml-grid-sentinel"
