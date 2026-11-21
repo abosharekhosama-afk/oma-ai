@@ -6,9 +6,9 @@ import { getPrisma } from '@oma/db';
 import { newId, type WebsiteConnectorPort } from '@oma/domain';
 import { reimportCatalogMediaForScan } from '../../apps/worker/src/brand/catalog-reimport';
 import {
-  createRedisConnection,
+  connectWebsite,
+  createBrand,
   FIXTURE_WEBSITE_URL,
-  fullScanJourney,
   seedBrandTenant,
 } from '../helpers/brand-test';
 
@@ -47,28 +47,53 @@ function storefrontConnector(): WebsiteConnectorPort {
 describe('catalog reimport reconciliation (integration)', () => {
   let app: INestApplication;
   let seed: Awaited<ReturnType<typeof seedBrandTenant>>;
-  let connection: ReturnType<typeof createRedisConnection>;
   const prevRender = process.env.BRAND_SCANNER_JS_RENDER_MODE;
 
   beforeAll(async () => {
     process.env.BRAND_SCANNER_JS_RENDER_MODE = 'off';
     seed = await seedBrandTenant();
     app = seed.app;
-    connection = createRedisConnection();
   });
   afterAll(async () => {
     process.env.BRAND_SCANNER_JS_RENDER_MODE = prevRender;
-    await connection.quit();
     await app.close();
   });
 
   it('removes fake products and mis-attributed scan media, keeps human media, is idempotent', async () => {
-    const { brandId, scanId } = await fullScanJourney(seed, connection, {
-      max_pages: 2,
-      pollTimeoutMs: 120_000,
-    });
     const prisma = getPrisma();
     const tenantId = seed.tenantId;
+    const { body: brandBody } = await createBrand(seed);
+    const brandId = brandBody.data.id as string;
+    await connectWebsite(seed, brandId, FIXTURE_WEBSITE_URL, brandBody.data.version as number);
+    const website = await prisma.websiteSource.findFirstOrThrow({
+      where: { tenantId, brandId },
+      select: { id: true },
+    });
+    const jobRunId = newId();
+    const scanId = newId();
+    await prisma.jobRun.create({
+      data: {
+        id: jobRunId,
+        tenantId,
+        queue: 'ingestion',
+        jobType: 'scan',
+        payloadJson: '{}',
+        actorUserId: seed.userId,
+        idempotencyKey: `catalog-reimport-${newId()}`,
+      },
+    });
+    await prisma.scanAttempt.create({
+      data: {
+        id: scanId,
+        tenantId,
+        brandId,
+        websiteSourceId: website.id,
+        jobRunId,
+        idempotencyKey: `scan-${newId()}`,
+        actorUserId: seed.userId,
+        status: 'SUCCEEDED',
+      },
+    });
 
     const page = async (url: string) =>
       (
@@ -200,5 +225,5 @@ describe('catalog reimport reconciliation (integration)', () => {
       rowsBefore,
     );
     expect(await prisma.catalogProductMedia.count({ where: { brandId } })).toBe(linksBefore);
-  }, 120_000);
+  });
 });
