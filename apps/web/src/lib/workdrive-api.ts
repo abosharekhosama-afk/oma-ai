@@ -158,7 +158,7 @@ export type WorkDriveBrowse = {
 };
 
 const browseCache = new Map<string, { at: number; data: WorkDriveBrowse }>();
-const BROWSE_TTL_MS = 20_000;
+const BROWSE_TTL_MS = 45_000;
 
 function browseKey(
   brandId: string,

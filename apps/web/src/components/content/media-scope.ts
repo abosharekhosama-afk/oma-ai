@@ -1,0 +1,1 @@
+export type MediaTreeScope = 'organization' | 'brand' | 'all';
