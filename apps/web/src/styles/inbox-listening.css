@@ -7838,6 +7838,39 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   position: sticky;
   top: 0;
 }
+.oma-ml--panel.oma-ml--expanded {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  width: min(920px, 100%);
+  max-width: 100%;
+  flex: 1 1 auto;
+  margin-inline-start: auto;
+  box-shadow: -16px 0 48px rgb(15 23 42 / 18%);
+}
+.oma-ml-quota {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  flex: 1 1 100%;
+}
+.oma-ml-thumb__placeholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-radius: 8px;
+}
+.oma-ml-thumb-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+.oma-ml-grid-sentinel {
+  height: 1px;
+  width: 100%;
+  margin-top: 8px;
+}
 .oma-ml-head {
   display: flex;
   align-items: center;

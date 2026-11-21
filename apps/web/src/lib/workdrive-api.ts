@@ -113,6 +113,9 @@ export type MediaLibrary = {
   };
   assets: MediaAsset[];
   next_cursor: string | null;
+  storage_used_bytes?: number;
+  storage_limit_bytes?: number | null;
+  storage_mode?: StorageMode;
 };
 export type WorkDriveBrowseFile = {
   id: string;
@@ -146,6 +149,12 @@ export type WorkDriveBrowse = {
   source?: 'oma' | 'workdrive';
   available_sources?: { oma: boolean; workdrive: boolean };
   mode?: StorageMode;
+  files_total?: number;
+  files_has_more?: boolean;
+  file_offset?: number;
+  file_limit?: number | null;
+  storage_used_bytes?: number | null;
+  storage_limit_bytes?: number | null;
 };
 
 const browseCache = new Map<string, { at: number; data: WorkDriveBrowse }>();
@@ -157,8 +166,9 @@ function browseKey(
   folderId: string | undefined,
   scope: string,
   source?: string,
+  page?: { offset?: number; limit?: number },
 ) {
-  return `${brandId}:${kind}:${scope}:${folderId ?? ''}:${source ?? ''}`;
+  return `${brandId}:${kind}:${scope}:${folderId ?? ''}:${source ?? ''}:${page?.offset ?? 0}:${page?.limit ?? ''}`;
 }
 
 export function invalidateMediaCache(brandId?: string) {
@@ -211,10 +221,17 @@ export const workDriveApi = {
 };
 
 export const mediaApi = {
-  list: (brandId: string, kind?: MediaKind, source?: 'oma' | 'workdrive') => {
+  list: (
+    brandId: string,
+    kind?: MediaKind,
+    source?: 'oma' | 'workdrive',
+    opts?: { limit?: number; cursor?: string | null },
+  ) => {
     const qs = new URLSearchParams();
     if (kind) qs.set('kind', kind);
     if (source) qs.set('source', source);
+    if (opts?.limit) qs.set('limit', String(opts.limit));
+    if (opts?.cursor) qs.set('cursor', opts.cursor);
     const q = qs.toString();
     return api<{ data: MediaLibrary }>(`/api/v1/brands/${brandId}/media${q ? `?${q}` : ''}`);
   },
@@ -224,13 +241,19 @@ export const mediaApi = {
     folderId?: string,
     scope: 'brand' | 'organization' | 'all' = 'brand',
     source?: 'oma' | 'workdrive',
+    opts?: { file_limit?: number; file_offset?: number; skipCache?: boolean },
   ) => {
-    const key = browseKey(brandId, kind, folderId, scope, source);
-    const hit = browseCache.get(key);
+    const key = browseKey(brandId, kind, folderId, scope, source, {
+      offset: opts?.file_offset,
+      limit: opts?.file_limit,
+    });
+    const hit = !opts?.skipCache ? browseCache.get(key) : undefined;
     if (hit && Date.now() - hit.at < BROWSE_TTL_MS) return Promise.resolve({ data: hit.data });
     const qs = new URLSearchParams({ kind, scope });
     if (folderId) qs.set('folder_id', folderId);
     if (source) qs.set('source', source);
+    if (opts?.file_limit) qs.set('file_limit', String(opts.file_limit));
+    if (opts?.file_offset) qs.set('file_offset', String(opts.file_offset));
     return api<{ data: WorkDriveBrowse }>(
       `/api/v1/brands/${brandId}/media/browse?${qs.toString()}`,
     ).then((r) => {
