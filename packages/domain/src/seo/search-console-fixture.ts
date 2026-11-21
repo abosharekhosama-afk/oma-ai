@@ -1,4 +1,8 @@
-import type { SearchAnalyticsRequest, SearchAnalyticsRow, SearchConsolePort } from './search-console.port';
+import type {
+  SearchAnalyticsRequest,
+  SearchAnalyticsRow,
+  SearchConsolePort,
+} from './search-console.port';
 
 /** Deterministic sample rows for dev/CI (labelled GSC_FIXTURE). */
 export const fixtureSearchConsolePort: SearchConsolePort = {

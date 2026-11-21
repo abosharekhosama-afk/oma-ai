@@ -1,5 +1,6 @@
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
+  buildSeoStrategyProposals,
   createKeywordResearchPort,
   createSearchConsolePort,
   decryptToken,
@@ -16,10 +17,12 @@ const STATE_TTL_MS = 15 * 60_000;
 const notFound = () => new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
 
 function gscRedirectUri(env = process.env) {
-  const base = (env.WEB_BASE_URL || env.SOCIAL_OAUTH_REDIRECT_BASE || env.API_PUBLIC_URL || '').replace(
-    /\/+$/,
-    '',
-  );
+  const base = (
+    env.WEB_BASE_URL ||
+    env.SOCIAL_OAUTH_REDIRECT_BASE ||
+    env.API_PUBLIC_URL ||
+    ''
+  ).replace(/\/+$/, '');
   return `${base}/api/v1/seo/gsc/callback`;
 }
 
@@ -211,24 +214,16 @@ export class SeoService {
         siteUrl,
         status: 'CONNECTED',
         accessTokenEnc: encryptToken(tokens.access_token, key),
-        refreshTokenEnc: tokens.refresh_token
-          ? encryptToken(tokens.refresh_token, key)
-          : null,
-        tokenExpiresAt: tokens.expires_in
-          ? new Date(Date.now() + tokens.expires_in * 1000)
-          : null,
+        refreshTokenEnc: tokens.refresh_token ? encryptToken(tokens.refresh_token, key) : null,
+        tokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null,
         connectedAt: new Date(),
       },
       update: {
         siteUrl,
         status: 'CONNECTED',
         accessTokenEnc: encryptToken(tokens.access_token, key),
-        refreshTokenEnc: tokens.refresh_token
-          ? encryptToken(tokens.refresh_token, key)
-          : undefined,
-        tokenExpiresAt: tokens.expires_in
-          ? new Date(Date.now() + tokens.expires_in * 1000)
-          : null,
+        refreshTokenEnc: tokens.refresh_token ? encryptToken(tokens.refresh_token, key) : undefined,
+        tokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null,
         connectedAt: new Date(),
         lastError: null,
       },
@@ -243,29 +238,29 @@ export class SeoService {
     const link = await prisma.brandSearchConsoleLink.findFirst({
       where: tenantWhere(tenantId, { brandId }),
     });
-  const mode = gscModeFromEnv();
-  if (mode === 'fixture' && !link) {
-    const website = await prisma.websiteSource.findFirst({
-      where: tenantWhere(tenantId, { brandId, validationStatus: 'VALID' }),
+    const mode = gscModeFromEnv();
+    if (mode === 'fixture' && !link) {
+      const website = await prisma.websiteSource.findFirst({
+        where: tenantWhere(tenantId, { brandId, validationStatus: 'VALID' }),
+      });
+      await this.connectFixtureGsc(
+        tenantId,
+        userId,
+        brandId,
+        website?.normalizedUrl ?? 'https://example-brand.test/',
+      );
+    }
+    const refreshed = await prisma.brandSearchConsoleLink.findFirst({
+      where: tenantWhere(tenantId, { brandId }),
     });
-    await this.connectFixtureGsc(
-      tenantId,
-      userId,
-      brandId,
-      website?.normalizedUrl ?? 'https://example-brand.test/',
-    );
-  }
-  const refreshed = await prisma.brandSearchConsoleLink.findFirst({
-    where: tenantWhere(tenantId, { brandId }),
-  });
-  if (!refreshed) {
-    throw new DomainError(
-      'PROVIDER_NOT_CONFIGURED',
-      'Search Console is not connected',
-      503,
-      'errors.provider_not_configured',
-    );
-  }
+    if (!refreshed) {
+      throw new DomainError(
+        'PROVIDER_NOT_CONFIGURED',
+        'Search Console is not connected',
+        503,
+        'errors.provider_not_configured',
+      );
+    }
 
     let accessToken: string | undefined;
     if (refreshed.accessTokenEnc) {
@@ -331,6 +326,75 @@ export class SeoService {
         measured: port.measured,
       },
     };
+  }
+
+  async strategyProposals(tenantId: string, brandId: string) {
+    await this.brand(tenantId, brandId);
+    const prisma = getPrisma();
+    const audit = await prisma.brandSeoAudit.findFirst({
+      where: tenantWhere(tenantId, { brandId }),
+      orderBy: { createdAt: 'desc' },
+      include: { findings: { take: 100, orderBy: { severity: 'asc' } } },
+    });
+    const link = await prisma.brandSearchConsoleLink.findFirst({
+      where: tenantWhere(tenantId, { brandId }),
+    });
+    const ranks = await prisma.keywordRankObservation.findMany({
+      where: tenantWhere(tenantId, { brandId }),
+      orderBy: { impressions: 'desc' },
+      take: 40,
+    });
+    const gscQueries = ranks.map((r) => ({
+      keyword: r.keyword,
+      locale: r.locale,
+      position: r.position,
+      impressions: r.impressions,
+      clicks: r.clicks,
+      page_url: r.pageUrl,
+      source: r.source,
+    }));
+
+    let researchMetrics:
+      | Array<{
+          keyword: string;
+          locale: string;
+          monthly_volume?: number | null;
+          difficulty?: number | null;
+          source: string;
+        }>
+      | undefined;
+    if (gscQueries.length > 0) {
+      const port = createKeywordResearchPort();
+      const top = gscQueries.slice(0, 12).map((q) => ({
+        keyword: q.keyword,
+        locale: q.locale ?? 'ar',
+      }));
+      const metrics = await port.keywordMetrics({ keywords: top, market: null });
+      researchMetrics = metrics.map((m) => ({
+        keyword: m.keyword,
+        locale: m.locale,
+        monthly_volume: m.monthly_volume,
+        difficulty: m.difficulty,
+        source: m.source,
+      }));
+    }
+
+    const pkg = buildSeoStrategyProposals({
+      scanAttemptId: audit?.scanAttemptId ?? null,
+      auditScore: audit?.score ?? null,
+      auditCreatedAt: audit?.createdAt.toISOString() ?? null,
+      gscLastSyncAt: link?.lastSyncAt?.toISOString() ?? null,
+      findings: (audit?.findings ?? []).map((f) => ({
+        page_url: f.pageUrl,
+        code: f.code,
+        severity: f.severity,
+        detail: f.detail,
+      })),
+      gscQueries,
+      researchMetrics,
+    });
+
+    return { data: pkg };
   }
 
   async analyticsSeo(tenantId: string, brandId: string, period = 30) {

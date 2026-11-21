@@ -6,7 +6,9 @@ import {
   canPatchVersionContent,
   newId,
   organicPlanInputSchema,
+  mergeSeoProposalsIntoOrganicPlan,
   organicPlanIssues,
+  pickSeoProposalsById,
   paidPlanInputSchema,
   paidPlanIssues,
   paidTargetingSchema,
@@ -24,6 +26,7 @@ import {
   type OrganicPlanInput,
   type PaidPlanInput,
   type PlanIssue,
+  type SeoStrategyProposalPackage,
 } from '@oma/domain';
 import { z } from 'zod';
 import { buildStrategyPlanPrompt } from '@oma/ai';
@@ -544,6 +547,43 @@ export class StrategyPlanService {
       rowVersion,
       ['organic'],
       (tx) => writeOrganicPlan(tx, { tenantId, brandId, versionId }, plan),
+      correlationId,
+    );
+  }
+
+  async mergeSeoIntoOrganic(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    strategyId: string,
+    versionId: string,
+    proposalPackage: SeoStrategyProposalPackage,
+    body: { row_version: number; proposal_ids: string[] },
+    correlationId?: string,
+  ) {
+    const ids = Array.isArray(body.proposal_ids) ? body.proposal_ids.filter(Boolean) : [];
+    if (ids.length === 0) {
+      throw invalid([
+        { path: 'proposal_ids', code: 'SCHEMA', message: 'Select at least one SEO proposal' },
+      ]);
+    }
+    await this.requireVersion(tenantId, brandId, strategyId, versionId);
+    const picked = pickSeoProposalsById(proposalPackage, ids);
+    if (picked.seo_keywords.length === 0 && picked.content_gaps.length === 0) {
+      throw new DomainError('NOT_FOUND', 'No matching SEO proposals', 404, 'errors.not_found');
+    }
+    const current = await readStrategyPlan(getPrisma(), versionId);
+    const merged = mergeSeoProposalsIntoOrganicPlan(current.organic, picked);
+    return this.putOrganic(
+      tenantId,
+      actorUserId,
+      brandId,
+      strategyId,
+      versionId,
+      {
+        row_version: body.row_version,
+        ...merged,
+      },
       correlationId,
     );
   }

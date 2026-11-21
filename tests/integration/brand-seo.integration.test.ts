@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
 import { authHeaders, createBrand, seedBrandTenant } from '../helpers/brand-test';
 
 describe('brand SEO visibility (integration)', () => {
@@ -45,10 +44,13 @@ describe('brand SEO visibility (integration)', () => {
       headers: authHeaders(seed),
       body: JSON.stringify({ site_url: 'https://seo-fixture.test/' }),
     });
-    const syncRes = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/seo/search-console/sync`, {
-      method: 'POST',
-      headers: authHeaders(seed),
-    });
+    const syncRes = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/seo/search-console/sync`,
+      {
+        method: 'POST',
+        headers: authHeaders(seed),
+      },
+    );
     expect(syncRes.status).toBe(200);
 
     const analyticsRes = await fetch(
@@ -59,9 +61,12 @@ describe('brand SEO visibility (integration)', () => {
     const analytics = await analyticsRes.json();
     expect(analytics.data.search_queries.length).toBeGreaterThan(0);
 
-    const globalRes = await fetch(`${seed.baseUrl}/api/v1/analytics/seo?brandId=${brandId}&period=30`, {
-      headers: authHeaders(seed),
-    });
+    const globalRes = await fetch(
+      `${seed.baseUrl}/api/v1/analytics/seo?brandId=${brandId}&period=30`,
+      {
+        headers: authHeaders(seed),
+      },
+    );
     expect(globalRes.status).toBe(200);
 
     const prisma = getPrisma();

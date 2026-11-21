@@ -1,4 +1,8 @@
-import type { SearchAnalyticsRequest, SearchAnalyticsRow, SearchConsolePort } from './search-console.port';
+import type {
+  SearchAnalyticsRequest,
+  SearchAnalyticsRow,
+  SearchConsolePort,
+} from './search-console.port';
 
 const API = 'https://searchconsole.googleapis.com/webmasters/v3';
 

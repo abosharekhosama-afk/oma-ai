@@ -42,7 +42,11 @@ const SEVERITY_WEIGHT: Record<SeoSeverity, number> = {
 export function evaluatePageSeo(input: SeoPageInput): SeoPageFinding[] {
   const findings: SeoPageFinding[] = [];
   if (input.httpStatus != null && input.httpStatus >= 400) {
-    findings.push({ code: 'SEO_HTTP_ERROR', severity: 'critical', detail: String(input.httpStatus) });
+    findings.push({
+      code: 'SEO_HTTP_ERROR',
+      severity: 'critical',
+      detail: String(input.httpStatus),
+    });
   }
   const title = input.title?.trim() ?? '';
   if (!title) findings.push({ code: 'SEO_TITLE_MISSING', severity: 'critical' });
@@ -63,10 +67,7 @@ export function evaluatePageSeo(input: SeoPageInput): SeoPageFinding[] {
   const len = input.excerptLength ?? 0;
   if (len > 0 && len < 200) findings.push({ code: 'SEO_THIN_CONTENT', severity: 'info' });
 
-  if (
-    input.classification === 'PRODUCT' &&
-    !(input.productDescription?.trim() || desc)
-  ) {
+  if (input.classification === 'PRODUCT' && !(input.productDescription?.trim() || desc)) {
     findings.push({ code: 'SEO_PRODUCT_NO_DESCRIPTION', severity: 'warning' });
   }
   return findings;
@@ -97,7 +98,10 @@ export function parsePageSeoSignalsFromExcerpt(excerpt: string): {
   const og =
     excerpt.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ??
     excerpt.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i);
-  const plain = excerpt.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const plain = excerpt
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   return {
     metaDescription: (meta?.[1] ?? og?.[1] ?? null)?.trim() || null,
     h1: h1FromExcerpt(excerpt),

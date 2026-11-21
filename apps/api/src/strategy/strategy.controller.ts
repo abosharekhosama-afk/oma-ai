@@ -16,7 +16,12 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { DomainError } from '@oma/domain';
-import { strategyPlanRequestsService, strategyPlanService, strategyService } from '../container';
+import {
+  seoService,
+  strategyPlanRequestsService,
+  strategyPlanService,
+  strategyService,
+} from '../container';
 
 @Controller('api/v1/brands/:brandId')
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -268,6 +273,38 @@ export class StrategyController {
   ) {
     this.requireTenant(req);
     return strategyPlanService.getPlan(req.oma!.tenantId!, brandId, strategyId, versionId);
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/plan/organic/merge-seo')
+  @UseGuards(CsrfGuard)
+  async mergeSeoOrganicPlan(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: { row_version?: number; proposal_ids?: string[] },
+  ) {
+    this.requireTenant(req);
+    const rowVersion = body?.row_version;
+    if (typeof rowVersion !== 'number' || !Number.isInteger(rowVersion)) {
+      throw new DomainError(
+        'SCHEMA_INVALID',
+        'row_version is required',
+        400,
+        'errors.schema_invalid',
+      );
+    }
+    const proposals = await seoService.strategyProposals(req.oma!.tenantId!, brandId);
+    return strategyPlanService.mergeSeoIntoOrganic(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      proposals.data,
+      { row_version: rowVersion, proposal_ids: body?.proposal_ids ?? [] },
+      req.oma!.correlationId,
+    );
   }
 
   @Put('strategies/:strategyId/versions/:versionId/plan/organic')

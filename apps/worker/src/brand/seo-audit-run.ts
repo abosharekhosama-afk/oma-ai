@@ -76,7 +76,8 @@ export async function runSeoAuditForScan(input: {
         code: 'SEO_DUPLICATE_TITLE',
         severity: 'warning',
         detail: dup,
-        pageUrl: pages.find((p) => (p.title ?? '').trim().toLowerCase() === dup)?.url ?? pages[0]!.url,
+        pageUrl:
+          pages.find((p) => (p.title ?? '').trim().toLowerCase() === dup)?.url ?? pages[0]!.url,
       });
     }
     summary.warning_count += Math.min(20, summary.duplicate_titles.length);

@@ -71,7 +71,9 @@ function walkProductCandidates(
           : undefined);
       const images: string[] = [];
       const pushImage = (img: unknown) => {
-        const url = asString(img) ?? (typeof img === 'object' && img ? asString((img as JsonRecord).url) : undefined);
+        const url =
+          asString(img) ??
+          (typeof img === 'object' && img ? asString((img as JsonRecord).url) : undefined);
         if (url) {
           try {
             images.push(new URL(url, pageUrl).toString());
@@ -97,7 +99,8 @@ function walkProductCandidates(
     }
   }
   for (const child of Object.values(record)) {
-    if (child && typeof child === 'object') walkProductCandidates(child, pageUrl, out, seen, depth + 1);
+    if (child && typeof child === 'object')
+      walkProductCandidates(child, pageUrl, out, seen, depth + 1);
   }
 }
 

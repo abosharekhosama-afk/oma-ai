@@ -44,13 +44,7 @@ export function BrandSectionNav({
   );
 }
 
-export function BrandBackLink({
-  href,
-  label,
-}: {
-  href: string;
-  label: string;
-}) {
+export function BrandBackLink({ href, label }: { href: string; label: string }) {
   return (
     <div className="oma-brand-back-only" data-testid="brand-back-only">
       <Link href={href} className="oma-brand-nav-back" aria-label={label}>
