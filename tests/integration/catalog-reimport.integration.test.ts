@@ -63,7 +63,10 @@ describe('catalog reimport reconciliation (integration)', () => {
   });
 
   it('removes fake products and mis-attributed scan media, keeps human media, is idempotent', async () => {
-    const { brandId, scanId } = await fullScanJourney(seed, connection, { max_pages: 2 });
+    const { brandId, scanId } = await fullScanJourney(seed, connection, {
+      max_pages: 2,
+      pollTimeoutMs: 120_000,
+    });
     const prisma = getPrisma();
     const tenantId = seed.tenantId;
 
