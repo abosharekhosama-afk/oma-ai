@@ -411,7 +411,6 @@ export async function seedBothTracksReadyStrategy(seed: BrandSeed, brandId: stri
     paid_enabled: true,
   });
   rowVersion = enabled.body.data.row_version;
-  rowVersion = await ensurePaidSubmitReady(seed, brandId, strategyId, versionId, rowVersion);
 
   return { strategyId, versionId, profileId, rowVersion };
 }
