@@ -252,8 +252,8 @@ export const mediaApi = {
     const qs = new URLSearchParams({ kind, scope });
     if (folderId) qs.set('folder_id', folderId);
     if (source) qs.set('source', source);
-    if (opts?.file_limit) qs.set('file_limit', String(opts.file_limit));
-    if (opts?.file_offset) qs.set('file_offset', String(opts.file_offset));
+    if (opts?.file_limit != null) qs.set('file_limit', String(opts.file_limit));
+    if (opts?.file_offset != null) qs.set('file_offset', String(opts.file_offset));
     return api<{ data: WorkDriveBrowse }>(
       `/api/v1/brands/${brandId}/media/browse?${qs.toString()}`,
     ).then((r) => {
