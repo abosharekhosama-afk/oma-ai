@@ -5,8 +5,10 @@ import {
   CheckOutlined,
   CloseOutlined,
   DownOutlined,
+  ExpandPanelOutlined,
   FolderAddOutlined,
   SearchOutlined,
+  ShrinkPanelOutlined,
   UploadOutlined,
 } from '../ui/lucide-icons';
 import { MediaSurface } from './media-surface';
@@ -16,9 +18,11 @@ import { getApiError } from '../../lib/brand-api';
 import {
   formatBytes,
   mediaApi,
+  workDriveApi,
   type MediaAsset,
   type MediaKind,
   type MediaLibrary,
+  type WorkspaceStorage,
   type WorkDriveBrowse,
   type WorkDriveBrowseFile,
 } from '../../lib/workdrive-api';
@@ -38,6 +42,9 @@ const ACCEPT: Record<MediaKind, string> = {
 
 const CANVA_HIDE_KEY = 'oma-ml-hide-canva';
 const SOURCE_KEY = 'oma-ml-source';
+const BROWSE_FILE_LIMIT = 48;
+const ASSET_LIST_LIMIT = 32;
+const GRID_RENDER_STEP = 36;
 
 function readStoredSource(): 'oma' | 'workdrive' | null {
   if (typeof window === 'undefined') return null;
@@ -101,6 +108,55 @@ function MediaShimmer({ rows = 4 }: { rows?: number }) {
         <div key={i} className="oma-shim oma-mp-shimmer" />
       ))}
     </div>
+  );
+}
+
+function LazyMediaThumb({
+  item,
+  t,
+}: {
+  item: GridItem;
+  t: Tr;
+}) {
+  const host = useRef<HTMLSpanElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) setVisible(true);
+      },
+      { rootMargin: '160px 0px', threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const video = item.mime.startsWith('video/');
+  return (
+    <span ref={host} className="oma-ml-thumb">
+      {item.missing ? (
+        <span className="oma-mp-thumb oma-mp-thumb--missing">{t('media.missingShort')}</span>
+      ) : !visible ? (
+        <span className="oma-ml-thumb__placeholder" aria-hidden />
+      ) : item.mime.startsWith('image/') || video ? (
+        <MediaSurface
+          className="oma-ml-thumb__media"
+          src={video ? item.streamUrl || item.viewUrl : item.viewUrl}
+          mime={item.mime}
+          alt=""
+          preload="none"
+        />
+      ) : (
+        <span className="oma-ml-thumb__file">{item.name.split('.').pop()}</span>
+      )}
+      {video ? (
+        <span className="oma-ml-play" aria-hidden>
+          ▶
+        </span>
+      ) : null}
+    </span>
   );
 }
 
@@ -296,6 +352,12 @@ export function MediaPickerDialog({
   const searchRef = useRef<HTMLInputElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const gridSentinelRef = useRef<HTMLDivElement>(null);
+  const [panelExpanded, setPanelExpanded] = useState(false);
+  const [visibleGridCount, setVisibleGridCount] = useState(GRID_RENDER_STEP);
+  const [browseLoadingMore, setBrowseLoadingMore] = useState(false);
+  const [assetsLoadingMore, setAssetsLoadingMore] = useState(false);
+  const [workspaceStorage, setWorkspaceStorage] = useState<WorkspaceStorage | null>(null);
 
   useEffect(() => {
     try {
@@ -307,22 +369,36 @@ export function MediaPickerDialog({
     setSourceReady(true);
   }, []);
 
-  const loadLibrary = useCallback(async () => {
-    if (!brandId) return;
-    setError(null);
-    try {
-      const r = await mediaApi.list(brandId, kind, storageSource ?? undefined);
-      setLib(r.data);
-    } catch (e) {
-      setError(getApiError(e).message);
-    }
-  }, [brandId, kind, storageSource]);
+  const loadLibrary = useCallback(
+    async (opts?: { append?: boolean; cursor?: string | null }) => {
+      if (!brandId) return;
+      setError(null);
+      try {
+        const r = await mediaApi.list(brandId, kind, storageSource ?? undefined, {
+          limit: ASSET_LIST_LIMIT,
+          cursor: opts?.append ? opts.cursor : undefined,
+        });
+        setLib((prev) =>
+          opts?.append && prev
+            ? {
+                ...r.data,
+                assets: [...prev.assets, ...r.data.assets],
+              }
+            : r.data,
+        );
+      } catch (e) {
+        setError(getApiError(e).message);
+      }
+    },
+    [brandId, kind, storageSource],
+  );
 
   const openFolder = useCallback(
     async (nextScope: Scope, folderId?: string) => {
       if (!brandId) return;
       setBrowsing(true);
       setError(null);
+      setVisibleGridCount(GRID_RENDER_STEP);
       try {
         const r = await mediaApi.browse(
           brandId,
@@ -330,6 +406,7 @@ export function MediaPickerDialog({
           folderId,
           nextScope,
           storageSource ?? undefined,
+          { file_limit: BROWSE_FILE_LIMIT, file_offset: 0 },
         );
         setBrowse(r.data);
         if (!storageSource && (r.data.source === 'oma' || r.data.source === 'workdrive')) {
@@ -350,6 +427,7 @@ export function MediaPickerDialog({
               folderId,
               'brand',
               storageSource ?? undefined,
+              { file_limit: BROWSE_FILE_LIMIT, file_offset: 0 },
             );
             setBrowse(r.data);
             setScope('brand');
@@ -370,49 +448,102 @@ export function MediaPickerDialog({
     [brandId, kind, storageSource],
   );
 
+  const loadMoreBrowseFiles = useCallback(async () => {
+    if (!brandId || !browse?.files_has_more || browseLoadingMore) return;
+    const nextOffset = (browse.file_offset ?? 0) + browse.files.length;
+    setBrowseLoadingMore(true);
+    try {
+      const browseScope: Scope = scope === 'all' ? 'all' : scope;
+      const folderParam =
+        scope === 'all' || selectedFolderId === '__all__'
+          ? undefined
+          : selectedFolderId || undefined;
+      const r = await mediaApi.browse(
+        brandId,
+        kind,
+        folderParam,
+        browseScope,
+        storageSource ?? undefined,
+        { file_limit: BROWSE_FILE_LIMIT, file_offset: nextOffset, skipCache: true },
+      );
+      setBrowse((prev) =>
+        prev
+          ? {
+              ...r.data,
+              files: [...prev.files, ...r.data.files],
+              files_has_more: r.data.files_has_more,
+              files_total: r.data.files_total,
+              file_offset: prev.file_offset ?? 0,
+            }
+          : r.data,
+      );
+    } catch (e) {
+      setError(getApiError(e).message);
+    } finally {
+      setBrowseLoadingMore(false);
+    }
+  }, [brandId, kind, browse, browseLoadingMore, scope, storageSource, selectedFolderId]);
+
   useEffect(() => {
     if (!open || !brandId || !sourceReady) return;
     void loadLibrary();
+    void workDriveApi
+      .storage()
+      .then((r) => setWorkspaceStorage(r.data))
+      .catch(() => setWorkspaceStorage(null));
     void (async () => {
       setBrowsing(true);
+      setVisibleGridCount(GRID_RENDER_STEP);
       try {
         const src = storageSource ?? undefined;
-        const [org, brand] = await Promise.allSettled([
-          mediaApi.browse(brandId, kind, undefined, 'organization', src),
-          mediaApi.browse(brandId, kind, undefined, 'brand', src),
-        ]);
-        const from =
-          org.status === 'fulfilled'
-            ? org.value.data.source
-            : brand.status === 'fulfilled'
-              ? brand.value.data.source
-              : null;
+        const org = await mediaApi.browse(brandId, kind, undefined, 'organization', src, {
+          file_limit: BROWSE_FILE_LIMIT,
+          file_offset: 0,
+        });
+        const from = org.data.source;
         if (!storageSource && (from === 'oma' || from === 'workdrive')) {
           setStorageSource(from);
           persistSource(from);
         }
-        if (org.status === 'fulfilled') {
-          setOrgRoot(org.value.data);
-          setBrowse(org.value.data);
-          setScope('organization');
-          setSelectedFolderId(org.value.data.folder.id);
-        }
-        if (brand.status === 'fulfilled') {
-          setBrandRoot(brand.value.data);
-          if (org.status !== 'fulfilled') {
-            setBrowse(brand.value.data);
-            setScope('brand');
-            setSelectedFolderId(brand.value.data.folder.id);
-          }
-        }
-        if (org.status === 'rejected' && brand.status === 'rejected') {
-          setError(getApiError(org.reason).message);
-        }
+        setOrgRoot(org.data);
+        setBrowse(org.data);
+        setScope('organization');
+        setSelectedFolderId(org.data.folder.id);
+      } catch (e) {
+        setError(getApiError(e).message);
       } finally {
         setBrowsing(false);
       }
     })();
   }, [open, brandId, kind, loadLibrary, storageSource, sourceReady]);
+
+  useEffect(() => {
+    const node = gridSentinelRef.current;
+    if (!open || !node) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setVisibleGridCount((n) => n + GRID_RENDER_STEP);
+        if (browse?.files_has_more) void loadMoreBrowseFiles();
+        else if (lib?.next_cursor && !assetsLoadingMore) {
+          setAssetsLoadingMore(true);
+          void loadLibrary({ append: true, cursor: lib.next_cursor }).finally(() =>
+            setAssetsLoadingMore(false),
+          );
+        }
+      },
+      { rootMargin: '200px 0px' },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [
+    open,
+    browse?.files_has_more,
+    lib?.next_cursor,
+    loadMoreBrowseFiles,
+    loadLibrary,
+    assetsLoadingMore,
+  ]);
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
@@ -450,8 +581,13 @@ export function MediaPickerDialog({
     setBrandRoot(null);
     setBrowse(null);
     setError(null);
+    setVisibleGridCount(GRID_RENDER_STEP);
     setStorageSource(next);
     persistSource(next);
+    void workDriveApi
+      .storage()
+      .then((r) => setWorkspaceStorage(r.data))
+      .catch(() => setWorkspaceStorage(null));
   };
   const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
   const allSelected = scope === 'all' || selectedFolderId === '__all__';
@@ -530,6 +666,31 @@ export function MediaPickerDialog({
 
   const facets = browse?.filter_facets || orgRoot?.filter_facets || brandRoot?.filter_facets;
   const filterCount = usage.size + types.size + campaigns.size + uploaders.size;
+  const visibleItems = items.slice(0, visibleGridCount);
+  const quotaUsed =
+    storageSource === 'oma'
+      ? (browse?.storage_used_bytes ??
+        lib?.storage_used_bytes ??
+        workspaceStorage?.used_bytes ??
+        null)
+      : null;
+  const quotaLimit =
+    storageSource === 'oma'
+      ? (browse?.storage_limit_bytes ??
+        lib?.storage_limit_bytes ??
+        workspaceStorage?.limit_bytes ??
+        null)
+      : null;
+  const quotaLabel =
+    quotaUsed != null
+      ? quotaLimit == null
+        ? `${formatBytes(quotaUsed, locale)} · ${t('storage.usage.unlimited')}`
+        : t('storage.usage.of')
+            .replace('{used}', formatBytes(quotaUsed, locale))
+            .replace('{limit}', formatBytes(quotaLimit, locale))
+      : storageSource === 'workdrive'
+        ? t('media.quotaByos')
+        : null;
 
   const folderScope: 'brand' | 'organization' = scope === 'brand' ? 'brand' : 'organization';
   const uploadToFolderId = allSelected
@@ -728,6 +889,11 @@ export function MediaPickerDialog({
         <p className="oma-ml-source-status" data-testid="media-source-badge">
           {storageSource === 'workdrive' ? t('media.viewingWorkDrive') : t('media.viewingOma')}
         </p>
+        {quotaLabel ? (
+          <p className="oma-ml-quota" data-testid="media-storage-quota">
+            {quotaLabel}
+          </p>
+        ) : null}
       </div>
       {sourceBlocked ? (
         <p
@@ -1006,47 +1172,45 @@ export function MediaPickerDialog({
         {browsing && !browse && !items.length ? (
           <MediaShimmer rows={6} />
         ) : items.length ? (
-          <div className="oma-ml-grid" data-testid="media-files">
-            {items.map((item) => {
-              const video = item.mime.startsWith('video/');
-              const badge = usageLabel(item.usageCount, t);
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  className="oma-ml-item"
-                  data-testid="media-browser-file"
-                  disabled={item.missing}
-                  title={item.missing ? t('media.missing') : item.name}
-                  onClick={() => void pickFile(item)}
-                >
-                  <span className="oma-ml-thumb">
-                    {item.missing ? (
-                      <span className="oma-mp-thumb oma-mp-thumb--missing">
-                        {t('media.missingShort')}
-                      </span>
-                    ) : item.mime.startsWith('image/') || video ? (
-                      <MediaSurface
-                        className="oma-ml-thumb__media"
-                        src={video ? item.streamUrl || item.viewUrl : item.viewUrl}
-                        mime={item.mime}
-                        alt=""
-                      />
-                    ) : (
-                      <span className="oma-ml-thumb__file">{item.name.split('.').pop()}</span>
-                    )}
-                    {video ? (
-                      <span className="oma-ml-play" aria-hidden>
-                        ▶
-                      </span>
-                    ) : null}
-                    {badge ? <span className="oma-ml-used">{badge}</span> : null}
-                  </span>
-                  <span className="oma-ml-item__name">{item.name}</span>
-                </button>
-              );
-            })}
-          </div>
+          <>
+            <div className="oma-ml-grid" data-testid="media-files">
+              {visibleItems.map((item) => {
+                const badge = usageLabel(item.usageCount, t);
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className="oma-ml-item"
+                    data-testid="media-browser-file"
+                    disabled={item.missing}
+                    title={item.missing ? t('media.missing') : item.name}
+                    onClick={() => void pickFile(item)}
+                  >
+                    <span className="oma-ml-thumb-wrap">
+                      <LazyMediaThumb item={item} t={t} />
+                      {badge ? <span className="oma-ml-used">{badge}</span> : null}
+                    </span>
+                    <span className="oma-ml-item__name">{item.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {visibleGridCount < items.length ||
+            browse?.files_has_more ||
+            lib?.next_cursor ? (
+              <div
+                ref={gridSentinelRef}
+                className="oma-ml-grid-sentinel"
+                data-testid="media-grid-sentinel"
+                aria-hidden
+              />
+            ) : null}
+            {browseLoadingMore || assetsLoadingMore ? (
+              <p className="oma-bs-hint" data-testid="media-loading-more">
+                {t('media.loadingMore')}
+              </p>
+            ) : null}
+          </>
         ) : (
           <p className="oma-mp-empty">
             {query.trim() ? t('media.emptySearch') : t('media.emptyFolder')}
@@ -1058,7 +1222,7 @@ export function MediaPickerDialog({
 
   const panel = (
     <aside
-      className={`oma-ml ${variant === 'panel' ? 'oma-ml--panel' : 'oma-ml--drawer'}`}
+      className={`oma-ml ${variant === 'panel' ? 'oma-ml--panel' : 'oma-ml--drawer'}${variant === 'panel' && panelExpanded ? ' oma-ml--expanded' : ''}`}
       data-testid="media-picker"
       hidden={!open}
       onDragOver={(e) => {
@@ -1099,6 +1263,18 @@ export function MediaPickerDialog({
             >
               <SearchOutlined />
             </button>
+            {variant === 'panel' ? (
+              <button
+                type="button"
+                className="oma-ml-iconbtn"
+                data-testid="media-panel-expand"
+                aria-label={panelExpanded ? t('media.shrinkPanel') : t('media.expandPanel')}
+                aria-pressed={panelExpanded}
+                onClick={() => setPanelExpanded((v) => !v)}
+              >
+                {panelExpanded ? <ShrinkPanelOutlined /> : <ExpandPanelOutlined />}
+              </button>
+            ) : null}
           </>
         )}
         <button
