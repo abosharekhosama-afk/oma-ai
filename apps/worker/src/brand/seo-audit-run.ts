@@ -1,10 +1,11 @@
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
   evaluatePageSeo,
-  h1FromExcerpt,
   metaFromFields,
   newId,
+  parsePageSeoSignalsFromExcerpt,
   scoreSeoAudit,
+  summarizeSeoFindings,
   type SeoPageFinding,
 } from '@oma/domain';
 
@@ -48,15 +49,16 @@ export async function runSeoAuditForScan(input: {
   const allFindings: Array<SeoPageFinding & { pageUrl: string }> = [];
   for (const page of pages) {
     const excerpt = page.evidenceExcerpts[0]?.excerptText ?? '';
+    const signals = parsePageSeoSignalsFromExcerpt(excerpt);
     const pageFindings = evaluatePageSeo({
       url: page.url,
       httpStatus: page.httpStatus,
       title: page.title,
-      metaDescription: globalMeta.metaDescription,
-      h1: h1FromExcerpt(excerpt),
-      excerptLength: excerpt.replace(/<[^>]+>/g, ' ').trim().length,
-      noindex: /noindex/i.test(excerpt),
-      hasCanonical: /rel=.canonical/i.test(excerpt),
+      metaDescription: signals.metaDescription ?? globalMeta.metaDescription,
+      h1: signals.h1,
+      excerptLength: signals.plainTextLength,
+      noindex: signals.noindex,
+      hasCanonical: signals.hasCanonical,
       classification: page.classification,
     });
     for (const f of pageFindings) {
@@ -64,11 +66,23 @@ export async function runSeoAuditForScan(input: {
     }
   }
 
-  const score = scoreSeoAudit(allFindings);
-  const byCode: Record<string, number> = {};
-  for (const f of allFindings) {
-    byCode[f.code] = (byCode[f.code] ?? 0) + 1;
+  const summary = summarizeSeoFindings(
+    pages.map((p) => ({ title: p.title, url: p.url })),
+    allFindings,
+  );
+  if (summary.duplicate_titles.length > 0) {
+    for (const dup of summary.duplicate_titles.slice(0, 20)) {
+      allFindings.push({
+        code: 'SEO_DUPLICATE_TITLE',
+        severity: 'warning',
+        detail: dup,
+        pageUrl: pages.find((p) => (p.title ?? '').trim().toLowerCase() === dup)?.url ?? pages[0]!.url,
+      });
+    }
+    summary.warning_count += Math.min(20, summary.duplicate_titles.length);
+    summary.by_code.SEO_DUPLICATE_TITLE = summary.duplicate_titles.length;
   }
+  const score = scoreSeoAudit(allFindings);
 
   const auditId = newId();
   await prisma.brandSeoAudit.create({
@@ -80,7 +94,7 @@ export async function runSeoAuditForScan(input: {
       score,
       findingsCount: allFindings.length,
       metricSource: 'CRAWL',
-      summaryJson: JSON.stringify({ by_code: byCode, pages_audited: pages.length }),
+      summaryJson: JSON.stringify(summary),
     },
   });
 

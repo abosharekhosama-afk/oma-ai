@@ -100,10 +100,24 @@ export default function BrandSeoPage() {
         <section className="oma-card oma-card--padded">
           <h2 className="oma-heading-sm">{t('brand.seo.siteHealth')}</h2>
           {health?.audit ? (
-            <p>
-              {t('brand.seo.score')}: <strong>{health.audit.score}</strong> — {health.audit.findings_count}{' '}
-              {t('brand.seo.findings')}
-            </p>
+            <>
+              <p>
+                {t('brand.seo.score')}: <strong>{health.audit.score}</strong> — {health.audit.findings_count}{' '}
+                {t('brand.seo.findings')}
+              </p>
+              {health.audit.findings.length > 0 ? (
+                <ul className="oma-list-plain">
+                  {health.audit.findings
+                    .filter((f) => f.severity === 'critical' || f.severity === 'warning')
+                    .slice(0, 8)
+                    .map((f) => (
+                      <li key={`${f.page_url}-${f.code}`}>
+                        <code>{f.code}</code> — <span dir="auto">{f.page_url}</span>
+                      </li>
+                    ))}
+                </ul>
+              ) : null}
+            </>
           ) : (
             <p className="oma-text-muted">{t('brand.seo.noAudit')}</p>
           )}

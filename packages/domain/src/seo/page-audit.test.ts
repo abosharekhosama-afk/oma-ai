@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluatePageSeo, scoreSeoAudit } from './page-audit';
+import { evaluatePageSeo, parsePageSeoSignalsFromExcerpt, scoreSeoAudit } from './page-audit';
 
 describe('page-audit', () => {
   it('scores healthy product page', () => {
@@ -15,5 +15,14 @@ describe('page-audit', () => {
     });
     expect(findings.find((f) => f.code === 'SEO_TITLE_MISSING')).toBeUndefined();
     expect(scoreSeoAudit(findings)).toBeGreaterThan(70);
+  });
+
+  it('parses meta and h1 from excerpt html', () => {
+    const html = `<html><head><meta name="description" content="Shop organic skincare"/></head>
+      <body><h1>Serum</h1><p>Long body text here</p></body></html>`;
+    const s = parsePageSeoSignalsFromExcerpt(html);
+    expect(s.metaDescription).toBe('Shop organic skincare');
+    expect(s.h1).toBe('Serum');
+    expect(s.plainTextLength).toBeGreaterThan(10);
   });
 });
