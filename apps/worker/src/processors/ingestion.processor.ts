@@ -196,15 +196,17 @@ export function startIngestionProcessor(
           where: { id: jobRun.id },
           data: { status: 'RUNNING', startedAt: new Date() },
         });
+        const resuming = scan.pagesFetched > 0 || scan.progressPercent > 2;
         if (
           !(await advanceScanIfActive(prisma, scan.id, {
             status: 'CRAWLING',
-            startedAt: new Date(),
             progressUpdatedAt: new Date(),
-            progressPercent: 2,
+            ...(resuming
+              ? { progressPercent: scan.progressPercent || 2 }
+              : { startedAt: new Date(), progressPercent: 2 }),
             // Recorded on the attempt that used it: the API process can be
             // reconfigured later and must not restate this scan's provenance.
-            connectorMode: brandConnectorMode(),
+            connectorMode: scan.connectorMode || brandConnectorMode(),
           }))
         ) {
           await markScanCancelled(prisma, scan.id, jobRun.id);
@@ -508,6 +510,11 @@ export function startIngestionProcessor(
         await shutdownRenderedFetchBrowser().catch(() => undefined);
       }
     },
-    { connection, prefix: process.env.BULLMQ_PREFIX || 'oma', concurrency: 1 },
+    {
+      connection,
+      prefix: process.env.BULLMQ_PREFIX || 'oma',
+      concurrency: 1,
+      lockDuration: Number(process.env.BULLMQ_INGESTION_LOCK_MS ?? 300_000),
+    },
   );
 }

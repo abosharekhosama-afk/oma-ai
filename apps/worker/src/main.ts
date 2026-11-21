@@ -43,6 +43,20 @@ async function main() {
   startMailProcessor(connection);
   startSocialProcessor(connection);
   startIngestionProcessor(connection);
+  const scanRecoveryMs = Number(process.env.BRAND_SCAN_RECOVERY_TICK_MS ?? 45_000);
+  setTimeout(() => {
+    void import('./brand/scan-ingestion-recovery')
+      .then(({ tickStalledBrandScans }) => tickStalledBrandScans(connection))
+      .catch((err) => log.error({ err: String(err) }, 'initial scan recovery tick failed'));
+  }, 15_000);
+  setInterval(
+    () => {
+      void import('./brand/scan-ingestion-recovery')
+        .then(({ tickStalledBrandScans }) => tickStalledBrandScans(connection))
+        .catch((err) => log.error({ err: String(err) }, 'scan recovery tick failed'));
+    },
+    Number.isFinite(scanRecoveryMs) && scanRecoveryMs >= 15_000 ? scanRecoveryMs : 45_000,
+  );
   startAnalysisProcessor(connection);
   startAiProcessor(connection);
   startInboxProcessor(connection);

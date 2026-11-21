@@ -3,6 +3,7 @@ import { enqueueBrandAnalysis, getPrisma, tenantWhere, writeOutbox } from '@oma/
 import {
   DomainError,
   canRetryScan,
+  canResumeScan,
   catalogOfferingsFromDiscoveryRows,
   estimateCatalogContentRequests,
   isTerminalScanStatus,
@@ -344,6 +345,81 @@ export class ScanService {
       where: tenantWhere(tenantId, { id: scanId, brandId }),
     });
     return { data: this.serializeScan(after ?? updated) };
+  }
+
+  async resume(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    scanId: string,
+    correlationId?: string,
+  ) {
+    const scan = await getPrisma().scanAttempt.findFirst({
+      where: tenantWhere(tenantId, { id: scanId, brandId }),
+    });
+    if (!scan) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
+    const jobRun = scan.jobRunId
+      ? await getPrisma().jobRun.findFirst({ where: { id: scan.jobRunId, tenantId } })
+      : null;
+    const stallSeconds = Number(process.env.BRAND_SCAN_PROGRESS_STALE_SECONDS ?? 90);
+    if (
+      !canResumeScan({
+        status: scan.status,
+        cancelRequestedAt: scan.cancelRequestedAt,
+        progressUpdatedAt: scan.progressUpdatedAt,
+        startedAt: scan.startedAt,
+        jobRunStatus: jobRun?.status ?? null,
+        stallSeconds,
+      })
+    ) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Scan cannot be resumed',
+        409,
+        'errors.conflict_state',
+      );
+    }
+    if (!jobRun) {
+      throw new DomainError('CONFLICT_STATE', 'Missing job run', 409, 'errors.conflict_state');
+    }
+    let config: { max_pages?: number; max_depth?: number; max_duration_seconds?: number } | undefined;
+    try {
+      const parsed = JSON.parse(jobRun.payloadJson ?? '{}') as { config?: typeof config };
+      config = parsed.config;
+    } catch {
+      config = undefined;
+    }
+    const { requeueScanIngestionJob } = await import('./requeue-scan-ingestion');
+    const result = await requeueScanIngestionJob({
+      jobRunId: jobRun.id,
+      tenantId,
+      brandId,
+      scanAttemptId: scan.id,
+      actorUserId: jobRun.actorUserId ?? actorUserId,
+      correlationId: jobRun.correlationId ?? correlationId ?? null,
+      config,
+    });
+    if (!result.requeued && result.reason === 'redis_unavailable') {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Queue unavailable',
+        503,
+        'errors.conflict_state',
+      );
+    }
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'brand.scan.resumed',
+      targetType: 'ScanAttempt',
+      targetId: scanId,
+      correlationId,
+      afterRef: result.reason ?? 'requeued',
+    });
+    const after = await getPrisma().scanAttempt.findFirst({
+      where: tenantWhere(tenantId, { id: scanId, brandId }),
+    });
+    return { data: this.serializeScan(after ?? scan) };
   }
 
   async retry(

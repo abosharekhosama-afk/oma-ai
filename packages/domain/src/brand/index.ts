@@ -7,6 +7,7 @@ export * from './extractors';
 export * from './discovery-tiers';
 export * from './scan-transitions';
 export * from './scan-progress';
+export * from './scan-resume';
 export * from './scan-crawl-stop';
 export * from './scan-abort';
 export * from './scan-bounds';
