@@ -33,16 +33,22 @@ When the connector is `disabled`, the URL can still be saved so a profile can ex
 - Extracts title, description, JSON-LD, **products/services** (see below), organization data, social profile links, contact details, languages, logo/favicon/og:image, and `theme-color` into `ExtractedObservation` records.
 - After the crawl, aggregates discovered products/services into scan-level `catalog.products` / `catalog.services` observations for profile draft and AI analysis.
 
-### JavaScript rendering (optional)
+### Scan engine (default: scrape-first)
 
-By default the crawler parses the initial HTML first and automatically renders SPA/catalog pages when
-the static result is empty or missing product media (`BRAND_SCANNER_JS_RENDER_MODE=auto`).
+Production scans default to **`BRAND_SCAN_ENGINE=scrape-first`**: full HTTP crawl, robots/sitemaps, platform catalog APIs, DOM + JSON-LD extraction, and **embedded hydration JSON** (`__NEXT_DATA__`, `application/json` scripts). **No Chromium** is launched on the worker. Scan coverage records `scan_engine: "SCRAPE"` and `js_render_mode: "off"`.
+
+To restore the previous Playwright path (heavier; needs Chromium on the worker), set `BRAND_SCAN_ENGINE=legacy-js-auto` and tune `BRAND_SCANNER_JS_RENDER_MODE`.
+
+### JavaScript rendering (legacy, optional)
+
+Only used when `BRAND_SCAN_ENGINE=legacy-js-auto`. With `scrape-first`, `BRAND_SCANNER_JS_RENDER_MODE` is ignored.
 
 When the worker has `playwright-core` and Chromium available, set:
 
 | Variable                                 | Default | Purpose                                                                                                                               |
 | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `BRAND_SCANNER_JS_RENDER_MODE`           | `auto`  | `off` \| `auto` \| `always` — `auto` re-fetches with headless Chromium when the page looks like an SPA shell or has weak catalog data |
+| `BRAND_SCAN_ENGINE`                      | `scrape-first` | `scrape-first` \| `legacy-js-auto` — scrape-first disables Playwright |
+| `BRAND_SCANNER_JS_RENDER_MODE`           | `off`   | `off` \| `auto` \| `always` — only when `legacy-js-auto`                                                                              |
 | `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS`     | `30000` | Per-page render timeout                                                                                                               |
 | `BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES` | `true`  | Block fonts and non-image media during render to save RAM                                                                             |
 | `BRAND_SCANNER_JS_BLOCK_IMAGES`          | `false` | Optional low-memory mode; blocks images too, but can prevent lazy-loaded product galleries from being discovered                      |

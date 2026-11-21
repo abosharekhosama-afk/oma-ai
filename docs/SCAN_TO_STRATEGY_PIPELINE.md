@@ -30,7 +30,7 @@
 
 ## Operations checklist (Brp / production demo)
 
-**Worker:** `BRAND_WEBSITE_CONNECTOR=live`, `BRAND_SCANNER_JS_RENDER_MODE=auto`, Chromium installed, `GEMINI_API_KEY` (or configured provider) for profile analysis.
+**Worker:** `BRAND_WEBSITE_CONNECTOR=live`, `BRAND_SCAN_ENGINE=scrape-first` (default; no Chromium required), `GEMINI_API_KEY` (or configured provider) for profile analysis.
 
 **API:** `AI_LIVE_ENABLED=true`, `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, `STRATEGY_AI_MODE=live`.
 

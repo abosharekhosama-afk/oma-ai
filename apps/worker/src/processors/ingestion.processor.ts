@@ -351,6 +351,7 @@ export function startIngestionProcessor(
           js_render_error_details: counts.jsRenderErrorDetails ?? [],
           js_render_launch_detail: counts.jsRenderLaunchDetail ?? null,
           js_render_mode: counts.jsRenderMode ?? 'off',
+          scan_engine: counts.scanEngine ?? 'SCRAPE',
           catalog_platform: counts.catalog?.platform ?? null,
           catalog_platform_products: counts.catalog?.platformProducts ?? 0,
           catalog_platform_error: counts.catalog?.platformError ?? null,

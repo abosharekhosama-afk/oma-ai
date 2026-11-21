@@ -12,7 +12,7 @@ import {
   canonicalizeUrl,
   contentHash,
   discoveryTierForField,
-  extractFromHtml,
+  extractPageContent,
   inferCrawlStopReason,
   isBrandFixtureConnectorEnabled,
   isCatalogLikePath,
@@ -28,7 +28,9 @@ import {
   productUrlKey,
   type ExtractedProduct,
   parseSitemapXml,
-  resolveJsRenderMode,
+  resolveEffectiveJsRenderMode,
+  resolveScanRenderEngine,
+  scanEngineCoverageLabel,
   scanCatalogProgressPercent,
   scanCrawlProgressPercent,
   scanSitemapProgressPercent,
@@ -302,7 +304,8 @@ export async function runExtractionForScan(input: {
   const jsRenderErrors: string[] = [];
   const jsRenderErrorDetails: string[] = [];
   let jsRenderLaunchDetail: string | null = null;
-  const jsRenderMode = resolveJsRenderMode(process.env.BRAND_SCANNER_JS_RENDER_MODE);
+  const scanRenderEngine = resolveScanRenderEngine(process.env);
+  const jsRenderMode = resolveEffectiveJsRenderMode(process.env);
   let jsRenderBudget = maxJsRenderPagesFromEnv();
   const failedPageSamples: Array<{ url: string; reason: string }> = [];
   const maxFailedSamples = 48;
@@ -422,7 +425,7 @@ export async function runExtractionForScan(input: {
           for (const product of platform.products) catalog.add(product);
           if (platform.products.length > 0) productPagesFirst = false;
         }
-        const extracted = extractFromHtml(fetched.finalUrl, fetched.body);
+        const extracted = extractPageContent(fetched.finalUrl, fetched.body);
         for (const link of extracted.links) {
           if (link.rel.includes('nofollow')) continue;
           try {
@@ -611,7 +614,7 @@ export async function runExtractionForScan(input: {
         // Optional boost only: empty platform API must not reduce page-crawl priority.
         if (platform.products.length > 0) productPagesFirst = false;
       }
-      let extracted = extractFromHtml(fetched.finalUrl, htmlBody);
+      let extracted = extractPageContent(fetched.finalUrl, htmlBody);
       let pageUsedRendered = false;
       const wantsJsRender =
         shouldUseJsRender({
@@ -629,7 +632,7 @@ export async function runExtractionForScan(input: {
         pagesJsRenderAttempted += 1;
         try {
           const renderedHtml = await fetchRenderedPageHtml(fetched.finalUrl);
-          const renderedExtracted = extractFromHtml(fetched.finalUrl, renderedHtml);
+          const renderedExtracted = extractPageContent(fetched.finalUrl, renderedHtml);
           const staticKnown = extracted.fields.filter((f) => !f.isUnknown).length;
           const renderedKnown = renderedExtracted.fields.filter((f) => !f.isUnknown).length;
           if (
@@ -812,6 +815,7 @@ export async function runExtractionForScan(input: {
     jsRenderErrorDetails,
     jsRenderLaunchDetail,
     jsRenderMode,
+    scanEngine: scanEngineCoverageLabel(scanRenderEngine),
     stopReason,
     catalog: catalogStats,
   };
