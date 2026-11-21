@@ -111,7 +111,7 @@ function MediaShimmer({ rows = 4 }: { rows?: number }) {
   );
 }
 
-function LazyMediaThumb({ item, t }: { item: GridItem; t: Tr }) {
+function LazyMediaThumb({ item, t, badge }: { item: GridItem; t: Tr; badge?: string | null }) {
   const host = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -150,6 +150,7 @@ function LazyMediaThumb({ item, t }: { item: GridItem; t: Tr }) {
           ▶
         </span>
       ) : null}
+      {badge ? <span className="oma-ml-used">{badge}</span> : null}
     </span>
   );
 }
@@ -1220,10 +1221,7 @@ export function MediaPickerDialog({
                     title={item.missing ? t('media.missing') : item.name}
                     onClick={() => void pickFile(item)}
                   >
-                    <span className="oma-ml-thumb-wrap">
-                      <LazyMediaThumb item={item} t={t} />
-                      {badge ? <span className="oma-ml-used">{badge}</span> : null}
-                    </span>
+                    <LazyMediaThumb item={item} t={t} badge={badge} />
                     <span className="oma-ml-item__name">{item.name}</span>
                   </button>
                 );
@@ -1256,7 +1254,8 @@ export function MediaPickerDialog({
     <aside
       className={`oma-ml ${variant === 'panel' ? 'oma-ml--panel' : 'oma-ml--drawer'}${variant === 'panel' && panelExpanded ? ' oma-ml--expanded' : ''}`}
       data-testid="media-picker"
-      hidden={!open}
+      data-open={open ? 'true' : 'false'}
+      aria-hidden={!open}
       onDragOver={(e) => {
         e.preventDefault();
       }}
@@ -1315,6 +1314,7 @@ export function MediaPickerDialog({
           aria-label={t('common.close')}
           onClick={() => {
             abort.current?.abort();
+            setPanelExpanded(false);
             onClose();
           }}
         >
@@ -1325,7 +1325,7 @@ export function MediaPickerDialog({
     </aside>
   );
 
-  if (variant === 'panel') return open ? panel : null;
+  if (variant === 'panel') return panel;
   if (typeof document === 'undefined' || !open) return null;
   return createPortal(
     <div className="oma-ml-overlay" data-open="true">
