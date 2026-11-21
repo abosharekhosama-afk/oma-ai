@@ -56,7 +56,8 @@ Playwright is the main OOM source. **Do not** use `BRAND_SCANNER_JS_RENDER_MODE=
 
 | Variable                             | Render starter recommendation | Risk if wrong                          |
 | ------------------------------------ | ----------------------------- | -------------------------------------- |
-| `BRAND_SCANNER_JS_RENDER_MODE`       | `auto`                        | `always` + long timeout → OOM          |
+| `BRAND_SCAN_ENGINE`                  | `scrape-first`                | `legacy-js-auto` + `always` → OOM      |
+| `BRAND_SCANNER_JS_RENDER_MODE`       | `off` (ignored in scrape-first) | `always` + long timeout → OOM        |
 | `BRAND_SCANNER_JS_RENDER_TIMEOUT_MS` | `30000`–`60000`               | `1200000` (20 min) holds browser + RAM |
 | `BRAND_SCANNER_JS_RENDER_MAX_PAGES`  | `10`–`20`                     | Unlimited renders on large sites       |
 | `BRAND_MAX_PAGES`                    | `30`–`50` for proof           | Very high + JS = slow + DB writes      |

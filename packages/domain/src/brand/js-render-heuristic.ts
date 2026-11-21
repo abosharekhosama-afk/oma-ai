@@ -8,7 +8,7 @@ export type JsRenderMode = 'off' | 'auto' | 'always';
 export function resolveJsRenderMode(raw?: string | null): JsRenderMode {
   // Auto-render only when static HTML looks like an SPA/catalog shell or lacks product media.
   // This keeps ordinary pages cheap while preventing client-rendered stores from yielding empty rows.
-  const value = (raw ?? process.env.BRAND_SCANNER_JS_RENDER_MODE ?? 'auto').toLowerCase();
+  const value = (raw ?? process.env.BRAND_SCANNER_JS_RENDER_MODE ?? 'off').toLowerCase();
   if (value === 'force') return 'always';
   if (value === 'auto' || value === 'always') return value;
   return 'off';

@@ -10,8 +10,8 @@ const SPA_SHELL = `<!DOCTYPE html><html><head><title>VELVET</title></head><body>
 <div id="root"></div><script type="module" src="/assets/index.js"></script></body></html>`;
 
 describe('js-render-heuristic', () => {
-  it('defaults to auto rendering when no explicit mode is configured', () => {
-    expect(resolveJsRenderMode(undefined)).toBe('auto');
+  it('defaults to off when no explicit mode is configured', () => {
+    expect(resolveJsRenderMode(undefined)).toBe('off');
     expect(resolveJsRenderMode('off')).toBe('off');
     expect(resolveJsRenderMode('force')).toBe('always');
   });

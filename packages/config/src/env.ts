@@ -50,8 +50,10 @@ export const envSchema = z
       .enum(['0', '1', 'true', 'false'])
       .optional()
       .transform((v) => v === '1' || v === 'true'),
+    /** scrape-first scan disables JS render regardless; legacy-js-auto uses this (off | auto | always). */
+    BRAND_SCAN_ENGINE: z.enum(['scrape-first', 'legacy-js-auto']).default('scrape-first'),
     /** off = static HTML only; auto = Playwright when SPA shell or weak catalog data; always = every page (costly). */
-    BRAND_SCANNER_JS_RENDER_MODE: z.enum(['off', 'auto', 'always']).default('auto'),
+    BRAND_SCANNER_JS_RENDER_MODE: z.enum(['off', 'auto', 'always']).default('off'),
     BRAND_SCANNER_JS_RENDER_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
     BRAND_SCANNER_JS_BLOCK_HEAVY_RESOURCES: z
       .enum(['0', '1', 'true', 'false'])

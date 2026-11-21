@@ -67,6 +67,7 @@ export type ScanDetail = {
     pages_js_rendered?: number;
     pages_js_render_attempted?: number;
     pages_js_render_failed?: number;
+    scan_engine?: 'SCRAPE' | 'LEGACY_JS';
     js_render_errors?: string[];
     js_render_error_details?: string[];
     js_render_launch_detail?: string | null;
