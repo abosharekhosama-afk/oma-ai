@@ -37,8 +37,7 @@ OPENAI_API_KEY=...
 
 ### Render / managed hosting
 
-For **Render** (or similar small Postgres + 512MB–1GB Worker), use [`docs/RENDER_OPERATIONS_STABILITY.md`](../../docs/RENDER_OPERATIONS_STABILITY.md): `connection_limit` on `DATABASE_URL`, `BRAND_SCAN_ENGINE=scrape-first
-BRAND_SCANNER_JS_RENDER_MODE=off`, sane JS timeouts, Worker RAM, and `WORKER_OUTBOX_TICK_MS` if pool timeouts appear during scans.
+For **Render** (or similar small Postgres + 512MB–1GB Worker), use [`docs/RENDER_OPERATIONS_STABILITY.md`](../../docs/RENDER_OPERATIONS_STABILITY.md): `connection_limit` on `DATABASE_URL`, `BRAND_SCAN_ENGINE=scrape-first`, sane scan bounds, Worker RAM, and `WORKER_OUTBOX_TICK_MS` if pool timeouts appear during scans.
 
 ### Ops smoke (CHK010 helper)
 
