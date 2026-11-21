@@ -230,9 +230,14 @@ export default function SubscriptionClient() {
               let limit = bar.limit;
               let pct = bar.pct;
               let unlimited = bar.unlimited;
-              if (bar.key === 'storage_bytes' && wsStorage && wsStorage.mode !== 'USER_WORKDRIVE') {
-                used = wsStorage.used_bytes;
-                if (wsStorage.limit_bytes != null) limit = wsStorage.limit_bytes;
+              if (bar.key === 'storage_bytes') {
+                const usageStorage = sub?.usage?.storage_bytes ?? bar.used;
+                if (wsStorage && wsStorage.mode !== 'USER_WORKDRIVE') {
+                  used = wsStorage.used_bytes ?? usageStorage;
+                  if (wsStorage.limit_bytes != null) limit = wsStorage.limit_bytes;
+                } else {
+                  used = usageStorage;
+                }
                 unlimited = limit == null;
                 pct =
                   limit == null || limit === 0

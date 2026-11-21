@@ -417,6 +417,35 @@ export class MediaService {
     throw notFound();
   }
 
+  private static readonly ULID_FOLDER = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/i;
+
+  private async humanizeBrowseFolderNames(
+    tenantId: string,
+    brand: { id: string; name: string },
+    brandFolderId: string,
+    rows: Array<{ id: string; name: string }>,
+  ): Promise<Array<{ id: string; name: string }>> {
+    if (!rows.length) return rows;
+    const lookup = new Set<string>([brand.id]);
+    for (const row of rows) {
+      if (MediaService.ULID_FOLDER.test(row.name)) lookup.add(row.name);
+    }
+    const brands = await getPrisma().brandWorkspace.findMany({
+      where: tenantWhere(tenantId, { id: { in: [...lookup] } }),
+      select: { id: true, name: true },
+    });
+    const names = new Map(brands.map((b) => [b.id, b.name]));
+    names.set(brand.id, brand.name);
+    return rows.map((row) => {
+      if (row.id === brandFolderId || row.name === brand.id) {
+        return { ...row, name: brand.name };
+      }
+      const mapped = names.get(row.name);
+      if (mapped) return { ...row, name: mapped };
+      return row;
+    });
+  }
+
   private async assertInsideScope(client: WorkDriveClient, folderId: string, scopeRootId: string) {
     if (folderId === scopeRootId) return;
     let cursor = await client.getFolder(folderId);
@@ -1099,17 +1128,28 @@ export class MediaService {
           ? decoratedFiles.slice(fileOffset, fileOffset + fileLimit)
           : decoratedFiles;
       const filesTotal = decoratedFiles.length;
+      const humanPath = allScope
+        ? [{ id: '__all__', name: 'All files' }]
+        : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, path);
+      const humanFolders = allScope
+        ? []
+        : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, f.folders);
+      const mappedFolderLabel = allScope
+        ? 'All files'
+        : f.id === brandFolderId || f.name === brand.id
+          ? brand.name
+          : (humanPath[humanPath.length - 1]?.name ?? f.name);
       return {
         data: {
           folder: {
             id: allScope ? '__all__' : f.id,
-            name: allScope ? 'All files' : f.name,
+            name: allScope ? 'All files' : mappedFolderLabel,
             parent_id: allScope || atRoot ? null : f.parentId,
           },
           root_name: c.conn.rootFolderName,
           brand_folder: { id: brandFolderId, name: brand.name },
-          path: allScope ? [{ id: '__all__', name: 'All files' }] : path,
-          folders: allScope ? [] : f.folders,
+          path: humanPath,
+          folders: humanFolders,
           files: pagedFiles,
           files_total: filesTotal,
           files_has_more: fileLimit != null ? fileOffset + pagedFiles.length < filesTotal : false,

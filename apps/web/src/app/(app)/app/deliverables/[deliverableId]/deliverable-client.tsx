@@ -38,6 +38,7 @@ import {
   reviewDeliverable,
   addDeliverableComment,
   toDeliverableRowFromDetail,
+  type DeliverableRowExtra,
   addDeliverableVersion,
   addDeliverableAnnotation,
   resolveDeliverableAnnotation,
@@ -588,6 +589,7 @@ export default function DeliverableDetailClient() {
         <MediaPickerDialog
           open
           brandId={row?.brandId ?? null}
+          brandName={(row as DeliverableRowExtra | null)?.brandName ?? undefined}
           kind="deliverables"
           t={t}
           locale={locale}
