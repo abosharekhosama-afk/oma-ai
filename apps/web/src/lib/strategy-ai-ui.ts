@@ -46,6 +46,37 @@ function pushOne(
 /**
  * Normalizes strategy AI propose responses: legacy `items[]` or v2 structured contract.
  */
+const FIELD_LABEL_KEYS: Record<string, string> = {
+  'foundation.goals': 'strategy.foundation.goals',
+  'foundation.positioning': 'strategy.foundation.positioning',
+  'foundation.keyMessages': 'strategy.foundation.keyMessages',
+  'foundation.constraints': 'strategy.foundation.constraints',
+  'organic.pillars': 'strategy.organic.pillars',
+  'organic.channels': 'strategy.organic.channels',
+  'organic.formats': 'strategy.organic.formats',
+  'organic.frequency': 'strategy.organic.frequency',
+  'paid.campaignObjectives': 'strategy.paid.objectives',
+  'paid.offerAngle': 'strategy.paid.offer',
+  'paid.placements': 'strategy.paid.placements',
+  audience_goals: 'strategy.ai.section.audience_goals',
+  kpi: 'strategy.ai.section.kpi',
+  'other.rationale': 'strategy.ai.section.other',
+};
+
+export function proposalFieldLabel(field: string, t: (key: string) => string): string {
+  const key = FIELD_LABEL_KEYS[field];
+  if (key) {
+    const label = t(key);
+    if (label !== key) return label;
+  }
+  const sectionKey = `strategy.ai.section.${field.split('.')[0]}`;
+  const section = t(sectionKey);
+  if (section !== sectionKey) return section;
+  return field
+    .replace(/[_.]/g, ' ')
+    .replace(/^(\w)/, (c) => c.toUpperCase());
+}
+
 export function strategyProposalToItems(proposal: unknown): StrategyAiProposalItem[] {
   if (!proposal || typeof proposal !== 'object') return [];
   const record = proposal as Record<string, unknown>;

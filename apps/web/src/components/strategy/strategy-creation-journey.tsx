@@ -10,18 +10,24 @@ type Step = {
   state: 'done' | 'current' | 'todo';
 };
 
-export function StrategyCreationJourney({ brandId, steps }: { brandId: string; steps: Step[] }) {
+export function StrategyCreationJourney({
+  brandId,
+  steps,
+  collapsible,
+}: {
+  brandId: string;
+  steps: Step[];
+  collapsible?: boolean;
+}) {
   const t = useT();
-  return (
-    <nav
-      className="oma-strategy-journey oma-card oma-stack"
-      aria-label={t('strategy.journey.title')}
-      data-testid="strategy-creation-journey"
-    >
-      <header>
-        <h3>{t('strategy.journey.title')}</h3>
-        <p className="oma-muted">{t('strategy.journey.subtitle')}</p>
-      </header>
+  const body = (
+    <>
+      {!collapsible ? (
+        <header>
+          <h3>{t('strategy.journey.title')}</h3>
+          <p className="oma-muted">{t('strategy.journey.subtitle')}</p>
+        </header>
+      ) : null}
       <ol className="oma-strategy-journey__list">
         {steps.map((step, index) => (
           <li
@@ -57,6 +63,31 @@ export function StrategyCreationJourney({ brandId, steps }: { brandId: string; s
         {' · '}
         {t('strategy.journey.catalogNote')}
       </p>
+    </>
+  );
+
+  if (collapsible) {
+    return (
+      <details
+        className="oma-strategy-journey oma-strategy-journey-collapsible oma-card oma-stack"
+        data-testid="strategy-creation-journey"
+      >
+        <summary className="oma-strategy-journey-collapsible__summary">
+          {t('strategy.journey.title')}
+        </summary>
+        <p className="oma-muted">{t('strategy.journey.subtitle')}</p>
+        {body}
+      </details>
+    );
+  }
+
+  return (
+    <nav
+      className="oma-strategy-journey oma-card oma-stack"
+      aria-label={t('strategy.journey.title')}
+      data-testid="strategy-creation-journey"
+    >
+      {body}
     </nav>
   );
 }

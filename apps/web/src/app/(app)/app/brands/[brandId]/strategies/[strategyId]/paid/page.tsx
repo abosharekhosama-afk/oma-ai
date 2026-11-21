@@ -17,7 +17,6 @@ import { BrandWorkspaceShell } from '../../../../../../../../components/brand/br
 import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PaidPlanningBanner } from '../../../../../../../../components/strategy/honesty-banners';
-import { TrackTabs } from '../../../../../../../../components/strategy/track-tabs';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
@@ -91,7 +90,6 @@ export default function StrategyPaidPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <TrackTabs brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.paid.title')} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyAiAssistant

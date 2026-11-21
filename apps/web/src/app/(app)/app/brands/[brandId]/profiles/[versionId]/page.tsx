@@ -292,9 +292,14 @@ export default function ProfileEditorPage() {
         }
       />
 
-      <div className="oma-plx-brand-status-rail">
+      <div className="oma-plx-brand-status-rail oma-plx-brand-status-rail--compact">
         {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
-        {linkedScan ? <ScanCatalogHonestyBanner scan={linkedScan} /> : null}
+        {linkedScan ? (
+          <details className="oma-plx-brand-status-details">
+            <summary>{t('brand.scan.partialTitle')}</summary>
+            <ScanCatalogHonestyBanner scan={linkedScan} />
+          </details>
+        ) : null}
         <AiUnavailableBanner
           aiAvailability={profile.ai_availability}
           analysisStatus={profile.analysis_status}

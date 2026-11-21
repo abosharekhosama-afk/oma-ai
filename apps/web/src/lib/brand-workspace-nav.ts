@@ -37,6 +37,15 @@ export function withJourneyState(
   });
 }
 
+/** True when viewing a specific strategy (not the hub list or /new). */
+export function isBrandStrategyDetailRoute(pathname: string, brandId: string): boolean {
+  const prefix = `/app/brands/${brandId}/strategies/`;
+  if (!pathname.startsWith(prefix)) return false;
+  const rest = pathname.slice(prefix.length);
+  if (!rest || rest.startsWith('new')) return false;
+  return /^[^/]+/.test(rest);
+}
+
 export function brandNavSection(pathname: string, brandId: string): BrandNavSection {
   const base = `/app/brands/${brandId}`;
   if (pathname === base) return 'overview';

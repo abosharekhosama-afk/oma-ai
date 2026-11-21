@@ -145,6 +145,23 @@
     max-height: none;
     gap: var(--space-1);
   }
+
+  .oma-doc-outline--segments a {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--oma-border);
+    background: var(--oma-surface);
+    font-size: 13px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .oma-doc-canvas--profile .oma-doc-outline {
+    border: 0;
+    padding: 0 0 8px;
+    background: transparent;
+  }
 }
 
 /* P5+ deliverable/review depth keeps composer split; P3 composer lives in stage3.css */
