@@ -21,6 +21,13 @@ function ctx(req: Request) {
 
 @Controller()
 export class SeoController {
+  @Get('api/v1/brands/:brandId/seo/strategy-proposals')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  @RequireCapabilities('brand.read')
+  strategyProposals(@Req() req: Request, @Param('brandId') brandId: string) {
+    return seoService.strategyProposals(ctx(req).tenantId, brandId);
+  }
+
   @Get('api/v1/brands/:brandId/seo/health')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   @RequireCapabilities('brand.read')

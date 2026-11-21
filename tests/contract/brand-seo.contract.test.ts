@@ -55,6 +55,20 @@ describe('brand SEO contract', () => {
       headers: authHeaders(seed),
     });
 
+    const bridge = await (
+      await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/seo/strategy-proposals`, {
+        headers: authHeaders(seed),
+      })
+    ).json();
+    expect(bridge.data).toMatchObject({
+      context: expect.objectContaining({
+        findings_count: expect.any(Number),
+        queries_count: expect.any(Number),
+      }),
+      seo_keywords: expect.any(Array),
+      content_gaps: expect.any(Array),
+    });
+
     const analytics = await (
       await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/seo/analytics?period=30`, {
         headers: authHeaders(seed),

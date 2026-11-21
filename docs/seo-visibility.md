@@ -45,6 +45,17 @@ After each successful brand **website scan** (ingestion job), the worker runs `r
 
 Use results in strategy organic keywords with explicit `EXTERNAL` / `MANUAL` labels (DEC-021).
 
+## 3b. Organic strategy bridge
+
+**Domain:** `packages/domain/src/seo/strategy-bridge.ts` maps crawl `SeoFinding` rows → `content_gaps` and GSC `KeywordRankObservation` (+ optional research metrics) → `seo_keywords`.
+
+| API | Purpose |
+|-----|---------|
+| `GET /api/v1/brands/:brandId/seo/strategy-proposals` | Preview proposal rows + context badge (score, scan, query count) |
+| `POST …/strategies/:strategyId/versions/:versionId/plan/organic/merge-seo` | Merge selected `proposal_ids` into the draft organic plan (deduped, tenant-scoped) |
+
+UI: organic plan editor → **Import from SEO** (checkboxes, explicit apply — no auto-approval).
+
 ## 4. Analytics aggregate
 
 **API:**

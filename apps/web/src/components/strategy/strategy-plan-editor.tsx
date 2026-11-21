@@ -27,6 +27,7 @@ import {
   type StrategyPlan,
 } from '../../lib/strategy-plan-api';
 import { useT } from '../../lib/use-locale';
+import { SeoStrategyImport } from './seo-strategy-import';
 
 type Track = 'organic' | 'paid';
 
@@ -205,6 +206,17 @@ export function StrategyPlanEditor({
 
       {!enabled ? <p>{t('strategy.plan.trackDisabled')}</p> : null}
       {enabled && !plan.editable ? <p>{t('strategy.warning.immutable')}</p> : null}
+
+      {track === 'organic' && enabled ? (
+        <SeoStrategyImport
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={versionId}
+          editable={editable}
+          plan={plan}
+          onMerged={(next) => apply({ data: next }, t('strategy.plan.seoImport.applied'))}
+        />
+      ) : null}
 
       {proposal ? (
         <div className="oma-plan-proposal" role="region" data-testid="plan-proposal">
