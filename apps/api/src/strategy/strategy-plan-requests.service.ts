@@ -201,8 +201,9 @@ export class StrategyPlanRequestsService {
     const paidPlan = version.paidEnabled
       ? (await readStrategyPlan(getPrisma(), version.id)).paid
       : null;
+    const paidBudgetRaw = paid?.budgetAmount != null ? Number(paid.budgetAmount) : null;
     const paidBudgetAmount =
-      paid?.budgetAmount != null && paid.budgetAmount !== '' ? Number(paid.budgetAmount) : null;
+      paidBudgetRaw != null && Number.isFinite(paidBudgetRaw) ? paidBudgetRaw : null;
     return buildPlanWorkRequestDrafts({
       strategyName: version.strategy.name,
       foundation: parseJson(version.foundationJson, {}),
