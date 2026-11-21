@@ -286,6 +286,7 @@
   "brand.seo.position": "متوسط الترتيب",
   "brand.seo.clicks": "النقرات",
   "brand.seo.noQueries": "زامِن Search Console أو الربط التجريبي لعرض الاستعلامات.",
+  "brand.seo.analyticsDenied": "يمكنك عرض صحة الموقع وSearch Console هنا. إجماليات تحليلات SEO تحتاج صلاحية analytics.read.",
   "brand.nav.intelligence": "الذكاء",
   "brand.nav.evidence": "الأدلة",
   "brand.nav.strategyHub": "الاستراتيجية والذكاء",

@@ -48,6 +48,7 @@ const BRAND_TRAIL_SEGMENT_KEYS: Record<string, string> = {
   connect: 'brand.nav.website',
   scans: 'brand.nav.scan',
   discovery: 'brand.nav.discovery',
+  seo: 'brand.nav.seo',
   evidence: 'brand.nav.evidenceHub',
   intelligence: 'brand.nav.intelligenceHub',
   profiles: 'brand.nav.profiles',
