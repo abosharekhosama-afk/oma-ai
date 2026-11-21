@@ -235,8 +235,7 @@ export default function ScanDetailPage() {
     : (scan.coverage?.products_discovered ?? 0) + (scan.coverage?.services_discovered ?? 0);
   const sitemapUrlsQueued = scan.coverage?.sitemap_urls_queued ?? 0;
   const sitemapDocumentsFetched = scan.coverage?.sitemap_documents_fetched ?? 0;
-  const showSitemapPhase =
-    inProgress && scan.status === 'CRAWLING' && scan.progress_percent <= 8;
+  const showSitemapPhase = inProgress && scan.status === 'CRAWLING' && scan.progress_percent <= 8;
 
   const journey = buildBrandJourneySteps(brand, t);
 

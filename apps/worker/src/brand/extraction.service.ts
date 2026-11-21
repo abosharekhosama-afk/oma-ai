@@ -272,10 +272,7 @@ export async function runExtractionForScan(input: {
   const maxDepth = input.config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3);
   const maxBytes = Number(process.env.BRAND_MAX_BYTES ?? 1_000_000);
   const configuredMaxSitemap = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 12);
-  const maxSitemapDocuments = Math.max(
-    configuredMaxSitemap,
-    Math.min(32, Math.ceil(maxPages / 6)),
-  );
+  const maxSitemapDocuments = Math.max(configuredMaxSitemap, Math.min(32, Math.ceil(maxPages / 6)));
   const sitemapUrlParseLimit = Math.min(Math.max(maxPages * 4, 200), 5000);
   const deadline = Date.now() + (input.config?.max_duration_seconds ?? 600) * 1000;
 
