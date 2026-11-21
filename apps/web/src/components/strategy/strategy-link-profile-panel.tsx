@@ -76,6 +76,7 @@ export function StrategyLinkProfilePanel({
         data-testid="strategy-profile-linked"
       >
         <strong>{t('strategy.linkProfile.linkedTitle')}</strong>
+        <p className="oma-muted">{t('strategy.linkProfile.linkedHint')}</p>
         <p>
           <Link
             href={`/app/brands/${brandId}/profiles/${linkedProfileVersionId}`}

@@ -45,6 +45,29 @@ describe('buildPlanWorkRequestDrafts', () => {
     expect(drafts[0]?.plan_source_key).toBe('paid:objective:0');
   });
 
+  it('creates organic catalog requests up to catalog cap (500)', () => {
+    const offerings = Array.from({ length: 16 }, (_, i) => ({
+      kind: 'product' as const,
+      slug: `product-${i}`,
+      name: `Product ${i}`,
+      description: `Desc ${i}`,
+    }));
+    const drafts = buildPlanWorkRequestDrafts({
+      strategyName: 'Catalog',
+      foundation: { goals: [{ value: 'Sales' }] },
+      organicEnabled: true,
+      paidEnabled: false,
+      organic: { channels: ['Instagram'], formats: ['Post'] },
+      paid: null,
+      audiences: [{ name: 'Shoppers' }],
+      catalogOfferings: offerings,
+    });
+    const catalogCount = drafts.filter((d) =>
+      d.plan_source_key.includes(':catalog:product:'),
+    ).length;
+    expect(catalogCount).toBe(16);
+  });
+
   it('adds catalog-anchored organic requests for scanned products', () => {
     const drafts = buildPlanWorkRequestDrafts({
       strategyName: 'Catalog launch',

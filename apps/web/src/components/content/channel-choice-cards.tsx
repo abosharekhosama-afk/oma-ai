@@ -56,6 +56,110 @@ const CHANNEL_VALUES: Record<SocialNetwork, string> = {
   whatsapp: 'WhatsApp',
 };
 
+function ChannelDropdownPicker({
+  testId,
+  isAr,
+  loading,
+  loadFailed,
+  pages,
+  providers,
+  selected,
+  settingsHref,
+  onToggle,
+}: {
+  testId: string;
+  isAr: boolean;
+  loading: boolean;
+  loadFailed: boolean;
+  pages: SocialPageRow[];
+  providers: SocialProvider[];
+  selected: Set<string>;
+  settingsHref: string;
+  onToggle: (network: SocialNetwork) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selectedNetworks = FEED_SOCIAL_NETWORKS.filter((n) => selected.has(n));
+  const summary =
+    selectedNetworks.length === 0
+      ? isAr
+        ? 'اختر القنوات…'
+        : 'Select channels…'
+      : selectedNetworks.map((key) => LABELS[key][isAr ? 'ar' : 'en']).join(isAr ? '، ' : ', ');
+
+  return (
+    <div className="oma-channel-dropdown" data-testid={testId}>
+      <button
+        type="button"
+        className="oma-channel-dropdown__trigger oma-card"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        disabled={loading}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="oma-channel-dropdown__summary">{summary}</span>
+        <span className="oma-channel-dropdown__chevron" aria-hidden>
+          {open ? '▴' : '▾'}
+        </span>
+      </button>
+      {open ? (
+        <div className="oma-channel-dropdown__panel oma-card" role="listbox">
+          {FEED_SOCIAL_NETWORKS.map((network) => {
+            const accounts = pages.filter((page) => page.network === network);
+            const connected = accounts.some((page) => page.status === 'CONNECTED');
+            const provider = providers.find((item) => item.network === network);
+            const isSelected = selected.has(network);
+            const name = LABELS[network][isAr ? 'ar' : 'en'];
+            const stateText = loading
+              ? isAr
+                ? 'جارٍ التحقق…'
+                : 'Checking…'
+              : loadFailed
+                ? isAr
+                  ? 'تعذر التحقق'
+                  : 'Could not verify'
+                : connected
+                  ? isAr
+                    ? 'متصل'
+                    : 'Connected'
+                  : provider && !provider.available
+                    ? isAr
+                      ? 'غير مُعدّ'
+                      : 'Not configured'
+                    : isAr
+                      ? 'غير متصل'
+                      : 'Not connected';
+            return (
+              <button
+                key={network}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                className="oma-channel-dropdown__option"
+                data-selected={isSelected ? 'true' : 'false'}
+                onClick={() => onToggle(network)}
+              >
+                <span className="oma-channel-dropdown__option-icon" aria-hidden>
+                  <NetworkIcon channel={network} size={16} />
+                </span>
+                <span className="oma-channel-dropdown__option-body">
+                  <strong>{name}</strong>
+                  <span className="oma-muted">{stateText}</span>
+                </span>
+                <span className="oma-channel-dropdown__option-check" aria-hidden>
+                  {isSelected ? '✓' : ''}
+                </span>
+              </button>
+            );
+          })}
+          <Link href={settingsHref} className="oma-channel-dropdown__manage">
+            {isAr ? 'إدارة القنوات' : 'Manage channels'}
+          </Link>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function selectedSet(value: string) {
   return new Set(
     value
@@ -101,7 +205,7 @@ export function ChannelChoiceCards({
   locale: string;
   multiple?: boolean;
   /** Planable compose uses a compact avatar strip; cards remain the default. */
-  variant?: 'cards' | 'strip' | 'accounts';
+  variant?: 'cards' | 'strip' | 'accounts' | 'dropdown';
   /** Case-insensitive filter for account name / handle / network (accounts variant). */
   filterQuery?: string;
   testId?: string;
@@ -234,6 +338,22 @@ export function ChannelChoiceCards({
           +
         </Link>
       </div>
+    );
+  }
+
+  if (variant === 'dropdown') {
+    return (
+      <ChannelDropdownPicker
+        testId={testId}
+        isAr={isAr}
+        loading={loading}
+        loadFailed={loadFailed}
+        pages={pages}
+        providers={providers}
+        selected={selected}
+        settingsHref={settingsHref}
+        onToggle={toggle}
+      />
     );
   }
 
