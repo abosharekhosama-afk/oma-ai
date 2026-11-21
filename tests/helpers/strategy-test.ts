@@ -123,6 +123,7 @@ export async function submitStrategy(
   versionId: string,
   rowVersion: number,
 ) {
+  rowVersion = await ensurePaidSubmitReady(seed, brandId, strategyId, versionId, rowVersion);
   const res = await fetch(
     `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/submit`,
     {
