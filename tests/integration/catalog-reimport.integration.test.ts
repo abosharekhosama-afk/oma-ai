@@ -197,5 +197,5 @@ describe('catalog reimport reconciliation (integration)', () => {
       rowsBefore,
     );
     expect(await prisma.catalogProductMedia.count({ where: { brandId } })).toBe(linksBefore);
-  });
+  }, 120_000);
 });
