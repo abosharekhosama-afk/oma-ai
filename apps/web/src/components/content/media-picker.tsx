@@ -232,10 +232,11 @@ function fileToItem(
   const view =
     file.view_url ||
     `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(file.id)}${qs}`;
+  const fileBrandId = file.brand_id || brandId;
   const asset: MediaAsset | null = file.asset_id
     ? {
         id: file.asset_id,
-        brand_id: brandId,
+        brand_id: fileBrandId,
         kind,
         name: file.name,
         mime: file.mime,
@@ -415,9 +416,12 @@ export function MediaPickerDialog({
       if (!brandId) return;
       setError(null);
       try {
+        const listScope =
+          scope === 'organization' || scope === 'all' ? ('organization' as const) : undefined;
         const r = await mediaApi.list(brandId, kind, storageSource ?? undefined, {
           limit: ASSET_LIST_LIMIT,
           cursor: opts?.append ? opts.cursor : undefined,
+          scope: listScope,
         });
         setLib((prev) =>
           opts?.append && prev
@@ -431,7 +435,7 @@ export function MediaPickerDialog({
         setError(getApiError(e).message);
       }
     },
-    [brandId, kind, storageSource],
+    [brandId, kind, scope, storageSource],
   );
 
   const openFolder = useCallback(
@@ -460,6 +464,14 @@ export function MediaPickerDialog({
         if (nextScope === 'organization' && !folderId) setOrgRoot(labeled);
         if (nextScope === 'brand' && !folderId) setBrandRoot(labeled);
         if (labeled.brand_folder && nextScope === 'brand' && !folderId) setBrandRoot(labeled);
+        const listScope = nextScope === 'organization' || nextScope === 'all' ? nextScope : undefined;
+        void mediaApi
+          .list(brandId, kind, storageSource ?? undefined, {
+            limit: ASSET_LIST_LIMIT,
+            scope: listScope === 'all' ? 'organization' : listScope,
+          })
+          .then((r) => setLib(r.data))
+          .catch(() => undefined);
       } catch (e) {
         if (nextScope === 'organization') {
           try {
@@ -504,19 +516,14 @@ export function MediaPickerDialog({
           mediaApi.browse(brandId, kind, undefined, 'brand', src, page),
         ]);
         if (org.status === 'fulfilled') {
-          setOrgRoot(applyBrowseLabels(org.value.data));
-        }
-        if (brandBrowse.status === 'fulfilled') {
-          const labeled = applyBrowseLabels(brandBrowse.value.data);
-          setBrandRoot(labeled);
-          setBrowse(labeled);
-          setScope('brand');
-          setSelectedFolderId(labeled.folder.id);
-        } else if (org.status === 'fulfilled') {
           const labeled = applyBrowseLabels(org.value.data);
+          setOrgRoot(labeled);
           setBrowse(labeled);
           setScope('organization');
           setSelectedFolderId(labeled.folder.id);
+        }
+        if (brandBrowse.status === 'fulfilled') {
+          setBrandRoot(applyBrowseLabels(brandBrowse.value.data));
         }
         if (org.status === 'rejected' && brandBrowse.status === 'rejected') {
           setError(getApiError(org.reason).message);
@@ -607,6 +614,7 @@ export function MediaPickerDialog({
       try {
         const libRes = await mediaApi.list(brandId, kind, browseSource, {
           limit: ASSET_LIST_LIMIT,
+          scope: 'organization',
         });
         setLib(libRes.data);
       } catch (e) {
@@ -690,7 +698,7 @@ export function MediaPickerDialog({
       .then((r) => setWorkspaceStorage(r.data))
       .catch(() => setWorkspaceStorage(null));
     void mediaApi
-      .list(brandId, kind, next, { limit: ASSET_LIST_LIMIT })
+      .list(brandId, kind, next, { limit: ASSET_LIST_LIMIT, scope: 'organization' })
       .then((r) => setLib(r.data))
       .catch((e) => setError(getApiError(e).message));
     void reloadBrowseRoots(next);
@@ -714,17 +722,8 @@ export function MediaPickerDialog({
   }, [allSelected, brandFolder, browse?.path, openFolder]);
 
   const items = useMemo(() => {
-    const atWorkspaceRoot =
-      scope === 'organization' &&
-      Boolean(orgRoot) &&
-      !allSelected &&
-      !brandSelected &&
-      selectedFolderId === orgRoot?.folder.id;
     const source = allSelected ? browse : browse;
-    let files = source?.files ?? [];
-    if (atWorkspaceRoot && files.length === 0 && (brandRoot?.files?.length ?? 0) > 0) {
-      files = brandRoot!.files;
-    }
+    const files = source?.files ?? [];
     const mapped = files.map((f) => fileToItem(f, brandId || '', kind, storageSource ?? undefined));
     const seen = new Set(mapped.map((i) => i.key));
     if (lib?.assets.length) {
@@ -1326,6 +1325,7 @@ export function MediaPickerDialog({
           brandFolderId={brandFolder?.id}
           allSelected={allSelected}
           browsing={browsing}
+          activeScope={scope}
           onBack={goFolderUp}
           onNavigate={(nextScope, folderId) => void openFolder(nextScope, folderId)}
           t={t}

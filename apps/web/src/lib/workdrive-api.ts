@@ -123,6 +123,7 @@ export type WorkDriveBrowseFile = {
   mime: string;
   size: number;
   updated_at: string | null;
+  brand_id?: string | null;
   asset_id?: string | null;
   view_url?: string | null;
   stream_url?: string | null;
@@ -225,11 +226,12 @@ export const mediaApi = {
     brandId: string,
     kind?: MediaKind,
     source?: 'oma' | 'workdrive',
-    opts?: { limit?: number; cursor?: string | null },
+    opts?: { limit?: number; cursor?: string | null; scope?: 'brand' | 'organization' | 'all' },
   ) => {
     const qs = new URLSearchParams();
     if (kind) qs.set('kind', kind);
     if (source) qs.set('source', source);
+    if (opts?.scope) qs.set('scope', opts.scope);
     if (opts?.limit) qs.set('limit', String(opts.limit));
     if (opts?.cursor) qs.set('cursor', opts.cursor);
     const q = qs.toString();

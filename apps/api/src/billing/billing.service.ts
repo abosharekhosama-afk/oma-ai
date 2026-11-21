@@ -305,6 +305,27 @@ export class BillingService {
               : Math.min(100, Math.round((used / limit) * 100)),
         };
       });
+    if (!usageBars.some((b) => b.key === 'storage_bytes')) {
+      const limit = plan.limits.storage_bytes ?? null;
+      const used = usage.storage_bytes ?? 0;
+      usageBars.push({
+        key: 'storage_bytes',
+        used,
+        limit,
+        unlimited: limit == null,
+        pct:
+          limit == null || limit === 0
+            ? limit === 0 && used > 0
+              ? 100
+              : 0
+            : Math.min(100, Math.round((used / limit) * 100)),
+      });
+    }
+    const storageLimit =
+      (await (await import('@oma/db')).resolveAdminStorageLimitBytes(
+        tenantId,
+        plan.limits.storage_bytes ?? null,
+      )) ?? plan.limits.storage_bytes ?? null;
     const [invoices, pendingOrders] = await Promise.all([
       getPrisma().billingInvoice.findMany({
         where: { tenantId },
@@ -351,6 +372,10 @@ export class BillingService {
         },
         usage,
         usage_bars: usageBars,
+        storage_summary: {
+          used_bytes: usage.storage_bytes ?? 0,
+          limit_bytes: storageLimit,
+        },
         invoices: invoices.map((r) => this.mapInvoice(r)),
         providers: visiblePaymentProviders(),
         settings_vat_rate_bps: settings.vatRateBps,
