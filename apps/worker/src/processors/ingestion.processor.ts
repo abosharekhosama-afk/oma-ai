@@ -200,6 +200,7 @@ export function startIngestionProcessor(
           !(await advanceScanIfActive(prisma, scan.id, {
             status: 'CRAWLING',
             startedAt: new Date(),
+            progressUpdatedAt: new Date(),
             progressPercent: 2,
             // Recorded on the attempt that used it: the API process can be
             // reconfigured later and must not restate this scan's provenance.
@@ -243,6 +244,7 @@ export function startIngestionProcessor(
 
         let lastProgressWrite = 0;
         let lastProgressPercent = -1;
+        let liveCoverage: Record<string, unknown> = {};
         let cancelLatch = false;
         let lastAbortProbe = 0;
         const shouldAbort = async () => {
@@ -272,14 +274,25 @@ export function startIngestionProcessor(
           pagesFetched?: number;
           pagesFailed?: number;
           pagesSkipped?: number;
+          sitemapUrlsQueued?: number;
+          sitemapDocumentsFetched?: number;
         }) => {
           const now = Date.now();
           const statusChange = patch.status !== undefined;
-          const bigJump = patch.progressPercent - lastProgressPercent >= 2;
+          const bigJump = patch.progressPercent - lastProgressPercent >= 1;
+          const sitemapPulse =
+            patch.sitemapUrlsQueued !== undefined || patch.sitemapDocumentsFetched !== undefined;
+          if (patch.sitemapUrlsQueued !== undefined) {
+            liveCoverage.sitemap_urls_queued = patch.sitemapUrlsQueued;
+          }
+          if (patch.sitemapDocumentsFetched !== undefined) {
+            liveCoverage.sitemap_documents_fetched = patch.sitemapDocumentsFetched;
+          }
           if (
             !statusChange &&
             !bigJump &&
-            now - lastProgressWrite < 1200 &&
+            !sitemapPulse &&
+            now - lastProgressWrite < 800 &&
             patch.pagesFetched === undefined
           ) {
             return;
@@ -289,9 +302,13 @@ export function startIngestionProcessor(
           const active = await advanceScanIfActive(prisma, scan.id, {
             ...(patch.status ? { status: patch.status } : {}),
             progressPercent: patch.progressPercent,
+            progressUpdatedAt: new Date(),
             ...(patch.pagesFetched !== undefined ? { pagesFetched: patch.pagesFetched } : {}),
             ...(patch.pagesFailed !== undefined ? { pagesFailed: patch.pagesFailed } : {}),
             ...(patch.pagesSkipped !== undefined ? { pagesSkipped: patch.pagesSkipped } : {}),
+            ...(Object.keys(liveCoverage).length > 0
+              ? { coverageJson: JSON.stringify(liveCoverage) }
+              : {}),
           });
           if (!active) {
             throw new Error(SCAN_CANCELLED_MESSAGE);
@@ -373,6 +390,14 @@ export function startIngestionProcessor(
           stop_reason: counts.stopReason ?? 'queue_empty',
           urls_from_home_bootstrap:
             typeof counts.urlsFromHomeBootstrap === 'number' ? counts.urlsFromHomeBootstrap : 0,
+          sitemap_urls_queued:
+            typeof counts.urlsFromSitemap === 'number' ? counts.urlsFromSitemap : 0,
+          sitemap_documents_fetched:
+            typeof counts.sitemapDocumentsFetched === 'number'
+              ? counts.sitemapDocumentsFetched
+              : typeof liveCoverage.sitemap_documents_fetched === 'number'
+                ? liveCoverage.sitemap_documents_fetched
+                : 0,
           failed_pages: counts.failedPageSamples ?? [],
           required_missing: usable
             ? []

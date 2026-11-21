@@ -697,6 +697,11 @@ body {
 .oma-scan-phase.is-current {
   opacity: 1;
 }
+.oma-scan-live-dot {
+  color: var(--oma-success, #16a34a);
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
 .oma-scan-outcome {
   margin-bottom: 1rem;
 }

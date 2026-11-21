@@ -248,6 +248,8 @@ export type ScanExtractionProgress = {
   pagesFetched?: number;
   pagesFailed?: number;
   pagesSkipped?: number;
+  sitemapUrlsQueued?: number;
+  sitemapDocumentsFetched?: number;
 };
 
 async function ensureScanNotAborted(shouldAbort?: () => Promise<boolean>) {
@@ -269,7 +271,12 @@ export async function runExtractionForScan(input: {
   const maxPages = clampScanMaxPages(input.config?.max_pages, process.env);
   const maxDepth = input.config?.max_depth ?? Number(process.env.BRAND_MAX_DEPTH ?? 3);
   const maxBytes = Number(process.env.BRAND_MAX_BYTES ?? 1_000_000);
-  const maxSitemapDocuments = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 5);
+  const configuredMaxSitemap = Number(process.env.BRAND_MAX_SITEMAP_DOCUMENTS ?? 12);
+  const maxSitemapDocuments = Math.max(
+    configuredMaxSitemap,
+    Math.min(32, Math.ceil(maxPages / 6)),
+  );
+  const sitemapUrlParseLimit = Math.min(Math.max(maxPages * 4, 200), 5000);
   const deadline = Date.now() + (input.config?.max_duration_seconds ?? 600) * 1000;
 
   const mediaCap = maxProductMediaFromEnv();
@@ -312,6 +319,7 @@ export async function runExtractionForScan(input: {
   const maxFetchAttempts =
     maxPages + Math.max(0, Number(process.env.BRAND_SCANNER_MAX_FAILED_ATTEMPTS ?? '20') || 20);
   let urlsFromSitemap = 0;
+  let sitemapDocumentsFetchedTotal = 0;
   let urlsFromHomeBootstrap = 0;
 
   const recordJsRenderError = (code: string, detail?: string) => {
@@ -343,18 +351,24 @@ export async function runExtractionForScan(input: {
       ? [...robotsInfo.sitemaps]
       : [...new Set([...robotsInfo.sitemaps, ...buildSitemapSeedUrls(input.startUrl)])];
     const sitemapDocs = [...new Set(seedTargets)].slice(0, maxSitemapDocuments);
-    let docsFetched = 0;
-    while (sitemapDocs.length > 0 && docsFetched < maxSitemapDocuments && Date.now() < deadline) {
+    let sitemapDocumentsFetched = 0;
+    while (
+      sitemapDocs.length > 0 &&
+      sitemapDocumentsFetched < maxSitemapDocuments &&
+      Date.now() < deadline
+    ) {
       await ensureScanNotAborted(input.shouldAbort);
       const sitemapUrl = sitemapDocs.shift();
       if (!sitemapUrl) break;
-      docsFetched += 1;
+      sitemapDocumentsFetched += 1;
       await emitProgress({
         progressPercent: scanSitemapProgressPercent(),
         status: 'CRAWLING',
         pagesFetched,
         pagesFailed,
         pagesSkipped,
+        sitemapUrlsQueued: urlsFromSitemap,
+        sitemapDocumentsFetched,
       });
       try {
         const fetched = await input.connector.fetchPublic({
@@ -363,10 +377,10 @@ export async function runExtractionForScan(input: {
           accept: 'xml',
         });
         if (fetched.status >= 400) continue;
-        const parsed = parseSitemapXml(fetched.body, maxPages);
+        const parsed = parseSitemapXml(fetched.body, sitemapUrlParseLimit);
         for (const nested of parsed.sitemaps) {
           if (
-            sitemapDocs.length + docsFetched < maxSitemapDocuments &&
+            sitemapDocs.length + sitemapDocumentsFetched < maxSitemapDocuments &&
             isInCrawlScope(input.startUrl, nested)
           ) {
             sitemapDocs.push(nested);
@@ -389,10 +403,20 @@ export async function runExtractionForScan(input: {
             urlsFromSitemap += 1;
           }
         }
+        await emitProgress({
+          progressPercent: scanSitemapProgressPercent(),
+          status: 'CRAWLING',
+          pagesFetched,
+          pagesFailed,
+          pagesSkipped,
+          sitemapUrlsQueued: urlsFromSitemap,
+          sitemapDocumentsFetched,
+        });
       } catch {
         // sitemap discovery is best-effort
       }
     }
+    sitemapDocumentsFetchedTotal = sitemapDocumentsFetched;
   } catch {
     // robots/sitemap discovery is best-effort
   }
@@ -807,6 +831,8 @@ export async function runExtractionForScan(input: {
     pagesFailed,
     pagesSkipped,
     urlsFromHomeBootstrap,
+    urlsFromSitemap,
+    sitemapDocumentsFetched: sitemapDocumentsFetchedTotal,
     failedPageSamples,
     pagesJsRendered,
     pagesJsRenderAttempted,

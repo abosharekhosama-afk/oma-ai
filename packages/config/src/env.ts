@@ -22,7 +22,7 @@ export const envSchema = z
     BRAND_MAX_DEPTH: z.coerce.number().default(3),
     BRAND_MAX_DURATION_SECONDS: z.coerce.number().default(600),
     BRAND_MAX_BYTES: z.coerce.number().default(1_000_000),
-    BRAND_MAX_SITEMAP_DOCUMENTS: z.coerce.number().int().positive().default(5),
+    BRAND_MAX_SITEMAP_DOCUMENTS: z.coerce.number().int().positive().default(12),
     BRAND_SCANNER_USER_AGENT: z.string().min(1).default('OMA-BrandScanner/1.0 (+https://oma.ai)'),
     BRAND_SCANNER_ACCEPT_LANGUAGE: z.string().min(1).default('en,ar;q=0.9'),
     BRAND_SCANNER_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),

@@ -31,7 +31,7 @@ import { buildBrandJourneySteps } from '../../../../../../../lib/brand-journey';
 
 const TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
 const PHASES = ['QUEUED', 'CRAWLING', 'EXTRACTING', 'ANALYZING'] as const;
-const POLL_MS = 2500;
+const POLL_MS = 2000;
 
 function phaseIndex(status: string): number {
   if (status === 'SUCCEEDED' || status === 'PARTIAL') return PHASES.length;
@@ -61,12 +61,41 @@ export default function ScanDetailPage() {
   >(null);
   const liveRef = useRef<HTMLDivElement>(null);
   const lastAnnounced = useRef('');
+  const pollFailRef = useRef(0);
+  const [networkOnline, setNetworkOnline] = useState(true);
+  const [syncLost, setSyncLost] = useState(false);
 
   const loadScan = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setNetworkOnline(false);
+      setSyncLost(true);
+      throw new Error('offline');
+    }
+    setNetworkOnline(true);
     const res = await api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${scanId}`);
     setScan(res.data);
+    pollFailRef.current = 0;
+    setSyncLost(false);
     return res.data;
   }, [brandId, scanId]);
+
+  useEffect(() => {
+    const goOnline = () => {
+      setNetworkOnline(true);
+      void loadScan().catch(() => undefined);
+    };
+    const goOffline = () => {
+      setNetworkOnline(false);
+      setSyncLost(true);
+    };
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    setNetworkOnline(navigator.onLine);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, [loadScan]);
 
   useEffect(() => {
     Promise.all([api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`), loadScan()])
@@ -95,7 +124,10 @@ export default function ScanDetailPage() {
     )
       return;
     const id = window.setInterval(() => {
-      loadScan().catch(() => undefined);
+      loadScan().catch(() => {
+        pollFailRef.current += 1;
+        if (pollFailRef.current >= 2) setSyncLost(true);
+      });
     }, POLL_MS);
     return () => window.clearInterval(id);
   }, [scan, loadScan]);
@@ -201,6 +233,10 @@ export default function ScanDetailPage() {
   const productsFound = summary
     ? summary.products + summary.services
     : (scan.coverage?.products_discovered ?? 0) + (scan.coverage?.services_discovered ?? 0);
+  const sitemapUrlsQueued = scan.coverage?.sitemap_urls_queued ?? 0;
+  const sitemapDocumentsFetched = scan.coverage?.sitemap_documents_fetched ?? 0;
+  const showSitemapPhase =
+    inProgress && scan.status === 'CRAWLING' && scan.progress_percent <= 8;
 
   const journey = buildBrandJourneySteps(brand, t);
 
@@ -320,6 +356,40 @@ export default function ScanDetailPage() {
             .replace('{percent}', String(scan.progress_percent))}
         </p>
 
+        {inProgress && !networkOnline ? (
+          <div
+            className="oma-banner oma-banner-warning"
+            role="alert"
+            data-testid="scan-offline-banner"
+          >
+            <strong>{t('brand.scan.offlineTitle')}</strong>
+            <p>{t('brand.scan.offlineBody')}</p>
+          </div>
+        ) : null}
+        {inProgress && networkOnline && syncLost ? (
+          <div
+            className="oma-banner oma-banner-warning"
+            role="alert"
+            data-testid="scan-sync-lost-banner"
+          >
+            <strong>{t('brand.scan.syncLostTitle')}</strong>
+            <p>{t('brand.scan.syncLostBody')}</p>
+          </div>
+        ) : null}
+        {inProgress && networkOnline && !syncLost ? (
+          <p className="oma-muted" role="status" data-testid="scan-live-sync">
+            <span className="oma-scan-live-dot" aria-hidden="true">
+              ●
+            </span>{' '}
+            {t('brand.scan.liveSyncLabel')}
+          </p>
+        ) : null}
+        {showSitemapPhase ? (
+          <p className="oma-muted" role="status" data-testid="scan-sitemap-phase-hint">
+            {t('brand.scan.sitemapPhaseHint')}
+          </p>
+        ) : null}
+
         {isPartial ? (
           <div className="oma-banner oma-banner-warning" role="alert">
             <strong>{t('brand.scan.partialTitle')}</strong>
@@ -372,6 +442,17 @@ export default function ScanDetailPage() {
                   {
                     label: t('brand.scan.productMediaImported'),
                     value: scan.product_media_imported,
+                  },
+                ]
+              : []),
+            ...(sitemapUrlsQueued > 0
+              ? [{ label: t('brand.scan.sitemapUrlsQueued'), value: sitemapUrlsQueued }]
+              : []),
+            ...(sitemapDocumentsFetched > 0
+              ? [
+                  {
+                    label: t('brand.scan.sitemapDocumentsFetched'),
+                    value: sitemapDocumentsFetched,
                   },
                 ]
               : []),
