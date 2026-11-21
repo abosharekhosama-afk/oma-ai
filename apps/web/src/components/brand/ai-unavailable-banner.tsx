@@ -72,12 +72,7 @@ export function AiUnavailableBanner({
 
   if (analysisStatus === 'SKIPPED' || analysisStatus === 'NOT_REQUESTED') {
     if (apiReady && workerMissing) {
-      return (
-        <AiStrip variant="info" testId="ai-analysis-status" action={action}>
-          <strong>{t('brand.ai.workerSetupTitle')}</strong>
-          <p>{t('brand.ai.workerSetupBody')}</p>
-        </AiStrip>
-      );
+      return null;
     }
     if (apiReady && canRequestAnalysis && onRequestAnalysis) {
       return (
@@ -87,7 +82,7 @@ export function AiUnavailableBanner({
             {analysisErrorCode === 'PLAN_FEATURE_REQUIRED'
               ? t('brand.ai.planRequiredBody')
               : analysisErrorCode === 'AI_NOT_CONFIGURED'
-                ? t('brand.ai.workerSetupBody')
+                ? t('brand.ai.pendingBody')
                 : t('brand.ai.pendingBody')}
           </p>
         </AiStrip>
@@ -107,12 +102,7 @@ export function AiUnavailableBanner({
   if (!workerMissing) return null;
 
   if (apiReady) {
-    return (
-      <AiStrip variant="info" testId="ai-analysis-status" action={action}>
-        <strong>{t('brand.ai.workerSetupTitle')}</strong>
-        <p>{t('brand.ai.workerSetupBody')}</p>
-      </AiStrip>
-    );
+    return null;
   }
 
   return (

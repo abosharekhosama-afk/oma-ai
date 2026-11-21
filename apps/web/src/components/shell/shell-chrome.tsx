@@ -15,6 +15,7 @@ import { OfflineBanner } from '../ui/offline-banner';
 import { OPEN_SETTINGS_EVENT } from '../../lib/settings-dialog';
 import { openTeamInvite } from '../../lib/team-invite';
 import { isSettingsSection } from '../settings/settings-sections';
+import { BrandPathBreadcrumb } from './brand-path-breadcrumb';
 
 // Heavy, on-demand UI is code-split out of the shell bundle.
 const CommandSearch = dynamic(() => import('./command-search').then((m) => m.CommandSearch), {
@@ -155,6 +156,10 @@ function RailUtilities() {
 function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useT();
   const pathname = usePathname() || '/app';
+  const brandPathMatch = pathname.match(/^\/app\/brands\/([^/]+)/);
+  if (brandPathMatch && brandPathMatch[1] !== 'new' && !pathname.startsWith('/app/brands/new')) {
+    return <BrandPathBreadcrumb brandId={brandPathMatch[1]!} pathname={pathname} />;
+  }
   const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
   const isApprovals = pathname === '/app/approvals' || pathname.startsWith('/app/approvals/');
   const isDeliverables =

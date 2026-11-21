@@ -4,20 +4,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { BrandNavLink } from '../../lib/brand-workspace-nav';
 import { useT } from '../../lib/use-locale';
+import { BrandSectionNav } from './brand-section-nav';
 
 type Props = {
   links: BrandNavLink[];
   ariaLabel: string;
+  backHref: string;
+  backLabel?: string;
 };
 
-export function BrandWorkspaceSubnav({ links, ariaLabel }: Props) {
+export function BrandWorkspaceSubnav({ links, ariaLabel, backHref, backLabel }: Props) {
   const pathname = usePathname();
   const t = useT();
   return (
-    <nav
-      className="oma-plx-deliv-groups oma-plx-brand-subnav oma-brand-nav-secondary"
-      aria-label={ariaLabel}
-      data-testid="brand-subnav"
+    <BrandSectionNav
+      backHref={backHref}
+      backLabel={backLabel}
+      ariaLabel={ariaLabel}
+      testId="brand-subnav"
     >
       {links.map((link) => {
         const active = link.match(pathname);
@@ -27,10 +31,9 @@ export function BrandWorkspaceSubnav({ links, ariaLabel }: Props) {
             data-state={link.state}
             title={link.state ? t(`brand.journey.state.${link.state}`) : undefined}
             href={link.href}
+            role="tab"
             aria-current={active ? 'page' : undefined}
-            className={`oma-plx-deliv-groups__btn oma-brand-nav-link oma-brand-nav-link--secondary${
-              active ? ' is-active' : ''
-            }`}
+            className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
           >
             {link.state ? (
               <span className="oma-brand-nav-state" data-state={link.state} aria-hidden="true" />
@@ -39,6 +42,6 @@ export function BrandWorkspaceSubnav({ links, ariaLabel }: Props) {
           </Link>
         );
       })}
-    </nav>
+    </BrandSectionNav>
   );
 }

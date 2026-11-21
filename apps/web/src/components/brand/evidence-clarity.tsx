@@ -3,8 +3,6 @@
 import type { EvidenceItem } from '../../lib/brand-types';
 import { stripHtmlForExcerpt } from '../../lib/profile-display';
 import { useLocale, useT } from '../../lib/use-locale';
-import { ConnectorModeBanner } from './connector-mode-banner';
-
 type EvidenceClarityProps = {
   evidence: EvidenceItem;
 };
@@ -16,7 +14,6 @@ export function EvidenceClarity({ evidence }: EvidenceClarityProps) {
 
   return (
     <div className="oma-evidence-clarity">
-      {evidence.connector_mode ? <ConnectorModeBanner mode={evidence.connector_mode} /> : null}
       <div className="oma-evidence-clarity__source">
         <span className="oma-muted">{t('brand.evidence.source')}</span>
         <a

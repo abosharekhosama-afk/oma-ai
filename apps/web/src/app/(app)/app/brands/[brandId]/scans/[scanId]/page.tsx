@@ -17,7 +17,7 @@ import {
 import type { BrandDetail, ScanDetail } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
-import { ConnectorModeBanner } from '../../../../../../../components/brand/connector-mode-banner';
+import { BrandBackLink } from '../../../../../../../components/brand/brand-section-nav';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip, statusLabel } from '../../../../../../../components/ui/status-chip';
 import { CoverageDisclosure } from '../../../../../../../components/brand/coverage-disclosure';
@@ -214,8 +214,8 @@ export default function ScanDetailPage() {
       latestScanId={scan.id}
       journey={journey}
     >
+      <BrandBackLink href={`/app/brands/${brandId}/evidence`} label={t('brand.nav.evidenceHub')} />
       <div className="oma-plx-brand-status-rail oma-plx-brand-status-rail--scan">
-        <ConnectorModeBanner mode={scan.connector_mode} compact />
         <AiUnavailableBanner
           aiAvailability={scan.ai_availability}
           analysisStatus={scan.analysis_status}

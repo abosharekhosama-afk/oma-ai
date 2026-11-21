@@ -1,4 +1,5 @@
 'use client';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useT } from '../../lib/use-locale';
@@ -42,6 +43,12 @@ function WorkspaceMark({ logoUrl, size = 22 }: { logoUrl?: string | null; size?:
 /** Workspace (tenant) and Brand selectors are separate controls with separate actions. */
 export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useT();
+  const pathname = usePathname() || '/app';
+  const brandIdFromPath = (() => {
+    const match = pathname.match(/^\/app\/brands\/([^/]+)/);
+    if (!match || match[1] === 'new') return null;
+    return match[1];
+  })();
   const [me, setMe] = useState<Me | null>(null);
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const [openMenu, setOpenMenu] = useState<'workspace' | 'brand' | null>(null);
@@ -106,7 +113,8 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
 
   const activeMembership = me?.memberships.find((item) => item.tenant_id === me.active_tenant_id);
   const workspaceName = activeMembership?.tenant_name || t('shell.workspace') || 'Workspace';
-  const selectedBrand = brands.find((brand) => brand.id === activeBrandId);
+  const scopedBrandId = brandIdFromPath ?? activeBrandId;
+  const selectedBrand = brands.find((brand) => brand.id === scopedBrandId);
   const brandName = selectedBrand?.name || t('shell.brandAll') || 'All brands';
 
   async function activateWorkspace(tenantId: string) {

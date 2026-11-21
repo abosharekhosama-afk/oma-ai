@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { BrandSectionNav } from '../brand/brand-section-nav';
 import { useT } from '../../lib/use-locale';
 
 export function StrategySubnav({ brandId, strategyId }: { brandId: string; strategyId: string }) {
   const t = useT();
   const pathname = usePathname();
   const base = `/app/brands/${brandId}/strategies/${strategyId}`;
+  const backHref = `/app/brands/${brandId}/strategies`;
   const links = [
     { href: base, label: t('strategy.nav.overview'), exact: true },
     { href: `${base}/edit`, label: t('strategy.nav.foundation') },
@@ -18,10 +20,11 @@ export function StrategySubnav({ brandId, strategyId }: { brandId: string; strat
     { href: `${base}/versions`, label: t('strategy.nav.versions') },
   ];
   return (
-    <nav
-      className="oma-plx-deliv-groups oma-plx-strategy-subnav oma-brand-nav"
-      aria-label={t('strategy.nav.label')}
-      data-testid="strategy-subnav"
+    <BrandSectionNav
+      backHref={backHref}
+      backLabel={t('brand.nav.strategies')}
+      ariaLabel={t('strategy.nav.label')}
+      testId="strategy-subnav"
     >
       {links.map((link) => {
         const active = link.exact
@@ -39,6 +42,6 @@ export function StrategySubnav({ brandId, strategyId }: { brandId: string; strat
           </Link>
         );
       })}
-    </nav>
+    </BrandSectionNav>
   );
 }
