@@ -8340,12 +8340,33 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 .oma-ml--expanded .oma-ml-split {
   grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
 }
+.oma-ml-folder-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.oma-ml-folder-tree__label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.oma-ml-folder-tree__sub {
+  padding-top: 4px;
+  border-top: 1px solid #eef0f3;
+}
 .oma-ml-folders {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 2px;
   scrollbar-width: thin;
+}
+.oma-ml-folders--children {
+  padding-inline-start: 6px;
 }
 .oma-ml-folder__icon {
   width: 16px;

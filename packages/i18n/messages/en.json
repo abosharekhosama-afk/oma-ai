@@ -3024,6 +3024,7 @@
   "media.folderName": "Folder name",
   "media.folders": "Folders",
   "media.folderTree": "Workspace folders",
+  "media.subfolders": "Inside this folder",
   "media.workspaceRoot": "Workspace library",
   "media.folderBack": "Back",
   "media.folderPosts": "Posts",

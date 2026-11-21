@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useLocale } from '../../../../lib/use-locale';
 import { useToast } from '../../../../components/ui/toast';
@@ -97,12 +97,34 @@ export default function SubscriptionClient() {
         loading: 'Loading…',
       };
 
-  const bars = (sub?.usage_bars ?? []).filter((b) => {
-    if (b.key === 'approval_level') return false;
-    if (sub?.plan_code === 'free' && b.key === 'posts_per_month') return false;
-    if (sub?.plan_code !== 'free' && b.key === 'posts_total') return false;
-    return true;
-  });
+  const bars = useMemo(() => {
+    const filtered = (sub?.usage_bars ?? []).filter((b) => {
+      if (b.key === 'approval_level') return false;
+      if (sub?.plan_code === 'free' && b.key === 'posts_per_month') return false;
+      if (sub?.plan_code !== 'free' && b.key === 'posts_total') return false;
+      return true;
+    });
+    if (!sub) return filtered;
+    if (filtered.some((b) => b.key === 'storage_bytes')) return filtered;
+    const limit = sub.plan.limits.storage_bytes ?? null;
+    const used = wsStorage?.used_bytes ?? sub.usage.storage_bytes ?? 0;
+    const pct =
+      limit == null || limit === 0
+        ? limit === 0 && used > 0
+          ? 100
+          : 0
+        : Math.min(100, Math.round((used / limit) * 100));
+    return [
+      ...filtered,
+      {
+        key: 'storage_bytes',
+        used,
+        limit,
+        unlimited: limit == null,
+        pct,
+      },
+    ];
+  }, [sub, wsStorage?.used_bytes]);
 
   return (
     <main className="oma-planable-page oma-billing" dir={isAr ? 'rtl' : 'ltr'}>
@@ -232,18 +254,19 @@ export default function SubscriptionClient() {
               let unlimited = bar.unlimited;
               if (bar.key === 'storage_bytes') {
                 const usageStorage = sub?.usage?.storage_bytes ?? bar.used;
-                if (wsStorage && wsStorage.mode !== 'USER_WORKDRIVE') {
-                  used = wsStorage.used_bytes ?? usageStorage;
-                  if (wsStorage.limit_bytes != null) limit = wsStorage.limit_bytes;
-                } else {
-                  used = usageStorage;
+                used = wsStorage?.used_bytes ?? usageStorage;
+                if (wsStorage?.limit_bytes != null) limit = wsStorage.limit_bytes;
+                else if (limit == null && sub?.plan.limits.storage_bytes != null) {
+                  limit = sub.plan.limits.storage_bytes;
                 }
                 unlimited = limit == null;
                 pct =
                   limit == null || limit === 0
                     ? limit === 0 && used > 0
                       ? 100
-                      : 0
+                      : used > 0
+                        ? 4
+                        : 0
                     : Math.min(100, Math.round((used / limit) * 100));
               }
               const over = !unlimited && limit != null && used >= limit;
@@ -262,7 +285,9 @@ export default function SubscriptionClient() {
                   >
                     <div
                       className="oma-sub__fill"
-                      style={{ width: `${unlimited ? Math.min(pct || 4, 100) : pct}%` }}
+                      style={{
+                        width: `${unlimited ? Math.min(Math.max(pct, used > 0 ? 4 : 0), 100) : pct}%`,
+                      }}
                     />
                   </div>
                 </div>
