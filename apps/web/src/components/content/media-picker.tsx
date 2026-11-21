@@ -111,15 +111,7 @@ function MediaShimmer({ rows = 4 }: { rows?: number }) {
   );
 }
 
-function LazyMediaThumb({
-  item,
-  t,
-  badge,
-}: {
-  item: GridItem;
-  t: Tr;
-  badge?: string | null;
-}) {
+function LazyMediaThumb({ item, t, badge }: { item: GridItem; t: Tr; badge?: string | null }) {
   const host = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
