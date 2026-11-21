@@ -291,6 +291,100 @@ export async function compareStrategyVersions(
 }
 
 /** Organic + paid both enabled, foundation filled, ready to submit. */
+/** Minimal v2 paid plan that satisfies submit eligibility when the paid track is enabled. */
+export const minimalPaidV2PlanForSubmit = {
+  allocations: [{ platform: 'META', objective: 'TRAFFIC', share_pct: 100 }],
+  audiences: [
+    {
+      key: 'primary',
+      name: 'Primary audience',
+      targeting: { locations: [], languages: [], interests: [] },
+    },
+  ],
+  experiments: [] as [],
+};
+
+export async function putPaidPlanV2(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+  rowVersion: number,
+  plan: Record<string, unknown> = minimalPaidV2PlanForSubmit,
+  budget: string = '5000',
+) {
+  const res = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan/paid`,
+    {
+      method: 'PUT',
+      headers: authHeaders(seed),
+      body: JSON.stringify({
+        row_version: rowVersion,
+        ...plan,
+        budget_amount: budget,
+        budget_currency: 'USD',
+      }),
+    },
+  );
+  return { res, body: await res.json() };
+}
+
+/** Ensures paid budget + v2 rows exist before submit when paid is enabled. */
+export async function ensurePaidSubmitReady(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+  rowVersion: number,
+): Promise<number> {
+  const ver = await getStrategyVersion(seed, brandId, strategyId, versionId);
+  if (!ver.body.data.paid_enabled) return rowVersion;
+
+  const planRes = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan`,
+    { headers: { cookie: authHeaders(seed).cookie } },
+  );
+  const planBody = await planRes.json();
+  const paid = planBody?.data?.paid ?? {};
+  const needsBudget =
+    paid.budget_amount == null || paid.budget_amount === '' || Number(paid.budget_amount) <= 0;
+  const needsAlloc = !Array.isArray(paid.allocations) || paid.allocations.length === 0;
+  const needsAud = !Array.isArray(paid.audiences) || paid.audiences.length === 0;
+  const total = (paid.allocations ?? []).reduce(
+    (sum: number, row: { share_pct?: number }) => sum + (row.share_pct ?? 0),
+    0,
+  );
+  const needsTotal = (paid.allocations ?? []).length > 0 && total !== 100;
+
+  if (!needsBudget && !needsAlloc && !needsAud && !needsTotal) {
+    return (planBody.data.row_version as number) ?? rowVersion;
+  }
+
+  const put = await putPaidPlanV2(
+    seed,
+    brandId,
+    strategyId,
+    versionId,
+    planBody?.data?.row_version ?? rowVersion,
+    needsAlloc || needsAud || needsTotal
+      ? minimalPaidV2PlanForSubmit
+      : {
+          allocations: paid.allocations.map((a: { share_pct: number; platform: string; objective: string }) => ({
+            platform: a.platform,
+            objective: a.objective,
+            share_pct: a.share_pct,
+          })),
+          audiences: paid.audiences,
+          experiments: paid.experiments ?? [],
+        },
+    needsBudget ? '5000' : String(paid.budget_amount),
+  );
+  if (![200, 201].includes(put.res.status)) {
+    throw new Error(`paid plan seed failed: ${put.res.status} ${JSON.stringify(put.body)}`);
+  }
+  return put.body.data.row_version as number;
+}
+
 export async function seedBothTracksReadyStrategy(seed: BrandSeed, brandId: string) {
   const profileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
   const { body: created } = await createStrategy(seed, brandId, {
@@ -315,6 +409,7 @@ export async function seedBothTracksReadyStrategy(seed: BrandSeed, brandId: stri
     paid_enabled: true,
   });
   rowVersion = enabled.body.data.row_version;
+  rowVersion = await ensurePaidSubmitReady(seed, brandId, strategyId, versionId, rowVersion);
 
   return { strategyId, versionId, profileId, rowVersion };
 }
@@ -326,6 +421,7 @@ export async function bringToApproved(
   versionId: string,
   rowVersion: number,
 ) {
+  rowVersion = await ensurePaidSubmitReady(seed, brandId, strategyId, versionId, rowVersion);
   const submitted = await submitStrategy(seed, brandId, strategyId, versionId, rowVersion);
   if (![200, 201].includes(submitted.res.status)) {
     throw new Error(`submit failed: ${submitted.res.status} ${JSON.stringify(submitted.body)}`);
