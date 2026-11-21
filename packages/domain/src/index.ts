@@ -8,6 +8,7 @@ export * from './authz/brand-roles';
 export * from './tenant/slug';
 export * from './tenant/membership-routing';
 export * from './brand';
+export * from './seo';
 export * from './strategy';
 export * from './content';
 export * from './content/publish-rollup';

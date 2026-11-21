@@ -146,6 +146,7 @@ export function brandNavSection(pathname: string, brandId: string): BrandNavSect
     pathname.includes('/connect') ||
     pathname.includes('/scans') ||
     pathname.includes('/discovery') ||
+    pathname.includes('/seo') ||
     pathname.includes('/evidence')
   ) {
     return 'evidence';
@@ -224,6 +225,12 @@ export function buildBrandEvidenceSubnav(
       href: `${base}/discovery`,
       label: t('brand.nav.discovery'),
       match: (p) => p.includes('/discovery') && !p.includes('/evidence'),
+    },
+    {
+      id: 'seo',
+      href: `${base}/seo`,
+      label: t('brand.nav.seo'),
+      match: (p) => p.includes('/seo'),
     },
     {
       id: 'evidence-hub',

@@ -712,6 +712,8 @@ model BrandWorkspace {
   tenant                          Tenant                     @relation(fields: [tenantId], references: [id])
   websiteSources                  WebsiteSource[]
   scanAttempts                    ScanAttempt[]
+  seoAudits                       BrandSeoAudit[]
+  searchConsoleLink               BrandSearchConsoleLink?
   discoveredPages                 DiscoveredPage[]
   discoveredProducts              DiscoveredProductService[]
   extractedObservations           ExtractedObservation[]
@@ -780,8 +782,97 @@ model ScanAttempt {
   extractedObservations ExtractedObservation[]
   evidenceExcerpts      EvidenceExcerpt[]
   profileVersions       ProfileVersion[]
+  seoAudit              BrandSeoAudit?
 
   @@index([tenantId, brandId, createdAt])
+}
+
+model BrandSeoAudit {
+  id            String               @id
+  tenantId      String
+  brandId       String
+  scanAttemptId String               @unique
+  score         Int
+  findingsCount Int
+  summaryJson   String
+  metricSource  BrandSeoMetricSource @default(CRAWL)
+  createdAt     DateTime             @default(now())
+  brand         BrandWorkspace       @relation(fields: [brandId], references: [id])
+  scanAttempt   ScanAttempt          @relation(fields: [scanAttemptId], references: [id])
+  findings      SeoFinding[]
+
+  @@index([tenantId, brandId, createdAt])
+}
+
+model SeoFinding {
+  id         String        @id
+  tenantId   String
+  brandId    String
+  seoAuditId String
+  pageUrl    String
+  code       String
+  severity   String
+  detail     String?
+  seoAudit   BrandSeoAudit @relation(fields: [seoAuditId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, seoAuditId])
+  @@index([tenantId, brandId, code])
+}
+
+model BrandSearchConsoleLink {
+  id               String         @id
+  tenantId         String
+  brandId          String         @unique
+  siteUrl          String
+  status           String         @default("NOT_CONFIGURED")
+  accessTokenEnc   String?
+  refreshTokenEnc  String?
+  tokenExpiresAt   DateTime?
+  lastSyncAt       DateTime?
+  lastError        String?
+  connectedAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  brand            BrandWorkspace @relation(fields: [brandId], references: [id])
+
+  @@index([tenantId, status])
+}
+
+model GscOAuthState {
+  id        String    @id
+  tenantId  String
+  brandId   String
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
+model KeywordRankObservation {
+  id          String         @id
+  tenantId    String
+  brandId     String
+  keyword     String
+  locale      String   @default("ar")
+  position    Float?
+  impressions Int?
+  clicks      Int?
+  ctr         Float?
+  pageUrl     String?
+  capturedAt  DateTime @default(now())
+  source      String
+
+  @@index([tenantId, brandId, capturedAt])
+  @@index([tenantId, brandId, keyword])
+}
+
+enum BrandSeoMetricSource {
+  CRAWL
+  GSC_FIXTURE
+  GSC_LIVE
+  MIXED
 }
 
 model DiscoveredPage {

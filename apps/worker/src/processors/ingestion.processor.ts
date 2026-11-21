@@ -12,6 +12,7 @@ import { createLogger } from '@oma/observability';
 import { Worker, type Job } from 'bullmq';
 import type IORedis from 'ioredis';
 import { runExtractionForScan } from '../brand/extraction.service';
+import { runSeoAuditForScan } from '../brand/seo-audit-run';
 import { shutdownRenderedFetchBrowser } from '../brand/rendered-page-fetch';
 import { createProfileDraftFromScan } from '../brand/profile-draft.service';
 import { enqueueBrandAnalysis } from '@oma/db';
@@ -315,6 +316,16 @@ export function startIngestionProcessor(
             return { ok: true, cancelled: true };
           }
           throw err;
+        }
+
+        try {
+          await runSeoAuditForScan({
+            tenantId: scan.tenantId,
+            brandId: scan.brandId,
+            scanAttemptId: scan.id,
+          });
+        } catch (seoErr) {
+          log.warn(`seo audit skipped scan=${scan.id}: ${String(seoErr)}`);
         }
 
         const observations = await prisma.extractedObservation.findMany({

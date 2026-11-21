@@ -25,6 +25,7 @@ import { MediaService } from './media/media.service';
 import { PlatformAdminService } from './platform/platform-admin.service';
 import { SupportCaseService } from './platform/support-case.service';
 import { SupportService } from './platform/support.service';
+import { SeoService } from './brand/seo.service';
 
 export const auditService = new AuditService();
 export const identityService = new IdentityService(auditService);
@@ -37,6 +38,7 @@ export const brandAdminService = new BrandAdminService(auditService);
 export const socialService = new SocialService(auditService);
 export const websiteSourceService = new WebsiteSourceService(auditService, brandService);
 export const scanService = new ScanService(auditService, brandService);
+export const seoService = new SeoService(auditService);
 export const discoveryService = new DiscoveryService();
 export const catalogService = new CatalogService();
 export const evidenceService = new EvidenceService();

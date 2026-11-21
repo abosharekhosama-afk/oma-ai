@@ -27,6 +27,7 @@ import { AccountController } from './account/account.controller';
 import { BrandController } from './brand/brand.controller';
 import { WebsiteController } from './brand/website.controller';
 import { ScanController } from './brand/scan.controller';
+import { SeoController } from './brand/seo.controller';
 import { DiscoveryController } from './discovery/discovery.controller';
 import { CatalogController } from './catalog/catalog.controller';
 import { ProfileController } from './intelligence/profile.controller';
@@ -66,6 +67,7 @@ import { SupportController } from './platform/support.controller';
     BrandController,
     WebsiteController,
     ScanController,
+    SeoController,
     DiscoveryController,
     CatalogController,
     ProfileController,
