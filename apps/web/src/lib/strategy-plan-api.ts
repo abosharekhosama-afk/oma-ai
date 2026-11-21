@@ -252,10 +252,16 @@ export function putPaidPlan(
   versionId: string,
   rowVersion: number,
   plan: PaidPlan,
+  budget?: { amount: string; currency: string },
 ) {
   return api<{ data: StrategyPlan }>(`${base(brandId, strategyId, versionId)}/paid`, {
     method: 'PUT',
-    body: JSON.stringify({ row_version: rowVersion, ...paidPayload(plan) }),
+    body: JSON.stringify({
+      row_version: rowVersion,
+      ...paidPayload(plan),
+      budget_amount: budget?.amount.trim() ? budget.amount.trim() : null,
+      budget_currency: budget?.currency?.trim() || 'USD',
+    }),
   });
 }
 
