@@ -97,6 +97,18 @@ export default function SubscriptionClient() {
         loading: 'Loading…',
       };
 
+  const storageHighlight = useMemo(() => {
+    if (!sub) return null;
+    const used =
+      sub.storage_summary?.used_bytes ?? sub.usage.storage_bytes ?? wsStorage?.used_bytes ?? 0;
+    const limit =
+      sub.storage_summary?.limit_bytes ??
+      sub.plan.limits.storage_bytes ??
+      wsStorage?.limit_bytes ??
+      null;
+    return { used, limit };
+  }, [sub, wsStorage?.limit_bytes, wsStorage?.used_bytes]);
+
   const bars = useMemo(() => {
     const filtered = (sub?.usage_bars ?? []).filter((b) => {
       if (b.key === 'approval_level') return false;
@@ -243,6 +255,15 @@ export default function SubscriptionClient() {
                     </li>
                   ))}
               </ul>
+            </section>
+          ) : null}
+
+          {storageHighlight ? (
+            <section className="oma-sub__current" data-testid="subscription-storage-summary">
+              <h2>{isAr ? 'تخزين OMA' : 'OMA storage'}</h2>
+              <p className="oma-billing__desc">
+                {formatUsed('storage_bytes', storageHighlight.used, storageHighlight.limit, isAr)}
+              </p>
             </section>
           ) : null}
 

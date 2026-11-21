@@ -416,8 +416,7 @@ export function MediaPickerDialog({
       if (!brandId) return;
       setError(null);
       try {
-        const listScope =
-          scope === 'organization' || scope === 'all' ? ('organization' as const) : undefined;
+        const listScope = scope === 'all' ? ('organization' as const) : undefined;
         const r = await mediaApi.list(brandId, kind, storageSource ?? undefined, {
           limit: ASSET_LIST_LIMIT,
           cursor: opts?.append ? opts.cursor : undefined,
@@ -464,15 +463,17 @@ export function MediaPickerDialog({
         if (nextScope === 'organization' && !folderId) setOrgRoot(labeled);
         if (nextScope === 'brand' && !folderId) setBrandRoot(labeled);
         if (labeled.brand_folder && nextScope === 'brand' && !folderId) setBrandRoot(labeled);
-        const listScope =
-          nextScope === 'organization' || nextScope === 'all' ? nextScope : undefined;
-        void mediaApi
-          .list(brandId, kind, storageSource ?? undefined, {
-            limit: ASSET_LIST_LIMIT,
-            scope: listScope === 'all' ? 'organization' : listScope,
-          })
-          .then((r) => setLib(r.data))
-          .catch(() => undefined);
+        if (nextScope === 'all') {
+          void mediaApi
+            .list(brandId, kind, storageSource ?? undefined, {
+              limit: ASSET_LIST_LIMIT,
+              scope: 'organization',
+            })
+            .then((r) => setLib(r.data))
+            .catch(() => undefined);
+        } else {
+          setLib((prev) => (prev ? { ...prev, assets: [] } : prev));
+        }
       } catch (e) {
         if (nextScope === 'organization') {
           try {
@@ -615,7 +616,6 @@ export function MediaPickerDialog({
       try {
         const libRes = await mediaApi.list(brandId, kind, browseSource, {
           limit: ASSET_LIST_LIMIT,
-          scope: 'organization',
         });
         setLib(libRes.data);
       } catch (e) {
@@ -672,11 +672,20 @@ export function MediaPickerDialog({
   const storageReady = Boolean(
     lib?.workdrive.can_upload || lib?.workdrive.internal_available || lib?.workdrive.connected,
   );
-  const showSourceToggle = Boolean(
-    lib?.workdrive.internal_available && (lib.workdrive.byos_connected || lib.workdrive.connected),
+  const sourceAvailability =
+    browse?.available_sources ??
+    lib?.workdrive.available_sources ??
+    (workspaceStorage
+      ? {
+          oma: workspaceStorage.internal_available,
+          workdrive: workspaceStorage.byos_connected || workspaceStorage.mode === 'USER_WORKDRIVE',
+        }
+      : undefined);
+  const omaUsable = Boolean(sourceAvailability?.oma ?? lib?.workdrive.internal_available);
+  const workdriveUsable = Boolean(
+    sourceAvailability?.workdrive ?? lib?.workdrive.byos_connected ?? lib?.workdrive.connected,
   );
-  const omaUsable = Boolean(lib?.workdrive.internal_available);
-  const workdriveUsable = Boolean(lib?.workdrive.byos_connected || lib?.workdrive.connected);
+  const showSourceToggle = omaUsable && workdriveUsable;
   const sourceBlocked =
     storageSource === 'oma' && !omaUsable
       ? t('errors.storage_oma_unavailable')
@@ -699,7 +708,7 @@ export function MediaPickerDialog({
       .then((r) => setWorkspaceStorage(r.data))
       .catch(() => setWorkspaceStorage(null));
     void mediaApi
-      .list(brandId, kind, next, { limit: ASSET_LIST_LIMIT, scope: 'organization' })
+      .list(brandId, kind, next, { limit: ASSET_LIST_LIMIT })
       .then((r) => setLib(r.data))
       .catch((e) => setError(getApiError(e).message));
     void reloadBrowseRoots(next);
@@ -727,7 +736,7 @@ export function MediaPickerDialog({
     const files = source?.files ?? [];
     const mapped = files.map((f) => fileToItem(f, brandId || '', kind, storageSource ?? undefined));
     const seen = new Set(mapped.map((i) => i.key));
-    if (lib?.assets.length) {
+    if (allSelected && lib?.assets.length) {
       for (const a of lib.assets) {
         if (seen.has(a.id)) continue;
         const assetSrc = assetSource(a);

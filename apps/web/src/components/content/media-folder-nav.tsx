@@ -67,7 +67,15 @@ export function MediaFolderNav({
   const labelFor = (folderId: string, rawName: string) =>
     displayFolderLabel(rawName, t, { ...labelCtx, folderId });
 
+  const orgBrandFolderIds = useMemo(
+    () => new Set((orgRoot?.folders ?? []).map((f) => f.id)),
+    [orgRoot?.folders],
+  );
+  const insideOrgBrand = Boolean(
+    activeScope === 'organization' && browse?.folder.id && orgBrandFolderIds.has(browse.folder.id),
+  );
   const pathBrandScoped = Boolean(
+    activeScope === 'brand' &&
     brandFolderId &&
     (browse?.path?.some((p) => p.id === brandFolderId) || browse?.folder.id === brandFolderId),
   );
@@ -119,9 +127,18 @@ export function MediaFolderNav({
   const childChips = useMemo((): NavChip[] => {
     if (allSelected) return [];
     const atOrgRoot =
-      Boolean(orgRoot?.folder.id) && browse?.folder.id === orgRoot?.folder.id && !pathBrandScoped;
+      Boolean(orgRoot?.folder.id) &&
+      browse?.folder.id === orgRoot?.folder.id &&
+      !pathBrandScoped &&
+      !insideOrgBrand;
     const folders =
-      (browse?.folders?.length ? browse.folders : atOrgRoot ? (orgRoot?.folders ?? []) : []) ?? [];
+      (browse?.folders?.length
+        ? browse.folders
+        : atOrgRoot
+          ? (orgRoot?.folders ?? [])
+          : insideOrgBrand
+            ? (browse?.folders ?? [])
+            : []) ?? [];
     return folders.map((f) => ({
       id: f.id,
       label: labelFor(f.id, f.name),
@@ -140,6 +157,7 @@ export function MediaFolderNav({
     browse?.folder.id,
     browse?.folders,
     labelFor,
+    insideOrgBrand,
     orgRoot?.folder.id,
     orgRoot?.folders,
     pathBrandScoped,
