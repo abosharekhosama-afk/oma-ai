@@ -7,13 +7,7 @@ import { api } from '../../lib/api';
 import { brandPathTailLabel } from '../../lib/brand-workspace-nav';
 import { useT } from '../../lib/use-locale';
 
-export function BrandPathBreadcrumb({
-  brandId,
-  pathname,
-}: {
-  brandId: string;
-  pathname: string;
-}) {
+export function BrandPathBreadcrumb({ brandId, pathname }: { brandId: string; pathname: string }) {
   const t = useT();
   const [brandName, setBrandName] = useState<string | null>(null);
 

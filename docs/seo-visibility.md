@@ -8,9 +8,9 @@ OMA combines three evidence layers for promotion and organic visibility. Every n
 
 After each successful brand **website scan** (ingestion job), the worker runs `runSeoAuditForScan`:
 
-| Input | Source |
-|-------|--------|
-| Page URL, HTTP status, title, classification | `DiscoveredPage` |
+| Input                                                 | Source                                      |
+| ----------------------------------------------------- | ------------------------------------------- |
+| Page URL, HTTP status, title, classification          | `DiscoveredPage`                            |
 | Meta description, H1, noindex, canonical, text length | `EvidenceExcerpt` HTML (parsed, no browser) |
 
 **Outputs:** `BrandSeoAudit` (score 0–100) + `SeoFinding` rows (per page, code, severity).
@@ -21,11 +21,11 @@ After each successful brand **website scan** (ingestion job), the worker runs `r
 
 ## 2. Google Search Console port
 
-| `BRAND_GSC_MODE` | Behaviour |
-|------------------|-----------|
+| `BRAND_GSC_MODE`    | Behaviour                       |
+| ------------------- | ------------------------------- |
 | `fixture` (default) | Sample queries; safe for dev/CI |
-| `live` | OAuth + Search Analytics API |
-| `disabled` | Empty / not configured |
+| `live`              | OAuth + Search Analytics API    |
+| `disabled`          | Empty / not configured          |
 
 **Connect (production):**
 
@@ -36,10 +36,10 @@ After each successful brand **website scan** (ingestion job), the worker runs `r
 
 ## 3. Keyword research port
 
-| `BRAND_KEYWORD_RESEARCH_MODE` | Behaviour |
-|-------------------------------|-----------|
-| `external_fixture` (default) | Deterministic volume/difficulty; `source: EXTERNAL` |
-| `manual` | No invented metrics |
+| `BRAND_KEYWORD_RESEARCH_MODE` | Behaviour                                           |
+| ----------------------------- | --------------------------------------------------- |
+| `external_fixture` (default)  | Deterministic volume/difficulty; `source: EXTERNAL` |
+| `manual`                      | No invented metrics                                 |
 
 **API:** `POST /api/v1/brands/:brandId/seo/keywords/research` with `{ keywords: [{ keyword, locale }] }`.
 
@@ -49,9 +49,9 @@ Use results in strategy organic keywords with explicit `EXTERNAL` / `MANUAL` lab
 
 **Domain:** `packages/domain/src/seo/strategy-bridge.ts` maps crawl `SeoFinding` rows → `content_gaps` and GSC `KeywordRankObservation` (+ optional research metrics) → `seo_keywords`.
 
-| API | Purpose |
-|-----|---------|
-| `GET /api/v1/brands/:brandId/seo/strategy-proposals` | Preview proposal rows + context badge (score, scan, query count) |
+| API                                                                        | Purpose                                                                            |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `GET /api/v1/brands/:brandId/seo/strategy-proposals`                       | Preview proposal rows + context badge (score, scan, query count)                   |
 | `POST …/strategies/:strategyId/versions/:versionId/plan/organic/merge-seo` | Merge selected `proposal_ids` into the draft organic plan (deduped, tenant-scoped) |
 
 UI: organic plan editor → **Import from SEO** (checkboxes, explicit apply — no auto-approval).

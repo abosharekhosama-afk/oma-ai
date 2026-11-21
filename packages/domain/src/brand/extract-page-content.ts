@@ -1,11 +1,19 @@
-import { extractFromHtml, type ExtractedField, type ExtractedLink, type ExtractedProduct } from './extractors';
+import {
+  extractFromHtml,
+  type ExtractedField,
+  type ExtractedLink,
+  type ExtractedProduct,
+} from './extractors';
 import { extractHydrationProducts } from './hydration-json-extract';
 import { productDedupeKey } from './product-catalog';
 import type { PageProductKind } from './product-detection';
 
 export type PageExtraction = ReturnType<typeof extractFromHtml>;
 
-function mergeProducts(staticProducts: ExtractedProduct[], extra: ExtractedProduct[]): ExtractedProduct[] {
+function mergeProducts(
+  staticProducts: ExtractedProduct[],
+  extra: ExtractedProduct[],
+): ExtractedProduct[] {
   if (extra.length === 0) return staticProducts;
   const keys = new Set(staticProducts.map((p) => productDedupeKey(p)));
   const merged = [...staticProducts];

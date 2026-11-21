@@ -17,10 +17,12 @@ const STATE_TTL_MS = 15 * 60_000;
 const notFound = () => new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
 
 function gscRedirectUri(env = process.env) {
-  const base = (env.WEB_BASE_URL || env.SOCIAL_OAUTH_REDIRECT_BASE || env.API_PUBLIC_URL || '').replace(
-    /\/+$/,
-    '',
-  );
+  const base = (
+    env.WEB_BASE_URL ||
+    env.SOCIAL_OAUTH_REDIRECT_BASE ||
+    env.API_PUBLIC_URL ||
+    ''
+  ).replace(/\/+$/, '');
   return `${base}/api/v1/seo/gsc/callback`;
 }
 
@@ -212,24 +214,16 @@ export class SeoService {
         siteUrl,
         status: 'CONNECTED',
         accessTokenEnc: encryptToken(tokens.access_token, key),
-        refreshTokenEnc: tokens.refresh_token
-          ? encryptToken(tokens.refresh_token, key)
-          : null,
-        tokenExpiresAt: tokens.expires_in
-          ? new Date(Date.now() + tokens.expires_in * 1000)
-          : null,
+        refreshTokenEnc: tokens.refresh_token ? encryptToken(tokens.refresh_token, key) : null,
+        tokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null,
         connectedAt: new Date(),
       },
       update: {
         siteUrl,
         status: 'CONNECTED',
         accessTokenEnc: encryptToken(tokens.access_token, key),
-        refreshTokenEnc: tokens.refresh_token
-          ? encryptToken(tokens.refresh_token, key)
-          : undefined,
-        tokenExpiresAt: tokens.expires_in
-          ? new Date(Date.now() + tokens.expires_in * 1000)
-          : null,
+        refreshTokenEnc: tokens.refresh_token ? encryptToken(tokens.refresh_token, key) : undefined,
+        tokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null,
         connectedAt: new Date(),
         lastError: null,
       },
@@ -244,29 +238,29 @@ export class SeoService {
     const link = await prisma.brandSearchConsoleLink.findFirst({
       where: tenantWhere(tenantId, { brandId }),
     });
-  const mode = gscModeFromEnv();
-  if (mode === 'fixture' && !link) {
-    const website = await prisma.websiteSource.findFirst({
-      where: tenantWhere(tenantId, { brandId, validationStatus: 'VALID' }),
+    const mode = gscModeFromEnv();
+    if (mode === 'fixture' && !link) {
+      const website = await prisma.websiteSource.findFirst({
+        where: tenantWhere(tenantId, { brandId, validationStatus: 'VALID' }),
+      });
+      await this.connectFixtureGsc(
+        tenantId,
+        userId,
+        brandId,
+        website?.normalizedUrl ?? 'https://example-brand.test/',
+      );
+    }
+    const refreshed = await prisma.brandSearchConsoleLink.findFirst({
+      where: tenantWhere(tenantId, { brandId }),
     });
-    await this.connectFixtureGsc(
-      tenantId,
-      userId,
-      brandId,
-      website?.normalizedUrl ?? 'https://example-brand.test/',
-    );
-  }
-  const refreshed = await prisma.brandSearchConsoleLink.findFirst({
-    where: tenantWhere(tenantId, { brandId }),
-  });
-  if (!refreshed) {
-    throw new DomainError(
-      'PROVIDER_NOT_CONFIGURED',
-      'Search Console is not connected',
-      503,
-      'errors.provider_not_configured',
-    );
-  }
+    if (!refreshed) {
+      throw new DomainError(
+        'PROVIDER_NOT_CONFIGURED',
+        'Search Console is not connected',
+        503,
+        'errors.provider_not_configured',
+      );
+    }
 
     let accessToken: string | undefined;
     if (refreshed.accessTokenEnc) {

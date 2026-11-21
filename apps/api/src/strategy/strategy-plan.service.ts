@@ -570,12 +570,7 @@ export class StrategyPlanService {
     await this.requireVersion(tenantId, brandId, strategyId, versionId);
     const picked = pickSeoProposalsById(proposalPackage, ids);
     if (picked.seo_keywords.length === 0 && picked.content_gaps.length === 0) {
-      throw new DomainError(
-        'NOT_FOUND',
-        'No matching SEO proposals',
-        404,
-        'errors.not_found',
-      );
+      throw new DomainError('NOT_FOUND', 'No matching SEO proposals', 404, 'errors.not_found');
     }
     const current = await readStrategyPlan(getPrisma(), versionId);
     const merged = mergeSeoProposalsIntoOrganicPlan(current.organic, picked);

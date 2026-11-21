@@ -29,7 +29,9 @@ export function createSearchConsolePort(
   return refusingSearchConsolePort;
 }
 
-export function createKeywordResearchPort(env: NodeJS.ProcessEnv = process.env): StrategyResearchPort {
+export function createKeywordResearchPort(
+  env: NodeJS.ProcessEnv = process.env,
+): StrategyResearchPort {
   const mode = keywordSearchModeFromEnv(env);
   if (mode === 'external_fixture' || mode === 'fixture') {
     return asStrategyResearchPort(externalFixtureKeywordSearch);

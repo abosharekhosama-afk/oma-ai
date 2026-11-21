@@ -147,10 +147,7 @@ export function buildSeoStrategyProposals(input: {
   researchMetrics?: KeywordMetricForBridge[];
 }): SeoStrategyProposalPackage {
   const researchByKey = new Map(
-    (input.researchMetrics ?? []).map((m) => [
-      `${normKeyword(m.keyword)}:${m.locale}`,
-      m,
-    ]),
+    (input.researchMetrics ?? []).map((m) => [`${normKeyword(m.keyword)}:${m.locale}`, m]),
   );
 
   const gapSeen = new Set<string>();
@@ -291,13 +288,7 @@ export function pickSeoProposalsById(
   const content_gaps: ContentGapInput[] = [];
   for (const row of pkg.content_gaps) {
     if (!wanted.has(row.proposal_id)) continue;
-    const {
-      proposal_id: _id,
-      origin: _o,
-      finding_code: _c,
-      page_url: _p,
-      ...rest
-    } = row;
+    const { proposal_id: _id, origin: _o, finding_code: _c, page_url: _p, ...rest } = row;
     content_gaps.push(rest);
   }
   return { seo_keywords, content_gaps };

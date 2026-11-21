@@ -31,11 +31,7 @@ export class SeoController {
   @Get('api/v1/brands/:brandId/seo/health')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   @RequireCapabilities('brand.read')
-  health(
-    @Req() req: Request,
-    @Param('brandId') brandId: string,
-    @Query('scanId') scanId?: string,
-  ) {
+  health(@Req() req: Request, @Param('brandId') brandId: string, @Query('scanId') scanId?: string) {
     return seoService.health(ctx(req).tenantId, brandId, scanId);
   }
 
@@ -103,7 +99,11 @@ export class SeoController {
   @Get('api/v1/brands/:brandId/seo/analytics')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   @RequireCapabilities('analytics.read')
-  analytics(@Req() req: Request, @Param('brandId') brandId: string, @Query('period') period?: string) {
+  analytics(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Query('period') period?: string,
+  ) {
     const days = Math.min(90, Math.max(7, Number(period ?? 30) || 30));
     return seoService.analyticsSeo(ctx(req).tenantId, brandId, days);
   }

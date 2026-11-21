@@ -1,4 +1,8 @@
-import type { KeywordMetric, KeywordResearchRequest, StrategyResearchPort } from '../strategy/research-port';
+import type {
+  KeywordMetric,
+  KeywordResearchRequest,
+  StrategyResearchPort,
+} from '../strategy/research-port';
 
 export type KeywordSearchProvider = 'manual' | 'external_fixture' | 'external_live';
 

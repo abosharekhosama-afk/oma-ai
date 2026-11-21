@@ -65,7 +65,9 @@ describe('mergeSeoProposalsIntoOrganicPlan', () => {
     const merged = mergeSeoProposalsIntoOrganicPlan(
       {
         pillars: [],
-        seo_keywords: [{ keyword: 'existing', locale: 'ar', intent: 'INFORMATIONAL', source: 'MANUAL' }],
+        seo_keywords: [
+          { keyword: 'existing', locale: 'ar', intent: 'INFORMATIONAL', source: 'MANUAL' },
+        ],
         content_gaps: [],
       },
       {
@@ -87,9 +89,7 @@ describe('pickSeoProposalsById', () => {
       auditScore: null,
       auditCreatedAt: null,
       gscLastSyncAt: null,
-      findings: [
-        { page_url: null, code: 'SEO_H1_MISSING', severity: 'warning' },
-      ],
+      findings: [{ page_url: null, code: 'SEO_H1_MISSING', severity: 'warning' }],
       gscQueries: [{ keyword: 'test kw', source: 'fixture' }],
     });
     const id = pkg.content_gaps[0]!.proposal_id;

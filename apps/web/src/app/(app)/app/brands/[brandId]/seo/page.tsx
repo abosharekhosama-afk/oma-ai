@@ -102,8 +102,8 @@ export default function BrandSeoPage() {
           {health?.audit ? (
             <>
               <p>
-                {t('brand.seo.score')}: <strong>{health.audit.score}</strong> — {health.audit.findings_count}{' '}
-                {t('brand.seo.findings')}
+                {t('brand.seo.score')}: <strong>{health.audit.score}</strong> —{' '}
+                {health.audit.findings_count} {t('brand.seo.findings')}
               </p>
               {health.audit.findings.length > 0 ? (
                 <ul className="oma-list-plain">
@@ -126,7 +126,8 @@ export default function BrandSeoPage() {
         <section className="oma-card oma-card--padded">
           <h2 className="oma-heading-sm">{t('brand.seo.searchConsole')}</h2>
           <p className="oma-text-muted">
-            {t('brand.seo.gscStatus')}: {health?.search_console.status ?? '—'} ({health?.search_console.gsc_mode})
+            {t('brand.seo.gscStatus')}: {health?.search_console.status ?? '—'} (
+            {health?.search_console.gsc_mode})
           </p>
           <div className="oma-chip-row">
             <button
@@ -153,8 +154,8 @@ export default function BrandSeoPage() {
           {analytics ? (
             <ul className="oma-list-plain">
               <li>
-                {t('brand.seo.gscClicks')}: {analytics.totals.gsc_clicks} / {t('brand.seo.impressions')}:{' '}
-                {analytics.totals.gsc_impressions}
+                {t('brand.seo.gscClicks')}: {analytics.totals.gsc_clicks} /{' '}
+                {t('brand.seo.impressions')}: {analytics.totals.gsc_impressions}
               </li>
               <li>
                 {t('brand.seo.publishedPosts')}: {analytics.totals.published_posts}
