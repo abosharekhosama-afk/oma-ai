@@ -23,16 +23,20 @@ describe('strategy workspace integration', () => {
     for (const c of closers) await c();
   });
 
-  it('creates draft without approved profile with missing_source warning', async () => {
+  it('rejects strategy create until the brand has an approved profile', async () => {
     const seed = await seedBrandTenant();
     closers.push(async () => seed.app.close());
     const { body: brandBody } = await createBrand(seed);
     const brandId = brandBody.data.id as string;
 
-    const { res, body } = await createStrategy(seed, brandId, { name: 'Draft only' });
-    expect([200, 201]).toContain(res.status);
-    expect(body.data.latest_version.missing_source).toBe(true);
-    expect(body.data.latest_version.evidence_backed).toBe(false);
+    const { res, body } = await createStrategy(
+      seed,
+      brandId,
+      { name: 'Draft only' },
+      { allowWithoutBrandApprovedProfile: true },
+    );
+    expect(res.status).toBe(403);
+    expect(body.code ?? body.error?.code).toBe('BRAND_PROFILE_NOT_APPROVED');
   });
 
   it('package approve does not set current; set_current is explicit; archive clears pointer', async () => {

@@ -31,7 +31,17 @@ export async function createStrategy(
     organic_enabled?: boolean;
     paid_enabled?: boolean;
   },
+  options?: { allowWithoutBrandApprovedProfile?: boolean },
 ) {
+  if (!options?.allowWithoutBrandApprovedProfile) {
+    const brand = await getPrisma().brandWorkspace.findFirst({
+      where: { id: brandId, tenantId: seed.tenantId },
+      select: { currentApprovedProfileVersionId: true },
+    });
+    if (!brand?.currentApprovedProfileVersionId) {
+      await seedApprovedProfileVersion(seed.tenantId, brandId);
+    }
+  }
   const res = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/strategies`, {
     method: 'POST',
     headers: authHeaders(seed),

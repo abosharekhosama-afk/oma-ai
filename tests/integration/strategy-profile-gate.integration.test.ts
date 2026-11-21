@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
+import { newId } from '@oma/domain';
 import {
   createBrand,
   createStrategy,
@@ -23,12 +24,16 @@ describe('strategy profile gate', () => {
     await seed.app.close();
   });
 
-  it('draft OK without approved profile', async () => {
+  it('create blocked without approved brand profile', async () => {
     const { body: brand } = await createBrand(seed);
-    const { res, body } = await createStrategy(seed, brand.data.id, { name: 'No profile draft' });
-    expect([200, 201]).toContain(res.status);
-    expect(body.data.latest_version.missing_source).toBe(true);
-    expect(body.data.latest_version.status).toBe('DRAFT');
+    const { res, body } = await createStrategy(
+      seed,
+      brand.data.id,
+      { name: 'No profile draft' },
+      { allowWithoutBrandApprovedProfile: true },
+    );
+    expect(res.status).toBe(403);
+    expect(body.code ?? body.error?.code).toBe('BRAND_PROFILE_NOT_APPROVED');
   });
 
   it('submit blocked without approved profile link', async () => {
@@ -64,11 +69,17 @@ describe('strategy profile gate', () => {
   it('draft_aid profile is not enough for submit', async () => {
     const { body: brand } = await createBrand(seed);
     const brandId = brand.data.id as string;
-    const draftProfileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
-    await getPrisma().profileVersion.update({
-      where: { id: draftProfileId },
-      data: { status: 'DRAFT', approvedAt: null },
+    const draftProfileId = newId();
+    await getPrisma().profileVersion.create({
+      data: {
+        id: draftProfileId,
+        tenantId: seed.tenantId,
+        brandId,
+        status: 'DRAFT',
+        sectionsJson: JSON.stringify({ overview: { name: 'Draft aid' } }),
+      },
     });
+    await seedApprovedProfileVersion(seed.tenantId, brandId);
     const { body: created } = await createStrategy(seed, brandId, { name: 'Draft aid only' });
     const strategyId = created.data.id as string;
     const versionId = created.data.latest_version.id as string;
