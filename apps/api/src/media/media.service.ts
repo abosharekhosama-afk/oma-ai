@@ -1148,9 +1148,12 @@ export class MediaService {
         c.provider === 'OMA_INTERNAL' && !allScope
           ? await this.brandAtFolder(c, tenantId, f.id)
           : null;
-      // Inside a brand folder: flatten posts/logos/deliverables so assets appear without an extra click.
+      const isKindFolder = ['posts', 'logos', 'deliverables'].includes(f.name);
+      // Brand scope only: flatten kind folders for a quicker grid. Organization browse keeps kind tabs.
       if (
+        !organizationScope &&
         !atInternalOrgRoot &&
+        !isKindFolder &&
         (f.id === brandFolderId || brandAtFolder != null) &&
         files.length === 0
       ) {
@@ -1179,11 +1182,24 @@ export class MediaService {
         }
       }
       let rawFolders = f.folders;
-      if (c.provider === 'OMA_INTERNAL' && organizationScope && !allScope) {
-        if (tenantRootId != null && (f.id === tenantRootId || f.name === 'brands')) {
-          const brandRows = await this.listTenantBrandFolders(c, tenantId);
-          rawFolders = brandRows.map((row) => ({ id: row.id, name: row.name }));
-        }
+      const workdriveOrgRoot =
+        c.provider === 'USER_WORKDRIVE' &&
+        organizationScope &&
+        c.conn.rootFolderId &&
+        f.id === c.conn.rootFolderId;
+      const omaOrgRoot =
+        c.provider === 'OMA_INTERNAL' && tenantRootId != null && f.id === tenantRootId;
+      if (
+        organizationScope &&
+        !allScope &&
+        (omaOrgRoot || workdriveOrgRoot || f.name === 'brands')
+      ) {
+        const brandRows = await this.listTenantBrandFolders(c, tenantId);
+        rawFolders = brandRows.map((row) => ({ id: row.id, name: row.name }));
+      } else if (organizationScope && !allScope && brandAtFolder != null && !isKindFolder) {
+        const kindNames =
+          kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos', 'deliverables'];
+        rawFolders = f.folders.filter((child) => kindNames.includes(child.name));
       }
       const decorated = await this.decorateBrowseFiles(tenantId, brandId, files, c.source);
       const fileLimit = q.file_limit ? Math.min(Math.max(Number(q.file_limit) || 0, 1), 120) : null;

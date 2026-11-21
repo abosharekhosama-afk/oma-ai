@@ -103,6 +103,7 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/brands/:brandId/scans/:scanId': ['brand.read'],
   'POST /api/v1/brands/:brandId/scans/:scanId/cancel': ['brand.scan.control'],
   'POST /api/v1/brands/:brandId/scans/:scanId/retry': ['brand.scan.control'],
+  'POST /api/v1/brands/:brandId/scans/:scanId/resume': ['brand.scan.control'],
   'POST /api/v1/brands/:brandId/scans/:scanId/analyze': ['brand.scan.control'],
   'GET /api/v1/brands/:brandId/scans/:scanId/pages': ['brand.read'],
   'GET /api/v1/brands/:brandId/scans/:scanId/products': ['brand.read'],
