@@ -40,6 +40,7 @@ const LIMIT_KEYS = [
   'seats',
   'scheduled_posts_per_month',
   'ai_credits_per_month',
+  'storage_bytes',
   'listening_keywords',
   'mentions_per_month',
 ];
@@ -50,6 +51,7 @@ const LIMIT_LABELS: Record<string, { en: string; ar: string }> = {
   seats: { en: 'Team seats', ar: 'مقاعد الفريق' },
   scheduled_posts_per_month: { en: 'Scheduled posts / period', ar: 'منشورات مجدولة / فترة' },
   ai_credits_per_month: { en: 'AI credits / period', ar: 'رصيد ذكاء / فترة' },
+  storage_bytes: { en: 'OMA storage', ar: 'تخزين OMA' },
   listening_keywords: { en: 'Listening keywords', ar: 'كلمات الاستماع' },
   mentions_per_month: { en: 'Mentions / period', ar: 'إشارات / فترة' },
 };
@@ -112,6 +114,15 @@ function isSafeCheckoutRedirect(url: string): boolean {
 
 function money(n: number) {
   return `$${Number(n).toFixed(n % 1 === 0 ? 0 : 2)}`;
+}
+
+function formatPlanLimit(key: string, value: number | null | undefined, isAr: boolean) {
+  if (value == null) return '—';
+  if (key === 'storage_bytes') {
+    const gb = value / (1024 * 1024 * 1024);
+    return isAr ? `${gb.toFixed(0)} غيغابايت` : `${gb.toFixed(0)} GB`;
+  }
+  return String(value);
 }
 
 function planAudience(code: string, isAr: boolean) {
@@ -618,7 +629,7 @@ export default function BillingClient() {
                     <li key={key}>
                       <CheckIcon aria-hidden="true" />
                       {(isAr ? LIMIT_LABELS[key]?.ar : LIMIT_LABELS[key]?.en) ?? key}:{' '}
-                      {plan.limits[key] ?? '—'}
+                      {formatPlanLimit(key, plan.limits[key] as number | null | undefined, isAr)}
                     </li>
                   ))}
                 </ul>

@@ -17,6 +17,7 @@ import { createPortal } from 'react-dom';
 import { getApiError } from '../../lib/brand-api';
 import {
   formatBytes,
+  invalidateMediaCache,
   mediaApi,
   workDriveApi,
   type MediaAsset,
@@ -111,10 +112,21 @@ function MediaShimmer({ rows = 4 }: { rows?: number }) {
   );
 }
 
-function LazyMediaThumb({ item, t, badge }: { item: GridItem; t: Tr; badge?: string | null }) {
+function LazyMediaThumb({
+  item,
+  t,
+  badge,
+  eager = false,
+}: {
+  item: GridItem;
+  t: Tr;
+  badge?: string | null;
+  eager?: boolean;
+}) {
   const host = useRef<HTMLSpanElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(eager);
   useEffect(() => {
+    if (eager) return;
     const el = host.current;
     if (!el) return;
     const io = new IntersectionObserver(
@@ -125,7 +137,7 @@ function LazyMediaThumb({ item, t, badge }: { item: GridItem; t: Tr; badge?: str
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [eager]);
 
   const video = item.mime.startsWith('video/');
   return (
@@ -353,6 +365,8 @@ export function MediaPickerDialog({
   const [browseLoadingMore, setBrowseLoadingMore] = useState(false);
   const [assetsLoadingMore, setAssetsLoadingMore] = useState(false);
   const [workspaceStorage, setWorkspaceStorage] = useState<WorkspaceStorage | null>(null);
+  const [canvaBusy, setCanvaBusy] = useState(false);
+  const [canvaHint, setCanvaHint] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -443,6 +457,41 @@ export function MediaPickerDialog({
     [brandId, kind, storageSource],
   );
 
+  const reloadBrowseRoots = useCallback(
+    async (src?: 'oma' | 'workdrive') => {
+      if (!brandId) return;
+      setBrowsing(true);
+      setVisibleGridCount(GRID_RENDER_STEP);
+      setError(null);
+      try {
+        const page = { file_limit: BROWSE_FILE_LIMIT, file_offset: 0 };
+        const [org, brand] = await Promise.allSettled([
+          mediaApi.browse(brandId, kind, undefined, 'organization', src, page),
+          mediaApi.browse(brandId, kind, undefined, 'brand', src, page),
+        ]);
+        if (brand.status === 'fulfilled') setBrandRoot(brand.value.data);
+        if (org.status === 'fulfilled') {
+          setOrgRoot(org.value.data);
+          setBrowse(org.value.data);
+          setScope('organization');
+          setSelectedFolderId(org.value.data.folder.id);
+        } else if (brand.status === 'fulfilled') {
+          setBrowse(brand.value.data);
+          setScope('brand');
+          setSelectedFolderId(brand.value.data.folder.id);
+        }
+        if (org.status === 'rejected' && brand.status === 'rejected') {
+          setError(getApiError(org.reason).message);
+        }
+      } catch (e) {
+        setError(getApiError(e).message);
+      } finally {
+        setBrowsing(false);
+      }
+    },
+    [brandId, kind],
+  );
+
   const loadMoreBrowseFiles = useCallback(async () => {
     if (!brandId || !browse?.files_has_more || browseLoadingMore) return;
     const nextOffset = (browse.file_offset ?? 0) + browse.files.length;
@@ -481,52 +530,42 @@ export function MediaPickerDialog({
 
   useEffect(() => {
     if (!open || !brandId || !sourceReady) return;
-    void loadLibrary();
-    void workDriveApi
-      .storage()
-      .then((r) => setWorkspaceStorage(r.data))
-      .catch(() => setWorkspaceStorage(null));
     void (async () => {
-      setBrowsing(true);
-      setVisibleGridCount(GRID_RENDER_STEP);
+      let browseSource: 'oma' | 'workdrive' | undefined = storageSource ?? undefined;
       try {
-        const src = storageSource ?? undefined;
-        const page = { file_limit: BROWSE_FILE_LIMIT, file_offset: 0 };
-        const [org, brand] = await Promise.allSettled([
-          mediaApi.browse(brandId, kind, undefined, 'organization', src, page),
-          mediaApi.browse(brandId, kind, undefined, 'brand', src, page),
-        ]);
-        const from =
-          org.status === 'fulfilled'
-            ? org.value.data.source
-            : brand.status === 'fulfilled'
-              ? brand.value.data.source
-              : null;
-        if (!storageSource && (from === 'oma' || from === 'workdrive')) {
-          setStorageSource(from);
-          persistSource(from);
+        const r = await workDriveApi.storage();
+        setWorkspaceStorage(r.data);
+        const stored = readStoredSource();
+        let next: 'oma' | 'workdrive' | null = stored ?? storageSource;
+        if (next === 'workdrive' && !r.data.byos_connected) next = 'oma';
+        if (next === 'oma' && !r.data.internal_available && r.data.byos_connected) {
+          next = 'workdrive';
         }
-        if (brand.status === 'fulfilled') setBrandRoot(brand.value.data);
-        if (org.status === 'fulfilled') {
-          setOrgRoot(org.value.data);
-          setBrowse(org.value.data);
-          setScope('organization');
-          setSelectedFolderId(org.value.data.folder.id);
-        } else if (brand.status === 'fulfilled') {
-          setBrowse(brand.value.data);
-          setScope('brand');
-          setSelectedFolderId(brand.value.data.folder.id);
+        if (!next) {
+          next = r.data.mode === 'USER_WORKDRIVE' && r.data.byos_connected ? 'workdrive' : 'oma';
         }
-        if (org.status === 'rejected' && brand.status === 'rejected') {
-          setError(getApiError(org.reason).message);
+        if (!r.data.internal_available && next === 'oma' && r.data.byos_connected) {
+          next = 'workdrive';
         }
+        if (next) {
+          browseSource = next;
+          setStorageSource(next);
+          if (!stored) persistSource(next);
+        }
+      } catch {
+        setWorkspaceStorage(null);
+      }
+      try {
+        const libRes = await mediaApi.list(brandId, kind, browseSource, {
+          limit: ASSET_LIST_LIMIT,
+        });
+        setLib(libRes.data);
       } catch (e) {
         setError(getApiError(e).message);
-      } finally {
-        setBrowsing(false);
       }
+      await reloadBrowseRoots(browseSource);
     })();
-  }, [open, brandId, kind, loadLibrary, storageSource, sourceReady]);
+  }, [open, brandId, kind, storageSource, sourceReady, reloadBrowseRoots]);
 
   useEffect(() => {
     const node = gridSentinelRef.current;
@@ -587,18 +626,25 @@ export function MediaPickerDialog({
         ? t('errors.storage_workdrive_unavailable')
         : null;
   const selectSource = (next: 'oma' | 'workdrive') => {
-    if (storageSource === next) return;
+    if (!brandId || storageSource === next) return;
     setOrgRoot(null);
     setBrandRoot(null);
     setBrowse(null);
+    setLib(null);
     setError(null);
     setVisibleGridCount(GRID_RENDER_STEP);
     setStorageSource(next);
     persistSource(next);
+    if (brandId) invalidateMediaCache(brandId);
     void workDriveApi
       .storage()
       .then((r) => setWorkspaceStorage(r.data))
       .catch(() => setWorkspaceStorage(null));
+    void mediaApi
+      .list(brandId, kind, next, { limit: ASSET_LIST_LIMIT })
+      .then((r) => setLib(r.data))
+      .catch((e) => setError(getApiError(e).message));
+    void reloadBrowseRoots(next);
   };
   const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
   const allSelected = scope === 'all' || selectedFolderId === '__all__';
@@ -692,12 +738,8 @@ export function MediaPickerDialog({
   const filterCount = usage.size + types.size + campaigns.size + uploaders.size;
   const visibleItems = items.slice(0, visibleGridCount);
   const viewingWorkDrive = storageSource === 'workdrive';
-  const quotaUsed = viewingWorkDrive
-    ? null
-    : (workspaceStorage?.used_bytes ??
-      lib?.storage_used_bytes ??
-      browse?.storage_used_bytes ??
-      null);
+  const quotaUsedBytes =
+    workspaceStorage?.used_bytes ?? lib?.storage_used_bytes ?? browse?.storage_used_bytes ?? 0;
   const quotaLimit = viewingWorkDrive
     ? null
     : (workspaceStorage?.limit_bytes ??
@@ -705,18 +747,16 @@ export function MediaPickerDialog({
       browse?.storage_limit_bytes ??
       null);
   const quotaPct =
-    quotaUsed != null && quotaLimit != null && quotaLimit > 0
-      ? Math.min(100, (quotaUsed / quotaLimit) * 100)
+    !viewingWorkDrive && quotaLimit != null && quotaLimit > 0
+      ? Math.min(100, (quotaUsedBytes / quotaLimit) * 100)
       : null;
   const quotaLabel = viewingWorkDrive
     ? t('media.quotaByos')
-    : quotaUsed != null
-      ? quotaLimit == null
-        ? `${formatBytes(quotaUsed, locale)} · ${t('storage.usage.unlimited')}`
-        : t('storage.usage.of')
-            .replace('{used}', formatBytes(quotaUsed, locale))
-            .replace('{limit}', formatBytes(quotaLimit, locale))
-      : null;
+    : quotaLimit == null
+      ? `${formatBytes(quotaUsedBytes, locale)} · ${t('storage.usage.unlimited')}`
+      : t('storage.usage.of')
+          .replace('{used}', formatBytes(quotaUsedBytes, locale))
+          .replace('{limit}', formatBytes(quotaLimit, locale));
 
   const folderScope: 'brand' | 'organization' = scope === 'brand' ? 'brand' : 'organization';
   const uploadToFolderId = allSelected
@@ -829,6 +869,66 @@ export function MediaPickerDialog({
     }
   };
 
+  const connectCanva = async () => {
+    if (!brandId) return;
+    if (!storageReady) {
+      openSettings('storage');
+      return;
+    }
+    if (sourceBlocked) {
+      setError(sourceBlocked);
+      return;
+    }
+    setCanvaBusy(true);
+    setError(null);
+    try {
+      const src: 'oma' | 'workdrive' | undefined =
+        storageSource ??
+        (workspaceStorage?.mode === 'USER_WORKDRIVE' && workspaceStorage.byos_connected
+          ? 'workdrive'
+          : 'oma');
+      const kindFolder = kind === 'deliverables' ? 'deliverables' : 'posts';
+      let brandBrowse = brandRoot;
+      if (!brandBrowse) {
+        brandBrowse = (
+          await mediaApi.browse(brandId, kind, undefined, 'brand', src, {
+            file_limit: BROWSE_FILE_LIMIT,
+            file_offset: 0,
+          })
+        ).data;
+        setBrandRoot(brandBrowse);
+      }
+      const postsFolder = brandBrowse.folders.find((f) => f.name === kindFolder);
+      const parentId = postsFolder?.id ?? brandBrowse.brand_folder?.id ?? brandBrowse.folder.id;
+      const inside = await mediaApi.browse(brandId, kind, parentId, 'brand', src, {
+        file_limit: BROWSE_FILE_LIMIT,
+        file_offset: 0,
+      });
+      let canvaFolder = inside.data.folders.find((f) => f.name.toLowerCase() === 'canva');
+      if (!canvaFolder) {
+        const created = await mediaApi.createFolder(brandId, {
+          name: 'Canva',
+          parent_id: parentId,
+          scope: 'brand',
+          kind,
+          source: src,
+        });
+        canvaFolder = { id: created.data.id, name: created.data.name ?? 'Canva' };
+      }
+      invalidateMediaCache(brandId);
+      await openFolder('brand', canvaFolder.id);
+      setCanvaHint(
+        viewingWorkDrive || src === 'workdrive'
+          ? t('media.canvaWorkdriveHint')
+          : t('media.canvaOmaHint'),
+      );
+    } catch (e) {
+      setError(getApiError(e).message);
+    } finally {
+      setCanvaBusy(false);
+    }
+  };
+
   const sortLabel =
     sort === 'oldest'
       ? t('media.oldestFirst')
@@ -871,6 +971,11 @@ export function MediaPickerDialog({
           {error}
         </p>
       ) : null}
+      {canvaHint ? (
+        <p className="oma-bs-hint" data-testid="media-canva-hint">
+          {canvaHint}
+        </p>
+      ) : null}
       {!hideCanva ? (
         <div className="oma-ml-canva" data-testid="media-canva-banner">
           <span className="oma-ml-canva__mark" aria-hidden>
@@ -883,9 +988,11 @@ export function MediaPickerDialog({
           <button
             type="button"
             className="oma-ml-canva__link"
-            onClick={() => setError(t('media.canvaUnavailable'))}
+            disabled={canvaBusy}
+            data-testid="media-canva-connect"
+            onClick={() => void connectCanva()}
           >
-            {t('media.canvaConnect')}
+            {canvaBusy ? t('media.loadingMore') : t('media.canvaConnect')}
           </button>
         </div>
       ) : null}
@@ -1209,7 +1316,7 @@ export function MediaPickerDialog({
         ) : items.length ? (
           <>
             <div className="oma-ml-grid" data-testid="media-files">
-              {visibleItems.map((item) => {
+              {visibleItems.map((item, index) => {
                 const badge = usageLabel(item.usageCount, t);
                 return (
                   <button
@@ -1221,7 +1328,7 @@ export function MediaPickerDialog({
                     title={item.missing ? t('media.missing') : item.name}
                     onClick={() => void pickFile(item)}
                   >
-                    <LazyMediaThumb item={item} t={t} badge={badge} />
+                    <LazyMediaThumb item={item} t={t} badge={badge} eager={index < 24} />
                     <span className="oma-ml-item__name">{item.name}</span>
                   </button>
                 );
