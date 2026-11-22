@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError, isTerminalScanStatus, newId } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { resolveEffectiveCurrentStrategy } from '../strategy/effective-current';
 import { brandConnectorMode } from './connector-mode';
 import { parseBrandName, type BrandSettingsInput } from './brand-input';
 import { DEFAULT_SCHEDULE_TZ } from '../common/schedule-timezone';
@@ -228,6 +229,14 @@ export class BrandService {
       where: tenantWhere(tenantId, { brandId }),
       orderBy: { createdAt: 'desc' },
     });
+    const activeStrategyCount = await getPrisma().strategy.count({
+      where: tenantWhere(tenantId, { brandId, status: 'ACTIVE' }),
+    });
+    const currentStrategy = await resolveEffectiveCurrentStrategy(
+      tenantId,
+      brandId,
+      brand.currentApprovedStrategyId,
+    );
     return {
       data: {
         id: brand.id,
@@ -235,7 +244,10 @@ export class BrandService {
         status: brand.status,
         version: brand.version,
         current_approved_profile_version_id: brand.currentApprovedProfileVersionId,
-        current_approved_strategy_id: brand.currentApprovedStrategyId,
+        // DEC-030: effective current (explicit pointer, else latest approved strategy).
+        current_approved_strategy_id: currentStrategy.id,
+        current_strategy_inferred: currentStrategy.inferred,
+        active_strategy_count: activeStrategyCount,
         latest_profile_status: latestProfile?.status ?? null,
         latest_profile_version_id: latestProfile?.id ?? null,
         website: source

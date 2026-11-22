@@ -122,8 +122,9 @@ test.describe('PJ-02 package approve', () => {
 
     await page.goto(`/app/brands/${brandId}/strategies/${strategyId}`);
     await expect(page.getByTestId('strategy-name-heading')).toBeVisible();
-    await expect(page.getByTestId('strategy-current-badge')).toHaveCount(0);
-    await expect(page.getByTestId('strategy-set-current')).toBeVisible();
+    // DEC-030: approve makes the strategy current; no separate "set current" step.
+    await expect(page.getByTestId('strategy-current-badge')).toBeVisible();
+    await expect(page.getByTestId('strategy-set-current')).toHaveCount(0);
     expect(
       errors.filter((e) => !/hydration|favicon|Failed to load resource|409|401|403|404/i.test(e)),
     ).toEqual([]);

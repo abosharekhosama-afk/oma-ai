@@ -236,10 +236,12 @@ export default function BrandDetailPage() {
                     >
                       {t('brand.detail.openStrategyCta')}
                     </Link>
-                  ) : brand.current_approved_profile_version_id ? (
-                    <Link href={`/app/brands/${brandId}/strategies/new`}>
-                      {t('brand.detail.createStrategyCta')}
+                  ) : (brand.active_strategy_count ?? 0) > 0 ? (
+                    <Link href={`/app/brands/${brandId}/strategies`}>
+                      {t('brand.detail.continueStrategyCta')}
                     </Link>
+                  ) : brand.current_approved_profile_version_id ? (
+                    <span className="oma-muted">{t('brand.detail.noStrategy')}</span>
                   ) : (
                     <span className="oma-muted">{t('brand.detail.noStrategy')}</span>
                   )}
@@ -339,7 +341,9 @@ export default function BrandDetailPage() {
                   </span>
                 </Link>
               </li>
-              {brand.current_approved_profile_version_id ? (
+              {brand.current_approved_profile_version_id &&
+              brand.current_approved_strategy_id &&
+              !nextStep.href.includes('/strategies') ? (
                 <li>
                   <Link
                     href={

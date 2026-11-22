@@ -90,7 +90,7 @@ describe('brandPrimaryNextStep', () => {
       t,
       { work_request_count: 0, content_count: 0 },
     );
-    expect(next.href).toBe('/app/brands/b1/strategies/st9/review');
+    expect(next.href).toBe('/app/brands/b1/strategies/st9/execution');
     expect(next.label).toBe('brand.detail.planRequestsCta');
   });
 

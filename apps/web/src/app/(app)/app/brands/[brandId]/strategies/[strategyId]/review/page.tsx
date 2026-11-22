@@ -20,14 +20,14 @@ import {
   BrandPlxSection,
 } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
-import { StrategyStatusBadge } from '../../../../../../../../components/strategy/status-badge';
+import { StrategyVersionStatusChip } from '../../../../../../../../components/strategy/status-badge';
 import { SubmitEligibility } from '../../../../../../../../components/strategy/submit-eligibility';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
 import { StrategyDraftPreview } from '../../../../../../../../components/strategy/strategy-draft-preview';
-import { StrategyNextStep } from '../../../../../../../../components/strategy/strategy-next-step';
+import { OmaLinkButton } from '../../../../../../../../components/ui/oma-link-button';
 import { StrategySubmitBlockers } from '../../../../../../../../components/strategy/strategy-submit-blockers';
 import type { StrategyBlockingItem } from '@oma/domain/browser';
 import {
@@ -129,16 +129,14 @@ export default function StrategyReviewPage() {
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
-      <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <BrandPlxPageHead
-        title={t('strategy.review.title')}
-        actions={<StrategyStatusBadge status={version.status} />}
-      />
-      <StrategyNextStep
+      <StrategySubnav
         brandId={brandId}
         strategyId={strategyId}
-        journey={readiness?.journey}
-        status={version.status}
+        refreshKey={`${version.status}:${version.row_version}`}
+      />
+      <BrandPlxPageHead
+        title={t('strategy.review.title')}
+        actions={<StrategyVersionStatusChip status={version.status} />}
       />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <p className="oma-muted" data-testid="strategy-ai-assistant-link">
@@ -160,14 +158,19 @@ export default function StrategyReviewPage() {
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={version} />
       ) : null}
-      <label className="oma-plx-listening-card oma-plx-brand-catalog-card" id="strategy-unknowns">
-        <CheckboxField
-          checked={unknowns}
-          onChange={(e) => setUnknowns(e.target.checked)}
-          data-testid="strategy-unknowns"
-        />{' '}
-        {t('strategy.review.unknowns')}
-      </label>
+      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
+        <label
+          className="oma-plx-listening-card oma-plx-brand-catalog-card oma-strategy-ack"
+          id="strategy-unknowns"
+        >
+          <CheckboxField
+            checked={unknowns}
+            onChange={(e) => setUnknowns(e.target.checked)}
+            data-testid="strategy-unknowns"
+          />{' '}
+          {t('strategy.review.unknowns')}
+        </label>
+      ) : null}
       <BrandPlxSection title={t('strategy.overview.actionsTitle')} testId="strategy-review-actions">
         {gateAction && blockers ? (
           <StrategySubmitBlockers
@@ -202,7 +205,7 @@ export default function StrategyReviewPage() {
                   void post(`${base}/approve`, {
                     row_version: version.row_version,
                     unknowns_acknowledged: unknowns,
-                    comment: 'Package approved',
+                    comment: t('strategy.review.autoComment.approved'),
                   })
                 }
               >
@@ -213,7 +216,7 @@ export default function StrategyReviewPage() {
                 onClick={() =>
                   void post(`${base}/request-changes`, {
                     row_version: version.row_version,
-                    comment: 'Please revise',
+                    comment: t('strategy.review.autoComment.changes'),
                   })
                 }
               >
@@ -224,7 +227,7 @@ export default function StrategyReviewPage() {
                 onClick={() =>
                   void post(`${base}/reject`, {
                     row_version: version.row_version,
-                    comment: 'Rejected',
+                    comment: t('strategy.review.autoComment.rejected'),
                   })
                 }
               >
@@ -232,9 +235,20 @@ export default function StrategyReviewPage() {
               </Button>
             </>
           ) : null}
+          {version.status === 'APPROVED' ? (
+            <OmaLinkButton
+              type="primary"
+              data-testid="strategy-start-execution"
+              href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
+            >
+              {readiness?.journey.current === 'execute' || !readiness
+                ? t('strategy.executionTab.start')
+                : t('strategy.executionTab.open')}
+            </OmaLinkButton>
+          ) : null}
           {['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(version.status) ? (
             <Button
-              type="primary"
+              type={version.status === 'APPROVED' ? 'default' : 'primary'}
               data-testid="strategy-revise"
               onClick={() => void post(`${base}/revise`, {})}
             >
@@ -243,33 +257,28 @@ export default function StrategyReviewPage() {
           ) : null}
         </div>
       </BrandPlxSection>
-      {version.status === 'APPROVED' ? (
-        <p data-testid="strategy-review-execution-link">
-          <Link
-            className="oma-text-link"
-            href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
-          >
-            {t('strategy.executionTab.open')}
-          </Link>
-        </p>
-      ) : null}
       {error ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>
           {error}
         </p>
       ) : null}
-      <BrandPlxSection title={t('strategy.review.comment')} testId="strategy-review-comment-form">
-        <form onSubmit={onComment}>
-          <label>
+      <BrandPlxSection
+        title={t('strategy.review.commentsTitle')}
+        testId="strategy-review-comment-form"
+      >
+        <form onSubmit={onComment} className="oma-strategy-comment-form">
+          <label className="oma-sr-only" htmlFor="strategy-comment-input">
             {t('strategy.review.comment')}
-            <TextArea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              data-testid="strategy-comment"
-              rows={3}
-            />
           </label>
-          <Button type="primary" htmlType="submit">
+          <TextArea
+            id="strategy-comment-input"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder={t('strategy.review.commentPlaceholder')}
+            data-testid="strategy-comment"
+            rows={3}
+          />
+          <Button type="default" htmlType="submit" disabled={!comment.trim()}>
             {t('strategy.review.comment')}
           </Button>
         </form>

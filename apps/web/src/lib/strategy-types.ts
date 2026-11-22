@@ -5,6 +5,9 @@ export type StrategyListItem = {
   version: number;
   has_approved_version: boolean;
   is_current: boolean;
+  current_inferred?: boolean;
+  latest_version_status?: string | null;
+  display_status?: string;
   updated_at: string;
 };
 
@@ -15,6 +18,9 @@ export type StrategyDetail = {
   version: number;
   has_approved_version: boolean;
   is_current: boolean;
+  current_inferred?: boolean;
+  latest_version_status?: string | null;
+  display_status?: string;
   latest_version: {
     id: string;
     status: string;
@@ -25,6 +31,7 @@ export type StrategyDetail = {
     paid_enabled: boolean;
     missing_source: boolean;
     evidence_backed: boolean;
+    linked_profile?: { id: string; status: string; approved_at: string } | null;
     ai_availability: string;
   } | null;
 };

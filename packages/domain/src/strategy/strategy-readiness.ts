@@ -62,6 +62,20 @@ function textOf(value: unknown): string {
   return '';
 }
 
+/**
+ * A positioning statement must say something: at least three words and 15
+ * characters ("الموضوع" / "topic" alone is a placeholder, not a position).
+ * Used by the foundation form before saving.
+ */
+export const POSITIONING_MIN_CHARS = 15;
+export const POSITIONING_MIN_WORDS = 3;
+
+export function isMeaningfulPositioning(text: string | null | undefined): boolean {
+  const value = (text ?? '').trim();
+  if (value.length < POSITIONING_MIN_CHARS) return false;
+  return value.split(/\s+/u).filter(Boolean).length >= POSITIONING_MIN_WORDS;
+}
+
 /** Goals + positioning are the two required foundation fields (submit gate). */
 export function checkFoundation(
   foundation: Record<string, unknown> | null | undefined,

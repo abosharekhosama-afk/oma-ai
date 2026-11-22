@@ -56,7 +56,7 @@ describe('buildBrandPipelineStages', () => {
     });
     expect(stages.find((s) => s.id === 'plan_requests')?.state).toBe('done');
     expect(stages.find((s) => s.id === 'content')?.state).toBe('current');
-    expect(stages.find((s) => s.id === 'plan_requests')?.href).toContain('/review');
+    expect(stages.find((s) => s.id === 'plan_requests')?.href).toContain('/execution');
   });
 });
 

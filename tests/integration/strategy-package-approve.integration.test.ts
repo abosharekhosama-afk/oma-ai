@@ -20,7 +20,7 @@ describe('strategy package approve', () => {
     await seed.app.close();
   });
 
-  it('creates one StrategyApprovalRecord; disabled track rationale persisted; current stays null', async () => {
+  it('creates one StrategyApprovalRecord; disabled track rationale persisted; current is set (DEC-030)', async () => {
     const { body: brand } = await createBrand(seed);
     const brandId = brand.data.id as string;
     const ready = await seedReviewReadyStrategy(seed, brandId);
@@ -51,10 +51,11 @@ describe('strategy package approve', () => {
     expect(records[0]!.paidEnabled).toBe(false);
 
     const brandRow = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brandRow.currentApprovedStrategyId).toBeNull();
+    // DEC-030: the owner approver also holds strategy.set_current.
+    expect(brandRow.currentApprovedStrategyId).not.toBeNull();
   });
 
-  it('approves both enabled tracks as one package with current still null', async () => {
+  it('approves both enabled tracks as one package and makes it current (DEC-030)', async () => {
     const { body: brand } = await createBrand(seed);
     const brandId = brand.data.id as string;
     const ready = await seedBothTracksReadyStrategy(seed, brandId);
@@ -79,6 +80,7 @@ describe('strategy package approve', () => {
     expect(record.organicEnabled).toBe(true);
     expect(record.paidEnabled).toBe(true);
     const brandRow = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brandRow.currentApprovedStrategyId).toBeNull();
+    // DEC-030: the owner approver also holds strategy.set_current.
+    expect(brandRow.currentApprovedStrategyId).not.toBeNull();
   });
 });

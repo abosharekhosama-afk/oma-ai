@@ -85,7 +85,7 @@ export default function StrategyExecutionPage() {
       latestScanId={brand.latest_scan?.id}
     >
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <BrandPlxPageHead title={t('strategy.tab.execution')} description={strategy.name} />
+      <BrandPlxPageHead title={t('strategy.tab.execution')} />
       {approved ? (
         <div data-testid="strategy-execution-tab">
           <p className="oma-muted">

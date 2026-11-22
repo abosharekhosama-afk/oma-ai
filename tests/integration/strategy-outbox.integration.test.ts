@@ -34,7 +34,8 @@ describe('strategy outbox', () => {
       current_auto_set?: boolean;
     };
     expect(payload.strategyId).toBe(ready.strategyId);
-    expect(payload.current_auto_set).toBe(false);
+    // DEC-030: the seeded owner holds strategy.set_current, so approve sets current.
+    expect(payload.current_auto_set).toBe(true);
   });
 
   it('after set_current, outbox event strategy.current_changed exists', async () => {

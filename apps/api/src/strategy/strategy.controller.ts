@@ -16,7 +16,7 @@ import type { Request } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
-import { DomainError } from '@oma/domain';
+import { DomainError, hasCapability } from '@oma/domain';
 import {
   seoService,
   strategyKpiScorecardService,
@@ -670,6 +670,7 @@ export class StrategyController {
       versionId,
       body,
       req.oma!.correlationId,
+      { actorCanSetCurrent: hasCapability(req.oma!.capabilities ?? [], 'strategy.set_current') },
     );
   }
 

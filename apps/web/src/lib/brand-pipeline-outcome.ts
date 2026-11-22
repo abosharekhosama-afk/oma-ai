@@ -49,7 +49,7 @@ export function buildBrandPipelineStages(
     : t('brand.pipeline.scanTodo');
 
   const planReviewHref = strategyId
-    ? `/app/brands/${brandId}/strategies/${strategyId}/review`
+    ? `/app/brands/${brandId}/strategies/${strategyId}/execution`
     : `/app/brands/${brandId}/strategies/new`;
 
   const planState: PipelineStage['state'] = !strategyReady
@@ -128,7 +128,9 @@ export function buildBrandPipelineStages(
           : t('brand.pipeline.strategyBlocked'),
       href: strategyId
         ? `/app/brands/${brandId}/strategies/${strategyId}`
-        : `/app/brands/${brandId}/strategies/new`,
+        : (brand.active_strategy_count ?? 0) > 0
+          ? `/app/brands/${brandId}/strategies`
+          : `/app/brands/${brandId}/strategies/new`,
       state: strategyReady ? 'done' : profileApproved ? 'current' : 'blocked',
     },
     {

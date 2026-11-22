@@ -123,13 +123,14 @@ describe('P2 Planable brand/strategy surfaces', () => {
     const overview = readFileSync(
       join(
         process.cwd(),
-        'apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/page.tsx',
+        // DEC-030: track chips live in the shared strategy header (every strategy page).
+        'apps/web/src/components/strategy/strategy-subnav.tsx',
       ),
       'utf8',
     );
     expect(overview).toContain("t('strategy.nav.organic')");
     expect(overview).toContain("t('strategy.nav.paid')");
-    expect(overview).toContain('strategy-current-badge');
+    expect(overview).toContain('<StrategyStatusBadge');
   });
 
   it('opens Create Brand through the P1 dialog primitive', () => {
