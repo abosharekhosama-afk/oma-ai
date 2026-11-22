@@ -2275,6 +2275,102 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/paid-execution": {
+      "get": {
+        "operationId": "PaidExecutionController_execution",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PaidExecution"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/paid-flights/campaigns": {
+      "post": {
+        "operationId": "PaidExecutionController_materialize",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PaidExecution"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/experiments/{experimentId}/status": {
+      "post": {
+        "operationId": "PaidExecutionController_updateExperiment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PaidExecution"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/experiments/{experimentId}/history": {
+      "get": {
+        "operationId": "PaidExecutionController_experimentHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PaidExecution"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/paid-spend": {
+      "get": {
+        "operationId": "PaidExecutionController_listSpend",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PaidExecution"
+        ]
+      },
+      "post": {
+        "operationId": "PaidExecutionController_recordSpend",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PaidExecution"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/paid-spend/import": {
+      "post": {
+        "operationId": "PaidExecutionController_importSpend",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PaidExecution"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/briefs": {
       "get": {
         "operationId": "BriefController_list",
