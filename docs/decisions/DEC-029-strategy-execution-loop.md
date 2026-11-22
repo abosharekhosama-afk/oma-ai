@@ -236,3 +236,22 @@ document, and default SEO numbers were sample data that looked measured.
   Honest limitation: the plan editor's inline "propose plan" action (4.1) remains in the editor — it is a section
   action on the same plan model, not a second assistant, and moving it would mean re-wiring apply/diff state.
 - No API or schema change.
+
+## PR 4.10: AI monthly review → new draft version
+
+- `GET …/versions/:id/monthly-review?month=YYYY-MM` (default: last full month) returns **measured** findings for an
+  APPROVED version: KPI scorecard status (4.5), cadence delivery per channel (published vs `posts_per_week × days/7`),
+  pillar share drift (>15 pts), paid flight pacing (4.7/4.8) and completed experiments. Findings are deterministic
+  (`@oma/domain` `monthlyReviewFindings`); the AI never produces the numbers.
+- `POST …/versions/:id/monthly-review` (`strategy.edit`), idempotent per version + month (`StrategyMonthlyReview`):
+  - nothing actionable → record `NO_CHANGES`, no draft;
+  - otherwise **revise → new DRAFT** (refused with 409 `OPEN_DRAFT_EXISTS` while another draft/review is open), then
+    the existing plan AI (`proposePlan`) runs on the draft with the actionable findings as an extra grounded input
+    (`reviewFindings`, internal only — never read from the request body). Status `PROPOSED` with the run id.
+  - AI unavailable/refused/invalid → status `DRAFT_ONLY` + `ai_error`; the draft is a plain copy and the findings guide
+    a manual edit (honest manual journey, no template overwrite).
+  - The proposal is **never auto-applied**: a human applies it with the existing `plan/ai/accept` and the draft goes
+    through normal submit/approve. Audited as `strategy.monthly_review.created`.
+- `GET …/strategies/:id/monthly-reviews` lists history. UI: monthly review panel on the Execution tab (4.9).
+- Not done (remaining): an automatic month-start reminder/notification; reviews are user-triggered for now.
+- Migration `20261122160000_strategy_monthly_review`.

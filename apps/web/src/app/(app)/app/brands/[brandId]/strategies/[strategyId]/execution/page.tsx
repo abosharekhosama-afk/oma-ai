@@ -21,6 +21,7 @@ import { StrategyPlanRequestsPanel } from '../../../../../../../../components/st
 import { StrategyExecutionPanel } from '../../../../../../../../components/strategy/strategy-execution-panel';
 import { StrategyPaidExecutionPanel } from '../../../../../../../../components/strategy/strategy-paid-execution-panel';
 import { StrategyKpiPanel } from '../../../../../../../../components/strategy/strategy-kpi-panel';
+import { StrategyMonthlyReviewPanel } from '../../../../../../../../components/strategy/strategy-monthly-review-panel';
 import { useT } from '../../../../../../../../lib/use-locale';
 
 type VersionRow = { id: string; status: string; version_number: number };
@@ -113,6 +114,12 @@ export default function StrategyExecutionPage() {
             brandId={brandId}
             strategyId={strategyId}
             versionId={approved.id}
+          />
+          <StrategyMonthlyReviewPanel
+            brandId={brandId}
+            strategyId={strategyId}
+            versionId={approved.id}
+            onDraftCreated={() => void load()}
           />
         </div>
       ) : (
