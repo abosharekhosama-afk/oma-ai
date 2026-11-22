@@ -221,3 +221,18 @@ document, and default SEO numbers were sample data that looked measured.
   - The worker syncs CONNECTED live links daily (last 7 days).
 - **No double counting.** When META_* rows exist for the same platform, day and flight, CSV/manual rows for that key are left out of pacing and spend totals (`preferApiSpend`).
 - UI: a Meta Ads card in the "Paid execution" panel (connect read-only → pick account → sync / disconnect). It is hidden when the mode is disabled.
+
+## PR 4.9: one workspace — three tabs, one AI assistant
+
+- The strategy sub-nav is now three tabs: **Plan** (overview, foundation, organic, paid, evidence as secondary chips),
+  **Execution** (new `/execution` page) and **Review & versions** (review, versions). Every old route keeps working
+  and highlights its tab; no URL was removed (`apps/web/src/lib/strategy-tabs.ts`).
+- **Execution** always targets the latest **APPROVED** version (from the versions list), even while a newer draft is
+  being edited — plan requests, execution/calendar, KPI scorecard (read-only), paid execution (flights, experiments,
+  spend, Meta Ads). These panels were removed from Overview and Review, which now link to the tab instead.
+- The draft KPI editor stays on Overview (it edits the plan); the scorecard on Execution records results.
+- **One AI assistant**: `StrategyAiAssistant` renders only on the Plan overview (`#strategy-ai-assistant`) for
+  DRAFT/IN_REVIEW versions. Foundation, organic, paid and review pages show a link to it instead of their own copy.
+  Honest limitation: the plan editor's inline "propose plan" action (4.1) remains in the editor — it is a section
+  action on the same plan model, not a second assistant, and moving it would mean re-wiring apply/diff state.
+- No API or schema change.
