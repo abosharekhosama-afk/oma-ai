@@ -133,6 +133,13 @@ function evidenceScan(scanId: string | null, extra: string[]): string[] {
   return refs.slice(0, 20);
 }
 
+function researchSource(source: string): 'EXTERNAL' | 'FIXTURE' | 'AI_ESTIMATE' | 'MANUAL' {
+  if (source === 'EXTERNAL') return 'EXTERNAL';
+  if (source === 'AI_ESTIMATE') return 'AI_ESTIMATE';
+  if (source === 'MANUAL') return 'MANUAL';
+  return 'FIXTURE';
+}
+
 /**
  * Deterministic mapping from crawl audit + GSC (+ optional research metrics) to organic plan rows.
  * Output is always a proposal — the API/UI applies it explicitly (DEC-021 / DEC-028).
@@ -204,16 +211,18 @@ export function buildSeoStrategyProposals(input: {
       intent: inferIntent(q),
       pillar_key: null,
       priority: impressions != null && impressions >= 1000 ? 4 : 3,
-      monthly_volume: research?.monthly_volume ?? impressions,
+      // Impressions are own-site Search Console performance, never market volume.
+      monthly_volume: research?.monthly_volume ?? null,
       difficulty: research?.difficulty ?? null,
       metric_source:
         research?.monthly_volume != null || research?.difficulty != null
-          ? 'EXTERNAL'
-          : impressions != null
-            ? 'EXTERNAL'
-            : null,
+          ? researchSource(research.source)
+          : null,
+      gsc_impressions: impressions,
+      gsc_clicks: q.clicks ?? null,
+      gsc_position: q.position ?? null,
       info_class: 'USER_AUTHORED',
-      source: 'EXTERNAL',
+      source: q.source.toUpperCase() === 'GSC_LIVE' ? 'EXTERNAL' : 'FIXTURE',
       evidence_refs: evidenceScan(input.scanAttemptId, [
         `gsc:query:${keyword}`,
         ...(q.page_url ? [`gsc:page:${q.page_url}`] : []),

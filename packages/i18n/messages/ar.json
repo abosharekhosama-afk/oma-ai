@@ -745,8 +745,6 @@
   "brand.evidence.none": "لا يوجد دليل مرتبط",
   "brand.evidence.technicalDetails": "تفاصيل تقنية",
   "brand.evidence.emptyExcerpt": "لا يوجد مقتطف مقروء لهذه الصفحة.",
-  "brand.evidence.technicalDetails": "تفاصيل تقنية",
-  "brand.evidence.emptyExcerpt": "لا يوجد مقتطف مقروء لهذه الصفحة.",
   "brand.evidence.prev": "الدليل السابق",
   "brand.evidence.next": "الدليل التالي",
   "brand.profile.title": "ذكاء العلامة",
@@ -3740,5 +3738,7 @@
   "settings.ai.status": "الحالة",
   "settings.ai.attempts": "المحاولات",
   "settings.ai.legacy": "إصدار قديم v1",
-  "settings.ai.more": "تحميل المزيد"
+  "settings.ai.more": "تحميل المزيد",
+  "strategy.plan.source.fixture": "بيانات تجريبية (غير حقيقية)",
+  "strategy.plan.gscImpressions": "مرات الظهور في Search Console (موقعك)"
 }

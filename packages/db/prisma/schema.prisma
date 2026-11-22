@@ -1367,6 +1367,7 @@ enum StrategyDataSource {
   DETERMINISTIC
   BRAND_PROFILE
   EXTERNAL
+  FIXTURE
 }
 
 enum StrategyContentGapKind {
@@ -1457,6 +1458,10 @@ model StrategySeoKeyword {
   monthlyVolume     Int?
   difficulty        Int?
   metricSource      StrategyDataSource?
+  /// Own-site Search Console performance for the query (not market volume).
+  gscImpressions    Int?
+  gscClicks         Int?
+  gscPosition       Float?
   infoClass         StrategyInfoClass    @default(USER_AUTHORED)
   source            StrategyDataSource   @default(MANUAL)
   evidenceRefs      String[]             @default([])

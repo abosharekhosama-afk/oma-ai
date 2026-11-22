@@ -1,7 +1,8 @@
 import { api } from './api';
 
 /** Mirrors the tracks-v2 API (`GET …/versions/:versionId/plan`). */
-export type PlanSource = 'MANUAL' | 'AI_ESTIMATE' | 'DETERMINISTIC' | 'BRAND_PROFILE' | 'EXTERNAL';
+export type PlanSource =
+  'MANUAL' | 'AI_ESTIMATE' | 'DETERMINISTIC' | 'BRAND_PROFILE' | 'EXTERNAL' | 'FIXTURE';
 
 export type PlanRowMeta = {
   info_class?: string;
@@ -27,6 +28,10 @@ export type KeywordRow = PlanRowMeta & {
   monthly_volume?: number | null;
   difficulty?: number | null;
   metric_source?: PlanSource | null;
+  /** Own-site Search Console performance (not market volume). */
+  gsc_impressions?: number | null;
+  gsc_clicks?: number | null;
+  gsc_position?: number | null;
 };
 
 export type GapRow = PlanRowMeta & {
@@ -162,6 +167,8 @@ export function planSourceLabelKey(source: PlanSource | null | undefined): strin
       return 'strategy.plan.source.brandProfile';
     case 'EXTERNAL':
       return 'strategy.plan.source.external';
+    case 'FIXTURE':
+      return 'strategy.plan.source.fixture';
     default:
       return 'strategy.plan.source.manual';
   }

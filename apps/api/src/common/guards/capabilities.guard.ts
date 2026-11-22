@@ -20,6 +20,7 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/audit-events': ['audit.read'],
   'GET /api/v1/analytics': ['analytics.read'],
   'GET /api/v1/analytics/content': ['analytics.read'],
+  'GET /api/v1/analytics/seo': ['analytics.read'],
   'GET /api/v1/analytics/optimal-times': ['analytics.read'],
   'GET /api/v1/analytics/optimal-times/heatmap': ['analytics.read'],
   'GET /api/v1/analytics/optimal-times/suggest': ['content.schedule'],
@@ -162,6 +163,8 @@ const routeRequirements: Record<string, string[]> = {
   'PUT /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan/organic': [
     'strategy.organic.edit',
   ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan/organic/merge-seo':
+    ['strategy.organic.edit'],
   'PUT /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan/paid': [
     'strategy.paid.edit',
   ],

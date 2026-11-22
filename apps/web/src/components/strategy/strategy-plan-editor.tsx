@@ -564,6 +564,12 @@ function OrganicTables({
                 </td>
                 <td>
                   <SourceTag source={k.metric_source ?? k.source} t={t} />
+                  {k.gsc_impressions != null ? (
+                    <div className="oma-muted" data-testid="seo-keyword-gsc">
+                      {t('strategy.plan.gscImpressions')}: {k.gsc_impressions}
+                      {k.gsc_position != null ? ` · #${k.gsc_position.toFixed(1)}` : ''}
+                    </div>
+                  ) : null}
                 </td>
                 <td>
                   {editable ? (

@@ -31,6 +31,7 @@ describe('strategy plan UI helpers', () => {
       'DETERMINISTIC',
       'BRAND_PROFILE',
       'EXTERNAL',
+      'FIXTURE',
     ] as const) {
       const key = planSourceLabelKey(source);
       expect(messages.en[key]).toBeTruthy();

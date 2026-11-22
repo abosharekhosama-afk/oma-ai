@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { DomainError } from '@oma/domain';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -75,6 +86,7 @@ export class SeoController {
   }
 
   @Post('api/v1/brands/:brandId/seo/search-console/sync')
+  @HttpCode(200)
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   @RequireCapabilities('brand.website.connect')
   syncGsc(@Req() req: Request, @Param('brandId') brandId: string) {
@@ -83,6 +95,7 @@ export class SeoController {
   }
 
   @Post('api/v1/brands/:brandId/seo/keywords/research')
+  @HttpCode(200)
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   @RequireCapabilities('brand.read')
   keywordResearch(

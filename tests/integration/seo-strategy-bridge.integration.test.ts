@@ -4,6 +4,7 @@ import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 import { authHeaders, createBrand, seedBrandTenant } from '../helpers/brand-test';
 import { createStrategy } from '../helpers/strategy-test';
+import { seedSucceededScanAttempt } from '../helpers/scan-fixture';
 
 describe('SEO → organic strategy bridge', () => {
   let seed: Awaited<ReturnType<typeof seedBrandTenant>>;
@@ -21,7 +22,11 @@ describe('SEO → organic strategy bridge', () => {
   it('returns proposals and merges selected rows into the organic plan', async () => {
     const { body: brand } = await createBrand(seed);
     const brandId = brand.data.id as string;
-    const scanId = newId();
+    const scanId = await seedSucceededScanAttempt({
+      tenantId: seed.tenantId,
+      brandId,
+      userId: seed.userId,
+    });
     const prisma = getPrisma();
     const auditId = newId();
     await prisma.brandSeoAudit.create({
@@ -95,7 +100,13 @@ describe('SEO → organic strategy bridge', () => {
     const merged = await mergeRes.json();
     expect(merged.data.organic.seo_keywords.length).toBeGreaterThan(0);
     expect(merged.data.organic.content_gaps.length).toBeGreaterThan(0);
-    expect(merged.data.organic.seo_keywords[0].source).toBe('EXTERNAL');
+    const kw = merged.data.organic.seo_keywords[0];
+    // Fixture Search Console rows are sample data: labelled FIXTURE, impressions kept apart
+    // from market volume (DEC-029 4.0).
+    expect(kw.source).toBe('FIXTURE');
+    expect(kw.gsc_impressions).toBeGreaterThan(0);
+    expect(kw.metric_source).not.toBe('EXTERNAL');
+    if (kw.monthly_volume != null) expect(kw.metric_source).toBe('FIXTURE');
     expect(merged.data.organic.content_gaps[0].source).toBe('DETERMINISTIC');
   });
 });

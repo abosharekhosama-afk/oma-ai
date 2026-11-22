@@ -6,15 +6,32 @@ import { refusingSearchConsolePort, type SearchConsolePort } from './search-cons
 
 export type GscMode = 'disabled' | 'fixture' | 'live';
 
+/**
+ * Sample (fixture) SEO data is for dev/CI and demos. In production it is off unless
+ * `SEO_FIXTURES_ALLOWED=true` is set explicitly (DEC-029 4.0).
+ */
+export function seoFixturesAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
+  const flag = (env.SEO_FIXTURES_ALLOWED ?? '').trim().toLowerCase();
+  if (flag === 'true' || flag === '1') return true;
+  if (flag === 'false' || flag === '0') return false;
+  return (env.NODE_ENV ?? '').trim().toLowerCase() !== 'production';
+}
+
 export function gscModeFromEnv(env: NodeJS.ProcessEnv = process.env): GscMode {
-  const raw = (env.BRAND_GSC_MODE ?? 'fixture').trim().toLowerCase();
+  const fixturesOk = seoFixturesAllowed(env);
+  const raw = (env.BRAND_GSC_MODE ?? (fixturesOk ? 'fixture' : 'disabled')).trim().toLowerCase();
   if (raw === 'live') return 'live';
   if (raw === 'disabled' || raw === 'off') return 'disabled';
-  return 'fixture';
+  return fixturesOk ? 'fixture' : 'disabled';
 }
 
 export function keywordSearchModeFromEnv(env: NodeJS.ProcessEnv = process.env): string {
-  return (env.BRAND_KEYWORD_RESEARCH_MODE ?? 'external_fixture').trim().toLowerCase();
+  const fixturesOk = seoFixturesAllowed(env);
+  const raw = (env.BRAND_KEYWORD_RESEARCH_MODE ?? (fixturesOk ? 'external_fixture' : 'manual'))
+    .trim()
+    .toLowerCase();
+  if ((raw === 'external_fixture' || raw === 'fixture') && !fixturesOk) return 'manual';
+  return raw;
 }
 
 export function createSearchConsolePort(
@@ -36,6 +53,5 @@ export function createKeywordResearchPort(
   if (mode === 'external_fixture' || mode === 'fixture') {
     return asStrategyResearchPort(externalFixtureKeywordSearch);
   }
-  if (mode === 'manual') return manualResearchAdapter;
-  return asStrategyResearchPort(externalFixtureKeywordSearch);
+  return manualResearchAdapter;
 }

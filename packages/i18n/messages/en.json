@@ -3738,5 +3738,7 @@
   "settings.ai.status": "Status",
   "settings.ai.attempts": "Attempts",
   "settings.ai.legacy": "legacy v1",
-  "settings.ai.more": "Load more"
+  "settings.ai.more": "Load more",
+  "strategy.plan.source.fixture": "Sample data (not real)",
+  "strategy.plan.gscImpressions": "Search Console impressions (your site)"
 }

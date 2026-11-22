@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpCode,
   Delete,
   Get,
   Param,
@@ -276,6 +277,7 @@ export class StrategyController {
   }
 
   @Post('strategies/:strategyId/versions/:versionId/plan/organic/merge-seo')
+  @HttpCode(200)
   @UseGuards(CsrfGuard)
   async mergeSeoOrganicPlan(
     @Req() req: Request,

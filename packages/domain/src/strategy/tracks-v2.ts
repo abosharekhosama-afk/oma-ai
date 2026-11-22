@@ -28,6 +28,8 @@ export const STRATEGY_DATA_SOURCES = [
   'DETERMINISTIC',
   'BRAND_PROFILE',
   'EXTERNAL',
+  /** Sample/demo data (fixture ports). Never presented as measured. */
+  'FIXTURE',
 ] as const;
 export type StrategyDataSource = (typeof STRATEGY_DATA_SOURCES)[number];
 
@@ -137,6 +139,10 @@ export const seoKeywordInputSchema = z.strictObject({
   difficulty: z.number().int().min(0).max(100).nullish(),
   /** Source of `monthly_volume` / `difficulty`; required when either metric is set. */
   metric_source: source.nullish(),
+  /** Search Console performance for this query (own site), never a market volume. */
+  gsc_impressions: z.number().int().min(0).max(1_000_000_000).nullish(),
+  gsc_clicks: z.number().int().min(0).max(1_000_000_000).nullish(),
+  gsc_position: z.number().min(0).max(1000).nullish(),
   info_class: infoClass.default('USER_AUTHORED'),
   source: source.default('MANUAL'),
   evidence_refs: evidenceRefs,

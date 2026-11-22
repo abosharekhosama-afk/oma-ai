@@ -615,6 +615,20 @@
         ]
       }
     },
+    "/api/v1/analytics/seo": {
+      "get": {
+        "operationId": "AnalyticsController_seo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
     "/api/v1/me/profile": {
       "get": {
         "operationId": "AccountController_profile",
@@ -1003,6 +1017,20 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/scans/config/defaults": {
+      "get": {
+        "operationId": "ScanController_defaults",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/scans/{scanId}": {
       "get": {
         "operationId": "ScanController_get",
@@ -1045,6 +1073,20 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/scans/{scanId}/resume": {
+      "post": {
+        "operationId": "ScanController_resume",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/scans/{scanId}/retry": {
       "post": {
         "operationId": "ScanController_retry",
@@ -1056,6 +1098,118 @@
         },
         "tags": [
           "Scan"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/strategy-proposals": {
+      "get": {
+        "operationId": "SeoController_strategyProposals",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/health": {
+      "get": {
+        "operationId": "SeoController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/search-console/connect-fixture": {
+      "post": {
+        "operationId": "SeoController_connectFixture",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/search-console/oauth/start": {
+      "post": {
+        "operationId": "SeoController_startOAuth",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/seo/gsc/callback": {
+      "get": {
+        "operationId": "SeoController_gscCallback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/search-console/sync": {
+      "post": {
+        "operationId": "SeoController_syncGsc",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/keywords/research": {
+      "post": {
+        "operationId": "SeoController_keywordResearch",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/analytics": {
+      "get": {
+        "operationId": "SeoController_analytics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
         ]
       }
     },
@@ -1502,6 +1656,20 @@
     "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan": {
       "get": {
         "operationId": "StrategyController_getPlan",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan/organic/merge-seo": {
+      "post": {
+        "operationId": "StrategyController_mergeSeoOrganicPlan",
         "parameters": [],
         "responses": {
           "200": {

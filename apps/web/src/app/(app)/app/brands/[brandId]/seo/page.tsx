@@ -207,14 +207,16 @@ export default function BrandSeoPage() {
             </p>
           ) : null}
           <div className="oma-chip-row">
-            <button
-              type="button"
-              className="oma-btn oma-btn--secondary"
-              disabled={busy}
-              onClick={() => void connectFixture()}
-            >
-              {t('brand.seo.connectFixture')}
-            </button>
+            {health?.search_console.gsc_mode === 'fixture' ? (
+              <button
+                type="button"
+                className="oma-btn oma-btn--secondary"
+                disabled={busy}
+                onClick={() => void connectFixture()}
+              >
+                {t('brand.seo.connectFixture')}
+              </button>
+            ) : null}
             <button
               type="button"
               className="oma-btn oma-btn--primary"
