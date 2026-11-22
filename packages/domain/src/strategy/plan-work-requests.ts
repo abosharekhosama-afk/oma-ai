@@ -2,6 +2,9 @@ import {
   DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS,
   DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS,
   DEFAULT_MAX_CATALOG_SERVICE_REQUESTS,
+  DEFAULT_SELECTED_CATALOG_PAID_PRODUCTS,
+  DEFAULT_SELECTED_CATALOG_PRODUCTS,
+  DEFAULT_SELECTED_CATALOG_SERVICES,
   type CatalogOffering,
 } from '../brand/catalog-offerings';
 import type { OrganicPlanInput, PaidPlanInput } from './tracks-v2';
@@ -18,6 +21,13 @@ export type PlanWorkRequestDraft = {
     audience: { en: string; ar: string };
     keyMessage: { en: string; ar: string };
   };
+  /** v2 pillar key for organic pillar drafts (calendar slot assignment, DEC-029 4.2). */
+  pillar_key?: string | null;
+  /**
+   * False for catalog items beyond the default pick (10 products / 10 services /
+   * 10 paid products). A commit without explicit keys creates only selected drafts.
+   */
+  default_selected?: boolean;
 };
 
 function readLabel(item: unknown): string {
@@ -112,6 +122,7 @@ export function buildPlanWorkRequestDrafts(input: {
       const description = pillar.description?.trim() || growth || pillar.name_en;
       out.push({
         plan_source_key: pillarSourceKey(pillar.key),
+        pillar_key: pillar.key,
         track: 'organic',
         title: {
           en: `${input.strategyName} — ${pillar.name_en}`,
@@ -150,7 +161,16 @@ export function buildPlanWorkRequestDrafts(input: {
   }
 
   const catalog = input.catalogOfferings ?? [];
-  const catalogProducts = catalog.filter((item) => item.kind === 'product');
+  // Products with approved media first: they make the strongest default picks.
+  const catalogProducts = catalog
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.kind === 'product')
+    .sort(
+      (a, b) =>
+        Number(Boolean(b.item.primary_media_view_url)) -
+          Number(Boolean(a.item.primary_media_view_url)) || a.index - b.index,
+    )
+    .map(({ item }) => item);
   const catalogServices = catalog.filter((item) => item.kind === 'service');
 
   if (input.organicEnabled && catalog.length > 0) {
@@ -163,7 +183,7 @@ export function buildPlanWorkRequestDrafts(input: {
         ? organicFormats
         : ['Post', 'Story'];
     const productCap = Math.min(catalogProducts.length, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS);
-    for (const product of catalogProducts.slice(0, productCap)) {
+    for (const [productIndex, product] of catalogProducts.slice(0, productCap).entries()) {
       const focus = product.category ? `${product.name} (${product.category})` : product.name;
       const mediaNote = product.primary_media_view_url
         ? ` Use approved catalog product media in WorkDrive as the visual anchor.`
@@ -173,6 +193,7 @@ export function buildPlanWorkRequestDrafts(input: {
           `Organic content anchored on scanned catalog product “${product.name}”.`) + mediaNote;
       out.push({
         plan_source_key: `organic:catalog:product:${product.slug}`,
+        default_selected: productIndex < DEFAULT_SELECTED_CATALOG_PRODUCTS,
         track: 'organic',
         title: pair(`${input.strategyName} — Product: ${product.name}`),
         description: pair(desc),
@@ -189,12 +210,13 @@ export function buildPlanWorkRequestDrafts(input: {
       });
     }
     const serviceCap = Math.min(catalogServices.length, DEFAULT_MAX_CATALOG_SERVICE_REQUESTS);
-    for (const service of catalogServices.slice(0, serviceCap)) {
+    for (const [serviceIndex, service] of catalogServices.slice(0, serviceCap).entries()) {
       const desc =
         service.description?.trim() ||
         `Organic content explaining scanned service “${service.name}”.`;
       out.push({
         plan_source_key: `organic:catalog:service:${service.slug}`,
+        default_selected: serviceIndex < DEFAULT_SELECTED_CATALOG_SERVICES,
         track: 'organic',
         title: pair(`${input.strategyName} — Service: ${service.name}`),
         description: pair(desc),
@@ -212,12 +234,15 @@ export function buildPlanWorkRequestDrafts(input: {
   if (input.paidEnabled && input.paid && catalogProducts.length > 0) {
     const formats = (input.paid.formats ?? []).map(readLabel).filter(Boolean);
     const offer = input.paid.offer_angle?.trim() || primaryMessage;
-    for (const product of catalogProducts.slice(0, DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS)) {
+    for (const [paidIndex, product] of catalogProducts
+      .slice(0, DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS)
+      .entries()) {
       const paidMediaNote = product.primary_media_view_url
         ? ' Feature approved catalog product creative (image or video) from the brand scan.'
         : '';
       out.push({
         plan_source_key: `paid:catalog:product:${product.slug}`,
+        default_selected: paidIndex < DEFAULT_SELECTED_CATALOG_PAID_PRODUCTS,
         track: 'paid',
         title: pair(`${input.strategyName} — Paid: ${product.name}`),
         description: pair(

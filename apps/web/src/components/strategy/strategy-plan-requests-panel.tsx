@@ -19,12 +19,23 @@ type PreviewItem = {
   formats: string[];
   already_created: boolean;
   brief_ready: boolean;
+  default_selected?: boolean;
+  pillar_key?: string | null;
   brief: {
     objective: { en: string; ar: string };
     audience: { en: string; ar: string };
     keyMessage: { en: string; ar: string };
   };
 };
+
+type CalendarSummary = {
+  available: boolean;
+  posts_per_week: number;
+  default_weeks: number;
+  max_weeks?: number;
+  slots_in_default?: number;
+  by_pillar?: Record<string, number>;
+} | null;
 
 type ImpactItem = {
   request_id: string;
@@ -59,6 +70,11 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [catalogRequestCount, setCatalogRequestCount] = useState(0);
+  const [calendar, setCalendar] = useState<CalendarSummary>(null);
+  const [useCalendar, setUseCalendar] = useState(true);
+  const [startDate, setStartDate] = useState(daysFromToday(1));
+  const [weeks, setWeeks] = useState('4');
+  const [showAllCatalog, setShowAllCatalog] = useState(false);
 
   const pick = useCallback(
     (pair: { en: string; ar: string }) =>
@@ -78,6 +94,7 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
             preview: PreviewItem[];
             catalog_request_count?: number;
             catalog_offerings_count?: number;
+            calendar?: CalendarSummary;
           };
         }>(`${base}/plan-to-requests/preview`),
         api<{ data: { impact: ImpactItem[] } }>(`${base}/plan-to-requests/impact`),
@@ -85,10 +102,13 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
       const preview = previewRes.data.preview;
       setItems(preview);
       setCatalogRequestCount(previewRes.data.catalog_request_count ?? 0);
+      setCalendar(previewRes.data.calendar ?? null);
       setImpact(impactRes.data.impact ?? []);
       setSelected(
         new Set(
-          preview.filter((item) => !item.already_created).map((item) => item.plan_source_key),
+          preview
+            .filter((item) => !item.already_created && item.default_selected !== false)
+            .map((item) => item.plan_source_key),
         ),
       );
       setSyncSelected(
@@ -148,6 +168,7 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
     setError(null);
     setMessage(null);
     try {
+      const calendarOn = Boolean(calendar?.available && useCalendar);
       const res = await api<{
         data: {
           created_request_ids: string[];
@@ -160,9 +181,11 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
           plan_source_keys: [...selected],
           defaults: {
             assignee_user_id: assigneeUserId || null,
-            due_at: dueAt ? `${dueAt}T12:00:00.000Z` : null,
+            // With a calendar each item is due two days before its first slot.
+            ...(calendarOn ? {} : { due_at: dueAt ? `${dueAt}T12:00:00.000Z` : null }),
             campaign_id: campaignId || null,
           },
+          calendar: calendarOn ? { start_date: startDate, weeks: Number(weeks) || 4 } : null,
         }),
       });
       if (res.data.created_request_ids.length > 0) {
@@ -253,6 +276,23 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
     );
   }
 
+  const isCatalog = (item: PreviewItem) => item.plan_source_key.includes(':catalog:');
+  const visibleItems = showAllCatalog
+    ? items
+    : items.filter(
+        (item) =>
+          !isCatalog(item) ||
+          item.default_selected !== false ||
+          item.already_created ||
+          selected.has(item.plan_source_key),
+      );
+  const hiddenCatalog = items.filter(
+    (item) => isCatalog(item) && item.default_selected === false && !item.already_created,
+  ).length;
+  const selectedCatalog = items.filter(
+    (item) => isCatalog(item) && selected.has(item.plan_source_key),
+  ).length;
+
   const requestsHref = `/app/requests?brand=${encodeURIComponent(brandId)}&strategy_version=${encodeURIComponent(versionId)}`;
 
   return (
@@ -293,14 +333,61 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
                 ))}
             </SelectField>
           </label>
-          <label>
-            {t('strategy.review.dueDate')}
-            <DateField
-              value={dueAt}
-              onChange={(e) => setDueAt(e.target.value)}
-              data-testid="strategy-plan-due"
-            />
-          </label>
+          {calendar?.available ? (
+            <label>
+              <CheckboxField
+                checked={useCalendar}
+                onChange={(e) => setUseCalendar(e.target.checked)}
+                data-testid="strategy-plan-use-calendar"
+              />{' '}
+              {t('strategy.review.calendar.use')}
+            </label>
+          ) : null}
+          {calendar?.available && useCalendar ? (
+            <>
+              <label>
+                {t('strategy.review.calendar.start')}
+                <DateField
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  data-testid="strategy-plan-calendar-start"
+                />
+              </label>
+              <label>
+                {t('strategy.review.calendar.weeks')}
+                <SelectField
+                  value={weeks}
+                  onChange={(e) => setWeeks(e.target.value)}
+                  data-testid="strategy-plan-calendar-weeks"
+                >
+                  {[1, 2, 4, 6, 8, 12].map((w) => (
+                    <option key={w} value={String(w)}>
+                      {w}
+                    </option>
+                  ))}
+                </SelectField>
+              </label>
+              <p className="oma-muted oma-field-span" data-testid="strategy-plan-calendar-summary">
+                {t('strategy.review.calendar.summary')
+                  .replace('{perWeek}', String(calendar.posts_per_week))
+                  .replace('{total}', String(calendar.posts_per_week * (Number(weeks) || 4)))}
+              </p>
+            </>
+          ) : (
+            <label>
+              {t('strategy.review.dueDate')}
+              <DateField
+                value={dueAt}
+                onChange={(e) => setDueAt(e.target.value)}
+                data-testid="strategy-plan-due"
+              />
+            </label>
+          )}
+          {calendar && !calendar.available ? (
+            <p className="oma-muted oma-field-span" data-testid="strategy-plan-calendar-missing">
+              {t('strategy.review.calendar.missingCadence')}
+            </p>
+          ) : null}
           <label>
             {t('strategy.review.campaign')}
             <SelectField
@@ -317,8 +404,20 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
             </SelectField>
           </label>
         </div>
+        {hiddenCatalog > 0 ? (
+          <p className="oma-muted" data-testid="strategy-plan-catalog-picker">
+            {t('strategy.review.catalogPicker')
+              .replace('{selected}', String(selectedCatalog))
+              .replace('{total}', String(catalogRequestCount))}{' '}
+            <Button type="link" onClick={() => setShowAllCatalog((v) => !v)}>
+              {showAllCatalog
+                ? t('strategy.review.catalogShowLess')
+                : t('strategy.review.catalogShowAll')}
+            </Button>
+          </p>
+        ) : null}
         <ul className="oma-plx-brand-data-grid">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <li
               key={item.plan_source_key}
               className="oma-plx-listening-card oma-plx-brand-catalog-card"

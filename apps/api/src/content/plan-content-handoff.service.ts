@@ -99,6 +99,65 @@ export async function createStrategyPlanContentDraft(
   return { contentId, created: true };
 }
 
+/**
+ * Extra calendar slot for a pillar (DEC-029 4.2). The work request keeps its anchor
+ * content; additional slots are separate DRAFT items labelled with the pillar.
+ */
+export async function createStrategyPlanSlotContent(
+  audit: AuditService,
+  ctx: PlanContentCtx,
+  draft: PlanWorkRequestDraft,
+  opts: {
+    campaignId: string | null;
+    plannedAt: Date;
+    slot: { slot_key: string; pillar_key: string | null };
+  },
+): Promise<{ contentId: string }> {
+  await billingService.assertWriteAccess(ctx.tenantId);
+  const { requiredApprovers } = await loadApprovalConfig(ctx.tenantId, ctx.brandId);
+  const contentId = newId();
+  await getPrisma().contentItem.create({
+    data: {
+      id: contentId,
+      tenantId: ctx.tenantId,
+      brandId: ctx.brandId,
+      campaignId: opts.campaignId,
+      titleEn: draft.title.en,
+      titleAr: draft.title.ar,
+      captionEn: draft.brief.keyMessage.en || null,
+      captionAr: draft.brief.keyMessage.ar || null,
+      contentType: deliverableHandoffContentType(draft.formats),
+      channel: deliverableHandoffChannel(draft.channels),
+      track: planDraftTrack(draft),
+      status: 'DRAFT',
+      approvalState: 'NOT_REQUESTED',
+      scheduleState: 'UNSCHEDULED',
+      plannedAt: opts.plannedAt,
+      timezone: await brandTimezone(ctx.tenantId, ctx.brandId),
+      approverRequired: requiredApprovers,
+      approverApproved: 0,
+      labels: [
+        'strategy-plan',
+        draft.plan_source_key,
+        `plan-slot:${opts.slot.slot_key}`,
+        ...(opts.slot.pillar_key ? [`pillar:${opts.slot.pillar_key}`] : []),
+      ],
+      createdBy: ctx.actorUserId,
+    },
+  });
+  await audit.write({
+    actorUserId: ctx.actorUserId,
+    tenantId: ctx.tenantId,
+    action: 'content.strategy_plan_handoff.slot',
+    targetType: 'ContentItem',
+    targetId: contentId,
+    beforeRef: `${ctx.strategyId}:${ctx.strategyVersionId}:${ctx.requestId}`,
+    afterRef: `${draft.plan_source_key}:${opts.slot.slot_key}`,
+    correlationId: ctx.correlationId,
+  });
+  return { contentId };
+}
+
 export async function refreshStrategyPlanContentFromDraft(
   audit: AuditService,
   ctx: PlanContentCtx,

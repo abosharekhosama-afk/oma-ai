@@ -9,6 +9,12 @@ import {
   buildPlanRequestImpactReport,
   comparableFromStored,
   catalogOfferingsFromDiscoveryRows,
+  buildCalendarSlots,
+  dueBeforePlanned,
+  isDateKey,
+  spreadPlannedDates,
+  STRATEGY_CALENDAR_LIMITS,
+  type CalendarSlot,
   type CatalogOffering,
   type CatalogOfferingsSource,
   type PlanWorkRequestDraft,
@@ -19,8 +25,10 @@ import { parseOptionalDate } from '../content/content.service';
 import { enrichCatalogOfferingsWithApprovedMedia } from '../catalog/catalog.service';
 import {
   createStrategyPlanContentDraft,
+  createStrategyPlanSlotContent,
   refreshStrategyPlanContentFromDraft,
 } from '../content/plan-content-handoff.service';
+import { brandTimezone } from '../brand/brand.service';
 import { readStrategyPlan } from './strategy-plan.service';
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
@@ -30,6 +38,15 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+/** The work request keeps the pillar; each slot's content item gets one channel + format. */
+function draftForSlot(draft: PlanWorkRequestDraft, slot: CalendarSlot): PlanWorkRequestDraft {
+  return {
+    ...draft,
+    channels: [slot.channel],
+    formats: slot.format ? [slot.format] : draft.formats,
+  };
 }
 
 @Injectable()
@@ -264,8 +281,12 @@ export class StrategyPlanRequestsService {
         catalog_offerings_count: catalogOfferings.length,
         catalog_source,
         catalog_request_count: catalogAnchored.length,
+        catalog_default_selected_count: catalogAnchored.filter((d) => d.default_selected !== false)
+          .length,
+        calendar: await this.calendarSummary(version),
         preview: drafts.map((draft) => ({
           ...draft,
+          default_selected: draft.default_selected !== false,
           already_created: existingKeys.has(draft.plan_source_key),
           brief_ready: briefReadiness({
             objective: draft.brief.objective.en,
@@ -372,6 +393,8 @@ export class StrategyPlanRequestsService {
         due_at?: string | null;
         campaign_id?: string | null;
       };
+      /** DEC-029 4.2: spread organic work over dated calendar slots. */
+      calendar?: { start_date?: string; weeks?: number } | null;
     },
     correlationId?: string,
   ) {
@@ -387,11 +410,29 @@ export class StrategyPlanRequestsService {
     const selected =
       input.plan_source_keys && input.plan_source_keys.length > 0
         ? drafts.filter((d) => input.plan_source_keys!.includes(d.plan_source_key))
-        : drafts;
+        : drafts.filter((d) => d.default_selected !== false);
+
+    const schedule = await this.resolveSchedule(tenantId, brandId, version, input.calendar);
+    const slotsByPillar = new Map<string, CalendarSlot[]>();
+    for (const slot of schedule?.plan.slots ?? []) {
+      if (!slot.pillar_key) continue;
+      slotsByPillar.set(slot.pillar_key, [...(slotsByPillar.get(slot.pillar_key) ?? []), slot]);
+    }
+    const oneOff = selected.filter((d) => d.track === 'organic' && !d.pillar_key);
+    const oneOffDates = schedule
+      ? spreadPlannedDates({
+          count: oneOff.length,
+          startDate: schedule.plan.start_date,
+          weeks: schedule.plan.weeks,
+          timezone: schedule.timezone,
+        })
+      : [];
+    const oneOffDate = new Map(oneOff.map((d, i) => [d.plan_source_key, oneOffDates[i]!]));
 
     const created: string[] = [];
     const createdContent: string[] = [];
     const skipped: string[] = [];
+    let slotsCreated = 0;
 
     for (const draft of selected) {
       const existing = await getPrisma().workRequest.findFirst({
@@ -405,11 +446,19 @@ export class StrategyPlanRequestsService {
         skipped.push(draft.plan_source_key);
         continue;
       }
+      const slots = draft.pillar_key ? (slotsByPillar.get(draft.pillar_key) ?? []) : [];
+      const firstPlanned = slots[0]?.planned_at ?? oneOffDate.get(draft.plan_source_key) ?? null;
+      const dueAt =
+        defaults.dueAt ??
+        (firstPlanned && schedule
+          ? dueBeforePlanned(firstPlanned, schedule.plan.start_date)
+          : undefined);
+      const anchorDraft = slots[0] ? draftForSlot(draft, slots[0]) : draft;
       const row = await getPrisma().workRequest.create({
         data: this.createDataFromDraft(
           draft,
           { tenantId, brandId, strategyId, versionId, actorUserId },
-          defaults,
+          { ...defaults, dueAt },
         ),
       });
       created.push(row.id);
@@ -433,10 +482,32 @@ export class StrategyPlanRequestsService {
           strategyVersionId: versionId,
           correlationId,
         },
-        draft,
-        { campaignId: defaults.campaignId, dueAt: defaults.dueAt ?? null },
+        anchorDraft,
+        {
+          campaignId: defaults.campaignId,
+          dueAt: firstPlanned ? new Date(firstPlanned) : (defaults.dueAt ?? null),
+        },
       );
       if (content?.created) createdContent.push(content.contentId);
+      for (const slot of slots.slice(1)) {
+        const slotContent = await createStrategyPlanSlotContent(
+          this.audit,
+          {
+            tenantId,
+            brandId,
+            actorUserId,
+            requestId: row.id,
+            strategyId,
+            strategyVersionId: versionId,
+            correlationId,
+          },
+          draftForSlot(draft, slot),
+          { campaignId: defaults.campaignId ?? null, plannedAt: new Date(slot.planned_at), slot },
+        );
+        createdContent.push(slotContent.contentId);
+        slotsCreated += 1;
+      }
+      if (slots.length && content?.created) slotsCreated += 1;
     }
 
     return {
@@ -446,7 +517,101 @@ export class StrategyPlanRequestsService {
         skipped_plan_source_keys: skipped,
         strategy_version_id: versionId,
         catalog_source,
+        calendar: schedule
+          ? {
+              start_date: schedule.plan.start_date,
+              weeks: schedule.plan.weeks,
+              timezone: schedule.timezone,
+              planned_slots: schedule.plan.slots.length,
+              slots_created: slotsCreated,
+              truncated: schedule.plan.truncated,
+            }
+          : null,
       },
+    };
+  }
+
+  /** Cadence + pillar share → dated slots. Null when the plan has no active cadence. */
+  private async resolveSchedule(
+    tenantId: string,
+    brandId: string,
+    version: Awaited<ReturnType<typeof this.loadApprovedVersion>>,
+    calendar: { start_date?: string; weeks?: number } | null | undefined,
+  ) {
+    if (calendar === null || !version.organicEnabled) return null;
+    const plan = await readStrategyPlan(getPrisma(), version.id);
+    const cadence = (plan.organic.cadence ?? []).filter((c) => c.posts_per_week > 0);
+    if (!cadence.length || !plan.organic.pillars.length) return null;
+    const startDate =
+      calendar?.start_date ?? new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    if (!isDateKey(startDate)) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Invalid calendar start date',
+        400,
+        'errors.validation',
+        [{ path: 'calendar.start_date', code: 'DATE', message: 'Use YYYY-MM-DD' }],
+      );
+    }
+    const weeks = calendar?.weeks ?? STRATEGY_CALENDAR_LIMITS.defaultWeeks;
+    if (
+      !Number.isInteger(weeks) ||
+      weeks < STRATEGY_CALENDAR_LIMITS.minWeeks ||
+      weeks > STRATEGY_CALENDAR_LIMITS.maxWeeks
+    ) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Invalid calendar weeks',
+        400,
+        'errors.validation',
+        [{ path: 'calendar.weeks', code: 'RANGE', message: 'weeks must be 1–12' }],
+      );
+    }
+    const timezone = await brandTimezone(tenantId, brandId);
+    return {
+      timezone,
+      plan: buildCalendarSlots({
+        cadence,
+        pillars: plan.organic.pillars,
+        startDate,
+        weeks,
+        timezone,
+      }),
+    };
+  }
+
+  /** What a default 4-week calendar would contain (preview only, nothing written). */
+  private async calendarSummary(version: Awaited<ReturnType<typeof this.loadApprovedVersion>>) {
+    if (!version.organicEnabled) return null;
+    const plan = await readStrategyPlan(getPrisma(), version.id);
+    const cadence = (plan.organic.cadence ?? []).filter((c) => c.posts_per_week > 0);
+    const posts_per_week = cadence.reduce((sum, c) => sum + c.posts_per_week, 0);
+    if (!cadence.length || !plan.organic.pillars.length) {
+      return {
+        available: false,
+        posts_per_week,
+        default_weeks: STRATEGY_CALENDAR_LIMITS.defaultWeeks,
+      };
+    }
+    const sample = buildCalendarSlots({
+      cadence,
+      pillars: plan.organic.pillars,
+      startDate: '2026-01-05',
+      weeks: STRATEGY_CALENDAR_LIMITS.defaultWeeks,
+      timezone: 'UTC',
+    });
+    const by_pillar: Record<string, number> = {};
+    for (const slot of sample.slots) {
+      if (slot.pillar_key) by_pillar[slot.pillar_key] = (by_pillar[slot.pillar_key] ?? 0) + 1;
+    }
+    return {
+      available: true,
+      posts_per_week,
+      default_weeks: STRATEGY_CALENDAR_LIMITS.defaultWeeks,
+      max_weeks: STRATEGY_CALENDAR_LIMITS.maxWeeks,
+      slots_in_default: sample.slots.length,
+      by_pillar,
+      channels: cadence.map((c) => ({ channel: c.channel, posts_per_week: c.posts_per_week })),
     };
   }
 

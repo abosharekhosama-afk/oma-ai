@@ -958,6 +958,7 @@ export class StrategyController {
         due_at?: string | null;
         campaign_id?: string | null;
       };
+      calendar?: { start_date?: string; weeks?: number } | null;
     },
   ) {
     this.requireTenant(req);

@@ -55,3 +55,32 @@ document, and default SEO numbers were sample data that looked measured.
   - Cadence is edited in the plan editor.
   - The draft preview reads v2.
 - KPI binding moves to PR 4.5 (scorecard), so the plan is not changed twice.
+
+## PR 4.2: strategy → calendar
+
+- `buildCalendarSlots`, a pure domain function:
+  - Each active cadence row (posts per week > 0) is spread evenly across each week.
+  - Posts are set at local publishing hours in the brand's timezone. A second post on the same day goes to the next slot hour.
+  - Formats rotate across the posts.
+  - Slots go to pillars by largest deficit against `share_target_pct`. Pillars without a share split whatever is left of 100. With no shares set, all pillars weigh the same.
+  - Horizon: 1–12 weeks, 4 by default. At most 200 slots; the result reports when it was truncated.
+- `POST …/plan-to-requests/commit` accepts `calendar: { start_date, weeks }`:
+  - Omitted: a 4-week calendar starting tomorrow, but only when the plan has active cadence and pillars.
+  - `null`: turns it off.
+  - Each pillar's request gets its anchor content on its first slot. Every further slot becomes its own DRAFT content item, labelled `plan-slot:*` and `pillar:*`.
+  - Catalog items are spread evenly across the horizon.
+  - Work is due 2 days before the first planned post, and never before the start date. This replaces the single shared due date.
+  - An explicit `defaults.due_at` still wins.
+- Preview returns:
+  - `calendar` (posts per week, slots in the default horizon, split by pillar);
+  - `default_selected` on every draft;
+  - `catalog_default_selected_count`.
+- Product picker:
+  - 10 products, 10 services and 10 paid products are pre-selected. Products with approved media come first.
+  - The rest stay listed but are only created when someone picks them by hand.
+  - A commit without explicit keys creates only the pre-selected drafts.
+  - `estimateCatalogContentRequests` now reports the default pick.
+- UI (review → plan requests):
+  - A "spread over calendar" toggle, start date and weeks, with a summary line.
+  - The single due date is shown only when the calendar is off.
+  - A catalog picker line with show all / show selected.
