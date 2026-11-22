@@ -1,4 +1,4 @@
-import { getPrisma, hydratePlan } from '@oma/db';
+import { getPrisma, hydratePlan, resolveAdminStorageLimitBytes } from '@oma/db';
 import {
   checkSsrfHost,
   discoverWorkDrive,
@@ -404,7 +404,11 @@ export class WorkDriveService {
       data: {
         mode,
         used_bytes: usage.storage_bytes,
-        limit_bytes: plan.limits.storage_bytes ?? null,
+        // Same limit as the subscription page (super-admin override first, then the plan).
+        limit_bytes:
+          (await resolveAdminStorageLimitBytes(tenantId, plan.limits.storage_bytes ?? null)) ??
+          plan.limits.storage_bytes ??
+          null,
         byos_connected: !!conn,
         byos_status: conn?.status ?? null,
         internal_available: !!this.masterConfig(),

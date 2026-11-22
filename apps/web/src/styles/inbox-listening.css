@@ -9543,3 +9543,118 @@ body > .oma-floating-overlay {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* Media library — drill-down folder bar, breadcrumb, source switch, mobile */
+.oma-ml-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.oma-ml-crumbs__list {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.oma-ml-crumbs__list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.oma-ml-crumbs__sep {
+  color: #9ca3af;
+  padding: 0 2px;
+}
+[dir='rtl'] .oma-ml-crumbs__sep {
+  transform: scaleX(-1);
+}
+.oma-ml-crumb {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 6px;
+  background: none;
+  color: #4b5563;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.oma-ml-crumb:hover {
+  background: #f3f4f6;
+  color: #111;
+}
+.oma-ml-crumb--current {
+  color: #111;
+  font-weight: 700;
+  cursor: default;
+}
+.oma-ml-folders--tabs {
+  flex-wrap: nowrap;
+  scroll-snap-type: x proximity;
+}
+.oma-ml-folders--tabs > * {
+  scroll-snap-align: start;
+}
+.oma-ml-folders--tabs .oma-ml-folder[data-active='true'] {
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #3730a3;
+}
+.oma-ml-folders--tabs .oma-ml-folder-tree__label {
+  align-self: center;
+  margin: 0;
+  white-space: nowrap;
+  text-transform: none;
+}
+.oma-ml-source button[data-unavailable='true'] {
+  color: #9ca3af;
+  cursor: help;
+}
+@media (max-width: 480px) {
+  .oma-ml-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 6px;
+  }
+  .oma-ml-source-row {
+    flex-wrap: wrap;
+  }
+  .oma-ml-source {
+    width: 100%;
+  }
+  .oma-ml-source button {
+    flex: 1 1 0;
+  }
+  .oma-ml-folder {
+    height: 36px;
+    max-width: 150px;
+  }
+  .oma-ml-crumb {
+    max-width: 110px;
+  }
+}
+@media (max-width: 720px) {
+  /* Phone: the library opens as a full-screen sheet instead of squeezing the calendar. */
+  .oma-plx-ml-split[data-open='true'] > .oma-ml--panel {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    width: 100%;
+    max-width: 100%;
+    flex-basis: auto;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-inline-start: 0;
+  }
+  .oma-ml--drawer {
+    width: 100%;
+  }
+}

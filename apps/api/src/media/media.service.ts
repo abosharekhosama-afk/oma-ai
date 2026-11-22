@@ -99,42 +99,25 @@ type BrowseFile = {
   updated_at: string | null;
 };
 
-async function collectAccessibleFiles(
-  client: WorkDriveClient,
-  startFolderId: string,
-  allowed: string[],
-  opts?: { maxFiles?: number; maxDepth?: number },
-): Promise<BrowseFile[]> {
-  const maxFiles = opts?.maxFiles ?? 250;
-  const maxDepth = opts?.maxDepth ?? 4;
-  const files: BrowseFile[] = [];
-  const seen = new Set<string>();
-  const visited = new Set<string>();
-  const queue: Array<{ id: string; depth: number }> = [{ id: startFolderId, depth: 0 }];
-  while (queue.length && files.length < maxFiles) {
-    const next = queue.shift();
-    if (!next || visited.has(next.id)) continue;
-    visited.add(next.id);
-    const folder = await client.getFolder(next.id);
-    for (const x of folder.files) {
-      if (!allowed.includes(x.mimeType) || seen.has(x.id)) continue;
-      seen.add(x.id);
-      files.push({
-        id: x.id,
-        name: x.name,
-        mime: x.mimeType,
-        size: x.size,
-        updated_at: x.updatedAt,
-      });
-      if (files.length >= maxFiles) break;
-    }
-    if (next.depth >= maxDepth) continue;
-    for (const child of folder.folders) {
-      if (!visited.has(child.id)) queue.push({ id: child.id, depth: next.depth + 1 });
-    }
-  }
-  return files;
+/** Clamp `file_limit` / `file_offset` query values (1..120 per page; null = no paging). */
+export function parseFilePage(q: { file_limit?: string; file_offset?: string }) {
+  const raw = q.file_limit != null && q.file_limit !== '' ? Number(q.file_limit) : null;
+  const limit =
+    raw == null || !Number.isFinite(raw) ? null : Math.min(Math.max(Math.floor(raw), 1), 120);
+  const offsetRaw = Number(q.file_offset);
+  const offset = Number.isFinite(offsetRaw) ? Math.max(Math.floor(offsetRaw), 0) : 0;
+  return { limit, offset };
 }
+
+/** One page of a folder listing, so only that page is decorated (DB lookups) and sent. */
+export function pageOf<T>(items: T[], page: { limit: number | null; offset: number }) {
+  if (page.limit == null) return { items, total: items.length, hasMore: false };
+  const slice = items.slice(page.offset, page.offset + page.limit);
+  return { items: slice, total: items.length, hasMore: page.offset + slice.length < items.length };
+}
+
+/** OMA internal folders that are storage plumbing, not media the user browses. */
+const INTERNAL_SYSTEM_FOLDERS = new Set(['brands', 'avatars']);
 
 /** Counts bytes and hashes while streaming; aborts once `max` is exceeded. */
 function meter(max: number) {
@@ -637,8 +620,10 @@ export class MediaService {
     q: { kind?: string; cursor?: string; limit?: string; source?: string; scope?: string },
   ) {
     await this.brand(tenantId, brandId);
-    const conn = await this.workdrive.status(tenantId);
-    const storage = await this.workdrive.storageStatus(tenantId);
+    const [conn, storage] = await Promise.all([
+      this.workdrive.status(tenantId),
+      this.workdrive.storageStatus(tenantId),
+    ]);
     const take = Math.min(Math.max(Number(q.limit) || 40, 1), 100);
     const source = this.workdrive.parseLibrarySource(q.source);
     const tenantWide = q.scope === 'organization' || q.scope === 'all';
@@ -1049,20 +1034,85 @@ export class MediaService {
     const brand = await this.brand(tenantId, brandId);
     const kind = q.kind ? parseKind(q.kind) : 'posts';
     const requested = this.workdrive.parseLibrarySource(q.source);
-    const c = await this.workdrive.resolveLibraryClient(tenantId, requested);
-    const storage = await this.workdrive.storageStatus(tenantId);
+    const [c, storage] = await Promise.all([
+      this.workdrive.resolveLibraryClient(tenantId, requested),
+      this.workdrive.storageStatus(tenantId),
+    ]);
+    const page = parseFilePage(q);
+    const common = {
+      root_name: c.conn.rootFolderName,
+      source: c.source,
+      available_sources: {
+        oma: storage.data.internal_available,
+        workdrive: storage.data.byos_connected,
+      },
+      mode: storage.data.mode,
+      storage_used_bytes: c.source === 'oma' ? storage.data.used_bytes : null,
+      storage_limit_bytes: c.source === 'oma' ? storage.data.limit_bytes : null,
+    };
     try {
       const allScope = q.scope === 'all';
       const organizationScope = q.scope === 'organization' || allScope;
+      const allowed = allowedMimeFor(kind);
+      if (allScope) {
+        // "All media" comes from the asset index, newest first and paged. It never walks the
+        // storage tree (that was a sequential, whole-storage crawl and the slowest request).
+        const where = tenantWhere(tenantId, {
+          mime: { in: allowed },
+          storageProvider: c.provider === 'OMA_INTERNAL' ? 'OMA_INTERNAL' : 'USER_WORKDRIVE',
+          ...(kind === 'deliverables' ? { kind: 'deliverables' } : { kind: { not: 'avatars' } }),
+        });
+        const take = page.limit ?? 48;
+        const [rows, total, brandFolderId] = await Promise.all([
+          getPrisma().mediaAsset.findMany({
+            where,
+            orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+            skip: page.offset,
+            take,
+          }),
+          getPrisma().mediaAsset.count({ where }),
+          this.brandFolderFor(c, brand),
+        ]);
+        const decorated = await this.decorateBrowseFiles(
+          tenantId,
+          brandId,
+          rows.map((a) => ({
+            id: a.workdriveFileId,
+            name: a.name,
+            mime: a.mime,
+            size: Number(a.size),
+            updated_at: a.updatedAt.toISOString(),
+          })),
+          c.source,
+        );
+        return {
+          data: {
+            ...common,
+            folder: { id: '__all__', name: 'All files', label: 'All files', parent_id: null },
+            brand_folder: { id: brandFolderId, name: brand.name },
+            path: [{ id: '__all__', name: 'All files' }],
+            folders: [],
+            files: decorated.files,
+            files_total: total,
+            files_has_more: page.offset + rows.length < total,
+            file_offset: page.offset,
+            file_limit: take,
+            filter_facets: decorated.filter_facets,
+          },
+        };
+      }
+
       const brandFolderId = await this.brandFolderFor(c, brand);
       let startFolderId: string;
       let tenantRootId: string | null = null;
       if (c.provider === 'OMA_INTERNAL') {
         tenantRootId = await this.tenantFolderFor(c);
-        // Ensure-path so a brand that has never uploaded still lists empty folders.
-        await this.folderFor(c, brand, kind);
-        if (kind !== 'deliverables') await this.folderFor(c, brand, 'logos');
-        startFolderId = organizationScope || allScope ? tenantRootId : brandFolderId;
+        // Ensure-path so a brand that has never uploaded still lists empty folders (cached).
+        await Promise.all([
+          this.folderFor(c, brand, kind),
+          kind !== 'deliverables' ? this.folderFor(c, brand, 'logos') : Promise.resolve(null),
+        ]);
+        startFolderId = organizationScope ? tenantRootId : brandFolderId;
       } else {
         const rootFolderId = c.conn.rootFolderId;
         // Organization browse needs a configured root. Fall back to the brand folder so the
@@ -1071,10 +1121,12 @@ export class MediaService {
         startFolderId = useOrgRoot ? rootFolderId! : brandFolderId;
       }
       const scopeRootId = startFolderId;
-      const folderId = allScope ? startFolderId : q.folder_id || startFolderId;
-      const f = await c.client.getFolder(folderId);
+      const folderId = q.folder_id || startFolderId;
+      const [f, byName] = await Promise.all([
+        c.client.getFolder(folderId),
+        this.brandsByFolderName(tenantId),
+      ]);
       if (f.id !== scopeRootId) await this.assertInsideScope(c.client, f.id, scopeRootId);
-      const allowed = allowedMimeFor(kind);
       const atRoot = f.id === scopeRootId;
       const path: Array<{ id: string; name: string }> = [{ id: f.id, name: f.name }];
       if (!atRoot) {
@@ -1090,24 +1142,20 @@ export class MediaService {
           if (cursor.id === scopeRootId) break;
         }
       }
-      const files: BrowseFile[] = allScope
-        ? await collectAccessibleFiles(c.client, startFolderId, allowed)
-        : f.files
-            .filter((x) => allowed.includes(x.mimeType))
-            .map((x) => ({
-              id: x.id,
-              name: x.name,
-              mime: x.mimeType,
-              size: x.size,
-              updated_at: x.updatedAt,
-            }));
+      const files: BrowseFile[] = f.files
+        .filter((x) => allowed.includes(x.mimeType))
+        .map((x) => ({
+          id: x.id,
+          name: x.name,
+          mime: x.mimeType,
+          size: x.size,
+          updated_at: x.updatedAt,
+        }));
       const atInternalOrgRoot =
-        c.provider === 'OMA_INTERNAL' && !allScope && tenantRootId != null && f.id === tenantRootId;
-      const byName = allScope ? new Map() : await this.brandsByFolderName(tenantId);
+        c.provider === 'OMA_INTERNAL' && tenantRootId != null && f.id === tenantRootId;
       // A folder is a brand folder when it is the active brand's, or (organization browse) its
       // name is another tenant brand's id/slug. Never created or renamed here.
-      const brandAtFolder =
-        f.id === brandFolderId ? brand : !allScope ? (byName.get(f.name) ?? null) : null;
+      const brandAtFolder = f.id === brandFolderId ? brand : (byName.get(f.name) ?? null);
       const isKindFolder = ['posts', 'logos', 'deliverables'].includes(f.name);
       const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
       // Brand scope (and WorkDrive organization browse): flatten the active brand's kind
@@ -1120,8 +1168,16 @@ export class MediaService {
         !isKindFolder &&
         f.id === brandFolderId &&
         files.length === 0;
-      if (flattenBrandFolder || atInternalOrgRoot) {
-        const listing = atInternalOrgRoot ? await c.client.getFolder(brandFolderId) : f;
+      const brandsFolder = atInternalOrgRoot ? f.folders.find((x) => x.name === 'brands') : null;
+      const [listing, brandsListing] = await Promise.all([
+        flattenBrandFolder || atInternalOrgRoot
+          ? atInternalOrgRoot
+            ? c.client.getFolder(brandFolderId)
+            : Promise.resolve(f)
+          : Promise.resolve(null),
+        brandsFolder ? c.client.getFolder(brandsFolder.id) : Promise.resolve(null),
+      ]);
+      if (listing) {
         const kids = listing.folders.filter((child) => flattenNames.includes(child.name));
         if (kids.length) {
           const nested = await Promise.all(kids.map((child) => c.client.getFolder(child.id)));
@@ -1143,10 +1199,24 @@ export class MediaService {
       }
       // Folder listing is the real storage tree (slug/id names); labels are added below.
       let rawFolders = f.folders;
-      if (
+      if (atInternalOrgRoot) {
+        // The first level of the OMA tree is the workspace brands (tenants/{t}/brands/{brandId}),
+        // then any folder the team created at the root. `brands` / `avatars` are plumbing.
+        const brandFolders = (brandsListing?.folders ?? []).filter((x) => byName.has(x.name));
+        const own = brandFolders.filter((x) => x.id === brandFolderId);
+        const others = brandFolders
+          .filter((x) => x.id !== brandFolderId)
+          .sort((a, b) =>
+            (byName.get(a.name)?.name ?? a.name).localeCompare(byName.get(b.name)?.name ?? b.name),
+          );
+        rawFolders = [
+          ...own,
+          ...others,
+          ...f.folders.filter((x) => !INTERNAL_SYSTEM_FOLDERS.has(x.name)),
+        ];
+      } else if (
         c.provider === 'OMA_INTERNAL' &&
         organizationScope &&
-        !allScope &&
         brandAtFolder != null &&
         !isKindFolder
       ) {
@@ -1154,48 +1224,36 @@ export class MediaService {
           kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos', 'deliverables'];
         rawFolders = f.folders.filter((child) => kindNames.includes(child.name));
       }
-      const decorated = await this.decorateBrowseFiles(tenantId, brandId, files, c.source);
-      const fileLimit = q.file_limit ? Math.min(Math.max(Number(q.file_limit) || 0, 1), 120) : null;
-      const fileOffset = Math.max(Number(q.file_offset) || 0, 0);
-      const decoratedFiles = decorated.files;
-      const pagedFiles =
-        fileLimit != null
-          ? decoratedFiles.slice(fileOffset, fileOffset + fileLimit)
-          : decoratedFiles;
-      const filesTotal = decoratedFiles.length;
-      const humanPath = allScope
-        ? [{ id: '__all__', name: 'All files' }]
-        : this.labelBrowseFolders(brand, brandFolderId, byName, path);
-      const humanFolders = allScope
-        ? []
-        : this.labelBrowseFolders(brand, brandFolderId, byName, rawFolders);
-      const folderLabel = allScope ? 'All files' : (brandAtFolder?.name ?? undefined);
+      // Newest first, then one page: only the page is decorated (DB lookups) and sent.
+      files.sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''));
+      const paged = pageOf(files, page);
+      const decorated = await this.decorateBrowseFiles(tenantId, brandId, paged.items, c.source);
+      // The OMA `brands` plumbing folder is skipped in the breadcrumb (root → brand → kind).
+      const visiblePath =
+        c.provider === 'OMA_INTERNAL' && organizationScope
+          ? path.filter((p, i) => !(i === 1 && p.name === 'brands'))
+          : path;
+      const humanPath = this.labelBrowseFolders(brand, brandFolderId, byName, visiblePath);
+      const humanFolders = this.labelBrowseFolders(brand, brandFolderId, byName, rawFolders);
+      const folderLabel = brandAtFolder?.name ?? undefined;
       return {
         data: {
+          ...common,
           folder: {
-            id: allScope ? '__all__' : f.id,
-            name: allScope ? 'All files' : f.name,
+            id: f.id,
+            name: f.name,
             ...(folderLabel ? { label: folderLabel } : {}),
-            parent_id: allScope || atRoot ? null : f.parentId,
+            parent_id: atRoot ? null : f.parentId,
           },
-          root_name: c.conn.rootFolderName,
           brand_folder: { id: brandFolderId, name: brand.name },
           path: humanPath,
           folders: humanFolders,
-          files: pagedFiles,
-          files_total: filesTotal,
-          files_has_more: fileLimit != null ? fileOffset + pagedFiles.length < filesTotal : false,
-          file_offset: fileOffset,
-          file_limit: fileLimit,
+          files: decorated.files,
+          files_total: paged.total,
+          files_has_more: paged.hasMore,
+          file_offset: page.offset,
+          file_limit: page.limit,
           filter_facets: decorated.filter_facets,
-          source: c.source,
-          available_sources: {
-            oma: storage.data.internal_available,
-            workdrive: storage.data.byos_connected,
-          },
-          mode: storage.data.mode,
-          storage_used_bytes: c.source === 'oma' ? storage.data.used_bytes : null,
-          storage_limit_bytes: c.source === 'oma' ? storage.data.limit_bytes : null,
         },
       };
     } catch (e) {
