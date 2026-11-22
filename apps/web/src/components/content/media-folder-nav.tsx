@@ -64,8 +64,8 @@ export function MediaFolderNav({
     [brandDisplayName, brandFolderId, brandId, workspaceLabel],
   );
 
-  const labelFor = (folderId: string, rawName: string) =>
-    displayFolderLabel(rawName, t, { ...labelCtx, folderId });
+  const labelFor = (folderId: string, rawName: string, serverLabel?: string) =>
+    serverLabel || displayFolderLabel(rawName, t, { ...labelCtx, folderId });
 
   const orgBrandFolderIds = useMemo(
     () => new Set((orgRoot?.folders ?? []).map((f) => f.id)),
@@ -90,7 +90,7 @@ export function MediaFolderNav({
     if (allSelected) {
       const roots = (orgRoot?.folders ?? []).map((f) => ({
         id: f.id,
-        label: labelFor(f.id, f.name),
+        label: labelFor(f.id, f.name, f.label),
         scope: scopeForFolder(f.id, brandFolderId, false, activeScope),
         active: false,
       }));
@@ -100,14 +100,14 @@ export function MediaFolderNav({
     const path = browse?.path?.length
       ? browse.path
       : browse?.folder
-        ? [{ id: browse.folder.id, name: browse.folder.name }]
+        ? [{ id: browse.folder.id, name: browse.folder.name, label: browse.folder.label }]
         : [];
     const crumbs: NavChip[] = [allChip];
     for (const crumb of path) {
       if (crumb.id === '__all__') continue;
       crumbs.push({
         id: crumb.id,
-        label: labelFor(crumb.id, crumb.name),
+        label: labelFor(crumb.id, crumb.name, crumb.label),
         scope: scopeForFolder(crumb.id, brandFolderId, pathBrandScoped, activeScope),
         active: browse?.folder.id === crumb.id,
       });
@@ -141,7 +141,7 @@ export function MediaFolderNav({
             : []) ?? [];
     return folders.map((f) => ({
       id: f.id,
-      label: labelFor(f.id, f.name),
+      label: labelFor(f.id, f.name, f.label),
       scope: scopeForFolder(
         f.id,
         brandFolderId,

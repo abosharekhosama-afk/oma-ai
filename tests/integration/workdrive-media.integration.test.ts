@@ -417,6 +417,8 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     const brandFolder = root.data.folders.find((f: { name: string }) => f.name === 'lumen-coffee');
     expect(brandFolder).toBeDefined();
     if (!brandFolder) throw new Error('Expected the active brand folder under the authorized root');
+    // Identity is the slug; the brand display name is only a label.
+    expect(brandFolder.label).toBe('Lumen Coffee');
     const nested = await (
       await fetch(
         `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization&folder_id=${encodeURIComponent(brandFolder.id)}`,

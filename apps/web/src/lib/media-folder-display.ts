@@ -34,6 +34,6 @@ export function displayFolderLabel(
   const slug = brandFolderSlug(ctx.brandName, ctx.brandId.slice(-8).toLowerCase());
   if (name === slug || name.startsWith(`${slug}-`) || name === ctx.brandId) return ctx.brandName;
   if (ULIDISH.test(name) && name === ctx.brandId) return ctx.brandName;
-  if (lower === 'brands' && ctx.brandName) return ctx.brandName;
+  if (lower === 'brands') return t('media.folderBrands');
   return name;
 }
