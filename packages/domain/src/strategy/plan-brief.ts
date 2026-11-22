@@ -55,6 +55,19 @@ export function briefContentFromPlanDraft(
   });
 }
 
+const ARABIC_SCRIPT = /[\u0600-\u06FF]/;
+
+/**
+ * Briefs keep one title. Use the brand's working language: Arabic when the strategy
+ * (and so the Arabic title) is written in Arabic, otherwise English.
+ */
+export function planDraftBriefTitle(
+  draft: Pick<PlanWorkRequestDraft, 'title'>,
+  strategyName: string,
+): string {
+  return ARABIC_SCRIPT.test(strategyName) ? draft.title.ar : draft.title.en;
+}
+
 /** Map a stored plan source key back to a v2 pillar key (handles legacy index keys). */
 export function pillarKeyFromSourceKey(sourceKey: string, pillarKeys: string[]): string | null {
   const m = /^organic:pillar:(.+)$/.exec(sourceKey);

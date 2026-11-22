@@ -27,6 +27,8 @@ import {
   type StrategyPlan,
 } from '../../lib/strategy-plan-api';
 import { useT } from '../../lib/use-locale';
+import { useLocale } from '../../lib/locale-context';
+import { localizeSeoGapTopic } from '@oma/domain/browser';
 import { SeoStrategyImport } from './seo-strategy-import';
 
 type Track = 'organic' | 'paid';
@@ -59,6 +61,7 @@ export function StrategyPlanEditor({
   track: Track;
 }) {
   const t = useT();
+  const locale = useLocale();
   const [plan, setPlan] = useState<StrategyPlan | null>(null);
   const [organic, setOrganic] = useState<OrganicPlan>({
     cadence: [],
@@ -234,7 +237,7 @@ export function StrategyPlanEditor({
             <ul>
               <li>
                 {t('strategy.plan.pillars')}:{' '}
-                {proposedOrganic.pillars.map((p) => p.name_en).join(' · ')}
+                {proposedOrganic.pillars.map((p) => pillarDisplayName(p, locale)).join(' · ')}
               </li>
               <li>
                 {t('strategy.plan.keywords')}:{' '}
@@ -242,7 +245,9 @@ export function StrategyPlanEditor({
               </li>
               <li>
                 {t('strategy.plan.gaps')}:{' '}
-                {proposedOrganic.content_gaps.map((g) => g.topic).join(' · ')}
+                {proposedOrganic.content_gaps
+                  .map((g) => localizeSeoGapTopic(g.topic, locale))
+                  .join(' · ')}
               </li>
             </ul>
           ) : null}
@@ -285,7 +290,13 @@ export function StrategyPlanEditor({
       ) : null}
 
       {track === 'organic' ? (
-        <OrganicTables plan={organic} onChange={setOrganic} editable={editable} t={t} />
+        <OrganicTables
+          plan={organic}
+          onChange={setOrganic}
+          editable={editable}
+          t={t}
+          brandId={brandId}
+        />
       ) : (
         <>
           <section className="oma-form-section oma-plan-budget-row" data-testid="plan-paid-budget">
@@ -353,20 +364,33 @@ export function StrategyPlanEditor({
   );
 }
 
+/** Pillar label in the reader's language (Arabic name first in the Arabic UI). */
+export function pillarDisplayName(
+  p: { key: string; name_en?: string | null; name_ar?: string | null },
+  locale: string,
+): string {
+  const ar = p.name_ar?.trim();
+  const en = p.name_en?.trim();
+  return (locale === 'ar' ? ar || en : en || ar) || p.key;
+}
+
 function OrganicTables({
   plan,
   onChange,
   editable,
   t,
+  brandId,
 }: {
   plan: OrganicPlan;
   onChange: (next: OrganicPlan) => void;
   editable: boolean;
   t: (k: string) => string;
+  brandId: string;
 }) {
+  const locale = useLocale();
   const pillarOptions = [
     { value: '', label: '—' },
-    ...plan.pillars.map((p) => ({ value: p.key, label: p.name_en || p.key })),
+    ...plan.pillars.map((p) => ({ value: p.key, label: pillarDisplayName(p, locale) })),
   ];
   const set = <K extends keyof OrganicPlan>(key: K, rows: OrganicPlan[K]) =>
     onChange({ ...plan, [key]: rows });
@@ -599,6 +623,19 @@ function OrganicTables({
             </tr>
           </thead>
           <tbody>
+            {plan.seo_keywords.length === 0 ? (
+              <tr>
+                <td colSpan={7}>
+                  <div className="oma-plan-empty" data-testid="plan-keywords-empty">
+                    <strong>{t('strategy.plan.keywordsEmpty.title')}</strong>
+                    <p className="oma-muted">{t('strategy.plan.keywordsEmpty.body')}</p>
+                    <a className="oma-link" href={`/app/brands/${brandId}/seo`}>
+                      {t('strategy.plan.keywordsEmpty.connect')}
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            ) : null}
             {plan.seo_keywords.map((k, i) => (
               <tr key={`${k.keyword}-${i}`}>
                 <td>
@@ -727,6 +764,15 @@ function OrganicTables({
             </tr>
           </thead>
           <tbody>
+            {plan.content_gaps.length === 0 ? (
+              <tr>
+                <td colSpan={5}>
+                  <div className="oma-plan-empty" data-testid="plan-gaps-empty">
+                    {t('strategy.plan.gapsEmpty')}
+                  </div>
+                </td>
+              </tr>
+            ) : null}
             {plan.content_gaps.map((g, i) => (
               <tr key={`${g.topic}-${i}`}>
                 <td>
@@ -746,7 +792,8 @@ function OrganicTables({
                 </td>
                 <td>
                   <Input
-                    value={g.topic}
+                    value={editable ? g.topic : localizeSeoGapTopic(g.topic, locale)}
+                    title={g.topic}
                     disabled={!editable}
                     onChange={(e) => {
                       const rows = [...plan.content_gaps];

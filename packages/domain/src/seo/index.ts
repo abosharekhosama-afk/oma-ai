@@ -7,3 +7,4 @@ export * from './ports-factory';
 export * from './strategy-bridge';
 export * from './dataforseo';
 export * from './rank-tracking';
+export * from './gap-topic-label';

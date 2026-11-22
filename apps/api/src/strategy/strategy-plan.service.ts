@@ -30,6 +30,7 @@ import {
   type PaidPlanInput,
   type PlanIssue,
   type SeoStrategyProposalPackage,
+  visibleSeoRows,
 } from '@oma/domain';
 import { z } from 'zod';
 import { buildStrategyPlanPrompt } from '@oma/ai';
@@ -358,7 +359,7 @@ export async function readStrategyPlan(
 ): Promise<{ organic: OrganicPlanInput; paid: PaidPlanInput; aiRunIds: string[] }> {
   const where = { strategyVersionId: versionId };
   const orderBy = { sortOrder: 'asc' as const };
-  const [cadence, pillars, keywords, gaps, allocations, audiences, experiments, flights] =
+  const [cadence, pillars, keywordRows, gapRows, allocations, audiences, experiments, flights] =
     await Promise.all([
       db.strategyChannelCadence.findMany({ where, orderBy }),
       db.strategyContentPillar.findMany({ where, orderBy }),
@@ -369,6 +370,9 @@ export async function readStrategyPlan(
       db.strategyExperiment.findMany({ where, orderBy }),
       db.strategyPaidFlight.findMany({ where, orderBy }),
     ]);
+  // Sample (FIXTURE) SEO rows stay in the DB but never reach a real environment's views.
+  const keywords = visibleSeoRows(keywordRows);
+  const gaps = visibleSeoRows(gapRows);
   const aiRunIds = [
     ...new Set(
       [...pillars, ...keywords, ...gaps, ...allocations, ...audiences, ...experiments]

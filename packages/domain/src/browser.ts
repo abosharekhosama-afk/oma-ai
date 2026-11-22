@@ -50,3 +50,4 @@ export {
   strategyDisplayStatus,
   type StrategyDisplayStatus,
 } from './strategy/current-pointer';
+export { localizeSeoGapTopic } from './seo/gap-topic-label';

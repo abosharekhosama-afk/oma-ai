@@ -9,8 +9,66 @@ export const STRATEGY_CALENDAR_LIMITS = {
   maxSlots: 200,
 } as const;
 
-/** Local publishing hours used when a channel has several posts on the same day. */
-const SLOT_HOURS = ['10:00', '13:00', '17:00', '20:00'];
+/**
+ * Local publishing hours for posts on the same day. The counter is shared by every
+ * channel on that day, so two channels never get the same date + time (the calendar
+ * showed stacked duplicates at 10:00 when each channel restarted the list).
+ */
+export const SLOT_HOURS = ['10:00', '13:00', '17:00', '20:00', '11:30', '15:00', '18:30', '21:30'];
+/** One-off items (catalog products/services) prefer the midday hours. */
+export const ONE_OFF_HOURS = [
+  '12:00',
+  '14:00',
+  '16:00',
+  '19:00',
+  '12:30',
+  '14:30',
+  '16:30',
+  '19:30',
+];
+
+function hhmm(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
+/**
+ * First free local time on `dateKey`: the preferred hours in order, then a 5-minute
+ * grid from 08:00. `taken` holds ISO instants already used and is updated.
+ */
+export function nextFreeSlotTime(input: {
+  dateKey: string;
+  timezone: string;
+  taken: Set<string>;
+  preferred?: readonly string[];
+}): Date {
+  const candidates = [...(input.preferred ?? SLOT_HOURS)];
+  for (let m = 8 * 60; m < 23 * 60 + 55; m += 5) candidates.push(hhmm(m));
+  for (const time of candidates) {
+    const at = zonedWallInstant(input.dateKey, time, input.timezone);
+    const key = at.toISOString();
+    if (!input.taken.has(key)) {
+      input.taken.add(key);
+      return at;
+    }
+  }
+  // A day with more than ~200 posts: fall back to minute offsets after 23:55.
+  let at = zonedWallInstant(input.dateKey, '23:55', input.timezone);
+  while (input.taken.has(at.toISOString())) at = new Date(at.getTime() + 60_000);
+  input.taken.add(at.toISOString());
+  return at;
+}
+
+/** True when two items share the same planned instant (used by tests + UI checks). */
+export function findSlotCollisions(plannedAt: string[]): string[] {
+  const seen = new Set<string>();
+  const dupes = new Set<string>();
+  for (const at of plannedAt) {
+    const key = new Date(at).toISOString();
+    if (seen.has(key)) dupes.add(key);
+    seen.add(key);
+  }
+  return [...dupes];
+}
 
 export type CalendarSlot = {
   /** Stable within a version + start date: `<week>:<channel>:<n>`. */
@@ -78,17 +136,14 @@ export function buildCalendarSlots(input: {
   );
   const maxSlots = input.maxSlots ?? STRATEGY_CALENDAR_LIMITS.maxSlots;
   const raw: Array<Omit<CalendarSlot, 'pillar_key'> & { sort: number }> = [];
+  const taken = new Set<string>();
   for (let w = 0; w < weeks; w += 1) {
     for (const row of input.cadence) {
       const n = Math.max(0, Math.min(28, Math.floor(row.posts_per_week)));
-      const perDay = new Map<number, number>();
       for (let i = 0; i < n; i += 1) {
         const day = Math.floor((i * 7) / n);
-        const nth = perDay.get(day) ?? 0;
-        perDay.set(day, nth + 1);
         const dateKey = addDays(input.startDate, w * 7 + day);
-        const time = SLOT_HOURS[nth % SLOT_HOURS.length]!;
-        const at = zonedWallInstant(dateKey, time, input.timezone);
+        const at = nextFreeSlotTime({ dateKey, timezone: input.timezone, taken });
         raw.push({
           slot_key: `${w}:${row.channel.trim().toLowerCase()}:${i}`,
           week: w,
@@ -129,16 +184,20 @@ export function spreadPlannedDates(input: {
   startDate: string;
   weeks: number;
   timezone: string;
+  /** Instants already used by cadence slots; one-off items never land on them. */
+  taken?: Iterable<string>;
 }): string[] {
   if (input.count <= 0) return [];
   const days = Math.max(1, input.weeks) * 7;
   const step = days / input.count;
+  const taken = new Set([...(input.taken ?? [])].map((at) => new Date(at).toISOString()));
   return Array.from({ length: input.count }, (_, i) =>
-    zonedWallInstant(
-      addDays(input.startDate, Math.floor(i * step)),
-      '12:00',
-      input.timezone,
-    ).toISOString(),
+    nextFreeSlotTime({
+      dateKey: addDays(input.startDate, Math.floor(i * step)),
+      timezone: input.timezone,
+      taken,
+      preferred: ONE_OFF_HOURS,
+    }).toISOString(),
   );
 }
 

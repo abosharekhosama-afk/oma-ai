@@ -625,11 +625,46 @@ export class ContentService {
     const policy = await this.policyForBrand(tenantId, brandId);
 
     const mapped = data.map((row) => mapContent(row, policy));
-    const enriched = await this.enrichContentNames(mapped);
+    const enriched = await this.enrichPillarNames(tenantId, await this.enrichContentNames(mapped));
     return {
       data: enriched,
       page: { next_cursor: hasMore ? (data[data.length - 1]?.id ?? null) : null, limit },
     };
+  }
+
+  /**
+   * Strategy plan items carry a pillar key; the calendar shows the pillar's name as a
+   * chip instead of internal labels (`pillar:…`, `plan-slot:…`).
+   */
+  private async enrichPillarNames<
+    T extends { strategy_version_id: string | null; pillar_key: string | null },
+  >(
+    tenantId: string,
+    rows: T[],
+  ): Promise<Array<T & { pillar_name: { en: string; ar: string } | null }>> {
+    const versionIds = [
+      ...new Set(
+        rows
+          .filter((r) => r.pillar_key && r.strategy_version_id)
+          .map((r) => r.strategy_version_id!),
+      ),
+    ];
+    const pillars = versionIds.length
+      ? await getPrisma().strategyContentPillar.findMany({
+          where: { tenantId, strategyVersionId: { in: versionIds } },
+          select: { strategyVersionId: true, key: true, nameEn: true, nameAr: true },
+        })
+      : [];
+    const byKey = new Map(
+      pillars.map((p) => [`${p.strategyVersionId}:${p.key}`, { en: p.nameEn, ar: p.nameAr }]),
+    );
+    return rows.map((row) => ({
+      ...row,
+      pillar_name:
+        row.pillar_key && row.strategy_version_id
+          ? (byKey.get(`${row.strategy_version_id}:${row.pillar_key}`) ?? null)
+          : null,
+    }));
   }
 
   /** Resolve assignee display names so the UI never shows raw user ULIDs. */

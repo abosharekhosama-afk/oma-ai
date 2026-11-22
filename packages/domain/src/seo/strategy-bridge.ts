@@ -106,6 +106,8 @@ function findingTopic(finding: SeoFindingForBridge): string {
       return `Indexed for search · ${base}`;
     case 'SEO_DUPLICATE_TITLE':
       return `Unique title · ${base}`;
+    case 'SEO_CANONICAL_MISSING':
+      return `Canonical link · ${base}`;
     default:
       return `${finding.code.replace(/^SEO_/, '').replace(/_/g, ' ')} · ${base}`;
   }
