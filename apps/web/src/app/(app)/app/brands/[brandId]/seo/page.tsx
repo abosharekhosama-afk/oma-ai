@@ -14,6 +14,7 @@ import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { buildBrandJourneySteps } from '../../../../../../lib/brand-journey';
 import { useT } from '../../../../../../lib/use-locale';
+import { SeoRankTracking } from '../../../../../../components/seo/seo-rank-tracking';
 
 type SeoHealthResponse = {
   data: {
@@ -227,6 +228,8 @@ export default function BrandSeoPage() {
             </button>
           </div>
         </BrandPlxSection>
+
+        <SeoRankTracking brandId={brandId} />
 
         <BrandPlxSection title={t('brand.seo.visibility')} testId="brand-seo-visibility">
           {analyticsDenied ? (

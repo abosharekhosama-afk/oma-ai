@@ -153,6 +153,7 @@ export default function BriefDetailPage() {
           {t(`briefs.status.${brief.status}`)}
         </Tag>
         {brief.origin === 'strategy' ? <Tag>{t('briefs.origin.strategy')}</Tag> : null}
+        {brief.origin === 'seo' ? <Tag>{t('briefs.origin.seo')}</Tag> : null}
         {!brief.readiness.ready && editable ? (
           <span className="oma-badge oma-badge-warning">
             {t('briefs.readiness.missing')}:{' '}
