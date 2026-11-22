@@ -30,12 +30,13 @@ describe('calendar notes, holiday calendars, media all-files, social inbox', () 
     expect(api).toContain('holidayCalendars');
   });
 
-  it('flattens accessible WorkDrive files for the All files chip', () => {
+  it('serves the All files view from the paged asset index, not a storage crawl', () => {
     const media = read('apps/api/src/media/media.service.ts');
     expect(media).toContain("q.scope === 'all'");
-    expect(media).toContain('collectAccessibleFiles');
+    expect(media).not.toContain('collectAccessibleFiles');
+    expect(media).toContain('getPrisma().mediaAsset.count({ where })');
     const picker = read('apps/web/src/components/content/media-picker.tsx');
-    expect(picker).toContain("type Scope = 'brand' | 'organization' | 'all'");
+    expect(picker).toContain("mediaApi.browse(brandId, kind, undefined, 'all', src, first)");
   });
 
   it('filters social inbox by channel and shows internal notes on DMs', () => {

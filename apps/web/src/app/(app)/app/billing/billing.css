@@ -1094,3 +1094,44 @@
     max-width: 58%;
   }
 }
+
+/* Storage used card (subscription & usage) */
+.oma-sub__storage-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin-bottom: 12px;
+}
+.oma-sub__storage-head h2 {
+  margin: 0;
+}
+.oma-sub__storage-head strong {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.oma-sub__track--storage {
+  height: 10px;
+  margin-bottom: 10px;
+}
+.oma-sub__storage[data-tone='warn'] .oma-sub__fill {
+  background: #f59e0b;
+}
+.oma-sub__storage[data-tone='over'] .oma-sub__fill {
+  background: #dc2626;
+}
+.oma-sub__storage .oma-billing__desc {
+  margin: 4px 0 0;
+}
+@media (max-width: 480px) {
+  .oma-sub__current {
+    padding: 16px;
+  }
+  .oma-sub__storage-head h2 {
+    font-size: 17px;
+  }
+  .oma-sub__bar-head {
+    flex-wrap: wrap;
+  }
+}

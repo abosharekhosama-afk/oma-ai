@@ -15,6 +15,11 @@ import {
   type SubscriptionView,
 } from '../../../../lib/billing-api';
 import { workDriveApi, type WorkspaceStorage } from '../../../../lib/workdrive-api';
+import {
+  formatStorageBytes,
+  storageUsageLabel,
+  storageUsageView,
+} from '../../../../lib/storage-usage';
 import '../billing/billing.css';
 
 const BAR_LABELS: Record<string, { en: string; ar: string }> = {
@@ -35,11 +40,7 @@ const BAR_LABELS: Record<string, { en: string; ar: string }> = {
 
 function formatUsed(key: string, used: number, limit: number | null, isAr: boolean) {
   if (key === 'storage_bytes') {
-    const toGb = (n: number) => {
-      const gb = n / (1024 * 1024 * 1024);
-      return `${gb < 0.1 && n > 0 ? gb.toFixed(2) : gb.toFixed(1)} GB`;
-    };
-    return limit == null ? toGb(used) : `${toGb(used)} / ${toGb(limit)}`;
+    return storageUsageLabel(storageUsageView(used, limit), isAr ? 'ar' : 'en');
   }
   if (limit == null) return `${used} · ${isAr ? 'غير محدود' : 'Unlimited'}`;
   return `${used} / ${limit}`;
@@ -58,11 +59,13 @@ export default function SubscriptionClient() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const s = await getSubscription();
+      const [s, st, check] = await Promise.all([
+        getSubscription(),
+        workDriveApi.storage().catch(() => null),
+        listCheckouts().catch(() => ({ data: [] as CheckoutDto[] })),
+      ]);
       setSub(s.data);
-      const st = await workDriveApi.storage().catch(() => null);
       setWsStorage(st?.data ?? null);
-      const check = await listCheckouts().catch(() => ({ data: [] as CheckoutDto[] }));
       setCheckouts(check.data ?? []);
     } catch {
       toast.push(isAr ? 'تعذر تحميل الاشتراك' : 'Could not load subscription', 'danger');
@@ -106,7 +109,14 @@ export default function SubscriptionClient() {
       sub.plan.limits.storage_bytes ??
       wsStorage?.limit_bytes ??
       null;
-    return { used, limit };
+    return {
+      used,
+      limit,
+      view: storageUsageView(used, limit),
+      omaFiles: sub.storage_summary?.oma_files ?? 0,
+      workdriveBytes: sub.storage_summary?.workdrive_bytes ?? 0,
+      workdriveFiles: sub.storage_summary?.workdrive_files ?? 0,
+    };
   }, [sub, wsStorage?.limit_bytes, wsStorage?.used_bytes]);
 
   const bars = useMemo(() => {
@@ -259,11 +269,46 @@ export default function SubscriptionClient() {
           ) : null}
 
           {storageHighlight ? (
-            <section className="oma-sub__current" data-testid="subscription-storage-summary">
-              <h2>{isAr ? 'تخزين OMA' : 'OMA storage'}</h2>
-              <p className="oma-billing__desc">
-                {formatUsed('storage_bytes', storageHighlight.used, storageHighlight.limit, isAr)}
+            <section
+              className="oma-sub__current oma-sub__storage"
+              data-testid="subscription-storage-summary"
+              data-tone={storageHighlight.view.tone}
+            >
+              <div className="oma-sub__storage-head">
+                <h2>{isAr ? 'مساحة التخزين المستخدمة' : 'Storage used'}</h2>
+                <strong data-testid="subscription-storage-used">
+                  {storageUsageLabel(storageHighlight.view, isAr ? 'ar' : 'en')}
+                </strong>
+              </div>
+              <div
+                className="oma-sub__track oma-sub__track--storage"
+                role="progressbar"
+                aria-label={isAr ? 'استهلاك تخزين OMA' : 'OMA storage usage'}
+                aria-valuenow={storageHighlight.view.pct ?? 0}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className="oma-sub__fill"
+                  style={{ width: `${storageHighlight.view.barPct}%` }}
+                />
+              </div>
+              <p className="oma-billing__desc" data-testid="subscription-storage-detail">
+                {storageHighlight.view.remaining != null
+                  ? isAr
+                    ? `المتبقي ${formatStorageBytes(storageHighlight.view.remaining)} · ${storageHighlight.omaFiles} ملف في تخزين OMA`
+                    : `${formatStorageBytes(storageHighlight.view.remaining)} left · ${storageHighlight.omaFiles} files in OMA storage`
+                  : isAr
+                    ? `${storageHighlight.omaFiles} ملف في تخزين OMA`
+                    : `${storageHighlight.omaFiles} files in OMA storage`}
               </p>
+              {storageHighlight.workdriveFiles > 0 ? (
+                <p className="oma-billing__desc" data-testid="subscription-storage-workdrive">
+                  {isAr
+                    ? `WorkDrive الخاص بك: ${formatStorageBytes(storageHighlight.workdriveBytes)} في ${storageHighlight.workdriveFiles} ملف (لا تُحسب من حصة OMA)`
+                    : `Your WorkDrive: ${formatStorageBytes(storageHighlight.workdriveBytes)} in ${storageHighlight.workdriveFiles} files (not counted against the OMA quota)`}
+                </p>
+              ) : null}
             </section>
           ) : null}
 
@@ -286,14 +331,7 @@ export default function SubscriptionClient() {
                   wsStorage?.limit_bytes ??
                   bar.limit;
                 unlimited = limit == null;
-                pct =
-                  limit == null || limit === 0
-                    ? limit === 0 && used > 0
-                      ? 100
-                      : used > 0
-                        ? 4
-                        : 0
-                    : Math.min(100, Math.round((used / limit) * 100));
+                pct = storageUsageView(used, limit).barPct;
               }
               const over = !unlimited && limit != null && used >= limit;
               return (

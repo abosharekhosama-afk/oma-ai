@@ -332,7 +332,7 @@ export class BillingService {
     } else {
       usageBars.push(storageBar);
     }
-    const [invoices, pendingOrders] = await Promise.all([
+    const [invoices, pendingOrders, storageByProvider] = await Promise.all([
       getPrisma().billingInvoice.findMany({
         where: { tenantId },
         orderBy: { createdAt: 'desc' },
@@ -343,7 +343,15 @@ export class BillingService {
         orderBy: { createdAt: 'desc' },
         take: 5,
       }),
+      getPrisma().mediaAsset.groupBy({
+        by: ['storageProvider'],
+        where: { tenantId, status: { not: 'MISSING' } },
+        _sum: { size: true },
+        _count: { _all: true },
+      }),
     ]);
+    const providerRow = (p: 'OMA_INTERNAL' | 'USER_WORKDRIVE') =>
+      storageByProvider.find((r) => r.storageProvider === p);
     return {
       data: {
         tenant_id: tenantId,
@@ -381,6 +389,13 @@ export class BillingService {
         storage_summary: {
           used_bytes: usage.storage_bytes ?? 0,
           limit_bytes: storageLimit,
+          pct:
+            storageLimit == null || storageLimit <= 0
+              ? null
+              : Math.min(100, Math.round(((usage.storage_bytes ?? 0) / storageLimit) * 1000) / 10),
+          oma_files: providerRow('OMA_INTERNAL')?._count._all ?? 0,
+          workdrive_bytes: Number(providerRow('USER_WORKDRIVE')?._sum.size ?? 0n),
+          workdrive_files: providerRow('USER_WORKDRIVE')?._count._all ?? 0,
         },
         invoices: invoices.map((r) => this.mapInvoice(r)),
         providers: visiblePaymentProviders(),

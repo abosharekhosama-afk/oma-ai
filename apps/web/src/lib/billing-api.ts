@@ -79,7 +79,14 @@ export type SubscriptionView = {
     unlimited: boolean;
     pct: number;
   }>;
-  storage_summary?: { used_bytes: number; limit_bytes: number | null };
+  storage_summary?: {
+    used_bytes: number;
+    limit_bytes: number | null;
+    pct?: number | null;
+    oma_files?: number;
+    workdrive_bytes?: number;
+    workdrive_files?: number;
+  };
   invoices?: InvoiceDto[];
   providers?: ProviderDto[];
   settings_vat_rate_bps?: number;

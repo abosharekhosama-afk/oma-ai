@@ -4020,5 +4020,7 @@
   "strategy.plan.empty.allocations": "لا يوجد توزيع للميزانية بعد. أضف منصة ونسبتها من الميزانية المدفوعة.",
   "strategy.plan.empty.audiences": "لا توجد جماهير مدفوعة بعد. أضف من يجب أن تصل إليه الإعلانات.",
   "strategy.plan.empty.experiments": "لا توجد تجارب بعد. أضف تجربة بفرضية ومقياس.",
-  "strategy.plan.empty.flights": "لا توجد فترات حملة بعد. أضف تواريخ الحملة والميزانية لكل فترة."
+  "strategy.plan.empty.flights": "لا توجد فترات حملة بعد. أضف تواريخ الحملة والميزانية لكل فترة.",
+  "media.noSubfolders": "لا توجد مجلدات فرعية هنا",
+  "media.sourceConnectWorkDrive": "اربط WorkDrive الخاص بك للتبديل"
 }

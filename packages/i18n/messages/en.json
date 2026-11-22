@@ -4020,5 +4020,7 @@
   "strategy.plan.empty.allocations": "No budget split yet. Add a platform and its share of the paid budget.",
   "strategy.plan.empty.audiences": "No paid audiences yet. Add who the ads should reach.",
   "strategy.plan.empty.experiments": "No experiments yet. Add a test with a hypothesis and a metric.",
-  "strategy.plan.empty.flights": "No flights yet. Add the campaign dates and budget per period."
+  "strategy.plan.empty.flights": "No flights yet. Add the campaign dates and budget per period.",
+  "media.noSubfolders": "No subfolders here",
+  "media.sourceConnectWorkDrive": "Connect your WorkDrive to switch"
 }

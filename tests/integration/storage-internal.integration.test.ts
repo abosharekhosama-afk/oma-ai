@@ -69,6 +69,19 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
     expect(row.storageProvider).toBe('OMA_INTERNAL');
     expect(row.storagePath).toBe(`tenants/${seed.tenantId}/brands/${brandId}/posts`);
 
+    // Subscription & usage reports the consumed OMA storage (bytes + file count).
+    const sub = await (
+      await fetch(`${seed.baseUrl}/api/v1/billing/subscription`, { headers: authHeaders(seed) })
+    ).json();
+    expect(sub.data.storage_summary.used_bytes).toBeGreaterThanOrEqual(PNG.length);
+    expect(sub.data.storage_summary.oma_files).toBeGreaterThanOrEqual(1);
+    expect(sub.data.storage_summary.workdrive_files).toBe(0);
+    const ws = await (
+      await fetch(`${seed.baseUrl}/api/v1/workspace/storage`, { headers: authHeaders(seed) })
+    ).json();
+    expect(ws.data.used_bytes).toBe(sub.data.storage_summary.used_bytes);
+    expect(ws.data.limit_bytes).toBe(sub.data.storage_summary.limit_bytes);
+
     const view = await fetch(`${seed.baseUrl}/api/v1/media/${body.data.id}/view`, {
       headers: authHeaders(seed),
       redirect: 'manual',
@@ -228,22 +241,51 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
     expect(org.status).toBe(200);
     const orgBody = await org.json();
     expect(orgBody.data.source).toBe('oma');
-    expect(orgBody.data.folders.map((f: { name: string }) => f.name)).toEqual(
-      expect.arrayContaining(['brands']),
-    );
+    // First tree level is the workspace brands (tenants/{t}/brands/{brandId}), labelled;
+    // the `brands` / `avatars` plumbing folders are not shown.
+    const orgNames = orgBody.data.folders.map((f: { name: string }) => f.name);
+    expect(orgNames).not.toContain('brands');
+    expect(orgNames).not.toContain('avatars');
+    expect(orgNames[0]).toBe(brandId);
+    expect(orgNames).toContain(emptyBrand);
     expect(orgBody.data.files.map((f: { name: string }) => f.name)).toContain('hero.png');
-    // Real storage tree: tenants/{tenantId}/brands/{brandId}; the brand id folder is labelled.
-    const brandsFolder = orgBody.data.folders.find((f: { name: string }) => f.name === 'brands');
-    const brandsBody = await (
+    const own = orgBody.data.folders.find((f: { name: string }) => f.name === brandId);
+    expect(own.label).toBeTruthy();
+    expect(own.label).not.toBe(brandId);
+    // Drill down: brand folder → kind folders; the breadcrumb skips `brands`.
+    const inBrand = await (
       await fetch(
-        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization&folder_id=${encodeURIComponent(brandsFolder.id)}`,
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization&folder_id=${encodeURIComponent(own.id)}`,
         { headers: authHeaders(seed) },
       )
     ).json();
-    const own = brandsBody.data.folders.find((f: { name: string }) => f.name === brandId);
-    expect(own).toBeDefined();
-    expect(own.label).toBeTruthy();
-    expect(own.label).not.toBe(brandId);
+    expect(inBrand.data.folders.map((f: { name: string }) => f.name)).toEqual(
+      expect.arrayContaining(['posts', 'logos']),
+    );
+    expect(inBrand.data.path.map((p: { name: string }) => p.name)).not.toContain('brands');
+    expect(inBrand.data.path).toHaveLength(2);
+    const postsInOrg = inBrand.data.folders.find((f: { name: string }) => f.name === 'posts');
+    const posts = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization&folder_id=${encodeURIComponent(postsInOrg.id)}&file_limit=1&file_offset=0`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    expect(posts.data.files).toHaveLength(1);
+    expect(posts.data.files_total).toBeGreaterThanOrEqual(1);
+
+    // "All media" is served from the asset index (paged), never a storage crawl.
+    const all = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=all&file_limit=1&file_offset=0`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    expect(all.data.folder.id).toBe('__all__');
+    expect(all.data.files).toHaveLength(1);
+    expect(all.data.files[0].asset_id).toBeTruthy();
+    expect(all.data.files_total).toBeGreaterThanOrEqual(1);
+    expect(all.data.files_has_more).toBe(all.data.files_total > 1);
 
     const brand = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=brand`,
