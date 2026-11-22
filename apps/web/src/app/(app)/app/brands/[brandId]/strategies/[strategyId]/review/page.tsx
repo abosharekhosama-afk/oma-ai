@@ -3,6 +3,7 @@ import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
 import { Button, CheckboxField, TextArea } from '@oma/ui/controls';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
@@ -19,14 +20,11 @@ import {
   BrandPlxSection,
 } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
-import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyStatusBadge } from '../../../../../../../../components/strategy/status-badge';
 import { SubmitEligibility } from '../../../../../../../../components/strategy/submit-eligibility';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
-import { StrategyPlanRequestsPanel } from '../../../../../../../../components/strategy/strategy-plan-requests-panel';
-import { StrategyExecutionPanel } from '../../../../../../../../components/strategy/strategy-execution-panel';
 import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
 import { StrategyDraftPreview } from '../../../../../../../../components/strategy/strategy-draft-preview';
 
@@ -106,16 +104,11 @@ export default function StrategyReviewPage() {
         actions={<StrategyStatusBadge status={version.status} />}
       />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <StrategyAiAssistant
-          brandId={brandId}
-          strategyId={strategyId}
-          versionId={version.id}
-          versionStatus={version.status}
-          linkedProfileVersionId={version.linked_approved_profile_version_id}
-          organicEnabled={version.organic_enabled}
-          paidEnabled={version.paid_enabled}
-          onApplied={() => void load()}
-        />
+        <p className="oma-muted" data-testid="strategy-ai-assistant-link">
+          <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
+            {t('strategy.ai.openAssistant')}
+          </Link>
+        </p>
       ) : null}
       <StrategyLinkProfilePanel
         brandId={brandId}
@@ -203,18 +196,14 @@ export default function StrategyReviewPage() {
         </div>
       </BrandPlxSection>
       {version.status === 'APPROVED' ? (
-        <>
-          <StrategyPlanRequestsPanel
-            brandId={brandId}
-            strategyId={strategyId}
-            versionId={version.id}
-          />
-          <StrategyExecutionPanel
-            brandId={brandId}
-            strategyId={strategyId}
-            versionId={version.id}
-          />
-        </>
+        <p data-testid="strategy-review-execution-link">
+          <Link
+            className="oma-text-link"
+            href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
+          >
+            {t('strategy.executionTab.open')}
+          </Link>
+        </p>
       ) : null}
       {error ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>

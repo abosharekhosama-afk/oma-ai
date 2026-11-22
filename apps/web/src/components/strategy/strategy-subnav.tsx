@@ -4,44 +4,58 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BrandSectionNav } from '../brand/brand-section-nav';
 import { useT } from '../../lib/use-locale';
+import { activeStrategyTab, isActiveSection, strategyTabs } from '../../lib/strategy-tabs';
 
+/** DEC-029 4.9: three tabs (Plan · Execution · Review) with the active tab's sections below. */
 export function StrategySubnav({ brandId, strategyId }: { brandId: string; strategyId: string }) {
   const t = useT();
   const pathname = usePathname();
-  const base = `/app/brands/${brandId}/strategies/${strategyId}`;
-  const backHref = `/app/brands/${brandId}/strategies`;
-  const links = [
-    { href: base, label: t('strategy.nav.overview'), exact: true },
-    { href: `${base}/edit`, label: t('strategy.nav.foundation') },
-    { href: `${base}/organic`, label: t('strategy.nav.organic') },
-    { href: `${base}/paid`, label: t('strategy.nav.paid') },
-    { href: `${base}/evidence`, label: t('strategy.nav.evidence') },
-    { href: `${base}/review`, label: t('strategy.nav.review') },
-    { href: `${base}/versions`, label: t('strategy.nav.versions') },
-  ];
+  const tabs = strategyTabs(brandId, strategyId);
+  const active = activeStrategyTab(tabs, pathname);
+  const current = tabs.find((tab) => tab.id === active)!;
   return (
-    <BrandSectionNav
-      backHref={backHref}
-      backLabel={t('brand.nav.strategies')}
-      ariaLabel={t('strategy.nav.label')}
-      testId="strategy-subnav"
-    >
-      {links.map((link) => {
-        const active = link.exact
-          ? pathname === link.href
-          : pathname === link.href || pathname.startsWith(`${link.href}/`);
-        return (
+    <>
+      <BrandSectionNav
+        backHref={`/app/brands/${brandId}/strategies`}
+        backLabel={t('brand.nav.strategies')}
+        ariaLabel={t('strategy.nav.label')}
+        testId="strategy-subnav"
+      >
+        {tabs.map((tab) => (
           <Link
-            key={link.href}
-            href={link.href}
+            key={tab.id}
+            href={tab.href}
             role="tab"
-            aria-current={active ? 'page' : undefined}
-            className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
+            aria-selected={tab.id === active}
+            aria-current={tab.id === active ? 'page' : undefined}
+            data-testid={`strategy-tab-${tab.id}`}
+            className={`oma-plx-deliv-groups__btn oma-brand-nav-link${tab.id === active ? ' is-active' : ''}`}
           >
-            {link.label}
+            {t(tab.labelKey)}
           </Link>
-        );
-      })}
-    </BrandSectionNav>
+        ))}
+      </BrandSectionNav>
+      {current.sections.length > 1 ? (
+        <nav
+          className="oma-chip-row oma-strategy-sections"
+          aria-label={t(current.labelKey)}
+          data-testid="strategy-sections"
+        >
+          {current.sections.map((s) => {
+            const on = isActiveSection(pathname, s);
+            return (
+              <Link
+                key={s.href}
+                href={s.href}
+                aria-current={on ? 'page' : undefined}
+                className={`oma-track-pill${on ? ' is-active' : ''}`}
+              >
+                {t(s.labelKey)}
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 
 import { Button } from '@oma/ui/controls';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
@@ -36,10 +37,7 @@ import {
   BrandPlxPageHead,
   BrandPlxSection,
 } from '../../../../../../../components/brand/brand-plx-section';
-import { StrategyPlanRequestsPanel } from '../../../../../../../components/strategy/strategy-plan-requests-panel';
-import { StrategyExecutionPanel } from '../../../../../../../components/strategy/strategy-execution-panel';
 import { StrategyKpiPanel } from '../../../../../../../components/strategy/strategy-kpi-panel';
-import { StrategyPaidExecutionPanel } from '../../../../../../../components/strategy/strategy-paid-execution-panel';
 
 export default function StrategyOverviewPage() {
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -198,42 +196,43 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={versionDetail} />
       ) : null}
 
-      {latest?.status === 'APPROVED' && !latest.missing_source ? (
-        <>
-          <StrategyPlanRequestsPanel
-            brandId={brandId}
-            strategyId={strategyId}
-            versionId={latest.id}
-          />
-          <StrategyExecutionPanel brandId={brandId} strategyId={strategyId} versionId={latest.id} />
-          <StrategyPaidExecutionPanel
-            brandId={brandId}
-            strategyId={strategyId}
-            versionId={latest.id}
-          />
-        </>
+      {strategy.has_approved_version ? (
+        <BrandPlxSection
+          title={t('strategy.tab.execution')}
+          testId="strategy-overview-execution-link"
+        >
+          <p className="oma-muted">{t('strategy.executionTab.lead')}</p>
+          <Link
+            className="oma-text-link"
+            href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
+          >
+            {t('strategy.executionTab.open')}
+          </Link>
+        </BrandPlxSection>
       ) : null}
 
-      {latest && !latest.missing_source ? (
+      {latest && latest.status === 'DRAFT' && !latest.missing_source ? (
         <StrategyKpiPanel
           brandId={brandId}
           strategyId={strategyId}
           versionId={latest.id}
-          editable={latest.status === 'DRAFT'}
+          editable
         />
       ) : null}
 
       {latest && (latest.status === 'DRAFT' || latest.status === 'IN_REVIEW') ? (
-        <StrategyAiAssistant
-          brandId={brandId}
-          strategyId={strategyId}
-          versionId={latest.id}
-          versionStatus={latest.status}
-          linkedProfileVersionId={latest.linked_approved_profile_version_id}
-          organicEnabled={latest.organic_enabled}
-          paidEnabled={latest.paid_enabled}
-          onApplied={() => void load()}
-        />
+        <div id="strategy-ai-assistant">
+          <StrategyAiAssistant
+            brandId={brandId}
+            strategyId={strategyId}
+            versionId={latest.id}
+            versionStatus={latest.status}
+            linkedProfileVersionId={latest.linked_approved_profile_version_id}
+            organicEnabled={latest.organic_enabled}
+            paidEnabled={latest.paid_enabled}
+            onApplied={() => void load()}
+          />
+        </div>
       ) : null}
 
       {message ? <p role="status">{message}</p> : null}

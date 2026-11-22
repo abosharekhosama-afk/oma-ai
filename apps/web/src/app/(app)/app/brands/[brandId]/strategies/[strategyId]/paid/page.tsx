@@ -1,6 +1,7 @@
 'use client';
 import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
@@ -18,7 +19,6 @@ import { PaidPlanningBanner } from '../../../../../../../../components/strategy/
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
-import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyPlanEditor } from '../../../../../../../../components/strategy/strategy-plan-editor';
 
 export default function StrategyPaidPage() {
@@ -62,16 +62,11 @@ export default function StrategyPaidPage() {
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.paid.title')} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <StrategyAiAssistant
-          brandId={brandId}
-          strategyId={strategyId}
-          versionId={version.id}
-          versionStatus={version.status}
-          linkedProfileVersionId={version.linked_approved_profile_version_id}
-          organicEnabled={version.organic_enabled}
-          paidEnabled={version.paid_enabled}
-          onApplied={() => void load()}
-        />
+        <p className="oma-muted" data-testid="strategy-ai-assistant-link">
+          <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
+            {t('strategy.ai.openAssistant')}
+          </Link>
+        </p>
       ) : null}
       <PaidPlanningBanner />
       {error ? (
