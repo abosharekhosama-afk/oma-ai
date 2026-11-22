@@ -19,6 +19,10 @@ import {
   assertAiWriteTarget,
   assertHumanActor,
   strategyFoundationContractFor,
+  STRATEGY_KPI_PERIODS,
+  STRATEGY_KPI_SCOPES,
+  isMeasurableKpiMetric,
+  parseKpiTarget,
 } from '@oma/domain';
 import { buildStrategyProposePrompt } from '@oma/ai';
 import { loadBrandContext } from '../ai/brand-context.service';
@@ -582,6 +586,13 @@ export class StrategyService {
           unit: k.unit,
           applies_to: k.appliesTo,
           info_class: k.infoClass,
+          metric: k.metric,
+          measurable: isMeasurableKpiMetric(k.metric),
+          target_number: k.targetNumber,
+          period: k.period,
+          scope: k.scope,
+          pillar_key: k.pillarKey,
+          channel: k.channel,
         })),
         gaps: gaps.map((g) => ({
           id: g.id,
@@ -1037,9 +1048,16 @@ export class StrategyService {
       unit?: string;
       applies_to?: string;
       info_class?: string;
+      metric?: string | null;
+      target_number?: number | null;
+      period?: string;
+      scope?: string;
+      pillar_key?: string | null;
+      channel?: string | null;
     },
   ) {
     await this.assertDraftChild(tenantId, brandId, strategyId, versionId);
+    const binding = this.kpiBinding(input);
     const row = await getPrisma().strategyKpi.create({
       data: {
         id: newId(),
@@ -1051,9 +1069,49 @@ export class StrategyService {
         unit: input.unit ?? null,
         appliesTo: (input.applies_to as never) ?? 'STRATEGY',
         infoClass: (input.info_class as never) ?? 'USER_AUTHORED',
+        ...binding,
       },
     });
-    return { data: { id: row.id, name: row.name } };
+    return { data: { id: row.id, name: row.name, metric: row.metric } };
+  }
+
+  /** DEC-029 4.5: validate the KPI's metric binding; unknown metric → 400, none → manual. */
+  private kpiBinding(input: {
+    target_value?: string;
+    metric?: string | null;
+    target_number?: number | null;
+    period?: string;
+    scope?: string;
+    pillar_key?: string | null;
+    channel?: string | null;
+  }) {
+    const fields: { field: string; code: string }[] = [];
+    const metric = input.metric ? String(input.metric) : null;
+    if (metric && !isMeasurableKpiMetric(metric)) fields.push({ field: 'metric', code: 'UNKNOWN_METRIC' });
+    const period = input.period ?? 'MONTH';
+    if (!(STRATEGY_KPI_PERIODS as readonly string[]).includes(period))
+      fields.push({ field: 'period', code: 'INVALID_PERIOD' });
+    const scope = input.scope ?? 'STRATEGY_CONTENT';
+    if (!(STRATEGY_KPI_SCOPES as readonly string[]).includes(scope))
+      fields.push({ field: 'scope', code: 'INVALID_SCOPE' });
+    let targetNumber: number | null = null;
+    if (input.target_number != null) {
+      targetNumber = Number(input.target_number);
+      if (!Number.isFinite(targetNumber)) fields.push({ field: 'target_number', code: 'INVALID_NUMBER' });
+    } else {
+      targetNumber = parseKpiTarget(input.target_value);
+    }
+    if (fields.length) {
+      throw new DomainError('VALIDATION_FAILED', 'Invalid KPI binding', 400, 'errors.validation', fields);
+    }
+    return {
+      metric,
+      targetNumber,
+      period,
+      scope,
+      pillarKey: input.pillar_key?.trim() || null,
+      channel: input.channel?.trim() || null,
+    };
   }
 
   async deleteKpi(
@@ -1771,6 +1829,12 @@ export class StrategyService {
           unit: k.unit,
           appliesTo: k.appliesTo,
           infoClass: k.infoClass,
+          metric: k.metric,
+          targetNumber: k.targetNumber,
+          period: k.period,
+          scope: k.scope,
+          pillarKey: k.pillarKey,
+          channel: k.channel,
         },
       });
     }

@@ -19,6 +19,7 @@ import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { DomainError } from '@oma/domain';
 import {
   seoService,
+  strategyKpiScorecardService,
   strategyPlanRequestsService,
   strategyPlanService,
   strategyService,
@@ -471,10 +472,50 @@ export class StrategyController {
       unit?: string;
       applies_to?: string;
       info_class?: string;
+      metric?: string | null;
+      target_number?: number | null;
+      period?: string;
+      scope?: string;
+      pillar_key?: string | null;
+      channel?: string | null;
     },
   ) {
     this.requireTenant(req);
     return strategyService.createKpi(req.oma!.tenantId!, brandId, strategyId, versionId, body);
+  }
+
+  @Get('strategies/:strategyId/versions/:versionId/kpi-scorecard')
+  async kpiScorecard(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyKpiScorecardService.scorecard(req.oma!.tenantId!, brandId, strategyId, versionId);
+  }
+
+  @Post('strategies/:strategyId/versions/:versionId/kpi-scorecard/:kpiId/manual')
+  @HttpCode(200)
+  @UseGuards(CsrfGuard)
+  async recordManualKpi(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+    @Param('kpiId') kpiId: string,
+    @Body() body: { value?: number | string; note?: string },
+  ) {
+    this.requireTenant(req);
+    return strategyKpiScorecardService.recordManual(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      strategyId,
+      versionId,
+      kpiId,
+      body ?? {},
+    );
   }
 
   @Delete('strategies/:strategyId/versions/:versionId/kpis/:kpiId')

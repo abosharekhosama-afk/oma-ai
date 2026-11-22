@@ -114,3 +114,23 @@ document, and default SEO numbers were sample data that looked measured.
 - The prompt gets an "approved strategy context" block outside the untrusted-input fence. A rule tells the model to serve the pillar and message and to use the keyword once, naturally. The strategy is guidance, never a source of brand facts, so grounding rules are unchanged.
 - The run metadata records `strategyVersionId` / `pillarKey`. The response includes `strategy_context`.
 - UI: the content detail shows a line with the pillar and keyword for strategy posts.
+
+## PR 4.5: KPI scorecard — measurable metrics, otherwise manual
+
+- `StrategyKpi` gets a metric binding (migration `20261122130000_strategy_kpi_scorecard`):
+  - `metric` (null means manual), `targetNumber`, `period` (WEEK / MONTH / QUARTER / VERSION, a rolling window ending now; VERSION runs from approval), `scope` (STRATEGY_CONTENT = posts of this version, BRAND = all brand posts), and optional `pillarKey` / `channel` filters;
+  - for manual KPIs: `manualValue`, `manualNote`, `manualValueAt`, `manualBy`.
+  - The backfill parses numeric legacy `targetValue` text ("1,200", "4.5%") into `targetNumber`. Every legacy KPI stays manual.
+- Measurable metrics: `posts_published`, `publish_rate` (published / planned in the window), `impressions`, `reach`, `engagements` (likes + comments + shares), `engagement_rate`, `video_views`.
+  - Post metrics come from `PostMetricSnapshot` (excluding `excluded` rows), joined through `contentItemId` to content of this version.
+  - No data gives `no_data`, never zero.
+- `POST …/kpis` validates the binding: an unknown metric, period or scope returns 400. The version detail returns `metric`, `measurable`, `target_number`, `period`, `scope`, `pillar_key` and `channel`. Revise copies the binding.
+- `GET …/versions/:versionId/kpi-scorecard` (`strategy.read`) returns, for each KPI: source, actual, progress %, and a status:
+  - on_track ≥ 100%;
+  - at_risk ≥ 70%;
+  - behind;
+  - no_data / no_target / not_recorded.
+- `POST …/kpi-scorecard/:kpiId/manual` (`strategy.edit`, also allowed on APPROVED versions, because it records a result and does not edit the plan) records a manual value.
+  - Audited as `strategy.kpi.manual_recorded`, with before and after values.
+  - Measured KPIs return 409 `KPI_MEASURED`.
+- UI: a "KPI scorecard" panel on the strategy overview. Adding a KPI with a metric or as manual is only possible on drafts. Manual values can be recorded inline.

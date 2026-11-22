@@ -1258,6 +1258,19 @@ model StrategyKpi {
   unit              String?
   appliesTo         StrategyKpiAppliesTo @default(STRATEGY)
   infoClass         StrategyInfoClass    @default(USER_AUTHORED)
+  /// DEC-029 4.5: measurable metric key (STRATEGY_KPI_METRICS); null = manual KPI.
+  metric            String?
+  targetNumber      Float?
+  /// WEEK | MONTH | QUARTER | VERSION (rolling window ending now).
+  period            String               @default("MONTH")
+  /// STRATEGY_CONTENT (posts of this version) | BRAND (all brand posts).
+  scope             String               @default("STRATEGY_CONTENT")
+  pillarKey         String?
+  channel           String?
+  manualValue       Float?
+  manualValueAt     DateTime?
+  manualNote        String?
+  manualBy          String?
   version           StrategyVersion      @relation(fields: [strategyVersionId], references: [id])
 
   @@index([tenantId, strategyVersionId])
