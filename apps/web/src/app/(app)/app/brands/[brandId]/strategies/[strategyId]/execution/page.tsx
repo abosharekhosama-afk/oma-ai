@@ -16,7 +16,6 @@ import { StrategySubnav } from '../../../../../../../../components/strategy/stra
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
-import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategyPlanRequestsPanel } from '../../../../../../../../components/strategy/strategy-plan-requests-panel';
 import { StrategyExecutionPanel } from '../../../../../../../../components/strategy/strategy-execution-panel';
 import { StrategyPaidExecutionPanel } from '../../../../../../../../components/strategy/strategy-paid-execution-panel';
@@ -24,7 +23,12 @@ import { StrategyKpiPanel } from '../../../../../../../../components/strategy/st
 import { StrategyMonthlyReviewPanel } from '../../../../../../../../components/strategy/strategy-monthly-review-panel';
 import { useT } from '../../../../../../../../lib/use-locale';
 
-type VersionRow = { id: string; status: string; version_number: number };
+type VersionRow = {
+  id: string;
+  status: string;
+  version_number: number;
+  approved_at?: string | null;
+};
 
 /**
  * DEC-029 4.9: Execution tab — everything that happens after approval, for the
@@ -85,7 +89,6 @@ export default function StrategyExecutionPage() {
       latestScanId={brand.latest_scan?.id}
     >
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <BrandPlxPageHead title={t('strategy.tab.execution')} />
       {approved ? (
         <div data-testid="strategy-execution-tab">
           <p className="oma-muted">
@@ -119,6 +122,7 @@ export default function StrategyExecutionPage() {
             brandId={brandId}
             strategyId={strategyId}
             versionId={approved.id}
+            startedAt={approved.approved_at ?? null}
             onDraftCreated={() => void load()}
           />
         </div>

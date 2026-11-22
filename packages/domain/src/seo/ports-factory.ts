@@ -15,7 +15,37 @@ export function seoFixturesAllowed(env: NodeJS.ProcessEnv = process.env): boolea
   const flag = (env.SEO_FIXTURES_ALLOWED ?? '').trim().toLowerCase();
   if (flag === 'true' || flag === '1') return true;
   if (flag === 'false' || flag === '0') return false;
-  return (env.NODE_ENV ?? '').trim().toLowerCase() !== 'production';
+  if ((env.NODE_ENV ?? '').trim().toLowerCase() === 'production') return false;
+  // Hosted deploys (Render API, Vercel web) are real environments even when NODE_ENV is
+  // unset: sample SEO rows leaked into a live brand that way. Opt in explicitly there.
+  if (isHostedEnv(env)) return false;
+  return true;
+}
+
+function isHostedEnv(env: NodeJS.ProcessEnv): boolean {
+  return ['RENDER', 'VERCEL', 'RENDER_SERVICE_ID'].some((k) => Boolean((env[k] ?? '').trim()));
+}
+
+const FIXTURE_SOURCES = new Set(['FIXTURE', 'GSC_FIXTURE', 'EXTERNAL_FIXTURE']);
+
+/** Sample SEO rows (keyword metrics, Search Console fixture snapshots, fixture gaps). */
+export function isSeoFixtureSource(source: string | null | undefined): boolean {
+  return FIXTURE_SOURCES.has(
+    String(source ?? '')
+      .trim()
+      .toUpperCase(),
+  );
+}
+
+/**
+ * Read-side gate: rows persisted from sample data are hidden wherever fixtures are not
+ * allowed, so older fixture rows never show in a real environment's strategy/SEO views.
+ */
+export function visibleSeoRows<T extends { source?: string | null }>(
+  rows: T[],
+  env: NodeJS.ProcessEnv = process.env,
+): T[] {
+  return seoFixturesAllowed(env) ? rows : rows.filter((row) => !isSeoFixtureSource(row.source));
 }
 
 export function gscModeFromEnv(env: NodeJS.ProcessEnv = process.env): GscMode {

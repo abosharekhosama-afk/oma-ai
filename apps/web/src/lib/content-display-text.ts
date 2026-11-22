@@ -39,6 +39,37 @@ export function contentBodyText(
   return emptyHint;
 }
 
+/**
+ * Labels the strategy plan writes for its own bookkeeping (grouping, idempotency,
+ * slot keys). They stay on the item but are never shown as user labels.
+ */
+const INTERNAL_LABEL_PATTERNS: RegExp[] = [
+  /^strategy-plan$/i,
+  /^strategy-version:/i,
+  /^plan-slot:/i,
+  /^pillar:/i,
+  /^(organic|paid):(pillar|catalog|objective|allocation|experiment)(:|$)/i,
+];
+
+export function isInternalContentLabel(label: string): boolean {
+  const l = (label ?? '').trim();
+  return INTERNAL_LABEL_PATTERNS.some((re) => re.test(l));
+}
+
 export function displayContentLabels(labels: string[] | undefined): string[] {
-  return (labels ?? []).filter((l) => Boolean(l?.trim()) && !isRawId(l));
+  return (labels ?? []).filter(
+    (l) => Boolean(l?.trim()) && !isRawId(l) && !isInternalContentLabel(l),
+  );
+}
+
+/** Friendly pillar chip text for a plan post (Arabic name first in the Arabic UI). */
+export function pillarChipText(
+  pillarName: { en?: string | null; ar?: string | null } | null | undefined,
+  locale: string,
+): string | null {
+  if (!pillarName) return null;
+  const ar = pillarName.ar?.trim();
+  const en = pillarName.en?.trim();
+  const text = locale.toLowerCase().startsWith('ar') ? ar || en : en || ar;
+  return text || null;
 }

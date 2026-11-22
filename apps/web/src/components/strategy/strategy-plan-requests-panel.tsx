@@ -46,6 +46,50 @@ type ImpactItem = {
   has_open_task: boolean;
 };
 
+const PAGE_SIZE = 12;
+
+export type PlanGroup = 'pillar' | 'product' | 'service' | 'paid';
+
+export function planGroupOf(item: { plan_source_key: string; track: string }): PlanGroup {
+  if (item.track === 'paid') return 'paid';
+  if (item.plan_source_key.includes(':catalog:service:')) return 'service';
+  if (item.plan_source_key.includes(':catalog:')) return 'product';
+  return 'pillar';
+}
+
+/** Compact counts for the execution tab (by type, channel and status). */
+export function planSummary(
+  items: Array<{
+    plan_source_key: string;
+    track: string;
+    channels: string[];
+    already_created: boolean;
+    default_selected?: boolean;
+  }>,
+) {
+  const groups = new Map<PlanGroup, number>();
+  const channels = new Map<string, number>();
+  let created = 0;
+  let pendingDefault = 0;
+  for (const item of items) {
+    const g = planGroupOf(item);
+    groups.set(g, (groups.get(g) ?? 0) + 1);
+    for (const c of item.channels) channels.set(c, (channels.get(c) ?? 0) + 1);
+    if (item.already_created) created += 1;
+    else if (item.default_selected !== false) pendingDefault += 1;
+  }
+  const order: PlanGroup[] = ['pillar', 'product', 'service', 'paid'];
+  return {
+    total: items.length,
+    created,
+    pendingDefault,
+    groups: order.filter((g) => groups.has(g)).map((g) => ({ group: g, count: groups.get(g)! })),
+    channels: [...channels.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([channel, count]) => ({ channel, count })),
+  };
+}
+
 type Props = {
   brandId: string;
   strategyId: string;
@@ -71,7 +115,7 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
   const [error, setError] = useState<string | null>(null);
   const [catalogRequestCount, setCatalogRequestCount] = useState(0);
   const [calendar, setCalendar] = useState<CalendarSummary>(null);
-  const [useCalendar, setUseCalendar] = useState(true);
+  const [page, setPage] = useState(0);
   const [startDate, setStartDate] = useState(daysFromToday(1));
   const [weeks, setWeeks] = useState('4');
   const [showAllCatalog, setShowAllCatalog] = useState(false);
@@ -163,12 +207,12 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
     });
   }
 
-  async function commitSelected() {
+  async function commitSelected(toCalendar: boolean) {
     setBusy(true);
     setError(null);
     setMessage(null);
     try {
-      const calendarOn = Boolean(calendar?.available && useCalendar);
+      const calendarOn = Boolean(calendar?.available && toCalendar);
       const res = await api<{
         data: {
           created_request_ids: string[];
@@ -179,7 +223,9 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
       }>(`${base}/plan-to-requests/commit`, {
         method: 'POST',
         body: JSON.stringify({
-          plan_source_keys: [...selected],
+          plan_source_keys: [...selected].filter(
+            (key) => !items.find((i) => i.plan_source_key === key)?.already_created,
+          ),
           defaults: {
             assignee_user_id: assigneeUserId || null,
             // With a calendar each item is due two days before its first slot.
@@ -297,86 +343,195 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
   ).length;
 
   const requestsHref = `/app/requests?brand=${encodeURIComponent(brandId)}&strategy_version=${encodeURIComponent(versionId)}`;
+  const calendarHref = `/app/content?brand=${encodeURIComponent(brandId)}`;
+  const briefsHref = `/app/brands/${encodeURIComponent(brandId)}/briefs`;
+  const summary = planSummary(items);
+  const pendingSelected = [...selected].filter(
+    (key) => !items.find((i) => i.plan_source_key === key)?.already_created,
+  ).length;
+  const allSent = summary.total > 0 && summary.pendingDefault === 0 && summary.created > 0;
+  const calendarReady = Boolean(calendar?.available);
+  const pageCount = Math.max(1, Math.ceil(visibleItems.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const pageItems = visibleItems.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const groupLabel = (g: PlanGroup) => t(`strategy.execution.group.${g}`);
 
   return (
     <section
-      className="oma-plx-listening-panel oma-plx-brand-section"
+      className="oma-plx-listening-panel oma-plx-brand-section oma-plan-exec"
       data-testid="strategy-plan-requests-panel"
     >
       <header className="oma-plx-brand-section__head">
         <div>
           <h3 className="oma-plx-brand-section__title">{t('strategy.review.planPreviewTitle')}</h3>
           <p className="oma-muted oma-plx-brand-section__desc">
-            {t('strategy.review.planPreviewHint')}
+            {t('strategy.execution.summaryHint')}
           </p>
-          {catalogRequestCount > 0 ? (
-            <p className="oma-muted" data-testid="strategy-catalog-request-hint">
-              {t('strategy.review.planCatalogHint').replace('{count}', String(catalogRequestCount))}
-            </p>
-          ) : null}
         </div>
       </header>
       <div className="oma-plx-brand-section__body">
-        <div className="oma-form-grid" style={{ marginBottom: '1rem' }}>
-          <strong>{t('strategy.review.commitDefaults')}</strong>
-          <label>
-            {t('strategy.review.assignee')}
-            <SelectField
-              value={assigneeUserId}
-              onChange={(e) => setAssigneeUserId(e.target.value)}
-              data-testid="strategy-plan-assignee"
-            >
-              <option value="">{t('demo.requests.unassigned')}</option>
-              {members
-                .filter((m) => m.user?.id)
-                .map((m) => (
-                  <option key={m.id} value={m.user!.id}>
-                    {m.user?.name || m.user?.email}
-                  </option>
-                ))}
-            </SelectField>
-          </label>
+        <div className="oma-plan-exec__stats" data-testid="strategy-plan-summary">
+          <div className="oma-plan-exec__stat">
+            <span className="oma-plan-exec__stat-value">{summary.total}</span>
+            <span className="oma-plan-exec__stat-label">{t('strategy.execution.stat.items')}</span>
+          </div>
+          <div className="oma-plan-exec__stat">
+            <span className="oma-plan-exec__stat-value">{summary.created}</span>
+            <span className="oma-plan-exec__stat-label">{t('strategy.execution.stat.sent')}</span>
+          </div>
+          <div className="oma-plan-exec__stat">
+            <span className="oma-plan-exec__stat-value">{pendingSelected}</span>
+            <span className="oma-plan-exec__stat-label">
+              {t('strategy.execution.stat.selected')}
+            </span>
+          </div>
           {calendar?.available ? (
-            <label>
-              <CheckboxField
-                checked={useCalendar}
-                onChange={(e) => setUseCalendar(e.target.checked)}
-                data-testid="strategy-plan-use-calendar"
-              />{' '}
-              {t('strategy.review.calendar.use')}
-            </label>
+            <div className="oma-plan-exec__stat">
+              <span className="oma-plan-exec__stat-value">{calendar.posts_per_week}</span>
+              <span className="oma-plan-exec__stat-label">
+                {t('strategy.execution.stat.perWeek')}
+              </span>
+            </div>
           ) : null}
-          {calendar?.available && useCalendar ? (
-            <>
-              <label>
-                {t('strategy.review.calendar.start')}
-                <DateField
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  data-testid="strategy-plan-calendar-start"
-                />
-              </label>
-              <label>
-                {t('strategy.review.calendar.weeks')}
-                <SelectField
-                  value={weeks}
-                  onChange={(e) => setWeeks(e.target.value)}
-                  data-testid="strategy-plan-calendar-weeks"
-                >
-                  {[1, 2, 4, 6, 8, 12].map((w) => (
-                    <option key={w} value={String(w)}>
-                      {w}
+        </div>
+        <div className="oma-plan-exec__breakdown">
+          <div data-testid="strategy-plan-summary-groups">
+            <strong>{t('strategy.execution.byType')}</strong>
+            <ul className="oma-plan-exec__chips">
+              {summary.groups.map((g) => (
+                <li key={g.group} className="oma-plan-exec__chip">
+                  {groupLabel(g.group)} <b>{g.count}</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {summary.channels.length > 0 ? (
+            <div data-testid="strategy-plan-summary-channels">
+              <strong>{t('strategy.execution.byChannel')}</strong>
+              <ul className="oma-plan-exec__chips">
+                {summary.channels.slice(0, 8).map((c) => (
+                  <li key={c.channel} className="oma-plan-exec__chip">
+                    {c.channel} <b>{c.count}</b>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <div data-testid="strategy-plan-summary-status">
+            <strong>{t('strategy.execution.byStatus')}</strong>
+            <ul className="oma-plan-exec__chips">
+              <li className="oma-plan-exec__chip oma-plan-exec__chip--done">
+                {t('strategy.execution.status.sent')} <b>{summary.created}</b>
+              </li>
+              <li className="oma-plan-exec__chip">
+                {t('strategy.execution.status.pending')} <b>{summary.total - summary.created}</b>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="oma-plan-exec__actions" data-testid="strategy-plan-primary-actions">
+          {allSent ? (
+            <p className="oma-plan-exec__done" role="status" data-testid="strategy-plan-sent">
+              {t('strategy.execution.allSent')}
+            </p>
+          ) : null}
+          <Button
+            type="primary"
+            disabled={busy || pendingSelected === 0 || !calendarReady}
+            data-testid="strategy-plan-send-calendar"
+            onClick={() => void commitSelected(true)}
+            title={calendarReady ? undefined : t('strategy.review.calendar.missingCadence')}
+          >
+            {busy
+              ? t('strategy.execution.working')
+              : allSent
+                ? t('strategy.execution.sentToCalendar')
+                : t('strategy.execution.sendToCalendar').replace('{n}', String(pendingSelected))}
+          </Button>
+          <Button
+            type="default"
+            disabled={busy || pendingSelected === 0}
+            data-testid="strategy-plan-requests-commit"
+            onClick={() => void commitSelected(false)}
+          >
+            {t('strategy.execution.createBriefs').replace('{n}', String(pendingSelected))}
+          </Button>
+          <div className="oma-plan-exec__links">
+            <OmaLinkButton href={calendarHref} type="link">
+              {t('strategy.execution.openCalendar')}
+            </OmaLinkButton>
+            <OmaLinkButton href={briefsHref} type="link">
+              {t('strategy.execution.openBriefs')}
+            </OmaLinkButton>
+            <OmaLinkButton href={requestsHref} type="link">
+              {t('strategy.review.openRequests')}
+            </OmaLinkButton>
+            <Button type="link" disabled={busy} onClick={() => void convertAllTasks()}>
+              {t('strategy.review.convertTasks')}
+            </Button>
+          </div>
+        </div>
+        {!calendarReady && calendar ? (
+          <p className="oma-muted" data-testid="strategy-plan-calendar-missing">
+            {t('strategy.review.calendar.missingCadence')}
+          </p>
+        ) : null}
+
+        <details className="oma-plan-exec__details" data-testid="strategy-plan-options">
+          <summary>{t('strategy.execution.options')}</summary>
+          <div className="oma-form-grid">
+            <label>
+              {t('strategy.review.assignee')}
+              <SelectField
+                value={assigneeUserId}
+                onChange={(e) => setAssigneeUserId(e.target.value)}
+                data-testid="strategy-plan-assignee"
+              >
+                <option value="">{t('demo.requests.unassigned')}</option>
+                {members
+                  .filter((m) => m.user?.id)
+                  .map((m) => (
+                    <option key={m.id} value={m.user!.id}>
+                      {m.user?.name || m.user?.email}
                     </option>
                   ))}
-                </SelectField>
-              </label>
-              <p className="oma-muted oma-field-span" data-testid="strategy-plan-calendar-summary">
-                {t('strategy.review.calendar.summary')
-                  .replace('{perWeek}', String(calendar.posts_per_week))
-                  .replace('{total}', String(calendar.posts_per_week * (Number(weeks) || 4)))}
-              </p>
-            </>
-          ) : (
+              </SelectField>
+            </label>
+            {calendarReady ? (
+              <>
+                <label>
+                  {t('strategy.review.calendar.start')}
+                  <DateField
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    data-testid="strategy-plan-calendar-start"
+                  />
+                </label>
+                <label>
+                  {t('strategy.review.calendar.weeks')}
+                  <SelectField
+                    value={weeks}
+                    onChange={(e) => setWeeks(e.target.value)}
+                    data-testid="strategy-plan-calendar-weeks"
+                  >
+                    {[1, 2, 4, 6, 8, 12].map((w) => (
+                      <option key={w} value={String(w)}>
+                        {w}
+                      </option>
+                    ))}
+                  </SelectField>
+                </label>
+                <p
+                  className="oma-muted oma-field-span"
+                  data-testid="strategy-plan-calendar-summary"
+                >
+                  {t('strategy.review.calendar.summary')
+                    .replace('{perWeek}', String(calendar!.posts_per_week))
+                    .replace('{total}', String(calendar!.posts_per_week * (Number(weeks) || 4)))}
+                </p>
+              </>
+            ) : null}
             <label>
               {t('strategy.review.dueDate')}
               <DateField
@@ -385,83 +540,95 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
                 data-testid="strategy-plan-due"
               />
             </label>
-          )}
-          {calendar && !calendar.available ? (
-            <p className="oma-muted oma-field-span" data-testid="strategy-plan-calendar-missing">
-              {t('strategy.review.calendar.missingCadence')}
+            <label>
+              {t('strategy.review.campaign')}
+              <SelectField
+                value={campaignId}
+                onChange={(e) => setCampaignId(e.target.value)}
+                data-testid="strategy-plan-campaign"
+              >
+                <option value="">{t('strategy.review.noCampaign')}</option>
+                {campaigns.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </SelectField>
+            </label>
+          </div>
+        </details>
+
+        <details className="oma-plan-exec__details" data-testid="strategy-plan-items">
+          <summary>
+            {t('strategy.execution.items').replace('{n}', String(visibleItems.length))}
+          </summary>
+          {hiddenCatalog > 0 ? (
+            <p className="oma-muted" data-testid="strategy-plan-catalog-picker">
+              {t('strategy.review.catalogPicker')
+                .replace('{selected}', String(selectedCatalog))
+                .replace('{total}', String(catalogRequestCount))}{' '}
+              <Button
+                type="link"
+                onClick={() => {
+                  setShowAllCatalog((v) => !v);
+                  setPage(0);
+                }}
+              >
+                {showAllCatalog
+                  ? t('strategy.review.catalogShowLess')
+                  : t('strategy.review.catalogShowAll')}
+              </Button>
             </p>
           ) : null}
-          <label>
-            {t('strategy.review.campaign')}
-            <SelectField
-              value={campaignId}
-              onChange={(e) => setCampaignId(e.target.value)}
-              data-testid="strategy-plan-campaign"
-            >
-              <option value="">{t('strategy.review.noCampaign')}</option>
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </SelectField>
-          </label>
-        </div>
-        {hiddenCatalog > 0 ? (
-          <p className="oma-muted" data-testid="strategy-plan-catalog-picker">
-            {t('strategy.review.catalogPicker')
-              .replace('{selected}', String(selectedCatalog))
-              .replace('{total}', String(catalogRequestCount))}{' '}
-            <Button type="link" onClick={() => setShowAllCatalog((v) => !v)}>
-              {showAllCatalog
-                ? t('strategy.review.catalogShowLess')
-                : t('strategy.review.catalogShowAll')}
-            </Button>
-          </p>
-        ) : null}
-        <ul className="oma-plx-brand-data-grid">
-          {visibleItems.map((item) => (
-            <li
-              key={item.plan_source_key}
-              className="oma-plx-listening-card oma-plx-brand-catalog-card"
-            >
-              <label>
-                <CheckboxField
-                  checked={selected.has(item.plan_source_key)}
-                  disabled={item.already_created || busy}
-                  onChange={(e) => toggle(item.plan_source_key, e.target.checked)}
-                />{' '}
-                <strong>{pick(item.title)}</strong>{' '}
-                <span className="oma-muted">
-                  ({item.track}
-                  {item.already_created ? ` · ${t('strategy.review.planItemExists')}` : ''})
+          <ul className="oma-plan-exec__list">
+            {pageItems.map((item) => (
+              <li key={item.plan_source_key} className="oma-plan-exec__row">
+                <label className="oma-plan-exec__row-main">
+                  <CheckboxField
+                    checked={item.already_created || selected.has(item.plan_source_key)}
+                    disabled={item.already_created || busy}
+                    onChange={(e) => toggle(item.plan_source_key, e.target.checked)}
+                  />
+                  <span className="oma-plan-exec__row-title">{pick(item.title)}</span>
+                </label>
+                <span className="oma-plan-exec__row-meta">
+                  <span className="oma-plan-exec__chip">{groupLabel(planGroupOf(item))}</span>
+                  {item.channels.length > 0 ? (
+                    <span className="oma-muted">{item.channels.slice(0, 3).join('، ')}</span>
+                  ) : null}
+                  {item.already_created ? (
+                    <span className="oma-plan-exec__chip oma-plan-exec__chip--done">
+                      {t('strategy.execution.status.sent')}
+                    </span>
+                  ) : null}
                 </span>
-              </label>
-              <p className="oma-muted">{pick(item.description)}</p>
-              {item.channels.length > 0 ? (
-                <p className="oma-muted">
-                  {t('strategy.review.planChannels')}: {item.channels.join(', ')}
-                </p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-        <div className="oma-form-actions">
-          <Button
-            type="primary"
-            disabled={busy || selected.size === 0}
-            data-testid="strategy-plan-requests-commit"
-            onClick={() => void commitSelected()}
-          >
-            {t('strategy.review.createRequests')}
-          </Button>
-          <Button type="default" disabled={busy} onClick={() => void convertAllTasks()}>
-            {t('strategy.review.convertTasks')}
-          </Button>
-          <OmaLinkButton href={requestsHref} type="default">
-            {t('strategy.review.openRequests')}
-          </OmaLinkButton>
-        </div>
+              </li>
+            ))}
+          </ul>
+          {pageCount > 1 ? (
+            <nav className="oma-plan-exec__pager" aria-label={t('strategy.execution.pager')}>
+              <Button
+                type="default"
+                disabled={currentPage === 0}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                {t('strategy.execution.prev')}
+              </Button>
+              <span className="oma-muted" data-testid="strategy-plan-page">
+                {t('strategy.execution.pageOf')
+                  .replace('{page}', String(currentPage + 1))
+                  .replace('{pages}', String(pageCount))}
+              </span>
+              <Button
+                type="default"
+                disabled={currentPage >= pageCount - 1}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                {t('strategy.execution.next')}
+              </Button>
+            </nav>
+          ) : null}
+        </details>
         {impact.length > 0 ? (
           <section style={{ marginTop: '1.5rem' }} data-testid="strategy-plan-impact">
             <header className="oma-panel__head">

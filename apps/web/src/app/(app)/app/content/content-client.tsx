@@ -150,6 +150,7 @@ import {
   contentTypeLabel,
 } from '../../../../lib/demo/stage3-content';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
+import { displayContentLabels, pillarChipText } from '../../../../lib/content-display-text';
 import {
   aiRefusalReason,
   appendAiRunId,
@@ -227,7 +228,7 @@ import {
   lifecycleHint,
   approvalPolicyOf,
 } from '../../../../lib/content-workflow-ui';
-import { useActiveBrandId } from '../../../../lib/active-brand';
+import { setActiveBrandId, useActiveBrandId } from '../../../../lib/active-brand';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { paintBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { buildPublishStatusView, resolveDirectPostPermalink } from '../../../../lib/publish-status';
@@ -396,9 +397,17 @@ function templateTitle(tpl: BrandTemplateCard, isAr: boolean): string {
   return title && title.trim() ? title : '—';
 }
 
-function rowLabels(item: { labels?: string[] } | ContentRow): string[] {
+function rowLabels(item: { labels?: string[] } | ContentRow, locale?: string): string[] {
   const labels = (item as { labels?: string[] }).labels;
-  return Array.isArray(labels) ? labels.filter((l) => Boolean(l) && !isRawId(l)) : [];
+  const shown = Array.isArray(labels) ? displayContentLabels(labels) : [];
+  // Plan posts: one friendly pillar chip instead of the internal `pillar:` / slot labels.
+  const pillar = locale
+    ? pillarChipText(
+        (item as { pillarName?: { en: string; ar: string } | null }).pillarName,
+        locale,
+      )
+    : null;
+  return pillar && !shown.includes(pillar) ? [pillar, ...shown] : shown;
 }
 
 function reviewFilterLabel(value: string, locale: string, allLabel: string): string {
@@ -2135,6 +2144,31 @@ export default function ContentPage() {
       setCursor(monthCursorFromKey(date));
     }
   }, [search]);
+  // Keep the header brand selector and the brand filter in sync: one brand picked in the
+  // filter becomes the active brand, and choosing a brand (or "All brands") in the header
+  // updates the filter. Several brands in the filter leave the header untouched.
+  const prevActiveBrand = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevActiveBrand.current;
+    prevActiveBrand.current = activeBrandId;
+    if (activeBrandId) {
+      setFilters((f) =>
+        f.brandIds.length === 1 && f.brandIds[0] === activeBrandId
+          ? f
+          : { ...f, brandIds: [activeBrandId] },
+      );
+    } else if (prev) {
+      setFilters((f) => (f.brandIds.length ? { ...f, brandIds: [] } : f));
+    }
+  }, [activeBrandId]);
+  useEffect(() => {
+    if (filters.brandIds.length === 1 && filters.brandIds[0] !== activeBrandId) {
+      setActiveBrandId(filters.brandIds[0]!);
+    } else if (filters.brandIds.length === 0 && activeBrandId && prevActiveBrand.current) {
+      setActiveBrandId(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to filter edits
+  }, [filters.brandIds]);
   const createFromUrl = useRef(false);
   useEffect(() => {
     if (loading || createFromUrl.current || search.get('create') !== '1') return;
@@ -2499,7 +2533,7 @@ export default function ContentPage() {
         caption={item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)}
         media={item.previewAsset || null}
         contentType={item.contentType}
-        labels={rowLabels(item)}
+        labels={rowLabels(item, locale)}
         campaign={item.campaignId ? campaignName(item.campaignId) : undefined}
         status={st}
         display={calDisplay}
@@ -2564,7 +2598,7 @@ export default function ContentPage() {
           ),
         }}
         approval={approvalFor(item, approvers)}
-        labels={rowLabels(item)}
+        labels={rowLabels(item, locale)}
         channels={String(item.channel || '')
           .split(',')
           .map((c) => c.trim())
@@ -5724,7 +5758,10 @@ export default function ContentPage() {
                     <p className="oma-muted" data-testid="content-strategy-context">
                       {t('content.strategyContext')}
                       {(selected as ContentRowExtra).pillarKey
-                        ? ` · ${t('content.strategyPillar')}: ${(selected as ContentRowExtra).pillarKey}`
+                        ? ` · ${t('content.strategyPillar')}: ${
+                            pillarChipText((selected as ContentRowExtra).pillarName, locale) ??
+                            (selected as ContentRowExtra).pillarKey
+                          }`
                         : ''}
                       {(selected as ContentRowExtra).targetKeyword
                         ? ` · ${t('content.strategyKeyword')}: ${(selected as ContentRowExtra).targetKeyword}`

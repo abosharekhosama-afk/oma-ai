@@ -16,6 +16,7 @@ import {
   STRATEGY_CALENDAR_LIMITS,
   type CalendarSlot,
   briefContentFromPlanDraft,
+  planDraftBriefTitle,
   briefEntityEnabled,
   pillarKeyFromSourceKey,
   emptyExecutionCounts,
@@ -433,6 +434,7 @@ export class StrategyPlanRequestsService {
           startDate: schedule.plan.start_date,
           weeks: schedule.plan.weeks,
           timezone: schedule.timezone,
+          taken: schedule.plan.slots.map((slot) => slot.planned_at),
         })
       : [];
     const oneOffDate = new Map(oneOff.map((d, i) => [d.plan_source_key, oneOffDates[i]!]));
@@ -545,7 +547,7 @@ export class StrategyPlanRequestsService {
         brandId,
         {
           requestId: row.id,
-          title: draft.title.en,
+          title: planDraftBriefTitle(draft, version.strategy.name),
           content: briefContentFromPlanDraft(draft, { slots, dueAt: row.dueAt, cta }),
           strategyId,
           strategyVersionId: versionId,

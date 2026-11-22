@@ -13,7 +13,7 @@ import { api } from '../../../../lib/api';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState } from '../../../../components/ui/empty-state';
-import { StatusChip } from '../../../../components/ui/status-chip';
+import { StatusChip, statusLabel as enumStatusLabel } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import { daysFromToday } from '../../../../lib/calendar-today';
@@ -825,7 +825,7 @@ export default function RequestsPage() {
                               </td>
                               <td>
                                 <span className="oma-sr-only">{t('demo.requests.col.type')}: </span>
-                                {r.type}
+                                {enumStatusLabel(t, r.type)}
                               </td>
                               <td>{r.requester}</td>
                               <td>

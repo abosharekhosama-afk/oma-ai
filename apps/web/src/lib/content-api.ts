@@ -167,6 +167,8 @@ export type ContentRowExtra = ContentRow & {
   /** DEC-029 4.4: strategy context of plan posts. */
   strategyVersionId?: string | null;
   pillarKey?: string | null;
+  /** Pillar display name (en/ar) resolved by the API for plan posts. */
+  pillarName?: { en: string; ar: string } | null;
   targetKeyword?: string | null;
   mediaAssetIds?: string[];
   scheduleReadiness?: ApiScheduleReadiness | null;
@@ -224,6 +226,7 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     preferredAudience: (c as { preferred_audience?: string | null }).preferred_audience ?? null,
     strategyVersionId: (c as { strategy_version_id?: string | null }).strategy_version_id ?? null,
     pillarKey: (c as { pillar_key?: string | null }).pillar_key ?? null,
+    pillarName: (c as { pillar_name?: { en: string; ar: string } | null }).pillar_name ?? null,
     targetKeyword: (c as { target_keyword?: string | null }).target_keyword ?? null,
     mediaAssetIds: c.media_asset_ids ?? [],
     approvalPolicy: c.workflow?.policy,

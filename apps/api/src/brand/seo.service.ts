@@ -16,6 +16,7 @@ import {
   rankStatus,
   seoKeywordGaps,
   weeklyRankSeries,
+  visibleSeoRows,
 } from '@oma/domain';
 import { syncBrandSearchConsole } from '@oma/db';
 import type { BriefService } from '../brief/brief.service';
@@ -319,11 +320,13 @@ export class SeoService {
       select: { id: true, strategyId: true },
     });
     if (!version) return { version: null, keywords: [] as TrackedKeyword[] };
-    const rows = await prisma.strategySeoKeyword.findMany({
-      where: { tenantId, strategyVersionId: version.id },
-      orderBy: { priority: 'asc' },
-      take: 200,
-    });
+    const rows = visibleSeoRows(
+      await prisma.strategySeoKeyword.findMany({
+        where: { tenantId, strategyVersionId: version.id },
+        orderBy: { priority: 'asc' },
+        take: 200,
+      }),
+    );
     return {
       version,
       keywords: rows.map((k) => ({
@@ -351,7 +354,7 @@ export class SeoService {
     const link = await getPrisma().brandSearchConsoleLink.findFirst({
       where: tenantWhere(tenantId, { brandId }),
     });
-    const tracker = weeklyRankSeries(observations, weeks, now);
+    const tracker = weeklyRankSeries(visibleSeoRows(observations), weeks, now);
     const rows = keywords.map((k) => {
       const series = tracker.series(k.keyword);
       const withPos = series.filter((p) => p.position != null);
@@ -403,7 +406,7 @@ export class SeoService {
     });
     // Latest snapshot per keyword only.
     const seen = new Set<string>();
-    const fresh = latest.filter((o) => {
+    const fresh = visibleSeoRows(latest).filter((o) => {
       const k = normalizeSeoKeyword(o.keyword);
       if (seen.has(k)) return false;
       seen.add(k);
@@ -455,10 +458,10 @@ export class SeoService {
     const title =
       typeof body.title === 'string' && body.title.trim()
         ? body.title.trim().slice(0, 200)
-        : `SEO gaps: ${picked
+        : `${picked.some((g) => /[\u0600-\u06FF]/.test(g.keyword)) ? 'فجوات SEO' : 'SEO gaps'}: ${picked
             .map((g) => g.keyword)
             .slice(0, 3)
-            .join(', ')}`.slice(0, 200);
+            .join('، ')}`.slice(0, 200);
     const brief = await this.briefs.createFromSeoGaps({ tenantId, userId }, brandId, {
       title,
       content: briefContentFromSeoGaps(picked),
@@ -491,11 +494,13 @@ export class SeoService {
     const link = await prisma.brandSearchConsoleLink.findFirst({
       where: tenantWhere(tenantId, { brandId }),
     });
-    const ranks = await prisma.keywordRankObservation.findMany({
-      where: tenantWhere(tenantId, { brandId }),
-      orderBy: { impressions: 'desc' },
-      take: 40,
-    });
+    const ranks = visibleSeoRows(
+      await prisma.keywordRankObservation.findMany({
+        where: tenantWhere(tenantId, { brandId }),
+        orderBy: { impressions: 'desc' },
+        take: 40,
+      }),
+    );
     const gscQueries = ranks.map((r) => ({
       keyword: r.keyword,
       locale: r.locale,
@@ -553,7 +558,7 @@ export class SeoService {
     await this.brand(tenantId, brandId);
     const prisma = getPrisma();
     const since = new Date(Date.now() - period * 86_400_000);
-    const [audit, ranks, content] = await Promise.all([
+    const [audit, rankRows, content] = await Promise.all([
       prisma.brandSeoAudit.findFirst({
         where: tenantWhere(tenantId, { brandId }),
         orderBy: { createdAt: 'desc' },
@@ -572,6 +577,7 @@ export class SeoService {
         },
       }),
     ]);
+    const ranks = visibleSeoRows(rankRows);
     const gscClicks = ranks.reduce((n, r) => n + (r.clicks ?? 0), 0);
     const gscImpressions = ranks.reduce((n, r) => n + (r.impressions ?? 0), 0);
     return {

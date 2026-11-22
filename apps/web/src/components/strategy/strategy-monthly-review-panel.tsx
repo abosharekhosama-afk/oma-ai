@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, SelectField } from '@oma/ui/controls';
+import { useLocale } from '../../lib/locale-context';
+import { monthKey, reviewMonthOptions } from '../../lib/strategy-month';
 import { api } from '../../lib/api';
 import { getApiError } from '../../lib/brand-api';
 import { useT } from '../../lib/use-locale';
@@ -25,12 +28,6 @@ type Review = {
 
 type Preview = { month: string; findings: Finding[]; actionable: number; review: Review | null };
 
-function lastMonth(): string {
-  const now = new Date();
-  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-  return d.toISOString().slice(0, 7);
-}
-
 /**
  * DEC-029 4.10: monthly review. Findings are measured; "Create revision" makes a new DRAFT
  * with an AI proposal that a human applies (plan/ai/accept) and then approves as usual.
@@ -40,16 +37,24 @@ export function StrategyMonthlyReviewPanel({
   strategyId,
   versionId,
   onDraftCreated,
+  startedAt,
 }: {
   brandId: string;
   strategyId: string;
   versionId: string;
   onDraftCreated?: () => void;
+  /** Strategy start (approval date): the picker never goes before it. */
+  startedAt?: string | null;
 }) {
   const t = useT();
+  const locale = useLocale();
+  const monthOptions = useMemo(
+    () => reviewMonthOptions(startedAt, new Date(), locale),
+    [startedAt, locale],
+  );
   const sbase = `/api/v1/brands/${brandId}/strategies/${strategyId}`;
   const base = `${sbase}/versions/${versionId}`;
-  const [month, setMonth] = useState(lastMonth);
+  const [month, setMonth] = useState(() => monthKey(new Date()));
   const [data, setData] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -118,14 +123,21 @@ export function StrategyMonthlyReviewPanel({
             {t('strategy.monthlyReview.hint')}
           </p>
         </div>
-        <input
-          type="month"
-          className="oma-input"
-          aria-label={t('strategy.monthlyReview.month')}
-          value={month}
-          max={new Date().toISOString().slice(0, 7)}
-          onChange={(e) => setMonth(e.target.value)}
-        />
+        <label className="oma-monthly-review__month">
+          <span className="oma-sr-only">{t('strategy.monthlyReview.month')}</span>
+          <SelectField
+            aria-label={t('strategy.monthlyReview.month')}
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            data-testid="strategy-monthly-review-month"
+          >
+            {monthOptions.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </SelectField>
+        </label>
       </header>
       <div className="oma-plx-brand-section__body">
         {error ? (
@@ -145,24 +157,22 @@ export function StrategyMonthlyReviewPanel({
         ) : null}
         {data && !review ? (
           data.actionable > 0 ? (
-            <button
-              type="button"
-              className="oma-button"
-              disabled={busy}
-              onClick={() => void run()}
-              data-testid="strategy-monthly-review-run"
-            >
-              {t('strategy.monthlyReview.run')}
-            </button>
+            <div className="oma-form-actions">
+              <Button
+                type="primary"
+                disabled={busy}
+                onClick={() => void run()}
+                data-testid="strategy-monthly-review-run"
+              >
+                {t('strategy.monthlyReview.run')}
+              </Button>
+            </div>
           ) : (
-            <button
-              type="button"
-              className="oma-button oma-button--ghost"
-              disabled={busy}
-              onClick={() => void run()}
-            >
-              {t('strategy.monthlyReview.recordNoChanges')}
-            </button>
+            <div className="oma-form-actions">
+              <Button type="default" disabled={busy} onClick={() => void run()}>
+                {t('strategy.monthlyReview.recordNoChanges')}
+              </Button>
+            </div>
           )
         ) : null}
         {review ? (
@@ -174,14 +184,9 @@ export function StrategyMonthlyReviewPanel({
               </p>
             ) : null}
             {review.status === 'PROPOSED' && !applied ? (
-              <button
-                type="button"
-                className="oma-button"
-                disabled={busy}
-                onClick={() => void apply(review)}
-              >
+              <Button type="primary" disabled={busy} onClick={() => void apply(review)}>
                 {t('strategy.monthlyReview.apply')}
-              </button>
+              </Button>
             ) : null}
             {applied ? <p>{t('strategy.monthlyReview.applied')}</p> : null}
             {draftHref ? (
