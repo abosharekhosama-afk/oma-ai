@@ -38,6 +38,7 @@ import {
 } from '../../../../../../../components/brand/brand-plx-section';
 import { StrategyPlanRequestsPanel } from '../../../../../../../components/strategy/strategy-plan-requests-panel';
 import { StrategyExecutionPanel } from '../../../../../../../components/strategy/strategy-execution-panel';
+import { StrategyKpiPanel } from '../../../../../../../components/strategy/strategy-kpi-panel';
 
 export default function StrategyOverviewPage() {
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -205,6 +206,15 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
           />
           <StrategyExecutionPanel brandId={brandId} strategyId={strategyId} versionId={latest.id} />
         </>
+      ) : null}
+
+      {latest && !latest.missing_source ? (
+        <StrategyKpiPanel
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={latest.id}
+          editable={latest.status === 'DRAFT'}
+        />
       ) : null}
 
       {latest && (latest.status === 'DRAFT' || latest.status === 'IN_REVIEW') ? (
