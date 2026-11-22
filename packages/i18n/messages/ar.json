@@ -3657,7 +3657,7 @@
   "strategy.plan.warn.flightDates": "توجد دفعة تنتهي قبل أن تبدأ.",
   "strategy.paidExec.title": "تنفيذ الإعلانات المدفوعة",
   "strategy.metaAds.title": "إعلانات Meta",
-  "strategy.metaAds.readOnly": "قراءة فقط: يقرأ OMA الإنفاق والنتائج (ads_read) ولا يغيّر إعلاناتك أبدًا.",
+  "strategy.metaAds.readOnly": "قراءة فقط: يقرأ OMA الإنفاق والنتائج (بصلاحية القراءة فقط) ولا يغيّر إعلاناتك أبدًا.",
   "strategy.metaAds.connect": "ربط إعلانات Meta (قراءة فقط)",
   "strategy.metaAds.pickAccount": "اختر حساب إعلانات",
   "strategy.metaAds.sync": "مزامنة آخر 28 يومًا",
