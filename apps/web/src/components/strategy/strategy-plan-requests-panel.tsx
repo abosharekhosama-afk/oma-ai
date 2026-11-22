@@ -173,6 +173,7 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
         data: {
           created_request_ids: string[];
           created_content_ids?: string[];
+          created_brief_ids?: string[];
           skipped_plan_source_keys: string[];
         };
       }>(`${base}/plan-to-requests/commit`, {
@@ -190,9 +191,11 @@ export function StrategyPlanRequestsPanel({ brandId, strategyId, versionId }: Pr
       });
       if (res.data.created_request_ids.length > 0) {
         setMessage(
-          (res.data.created_content_ids?.length ?? 0) > 0
-            ? t('strategy.review.requestsAndCalendarCreated')
-            : t('strategy.review.requestsCreated'),
+          (res.data.created_brief_ids?.length ?? 0) > 0
+            ? t('strategy.review.requestsAndBriefsCreated')
+            : (res.data.created_content_ids?.length ?? 0) > 0
+              ? t('strategy.review.requestsAndCalendarCreated')
+              : t('strategy.review.requestsCreated'),
         );
       } else if (res.data.skipped_plan_source_keys.length > 0) {
         setMessage(t('strategy.review.requestsAlreadyExist'));

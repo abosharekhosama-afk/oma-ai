@@ -55,6 +55,7 @@ export const opsService = new OpsService(auditService);
 export const strategyPlanRequestsService = new StrategyPlanRequestsService(
   auditService,
   opsService,
+  briefService,
 );
 export const workDriveService = new WorkDriveService(auditService);
 export const mediaService = new MediaService(auditService, workDriveService);

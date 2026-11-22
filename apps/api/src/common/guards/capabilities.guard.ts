@@ -220,6 +220,10 @@ const routeRequirements: Record<string, string[]> = {
     ['strategy.read', 'request.create'],
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan-to-requests/convert-tasks':
     ['strategy.read', 'request.write'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/execution': [
+    'strategy.read',
+    'request.read',
+  ],
   'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan-to-requests/impact':
     ['strategy.read', 'request.read'],
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan-to-requests/sync-requests':
