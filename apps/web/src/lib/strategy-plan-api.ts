@@ -82,7 +82,16 @@ export type ExperimentRow = PlanRowMeta & {
   status?: string;
 };
 
+export type CadenceRow = {
+  channel: string;
+  posts_per_week: number;
+  formats: string[];
+  info_class?: string;
+  source?: PlanSource;
+};
+
 export type OrganicPlan = {
+  cadence?: CadenceRow[];
   pillars: PillarRow[];
   seo_keywords: KeywordRow[];
   content_gaps: GapRow[];
@@ -198,6 +207,7 @@ export function slugifyKey(value: string, fallback: string): string {
 /** Strip server-computed fields before sending a track back (PUT replaces the track). */
 export function organicPayload(plan: OrganicPlan) {
   return {
+    ...(plan.cadence ? { cadence: plan.cadence } : {}),
     pillars: plan.pillars,
     seo_keywords: plan.seo_keywords,
     content_gaps: plan.content_gaps,
@@ -229,6 +239,13 @@ export function organicPlanWarnings(plan: OrganicPlan): string[] {
   if (pillarShareTotal(plan.pillars) > 100) warnings.push('strategy.plan.warn.pillarShare');
   const keys = plan.pillars.map((p) => p.key);
   if (new Set(keys).size !== keys.length) warnings.push('strategy.plan.warn.duplicateKey');
+  const channels = (plan.cadence ?? []).map((c) => c.channel.trim().toLowerCase());
+  if (new Set(channels).size !== channels.length) {
+    warnings.push('strategy.plan.warn.duplicateChannel');
+  }
+  if ((plan.cadence ?? []).some((c) => !c.channel.trim())) {
+    warnings.push('strategy.plan.warn.cadenceChannel');
+  }
   return warnings;
 }
 

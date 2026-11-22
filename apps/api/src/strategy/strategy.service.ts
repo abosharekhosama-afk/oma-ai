@@ -24,7 +24,11 @@ import { buildStrategyProposePrompt } from '@oma/ai';
 import { loadBrandContext } from '../ai/brand-context.service';
 import { runStructuredGeneration } from '../ai/structured-run';
 import { notificationAllowed } from '@oma/domain';
-import { copyStrategyPlan, readStrategyPlan } from './strategy-plan.service';
+import {
+  applyFoundationOrganicToPlan,
+  copyStrategyPlan,
+  readStrategyPlan,
+} from './strategy-plan.service';
 import { AuditService } from '../audit/audit.service';
 
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
@@ -2175,34 +2179,19 @@ export class StrategyService {
           rowVersion: { increment: 1 },
         },
       });
-      if (version.organicEnabled) {
-        const organic = await tx.strategyOrganicTrack.findUnique({
-          where: { strategyVersionId: version.id },
+      if (version.organicEnabled && proposal.organic) {
+        // DEC-029 4.1: the v2 plan is the single organic model. Fill pillars and
+        // cadence only when the version has none yet; never overwrite human edits.
+        await applyFoundationOrganicToPlan(tx, {
+          tenantId,
+          brandId,
+          versionId: version.id,
+          runId,
+          pillars: proposal.organic.pillars,
+          channels: proposal.organic.channels,
+          formats: proposal.organic.formats,
+          frequency: proposal.organic.frequency,
         });
-        if (organic) {
-          const pillars = proposal.organic?.pillars ?? [];
-          const channels = proposal.organic?.channels ?? [];
-          const formats = proposal.organic?.formats ?? [];
-          const existingPillars = parseJson<unknown[]>(organic.pillarsJson, []);
-          await tx.strategyOrganicTrack.update({
-            where: { id: organic.id },
-            data: {
-              pillarsJson:
-                pillars.length && existingPillars.length === 0
-                  ? JSON.stringify(pillars)
-                  : organic.pillarsJson,
-              channelsJson:
-                channels.length && parseJson<unknown[]>(organic.channelsJson, []).length === 0
-                  ? JSON.stringify(channels)
-                  : organic.channelsJson,
-              formatsJson:
-                formats.length && parseJson<unknown[]>(organic.formatsJson, []).length === 0
-                  ? JSON.stringify(formats)
-                  : organic.formatsJson,
-              frequency: proposal.organic?.frequency || organic.frequency,
-            },
-          });
-        }
       }
       if (version.paidEnabled) {
         const paid = await tx.strategyPaidTrack.findUnique({

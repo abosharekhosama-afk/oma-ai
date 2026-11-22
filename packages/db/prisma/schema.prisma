@@ -821,20 +821,20 @@ model SeoFinding {
 }
 
 model BrandSearchConsoleLink {
-  id               String         @id
-  tenantId         String
-  brandId          String         @unique
-  siteUrl          String
-  status           String         @default("NOT_CONFIGURED")
-  accessTokenEnc   String?
-  refreshTokenEnc  String?
-  tokenExpiresAt   DateTime?
-  lastSyncAt       DateTime?
-  lastError        String?
-  connectedAt      DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  brand            BrandWorkspace @relation(fields: [brandId], references: [id])
+  id              String         @id
+  tenantId        String
+  brandId         String         @unique
+  siteUrl         String
+  status          String         @default("NOT_CONFIGURED")
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  tokenExpiresAt  DateTime?
+  lastSyncAt      DateTime?
+  lastError       String?
+  connectedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  brand           BrandWorkspace @relation(fields: [brandId], references: [id])
 
   @@index([tenantId, status])
 }
@@ -852,7 +852,7 @@ model GscOAuthState {
 }
 
 model KeywordRankObservation {
-  id          String         @id
+  id          String   @id
   tenantId    String
   brandId     String
   keyword     String
@@ -1162,6 +1162,7 @@ model StrategyVersion {
   approvalRecord                 StrategyApprovalRecord?
   humanEdits                     StrategyHumanEdit[]
   contentPillars                 StrategyContentPillar[]
+  channelCadences                StrategyChannelCadence[]
   seoKeywords                    StrategySeoKeyword[]
   contentGaps                    StrategyContentGap[]
   paidAllocations                StrategyPaidAllocation[]
@@ -1420,6 +1421,25 @@ enum StrategyExperimentStatus {
   RUNNING
   CONCLUDED
   CANCELLED
+}
+
+/// Publishing rhythm per organic channel (DEC-029 4.1); replaces StrategyOrganicTrack.channelsJson/frequency.
+model StrategyChannelCadence {
+  id                String             @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  channel           String
+  postsPerWeek      Int
+  formats           String[]           @default([])
+  infoClass         StrategyInfoClass  @default(USER_AUTHORED)
+  source            StrategyDataSource @default(MANUAL)
+  sortOrder         Int                @default(0)
+  createdAt         DateTime           @default(now())
+  version           StrategyVersion    @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyVersionId, channel])
+  @@index([tenantId, strategyVersionId])
 }
 
 model StrategyContentPillar {

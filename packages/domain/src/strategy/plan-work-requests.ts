@@ -4,7 +4,7 @@ import {
   DEFAULT_MAX_CATALOG_SERVICE_REQUESTS,
   type CatalogOffering,
 } from '../brand/catalog-offerings';
-import type { PaidPlanInput } from './tracks-v2';
+import type { OrganicPlanInput, PaidPlanInput } from './tracks-v2';
 
 export type PlanWorkRequestDraft = {
   plan_source_key: string;
@@ -36,6 +36,15 @@ function pair(text: string): { en: string; ar: string } {
   return { en: trimmed, ar: trimmed };
 }
 
+/**
+ * Pillars backfilled from legacy JSON are keyed `legacy-<n>` (1-based); keep the
+ * pre-4.1 `organic:pillar:<index>` source key so re-running conversion stays idempotent.
+ */
+export function pillarSourceKey(key: string): string {
+  const legacy = /^legacy-(\d+)$/.exec(key);
+  return legacy ? `organic:pillar:${Number(legacy[1]) - 1}` : `organic:pillar:${key}`;
+}
+
 export function buildPlanWorkRequestDrafts(input: {
   strategyName: string;
   foundation: Record<string, unknown>;
@@ -55,6 +64,11 @@ export function buildPlanWorkRequestDrafts(input: {
   } | null;
   audiences: Array<{ name: string; description?: string | null }>;
   catalogOfferings?: CatalogOffering[];
+  /**
+   * Tracks v2 organic plan (DEC-029 4.1): the source of truth for pillars and cadence.
+   * Legacy `organic.pillars/channels/formats` are only read when v2 has none.
+   */
+  organicPlan?: OrganicPlanInput | null;
   /** Tracks v2 paid plan (DEC-021); preferred over legacy objectives when present. */
   paidPlan?: PaidPlanInput | null;
   paidBudgetAmount?: number | null;
@@ -80,10 +94,41 @@ export function buildPlanWorkRequestDrafts(input: {
 
   const out: PlanWorkRequestDraft[] = [];
 
-  if (input.organicEnabled && input.organic) {
+  const v2Pillars = input.organicPlan?.pillars ?? [];
+  const v2Cadence = input.organicPlan?.cadence ?? [];
+  const legacyChannels = (input.organic?.channels ?? []).map(readLabel).filter(Boolean);
+  const legacyFormats = (input.organic?.formats ?? []).map(readLabel).filter(Boolean);
+  const activeCadence = v2Cadence.filter((c) => c.posts_per_week > 0);
+  const organicChannels = activeCadence.length
+    ? activeCadence.map((c) => c.channel)
+    : legacyChannels;
+  const organicFormats = activeCadence.length
+    ? [...new Set(activeCadence.flatMap((c) => c.formats))]
+    : legacyFormats;
+
+  if (input.organicEnabled && v2Pillars.length > 0) {
+    const growth = input.organic?.growth_goals?.trim() || '';
+    for (const pillar of v2Pillars) {
+      const description = pillar.description?.trim() || growth || pillar.name_en;
+      out.push({
+        plan_source_key: pillarSourceKey(pillar.key),
+        track: 'organic',
+        title: {
+          en: `${input.strategyName} — ${pillar.name_en}`,
+          ar: `${input.strategyName} — ${pillar.name_ar}`,
+        },
+        description: pair(description),
+        channels: organicChannels,
+        formats: organicFormats,
+        brief: {
+          objective: pair(primaryGoal),
+          audience: pair(audienceText),
+          keyMessage: { en: pillar.name_en, ar: pillar.name_ar },
+        },
+      });
+    }
+  } else if (input.organicEnabled && input.organic) {
     const pillars = (input.organic.pillars ?? []).map(readLabel).filter(Boolean);
-    const channels = (input.organic.channels ?? []).map(readLabel).filter(Boolean);
-    const formats = (input.organic.formats ?? []).map(readLabel).filter(Boolean);
     const growth = input.organic.growth_goals?.trim() || '';
     const items = pillars.length > 0 ? pillars : ['Organic content plan'];
     for (let i = 0; i < items.length; i += 1) {
@@ -93,8 +138,8 @@ export function buildPlanWorkRequestDrafts(input: {
         track: 'organic',
         title: pair(`${input.strategyName} — ${pillar}`),
         description: pair(growth || pillar),
-        channels,
-        formats,
+        channels: organicChannels,
+        formats: organicFormats,
         brief: {
           objective: pair(primaryGoal),
           audience: pair(audienceText),
@@ -110,9 +155,13 @@ export function buildPlanWorkRequestDrafts(input: {
 
   if (input.organicEnabled && catalog.length > 0) {
     const channels =
-      input.organic?.channels?.map(readLabel).filter(Boolean) ??
-      (input.organic ? [] : ['Social', 'Web']);
-    const formats = input.organic?.formats?.map(readLabel).filter(Boolean) ?? ['Post', 'Story'];
+      organicChannels.length || input.organic || activeCadence.length
+        ? organicChannels
+        : ['Social', 'Web'];
+    const formats =
+      organicFormats.length || input.organic || activeCadence.length
+        ? organicFormats
+        : ['Post', 'Story'];
     const productCap = Math.min(catalogProducts.length, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS);
     for (const product of catalogProducts.slice(0, productCap)) {
       const focus = product.category ? `${product.name} (${product.category})` : product.name;

@@ -30,7 +30,7 @@ export function buildStrategyPlanPrompt(input: {
     'You are OMA strategy intelligence. Produce a reviewable Organic/Paid plan PROPOSAL. A human reviews and accepts it; you never approve, schedule, or publish anything.',
     `schema_version must be "${STRATEGY_PLAN_SCHEMA_VERSION}". language must be "${input.language}".`,
     input.organicEnabled
-      ? `organic: up to ${STRATEGY_PLAN_LIMITS.pillars} content pillars (lowercase slug keys, both name_en and name_ar, share_target_pct summing to at most 100), SEO keywords with search intent mapped to pillar keys, and content gaps.`
+      ? `organic: up to ${STRATEGY_PLAN_LIMITS.pillars} content pillars (lowercase slug keys, both name_en and name_ar, share_target_pct summing to at most 100), SEO keywords with search intent mapped to pillar keys, content gaps, and cadence: one row per publishing channel (e.g. Instagram, TikTok, Blog) with a realistic posts_per_week for a small team and the formats used there; use null for cadence to keep the current one.`
       : 'organic must be null (the organic track is disabled).',
     input.paidEnabled
       ? 'paid: budget allocation by platform and objective with share_pct summing to exactly 100 (one row per platform+objective), audiences with targeting (unique slug keys), and A/B experiments with 2+ variants keyed A, B, C… that reference audience keys.'

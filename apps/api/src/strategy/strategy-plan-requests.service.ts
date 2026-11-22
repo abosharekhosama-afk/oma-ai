@@ -198,9 +198,12 @@ export class StrategyPlanRequestsService {
   ) {
     const organic = version.organicTrack;
     const paid = version.paidTrack;
-    const paidPlan = version.paidEnabled
-      ? (await readStrategyPlan(getPrisma(), version.id)).paid
-      : null;
+    const plan =
+      version.paidEnabled || version.organicEnabled
+        ? await readStrategyPlan(getPrisma(), version.id)
+        : null;
+    const paidPlan = version.paidEnabled ? (plan?.paid ?? null) : null;
+    const organicPlan = version.organicEnabled ? (plan?.organic ?? null) : null;
     const paidBudgetRaw = paid?.budgetAmount != null ? Number(paid.budgetAmount) : null;
     const paidBudgetAmount =
       paidBudgetRaw != null && Number.isFinite(paidBudgetRaw) ? paidBudgetRaw : null;
@@ -227,6 +230,7 @@ export class StrategyPlanRequestsService {
         : null,
       audiences: version.audiences.map((a) => ({ name: a.name, description: a.description })),
       catalogOfferings,
+      organicPlan,
       paidPlan,
       paidBudgetAmount: Number.isFinite(paidBudgetAmount) ? paidBudgetAmount : null,
     });

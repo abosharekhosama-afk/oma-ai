@@ -5,6 +5,9 @@ import {
   allocateBudget,
   canPatchVersionContent,
   newId,
+  pillarKeyFromLabel,
+  postsPerWeekFromText,
+  STRATEGY_PLAN_LIMITS,
   organicPlanInputSchema,
   mergeSeoProposalsIntoOrganicPlan,
   organicPlanIssues,
@@ -100,6 +103,23 @@ export async function writeOrganicPlan(
   await tx.strategyContentPillar.deleteMany({ where: { strategyVersionId: scope.versionId } });
   await tx.strategySeoKeyword.deleteMany({ where: { strategyVersionId: scope.versionId } });
   await tx.strategyContentGap.deleteMany({ where: { strategyVersionId: scope.versionId } });
+  if (plan.cadence !== undefined) {
+    await tx.strategyChannelCadence.deleteMany({ where: { strategyVersionId: scope.versionId } });
+    if (plan.cadence.length) {
+      await tx.strategyChannelCadence.createMany({
+        data: plan.cadence.map((c, i) => ({
+          ...base,
+          id: newId(),
+          channel: c.channel,
+          postsPerWeek: c.posts_per_week,
+          formats: c.formats,
+          infoClass: c.info_class,
+          source: c.source,
+          sortOrder: i,
+        })),
+      });
+    }
+  }
   if (plan.pillars.length) {
     await tx.strategyContentPillar.createMany({
       data: plan.pillars.map((p, i) => ({
@@ -240,6 +260,75 @@ export async function writePaidPlan(
   }
 }
 
+/**
+ * Map the legacy foundation AI's organic lists onto the v2 plan (DEC-029 4.1).
+ * Only fills empty tables; rows are labelled AI_PROPOSAL / AI_ESTIMATE.
+ */
+export async function applyFoundationOrganicToPlan(
+  tx: Tx,
+  input: {
+    tenantId: string;
+    brandId: string;
+    versionId: string;
+    runId: string;
+    pillars: string[];
+    channels: string[];
+    formats: string[];
+    frequency: string | null;
+  },
+) {
+  const base = {
+    tenantId: input.tenantId,
+    brandId: input.brandId,
+    strategyVersionId: input.versionId,
+  };
+  const where = { strategyVersionId: input.versionId };
+  const [pillarCount, cadenceCount] = await Promise.all([
+    tx.strategyContentPillar.count({ where }),
+    tx.strategyChannelCadence.count({ where }),
+  ]);
+  const pillars = input.pillars.map((p) => p.trim()).filter(Boolean);
+  if (pillarCount === 0 && pillars.length) {
+    const taken = new Set<string>();
+    await tx.strategyContentPillar.createMany({
+      data: pillars.slice(0, STRATEGY_PLAN_LIMITS.pillars).map((label, i) => ({
+        ...base,
+        id: newId(),
+        key: pillarKeyFromLabel(label, i, taken),
+        nameEn: label.slice(0, 120),
+        nameAr: label.slice(0, 120),
+        infoClass: 'AI_PROPOSAL' as const,
+        source: 'AI_ESTIMATE' as const,
+        aiRunId: input.runId,
+        sortOrder: i,
+      })),
+    });
+  }
+  const seen = new Set<string>();
+  const channels = input.channels
+    .map((c) => c.trim().slice(0, 40))
+    .filter((c) => c && !seen.has(c.toLowerCase()) && seen.add(c.toLowerCase()));
+  if (cadenceCount === 0 && channels.length) {
+    const perWeek = postsPerWeekFromText(input.frequency);
+    const formats = input.formats
+      .map((f) => f.trim().slice(0, 40))
+      .filter(Boolean)
+      .slice(0, 8);
+    await tx.strategyChannelCadence.createMany({
+      data: channels.slice(0, STRATEGY_PLAN_LIMITS.cadence).map((channel, i) => ({
+        ...base,
+        id: newId(),
+        channel,
+        postsPerWeek: perWeek ?? 3,
+        formats,
+        infoClass: perWeek == null ? ('ASSUMPTION' as const) : ('AI_PROPOSAL' as const),
+        source: 'AI_ESTIMATE' as const,
+        sortOrder: i,
+      })),
+    });
+  }
+}
+
 /** Read the v2 plan of a version as API input shapes (used by copy + AI context). */
 export async function readStrategyPlan(
   db: Db,
@@ -247,14 +336,17 @@ export async function readStrategyPlan(
 ): Promise<{ organic: OrganicPlanInput; paid: PaidPlanInput; aiRunIds: string[] }> {
   const where = { strategyVersionId: versionId };
   const orderBy = { sortOrder: 'asc' as const };
-  const [pillars, keywords, gaps, allocations, audiences, experiments] = await Promise.all([
-    db.strategyContentPillar.findMany({ where, orderBy }),
-    db.strategySeoKeyword.findMany({ where, orderBy }),
-    db.strategyContentGap.findMany({ where, orderBy }),
-    db.strategyPaidAllocation.findMany({ where, orderBy }),
-    db.strategyPaidAudience.findMany({ where, orderBy }),
-    db.strategyExperiment.findMany({ where, orderBy }),
-  ]);
+  const [cadence, pillars, keywords, gaps, allocations, audiences, experiments] = await Promise.all(
+    [
+      db.strategyChannelCadence.findMany({ where, orderBy }),
+      db.strategyContentPillar.findMany({ where, orderBy }),
+      db.strategySeoKeyword.findMany({ where, orderBy }),
+      db.strategyContentGap.findMany({ where, orderBy }),
+      db.strategyPaidAllocation.findMany({ where, orderBy }),
+      db.strategyPaidAudience.findMany({ where, orderBy }),
+      db.strategyExperiment.findMany({ where, orderBy }),
+    ],
+  );
   const aiRunIds = [
     ...new Set(
       [...pillars, ...keywords, ...gaps, ...allocations, ...audiences, ...experiments]
@@ -265,6 +357,13 @@ export async function readStrategyPlan(
   return {
     aiRunIds,
     organic: {
+      cadence: cadence.map((c) => ({
+        channel: c.channel,
+        posts_per_week: c.postsPerWeek,
+        formats: c.formats,
+        info_class: c.infoClass,
+        source: c.source,
+      })),
       pillars: pillars.map((p) => ({
         key: p.key,
         name_en: p.nameEn,

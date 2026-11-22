@@ -61,6 +61,7 @@ export function StrategyPlanEditor({
   const t = useT();
   const [plan, setPlan] = useState<StrategyPlan | null>(null);
   const [organic, setOrganic] = useState<OrganicPlan>({
+    cadence: [],
     pillars: [],
     seo_keywords: [],
     content_gaps: [],
@@ -370,8 +371,117 @@ function OrganicTables({
   const set = <K extends keyof OrganicPlan>(key: K, rows: OrganicPlan[K]) =>
     onChange({ ...plan, [key]: rows });
   const share = pillarShareTotal(plan.pillars);
+  const cadence = plan.cadence ?? [];
+  const perWeek = cadence.reduce((sum, c) => sum + (c.posts_per_week || 0), 0);
   return (
     <>
+      <h3>
+        {t('strategy.plan.cadence.title')}{' '}
+        <span className="oma-plan-total" data-testid="plan-cadence-total">
+          ({perWeek}/{t('strategy.plan.cadence.week')})
+        </span>
+      </h3>
+      <p className="oma-muted">{t('strategy.plan.cadence.hint')}</p>
+      <div className="oma-plan-table-wrap">
+        <table className="oma-plan-table" data-testid="plan-cadence">
+          <thead>
+            <tr>
+              <th>{t('strategy.plan.cadence.channel')}</th>
+              <th>{t('strategy.plan.cadence.postsPerWeek')}</th>
+              <th>{t('strategy.plan.cadence.formats')}</th>
+              <th>{t('strategy.plan.col.source')}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {cadence.map((c, i) => (
+              <tr key={`cadence-${i}`}>
+                <td>
+                  <Input
+                    value={c.channel}
+                    disabled={!editable}
+                    data-testid={`plan-cadence-channel-${i}`}
+                    onChange={(e) => {
+                      const rows = [...cadence];
+                      rows[i] = { ...c, channel: e.target.value };
+                      set('cadence', rows);
+                    }}
+                  />
+                </td>
+                <td>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={28}
+                    value={c.posts_per_week}
+                    disabled={!editable}
+                    data-testid={`plan-cadence-ppw-${i}`}
+                    onChange={(e) => {
+                      const rows = [...cadence];
+                      rows[i] = {
+                        ...c,
+                        posts_per_week: Math.max(0, Math.min(28, numOrNull(e.target.value) ?? 0)),
+                      };
+                      set('cadence', rows);
+                    }}
+                  />
+                </td>
+                <td>
+                  <Input
+                    value={c.formats.join(', ')}
+                    disabled={!editable}
+                    placeholder={t('strategy.plan.cadence.formatsPlaceholder')}
+                    onChange={(e) => {
+                      const rows = [...cadence];
+                      rows[i] = {
+                        ...c,
+                        formats: e.target.value
+                          .split(',')
+                          .map((f) => f.trim())
+                          .filter(Boolean)
+                          .slice(0, 8),
+                      };
+                      set('cadence', rows);
+                    }}
+                  />
+                </td>
+                <td>
+                  <SourceTag source={c.source} t={t} />
+                </td>
+                <td>
+                  {editable ? (
+                    <Button
+                      type="text"
+                      onClick={() =>
+                        set(
+                          'cadence',
+                          cadence.filter((_, j) => j !== i),
+                        )
+                      }
+                    >
+                      {t('strategy.plan.remove')}
+                    </Button>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {editable ? (
+        <Button
+          data-testid="plan-cadence-add"
+          onClick={() =>
+            set('cadence', [
+              ...cadence,
+              { channel: '', posts_per_week: 3, formats: [], source: 'MANUAL' },
+            ])
+          }
+        >
+          {t('strategy.plan.cadence.add')}
+        </Button>
+      ) : null}
+
       <h3>
         {t('strategy.plan.pillars')}{' '}
         <span className="oma-plan-total" data-state={share > 100 ? 'bad' : 'ok'}>
