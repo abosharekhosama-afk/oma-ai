@@ -3,6 +3,7 @@ import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
 import { Button, TextArea } from '@oma/ui/controls';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
@@ -19,7 +20,6 @@ import { StrategySubnav } from '../../../../../../../../components/strategy/stra
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
-import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
 import { StrategyTrackEnablement } from '../../../../../../../../components/strategy/strategy-track-enablement';
 import {
@@ -119,16 +119,11 @@ export default function StrategyFoundationPage() {
       <BrandPlxPageHead title={t('strategy.foundation.title')} />
       <StrategyCreationJourney brandId={brandId} steps={journeySteps} collapsible />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <StrategyAiAssistant
-          brandId={brandId}
-          strategyId={strategyId}
-          versionId={version.id}
-          versionStatus={version.status}
-          linkedProfileVersionId={version.linked_approved_profile_version_id}
-          organicEnabled={version.organic_enabled}
-          paidEnabled={version.paid_enabled}
-          onApplied={() => void load()}
-        />
+        <p className="oma-muted" data-testid="strategy-ai-assistant-link">
+          <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
+            {t('strategy.ai.openAssistant')}
+          </Link>
+        </p>
       ) : null}
       <StrategyLinkProfilePanel
         brandId={brandId}
