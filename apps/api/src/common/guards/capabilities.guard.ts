@@ -104,6 +104,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/seo/gaps/brief': ['brief.create'],
   'POST /api/v1/brands/:brandId/scans': ['brand.scan.control'],
   'GET /api/v1/brands/:brandId/scans': ['brand.read'],
+  'GET /api/v1/brands/:brandId/scans/config/defaults': ['brand.read'],
   'GET /api/v1/brands/:brandId/scans/:scanId': ['brand.read'],
   'POST /api/v1/brands/:brandId/scans/:scanId/cancel': ['brand.scan.control'],
   'POST /api/v1/brands/:brandId/scans/:scanId/retry': ['brand.scan.control'],
@@ -433,6 +434,10 @@ const routeRequirements: Record<string, string[]> = {
 export function matchRequirements(method: string, path: string): string[] | null {
   const normalized = path
     .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/config\/defaults/,
+      '/api/v1/brands/:brandId/scans/config/defaults',
+    )
+    .replace(
       /\/api\/v1\/billing\/checkouts\/[^/]+\/fulfill/,
       '/api/v1/billing/checkouts/:id/fulfill',
     )
@@ -480,7 +485,10 @@ export function matchRequirements(method: string, path: string): string[] | null
       /\/api\/v1\/brands\/[^/]+\/catalog\/media\/[^/]+\/review/,
       '/api/v1/brands/:brandId/catalog/media/:linkId/review',
     )
-    .replace(/\/api\/v1\/brands\/[^/]+\/scans\/[^/]+/, '/api/v1/brands/:brandId/scans/:scanId')
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/(?!config(?:\/|$))[^/]+/,
+      '/api/v1/brands/:brandId/scans/:scanId',
+    )
     .replace(/\/api\/v1\/brands\/[^/]+\/scans/, '/api/v1/brands/:brandId/scans')
     .replace(/\/api\/v1\/brands\/[^/]+\/website/, '/api/v1/brands/:brandId/website')
     .replace(/\/api\/v1\/brands\/[^/]+\/archive/, '/api/v1/brands/:brandId/archive')
