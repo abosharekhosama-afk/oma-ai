@@ -33,10 +33,10 @@ describe('estimateCatalogContentRequests', () => {
       })),
     );
     expect(estimateCatalogContentRequests(rows, { organicEnabled: true, paidEnabled: false })).toBe(
-      20,
+      10,
     );
     expect(estimateCatalogContentRequests(rows, { organicEnabled: false, paidEnabled: true })).toBe(
-      20,
+      10,
     );
   });
 });

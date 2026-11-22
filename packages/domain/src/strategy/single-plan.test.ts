@@ -123,3 +123,29 @@ describe('DEC-029 4.1 single organic plan model', () => {
     }
   });
 });
+
+describe('DEC-029 4.2 product picker defaults', () => {
+  it('pre-selects 10 products, approved-media first, and lists the rest unselected', () => {
+    const catalog = Array.from({ length: 14 }, (_, i) => ({
+      kind: 'product' as const,
+      name: `P${i}`,
+      slug: `p${i}`,
+      ...(i === 12 ? { primary_media_view_url: '/m/12' } : {}),
+    }));
+    const drafts = buildPlanWorkRequestDrafts({
+      strategyName: 'Q1',
+      foundation: {},
+      organicEnabled: true,
+      paidEnabled: false,
+      organic: null,
+      paid: null,
+      audiences: [],
+      catalogOfferings: catalog,
+    });
+    const products = drafts.filter((d) => d.plan_source_key.startsWith('organic:catalog:product:'));
+    expect(products).toHaveLength(14);
+    expect(products[0]!.plan_source_key).toBe('organic:catalog:product:p12');
+    expect(products.filter((d) => d.default_selected)).toHaveLength(10);
+    expect(products.at(-1)!.default_selected).toBe(false);
+  });
+});

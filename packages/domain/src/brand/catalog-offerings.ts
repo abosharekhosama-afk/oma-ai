@@ -17,6 +17,13 @@ export const DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS = 500;
 export const DEFAULT_MAX_CATALOG_SERVICE_REQUESTS = 500;
 /** Paid catalog lines stay capped to keep planning scopes manageable. */
 export const DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS = 50;
+/**
+ * DEC-029 4.2: how many catalog items are pre-selected for plan → requests.
+ * The rest stay listed in the picker but are only created when hand-picked.
+ */
+export const DEFAULT_SELECTED_CATALOG_PRODUCTS = 10;
+export const DEFAULT_SELECTED_CATALOG_SERVICES = 10;
+export const DEFAULT_SELECTED_CATALOG_PAID_PRODUCTS = 10;
 
 export function slugForCatalogName(name: string): string {
   const slug = name
@@ -151,12 +158,13 @@ export function estimateCatalogContentRequests(
   const products = offerings.filter((o) => o.kind === 'product');
   const services = offerings.filter((o) => o.kind === 'service');
   let count = 0;
+  // Estimates what a default commit creates (pre-selected items only).
   if (options?.organicEnabled !== false) {
-    count += Math.min(products.length, DEFAULT_MAX_CATALOG_PRODUCT_REQUESTS);
-    count += Math.min(services.length, DEFAULT_MAX_CATALOG_SERVICE_REQUESTS);
+    count += Math.min(products.length, DEFAULT_SELECTED_CATALOG_PRODUCTS);
+    count += Math.min(services.length, DEFAULT_SELECTED_CATALOG_SERVICES);
   }
   if (options?.paidEnabled) {
-    count += Math.min(products.length, DEFAULT_MAX_CATALOG_PAID_PRODUCT_REQUESTS);
+    count += Math.min(products.length, DEFAULT_SELECTED_CATALOG_PAID_PRODUCTS);
   }
   return count;
 }
