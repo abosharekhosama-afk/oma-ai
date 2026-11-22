@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -1522,6 +1523,7 @@ export default function ContentPage() {
   const [filters, setFilters] = useState<ContentFilters>(EMPTY_CONTENT_FILTERS);
   const [view, setView] = useState<ContentViewMode>('calendar');
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
+  const [viewMenuPosition, setViewMenuPosition] = useState<CSSProperties | null>(null);
   const [sortKey, setSortKey] = useState<ContentSortKey>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [cursor, setCursor] = useState(() => monthCursorFromKey(todayKey(FALLBACK_SCHEDULE_TZ)));
@@ -1855,6 +1857,78 @@ export default function ContentPage() {
     if (!el) return;
     paintBreadcrumbViewSlot(el, view, t(`demo.view.${view}`));
   }, [view, t]);
+
+  useLayoutEffect(() => {
+    if (!viewMenuOpen) return;
+
+    const path = document.getElementById('oma-content-view-slot');
+    const pathRect = path?.getBoundingClientRect();
+    const pathVisible = Boolean(
+      pathRect &&
+      pathRect.width > 0 &&
+      pathRect.height > 0 &&
+      path &&
+      getComputedStyle(path).visibility !== 'hidden',
+    );
+    const anchor = pathVisible
+      ? path
+      : (document.querySelector<HTMLElement>('[data-testid="demo-content-view-toggle"]') ?? null);
+    const menu = document.querySelector<HTMLElement>('[data-testid="demo-content-view-menu"]');
+    if (!anchor || !menu) return;
+
+    const reposition = () => {
+      const anchorRect = anchor.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      const gutter = 8;
+      const menuWidth = menuRect.width || 220;
+      const menuHeight = menuRect.height || 260;
+      const below = anchorRect.bottom + 4;
+      const top =
+        below + menuHeight <= viewportHeight - gutter
+          ? below
+          : Math.max(gutter, anchorRect.top - menuHeight - 4);
+      const direction = getComputedStyle(anchor).direction;
+      const maxInlineOffset = Math.max(gutter, viewportWidth - menuWidth - gutter);
+      const inlineOffset =
+        direction === 'rtl'
+          ? Math.min(maxInlineOffset, Math.max(gutter, viewportWidth - anchorRect.right))
+          : Math.min(maxInlineOffset, Math.max(gutter, anchorRect.left));
+
+      setViewMenuPosition({
+        '--oma-view-menu-top': `${top}px`,
+        '--oma-view-menu-left': direction === 'rtl' ? 'auto' : `${inlineOffset}px`,
+        '--oma-view-menu-right': direction === 'rtl' ? `${inlineOffset}px` : 'auto',
+        visibility: 'visible',
+      } as CSSProperties);
+    };
+
+    reposition();
+    window.addEventListener('resize', reposition);
+    window.addEventListener('scroll', reposition, true);
+    window.visualViewport?.addEventListener('resize', reposition);
+
+    const shell = anchor.closest('.oma-shell');
+    const shellColumn = anchor.closest('.oma-shell-column');
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reposition);
+    resizeObserver?.observe(anchor);
+    if (shellColumn && shellColumn !== anchor) resizeObserver?.observe(shellColumn);
+    const mutationObserver =
+      shell && typeof MutationObserver !== 'undefined' ? new MutationObserver(reposition) : null;
+    if (shell && mutationObserver) {
+      mutationObserver.observe(shell, { attributes: true, attributeFilter: ['data-rail', 'dir'] });
+    }
+
+    return () => {
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+      window.visualViewport?.removeEventListener('resize', reposition);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+    };
+  }, [viewMenuOpen]);
 
   // Refresh when the active brand changes in the header switcher.
   useReloadOnBrandChange(load);
@@ -4071,6 +4145,7 @@ export default function ContentPage() {
               className="oma-view-menu__list oma-view-menu__list--path"
               role="menu"
               data-testid="demo-content-view-menu"
+              style={viewMenuPosition ?? { visibility: 'hidden' }}
             >
               {(
                 [

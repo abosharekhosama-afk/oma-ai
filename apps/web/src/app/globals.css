@@ -2554,3 +2554,181 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     }
   }
 }
+
+/* Content calendar shell fixes — fluid layout, anchored view menu and safe filter gutters. */
+.oma-cal-with-saved,
+.oma-cal-main {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+.oma-cal-toolbar {
+  position: relative !important;
+  top: auto !important;
+  inset-block-start: auto !important;
+  z-index: 1 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+.oma-cal-toolbar__start,
+.oma-cal-toolbar__end {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  flex-wrap: wrap !important;
+}
+.oma-cal-toolbar__start {
+  flex: 1 1 auto !important;
+}
+.oma-cal-toolbar__end {
+  flex: 0 1 auto !important;
+  margin-inline-start: auto !important;
+}
+.oma-cal-month-label {
+  min-width: 0 !important;
+  max-width: min(34vw, 240px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Month rows keep enough vertical room for two content cards; extras remain in the cell scroller. */
+.oma-cal-grid[data-span='month'] {
+  grid-auto-rows: minmax(260px, auto) !important;
+  align-content: start !important;
+}
+.oma-cal-grid[data-span='month'][data-post-size='compact'] {
+  grid-auto-rows: minmax(220px, auto) !important;
+}
+.oma-cal-grid[data-span='month'] > .oma-cal-cell {
+  min-block-size: 0 !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+}
+.oma-cal-grid[data-span='week'] > .oma-cal-cell {
+  min-block-size: 220px !important;
+}
+.oma-cal-grid[data-span='week'][data-post-size='compact'] > .oma-cal-cell {
+  min-block-size: 200px !important;
+}
+
+/* One-line breadcrumb: shrink path labels rather than wrapping or pushing actions off-canvas. */
+.oma-top[data-content-workspace='true'],
+.oma-top[data-content-workspace='true'] .oma-top-start,
+.oma-top[data-content-workspace='true'] .oma-top-context {
+  min-width: 0 !important;
+}
+.oma-top[data-content-workspace='true'] .oma-top-start {
+  flex: 0 1 auto !important;
+  flex-wrap: nowrap !important;
+}
+.oma-top[data-content-workspace='true'] .oma-top-context {
+  flex: 1 1 0% !important;
+  overflow: hidden !important;
+}
+.oma-top[data-content-workspace='true'] .oma-context-trail,
+.oma-top[data-content-workspace='true'] .oma-breadcrumb,
+.oma-top[data-content-workspace='true'] .oma-breadcrumb--planable {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+.oma-top[data-content-workspace='true'] .oma-breadcrumb--planable > li {
+  display: flex !important;
+  flex: 0 1 auto !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+.oma-top[data-content-workspace='true'] .oma-breadcrumb--planable > li > a,
+.oma-top[data-content-workspace='true'] .oma-breadcrumb--planable > li > button,
+.oma-top[data-content-workspace='true']
+  .oma-breadcrumb--planable
+  > li
+  > span:not(.oma-breadcrumb-sep) {
+  display: inline-flex !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: clamp(52px, 13vw, 156px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.oma-top[data-content-workspace='true'] .oma-breadcrumb-sep {
+  flex: 0 0 auto !important;
+}
+.oma-top[data-content-workspace='true'] .oma-breadcrumb-view,
+.oma-top[data-content-workspace='true'] .oma-breadcrumb-view-label {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.oma-top[data-content-workspace='true'] .oma-breadcrumb-ws-wrap {
+  min-width: 0 !important;
+  max-width: min(22vw, 200px) !important;
+  overflow: hidden !important;
+}
+.oma-top[data-content-workspace='true'] .oma-breadcrumb-ws-wrap > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Portal menu placement comes from live anchor geometry; keep it below the rail layer. */
+.oma-view-menu__list--path {
+  position: fixed !important;
+  top: var(--oma-view-menu-top, 8px) !important;
+  left: var(--oma-view-menu-left, auto) !important;
+  right: var(--oma-view-menu-right, auto) !important;
+  inset-inline-start: auto !important;
+  inset-inline-end: auto !important;
+  z-index: 35 !important;
+  min-width: min(220px, calc(100vw - 16px)) !important;
+  max-width: calc(100vw - 16px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Filter headings and controls use the drawer's own inset, including in Arabic/RTL. */
+.oma-plx-content-filter-drawer .oma-filter-sidepanel__body {
+  padding: 8px 16px 16px !important;
+  overflow-x: hidden !important;
+}
+.oma-plx-content-filter-drawer .oma-content-filter-eyebrow {
+  margin-inline: 0 !important;
+}
+.oma-plx-content-filter-drawer .oma-plx-content-filter-sort-row,
+.oma-plx-content-filter-drawer .oma-plx-content-filter-sort-menu,
+.oma-plx-content-filter-drawer .oma-plx-content-filter-search,
+.oma-plx-content-filter-drawer .oma-plx-content-filter-match {
+  width: 100% !important;
+  margin-inline: 0 !important;
+  box-sizing: border-box !important;
+}
+.oma-plx-content-filter-drawer .oma-filter-accordion-list {
+  padding-inline: 0 !important;
+}
+
+@media (max-width: 767px) {
+  .oma-cal-toolbar__start,
+  .oma-cal-toolbar__end {
+    flex: 1 1 100% !important;
+  }
+  .oma-cal-toolbar__end {
+    justify-content: flex-start !important;
+    margin-inline-start: 0 !important;
+  }
+  .oma-cal-month-label {
+    max-width: min(42vw, 220px) !important;
+  }
+}

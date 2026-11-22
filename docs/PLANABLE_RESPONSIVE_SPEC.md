@@ -35,3 +35,11 @@ These OMA application behaviors are not claims that the live Planable calendar w
 
 - Filters: archived as a side panel/tabs on calendar; mobile transformation `SANDBOX_DATA_REQUIRED`.
 - Composer: archived as modal; mobile likely full-screen — confirm before P3 acceptance.
+
+## OMA content-calendar shell remediation — 2026-11-22
+
+This is an OMA implementation record, not a claim that Planable's calendar was re-captured. The Content calendar toolbar now follows its content column in normal flow (not sticky); the view menu measures the visible breadcrumb anchor, falls back to the view button when the breadcrumb is hidden on mobile, and recalculates on viewport resize, scroll, rail-state mutation and content-column resize. Its placement clamps to the viewport, uses the active LTR/RTL direction, and stays below the rail stacking layer.
+
+Month rows have minimum tracks of 260px (220px compact); week cells have minimum block sizes of 220px (200px compact). The existing two-visible-items limit and overflow access remain unchanged. The content breadcrumb is constrained to one non-wrapping line with ellipsis, and the sort/filter drawer has a 16px inline inset with control margins reset inside the drawer.
+
+Automated evidence: the focused Vitest set passed (16 tests); `pnpm --filter @oma/web typecheck`, Prettier and `git diff --check` passed. Full workspace `pnpm typecheck` remains blocked in `@oma/db` by unavailable Prisma client exports/types. Playwright and viewport-by-viewport visual checks remain pending: E2E database variables were unset and PostgreSQL readiness could not be confirmed in this sandbox. Therefore this records implemented CSS/interaction contracts, not completed visual certification at 1440×900, 1024×768, or 390×844.
