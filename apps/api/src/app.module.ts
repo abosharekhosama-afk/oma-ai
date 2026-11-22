@@ -33,6 +33,7 @@ import { CatalogController } from './catalog/catalog.controller';
 import { ProfileController } from './intelligence/profile.controller';
 import { StrategyController } from './strategy/strategy.controller';
 import { PaidExecutionController } from './strategy/paid-execution.controller';
+import { StrategyMonthlyReviewController } from './strategy/strategy-monthly-review.controller';
 import { MetaAdsController } from './strategy/meta-ads.controller';
 import { BriefController } from './brief/brief.controller';
 import { DemoController } from './demo/demo.controller';
@@ -75,6 +76,7 @@ import { SupportController } from './platform/support.controller';
     ProfileController,
     StrategyController,
     PaidExecutionController,
+    StrategyMonthlyReviewController,
     MetaAdsController,
     BriefController,
     DemoController,

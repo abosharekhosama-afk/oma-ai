@@ -17,6 +17,7 @@ import { PaidExecutionService } from './strategy/paid-execution.service';
 import { MetaAdsService } from './strategy/meta-ads.service';
 import { StrategyKpiScorecardService } from './strategy/strategy-kpi-scorecard.service';
 import { StrategyPlanService } from './strategy/strategy-plan.service';
+import { StrategyMonthlyReviewService } from './strategy/strategy-monthly-review.service';
 import { BriefService } from './brief/brief.service';
 import { StrategyPlanRequestsService } from './strategy/strategy-plan-requests.service';
 import { CampaignService } from './content/campaign.service';
@@ -52,6 +53,13 @@ export const paidExecutionService = new PaidExecutionService(auditService);
 export const metaAdsService = new MetaAdsService(auditService);
 export const strategyKpiScorecardService = new StrategyKpiScorecardService(auditService);
 export const strategyPlanService = new StrategyPlanService(auditService);
+export const strategyMonthlyReviewService = new StrategyMonthlyReviewService(
+  auditService,
+  strategyService,
+  strategyPlanService,
+  strategyKpiScorecardService,
+  paidExecutionService,
+);
 export const briefService = new BriefService(auditService);
 export const seoService = new SeoService(auditService, briefService);
 export const campaignService = new CampaignService(auditService);

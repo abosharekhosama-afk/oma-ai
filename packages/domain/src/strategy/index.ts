@@ -18,3 +18,4 @@ export * from './kpi-scorecard';
 export * from './research-port';
 export * from './plan-proposal';
 export * from './paid-execution';
+export * from './monthly-review';

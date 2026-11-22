@@ -3311,3 +3311,25 @@ model SocialWebhookEvent {
   @@index([createdAt])
   @@index([processedAt])
 }
+
+/// DEC-029 PR 4.10: monthly review of an approved version. Findings are deterministic
+/// (KPIs, cadence, pillar share, paid pacing, experiments); the AI proposal lands on a new DRAFT.
+model StrategyMonthlyReview {
+  id              String   @id
+  tenantId        String
+  brandId         String
+  strategyId      String
+  sourceVersionId String
+  /// YYYY-MM reviewed
+  month           String
+  findingsJson    String
+  draftVersionId  String?
+  aiRunId         String?
+  /// PROPOSED | DRAFT_ONLY (AI unavailable) | NO_CHANGES
+  status          String
+  createdBy       String
+  createdAt       DateTime @default(now())
+
+  @@unique([sourceVersionId, month])
+  @@index([tenantId, brandId, strategyId, createdAt])
+}

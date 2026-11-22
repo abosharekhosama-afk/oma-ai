@@ -2371,6 +2371,46 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/monthly-review": {
+      "get": {
+        "operationId": "StrategyMonthlyReviewController_preview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "StrategyMonthlyReview"
+        ]
+      },
+      "post": {
+        "operationId": "StrategyMonthlyReviewController_run",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "StrategyMonthlyReview"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/monthly-reviews": {
+      "get": {
+        "operationId": "StrategyMonthlyReviewController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "StrategyMonthlyReview"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/meta-ads": {
       "get": {
         "operationId": "MetaAdsController_status",
