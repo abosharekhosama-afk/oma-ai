@@ -97,6 +97,8 @@ describe('strategy plan → work requests', () => {
     expect([200, 201]).toContain(commitRes.status);
     const commit = await commitRes.json();
     expect(commit.data.created_request_ids.length).toBeGreaterThanOrEqual(2);
+    // DEC-029 4.3: every plan request gets its brief (the only plan → work route).
+    expect(commit.data.created_brief_ids).toHaveLength(commit.data.created_request_ids.length);
 
     const repeat = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/plan-to-requests/commit`,
@@ -127,7 +129,11 @@ describe('strategy plan → work requests', () => {
     );
     expect([200, 201]).toContain(convertRes.status);
     const convert = await convertRes.json();
-    expect(convert.data.created_task_ids.length).toBeGreaterThanOrEqual(2);
+    // Tasks come from approving + converting each brief, not straight from requests.
+    expect(convert.data.created_task_ids).toEqual([]);
+    expect(convert.data.skipped.every((s: { reason: string }) => s.reason === 'brief_route')).toBe(
+      true,
+    );
 
     const listRes = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/requests?strategy_version_id=${versionId}`,

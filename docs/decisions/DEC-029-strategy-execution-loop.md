@@ -84,3 +84,18 @@ document, and default SEO numbers were sample data that looked measured.
   - A "spread over calendar" toggle, start date and weeks, with a summary line.
   - The single due date is shown only when the calendar is off.
   - A catalog picker line with show all / show selected.
+
+## PR 4.3: plan → brief is the only route to work
+
+- A plan commit now creates a **Brief** for every new request (`origin: strategy`, linked to its `requestId`, idempotent per request).
+  - The brief content comes from the draft: objective, audience and key message in Arabic and English; the CTA from the organic track; channels; the pillar key; and the request's due date.
+  - Each calendar slot becomes a deliverable (`slot-<n>`, with channel, format, and a due date one day before the post), up to 30. Drafts without slots get a single `content` deliverable.
+  - The commit response returns `created_brief_ids`.
+- `plan-to-requests/convert-tasks` no longer skips the brief. It creates tasks only for legacy requests that have no brief. Requests with a brief are reported as `brief_route` or `brief_converted`. Tasks come from approving and then converting the brief.
+- `GET …/versions/:versionId/execution` (`strategy.read` + `request.read`) reports, for each pillar and for catalog / paid / other:
+  - requests, briefs by status, open and done tasks;
+  - content as planned / draft / in review / approved / scheduled / published;
+  - the pillar's target share vs its planned and published share.
+- Plan content now carries a `strategy-version:<id>` label, so execution counts never mix in content from another version.
+- UI: a "Plan execution" panel on the strategy overview and review pages. The commit message tells the user to approve the briefs.
+- Strengthening: the Arabic text for `brand.seo.searchConsole` was copied from English, which made the base fail the i18n audit. It is now translated.

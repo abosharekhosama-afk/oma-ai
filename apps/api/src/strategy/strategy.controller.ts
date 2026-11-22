@@ -906,6 +906,22 @@ export class StrategyController {
     );
   }
 
+  @Get('strategies/:strategyId/versions/:versionId/execution')
+  async executionStatus(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyPlanRequestsService.executionStatus(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+    );
+  }
+
   @Get('strategies/:strategyId/versions/:versionId/plan-to-requests/impact')
   async planRequestImpact(
     @Req() req: Request,

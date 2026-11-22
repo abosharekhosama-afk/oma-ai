@@ -26,6 +26,7 @@ import { PermissionDenied } from '../../../../../../../../components/shell/permi
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyPlanRequestsPanel } from '../../../../../../../../components/strategy/strategy-plan-requests-panel';
+import { StrategyExecutionPanel } from '../../../../../../../../components/strategy/strategy-execution-panel';
 import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
 import { StrategyDraftPreview } from '../../../../../../../../components/strategy/strategy-draft-preview';
 
@@ -202,11 +203,18 @@ export default function StrategyReviewPage() {
         </div>
       </BrandPlxSection>
       {version.status === 'APPROVED' ? (
-        <StrategyPlanRequestsPanel
-          brandId={brandId}
-          strategyId={strategyId}
-          versionId={version.id}
-        />
+        <>
+          <StrategyPlanRequestsPanel
+            brandId={brandId}
+            strategyId={strategyId}
+            versionId={version.id}
+          />
+          <StrategyExecutionPanel
+            brandId={brandId}
+            strategyId={strategyId}
+            versionId={version.id}
+          />
+        </>
       ) : null}
       {error ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>

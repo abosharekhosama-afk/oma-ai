@@ -12,5 +12,6 @@ export * from './plan-work-requests';
 export * from './plan-request-impact';
 export * from './tracks-v2';
 export * from './calendar-slots';
+export * from './plan-brief';
 export * from './research-port';
 export * from './plan-proposal';

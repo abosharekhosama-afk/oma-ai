@@ -309,6 +309,38 @@ export class BriefService {
     return this.get(actor.tenantId, brandId, briefId);
   }
 
+  /**
+   * DEC-029 4.3: one brief per strategy plan request (the only plan → work route).
+   * Idempotent per request; returns null when the brief entity is disabled.
+   */
+  async createForPlanRequest(
+    actor: Actor,
+    brandId: string,
+    input: {
+      requestId: string;
+      title: string;
+      content: BriefContent;
+      strategyId: string;
+      strategyVersionId: string;
+    },
+  ): Promise<{ id: string; created: boolean } | null> {
+    if (!briefEntityEnabled()) return null;
+    const existing = await getPrisma().brief.findFirst({
+      where: { tenantId: actor.tenantId, requestId: input.requestId },
+      select: { id: true },
+    });
+    if (existing) return { id: existing.id, created: false };
+    const res = await this.createBrief(actor, brandId, {
+      title: input.title.slice(0, 200),
+      content: input.content,
+      origin: 'strategy',
+      requestId: input.requestId,
+      strategyId: input.strategyId,
+      strategyVersionId: input.strategyVersionId,
+    });
+    return { id: (res.data as { id: string }).id, created: true };
+  }
+
   async create(actor: Actor, brandId: string, body: Record<string, unknown>) {
     this.ensureEnabled();
     const title = titleOf(body?.title);

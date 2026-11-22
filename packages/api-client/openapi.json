@@ -2123,6 +2123,20 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/execution": {
+      "get": {
+        "operationId": "StrategyController_executionStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/plan-to-requests/impact": {
       "get": {
         "operationId": "StrategyController_planRequestImpact",

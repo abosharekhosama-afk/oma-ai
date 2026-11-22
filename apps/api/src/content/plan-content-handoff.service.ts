@@ -75,7 +75,7 @@ export async function createStrategyPlanContentDraft(
       timezone: await brandTimezone(ctx.tenantId, ctx.brandId),
       approverRequired: requiredApprovers,
       approverApproved: 0,
-      labels: ['strategy-plan', draft.plan_source_key],
+      labels: ['strategy-plan', draft.plan_source_key, `strategy-version:${ctx.strategyVersionId}`],
       createdBy: ctx.actorUserId,
     },
   });
@@ -139,6 +139,7 @@ export async function createStrategyPlanSlotContent(
       labels: [
         'strategy-plan',
         draft.plan_source_key,
+        `strategy-version:${ctx.strategyVersionId}`,
         `plan-slot:${opts.slot.slot_key}`,
         ...(opts.slot.pillar_key ? [`pillar:${opts.slot.pillar_key}`] : []),
       ],
@@ -188,7 +189,7 @@ export async function refreshStrategyPlanContentFromDraft(
       channel: deliverableHandoffChannel(draft.channels),
       contentType: deliverableHandoffContentType(draft.formats),
       track: planDraftTrack(draft),
-      labels: ['strategy-plan', draft.plan_source_key],
+      labels: ['strategy-plan', draft.plan_source_key, `strategy-version:${ctx.strategyVersionId}`],
       updatedAt: new Date(),
     },
   });

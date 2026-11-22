@@ -15,11 +15,18 @@ import {
   spreadPlannedDates,
   STRATEGY_CALENDAR_LIMITS,
   type CalendarSlot,
+  briefContentFromPlanDraft,
+  briefEntityEnabled,
+  pillarKeyFromSourceKey,
+  emptyExecutionCounts,
+  countContent,
+  type PillarExecutionCounts,
   type CatalogOffering,
   type CatalogOfferingsSource,
   type PlanWorkRequestDraft,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import type { BriefService } from '../brief/brief.service';
 import { OpsService } from '../content/ops.service';
 import { parseOptionalDate } from '../content/content.service';
 import { enrichCatalogOfferingsWithApprovedMedia } from '../catalog/catalog.service';
@@ -54,6 +61,7 @@ export class StrategyPlanRequestsService {
   constructor(
     private readonly audit: AuditService,
     private readonly ops: OpsService,
+    private readonly briefs?: BriefService,
   ) {}
 
   private async loadApprovedVersion(
@@ -431,8 +439,10 @@ export class StrategyPlanRequestsService {
 
     const created: string[] = [];
     const createdContent: string[] = [];
+    const createdBriefs: string[] = [];
     const skipped: string[] = [];
     let slotsCreated = 0;
+    const cta = version.organicTrack?.messageCta ?? null;
 
     for (const draft of selected) {
       const existing = await getPrisma().workRequest.findFirst({
@@ -508,12 +518,25 @@ export class StrategyPlanRequestsService {
         slotsCreated += 1;
       }
       if (slots.length && content?.created) slotsCreated += 1;
+      const brief = await this.briefs?.createForPlanRequest(
+        { tenantId, userId: actorUserId, correlationId },
+        brandId,
+        {
+          requestId: row.id,
+          title: draft.title.en,
+          content: briefContentFromPlanDraft(draft, { slots, dueAt: row.dueAt, cta }),
+          strategyId,
+          strategyVersionId: versionId,
+        },
+      );
+      if (brief?.created) createdBriefs.push(brief.id);
     }
 
     return {
       data: {
         created_request_ids: created,
         created_content_ids: createdContent,
+        created_brief_ids: createdBriefs,
         skipped_plan_source_keys: skipped,
         strategy_version_id: versionId,
         catalog_source,
@@ -527,6 +550,125 @@ export class StrategyPlanRequestsService {
               truncated: schedule.plan.truncated,
             }
           : null,
+      },
+    };
+  }
+
+  /** DEC-029 4.3: execution status per pillar (requests → briefs → tasks → content). */
+  async executionStatus(tenantId: string, brandId: string, strategyId: string, versionId: string) {
+    const version = await this.loadApprovedVersion(tenantId, brandId, strategyId, versionId);
+    const plan = await readStrategyPlan(getPrisma(), version.id);
+    const pillarKeys = plan.organic.pillars.map((p) => p.key);
+    const requests = await getPrisma().workRequest.findMany({
+      where: { tenantId, brandId, strategyVersionId: versionId },
+      select: { id: true, planSourceKey: true, contentId: true },
+    });
+    const requestIds = requests.map((r) => r.id);
+    const [briefs, tasks] = await Promise.all([
+      getPrisma().brief.findMany({
+        where: { tenantId, requestId: { in: requestIds } },
+        select: { id: true, requestId: true, status: true },
+      }),
+      getPrisma().workTask.findMany({
+        where: { tenantId, requestId: { in: requestIds } },
+        select: { requestId: true, status: true },
+      }),
+    ]);
+    const sourceKeys = requests.map((r) => r.planSourceKey).filter(Boolean) as string[];
+    const contents = sourceKeys.length
+      ? await getPrisma().contentItem.findMany({
+          where: {
+            tenantId,
+            brandId,
+            archivedAt: null,
+            OR: [
+              { id: { in: requests.map((r) => r.contentId).filter(Boolean) as string[] } },
+              { labels: { has: `strategy-version:${versionId}` } },
+            ],
+          },
+          select: {
+            labels: true,
+            status: true,
+            scheduleState: true,
+            publishedAt: true,
+            plannedAt: true,
+          },
+        })
+      : [];
+    const groupOf = (sourceKey: string | null) => {
+      if (!sourceKey) return 'other';
+      const pillar = pillarKeyFromSourceKey(sourceKey, pillarKeys);
+      if (pillar) return `pillar:${pillar}`;
+      if (sourceKey.includes(':catalog:')) return 'catalog';
+      if (sourceKey.startsWith('paid:')) return 'paid';
+      return 'other';
+    };
+    const groups = new Map<string, PillarExecutionCounts>();
+    const get = (key: string) => {
+      if (!groups.has(key)) groups.set(key, emptyExecutionCounts());
+      return groups.get(key)!;
+    };
+    const groupByRequest = new Map<string, string>();
+    for (const r of requests) {
+      const g = groupOf(r.planSourceKey);
+      groupByRequest.set(r.id, g);
+      get(g).requests += 1;
+    }
+    for (const b of briefs) {
+      const c = get(groupByRequest.get(b.requestId ?? '') ?? 'other');
+      c.briefs[b.status] = (c.briefs[b.status] ?? 0) + 1;
+    }
+    for (const t of tasks) {
+      const c = get(groupByRequest.get(t.requestId ?? '') ?? 'other');
+      if (t.status === 'DONE') c.tasks.done += 1;
+      else if (t.status !== 'CANCELLED') c.tasks.open += 1;
+    }
+    const keyToGroup = new Map(requests.map((r) => [r.planSourceKey, groupOf(r.planSourceKey)]));
+    for (const item of contents) {
+      const key = item.labels.find((l) => keyToGroup.has(l));
+      if (!key) continue;
+      countContent(get(keyToGroup.get(key)!), item);
+    }
+    const publishedTotal = plan.organic.pillars.reduce(
+      (sum, p) => sum + (groups.get(`pillar:${p.key}`)?.content.published ?? 0),
+      0,
+    );
+    const plannedTotal = plan.organic.pillars.reduce(
+      (sum, p) => sum + (groups.get(`pillar:${p.key}`)?.content.planned ?? 0),
+      0,
+    );
+    return {
+      data: {
+        strategy_version_id: versionId,
+        pillars: plan.organic.pillars.map((p) => {
+          const c = groups.get(`pillar:${p.key}`) ?? emptyExecutionCounts();
+          return {
+            key: p.key,
+            name_en: p.name_en,
+            name_ar: p.name_ar,
+            share_target_pct: p.share_target_pct ?? null,
+            planned_share_pct: plannedTotal
+              ? Math.round((c.content.planned / plannedTotal) * 100)
+              : null,
+            published_share_pct: publishedTotal
+              ? Math.round((c.content.published / publishedTotal) * 100)
+              : null,
+            ...c,
+          };
+        }),
+        catalog: groups.get('catalog') ?? emptyExecutionCounts(),
+        paid: groups.get('paid') ?? emptyExecutionCounts(),
+        other: groups.get('other') ?? emptyExecutionCounts(),
+        totals: {
+          requests: requests.length,
+          briefs: briefs.length,
+          briefs_approved: briefs.filter((b) => ['APPROVED', 'CONVERTED'].includes(b.status))
+            .length,
+          tasks_open: tasks.filter((t) => !['DONE', 'CANCELLED'].includes(t.status)).length,
+          tasks_done: tasks.filter((t) => t.status === 'DONE').length,
+          content_planned: plannedTotal,
+          content_published: publishedTotal,
+        },
       },
     };
   }
@@ -630,7 +772,25 @@ export class StrategyPlanRequestsService {
     });
     const created: string[] = [];
     const skipped: Array<{ request_id: string; reason: string }> = [];
+    const briefRows = briefEntityEnabled()
+      ? await getPrisma().brief.findMany({
+          where: { tenantId, requestId: { in: requests.map((r) => r.id) } },
+          select: { id: true, requestId: true, status: true },
+        })
+      : [];
+    const briefByRequest = new Map(briefRows.map((b) => [b.requestId, b]));
     for (const request of requests) {
+      // DEC-029 4.3: plan work goes through its brief (approve → convert creates the tasks).
+      const brief = briefByRequest.get(request.id);
+      if (brief) {
+        skipped.push({
+          request_id: request.id,
+          reason: brief.status === 'CONVERTED' ? 'brief_converted' : 'brief_route',
+          brief_id: brief.id,
+          brief_status: brief.status,
+        } as { request_id: string; reason: string });
+        continue;
+      }
       const existing = await getPrisma().workTask.findFirst({
         where: { tenantId, requestId: request.id },
       });
