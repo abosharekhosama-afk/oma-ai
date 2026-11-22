@@ -2371,6 +2371,104 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/meta-ads": {
+      "get": {
+        "operationId": "MetaAdsController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "MetaAds"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/meta-ads/oauth/start": {
+      "post": {
+        "operationId": "MetaAdsController_start",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "MetaAds"
+        ]
+      }
+    },
+    "/api/v1/meta-ads/callback": {
+      "get": {
+        "operationId": "MetaAdsController_callback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "MetaAds"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/meta-ads/accounts": {
+      "get": {
+        "operationId": "MetaAdsController_accounts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "MetaAds"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/meta-ads/account": {
+      "post": {
+        "operationId": "MetaAdsController_select",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "MetaAds"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/meta-ads/sync": {
+      "post": {
+        "operationId": "MetaAdsController_sync",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "MetaAds"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/meta-ads/disconnect": {
+      "post": {
+        "operationId": "MetaAdsController_disconnect",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "MetaAds"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/briefs": {
       "get": {
         "operationId": "BriefController_list",

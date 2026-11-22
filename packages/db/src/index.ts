@@ -11,3 +11,4 @@ export * from './enqueue-brand-analysis';
 export * from './backfill-legacy-briefs';
 export * from './ai-run-ledger';
 export * from './search-console-sync';
+export * from './meta-ads-sync';

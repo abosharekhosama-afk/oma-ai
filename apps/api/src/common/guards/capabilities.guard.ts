@@ -233,6 +233,12 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/experiments/:experimentId/history':
     ['strategy.read'],
   'GET /api/v1/brands/:brandId/paid-spend': ['analytics.read'],
+  'GET /api/v1/brands/:brandId/meta-ads': ['analytics.read'],
+  'POST /api/v1/brands/:brandId/meta-ads/oauth/start': ['strategy.paid.edit'],
+  'GET /api/v1/brands/:brandId/meta-ads/accounts': ['strategy.paid.edit'],
+  'POST /api/v1/brands/:brandId/meta-ads/account': ['strategy.paid.edit'],
+  'POST /api/v1/brands/:brandId/meta-ads/sync': ['strategy.paid.edit'],
+  'POST /api/v1/brands/:brandId/meta-ads/disconnect': ['strategy.paid.edit'],
   'POST /api/v1/brands/:brandId/paid-spend': ['strategy.paid.edit'],
   'POST /api/v1/brands/:brandId/paid-spend/import': ['strategy.paid.edit'],
   'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/kpi-scorecard': [

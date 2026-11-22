@@ -196,3 +196,28 @@ document, and default SEO numbers were sample data that looked measured.
   - a status: not_started / on_pace (±15%) / under- or overspending / ended / no_budget.
   - It also returns experiments with results, plus planned and actual spend and spend not tied to a flight.
 - UI: a flights table in the paid plan editor. On approved versions, a "Paid execution" panel on the overview shows pacing, a "create draft campaigns" action, experiment start / record result / cancel, and CSV import.
+
+## PR 4.8: Meta Ads insights, read-only
+
+- **Read-only by design.** A separate Meta OAuth asks for `ads_read` only. It is separate from the page-publishing connection, because page tokens cannot read ad accounts.
+  - OMA never creates, edits, pauses or funds ads. There is no write endpoint, and the client has no write methods.
+- `META_ADS_MODE=disabled|fixture|live`. The default is **disabled**.
+  - `live` also needs `META_APP_ID` / `META_APP_SECRET`.
+  - `fixture` follows the fixtures rule from 4.0 and is never on in production.
+- **Models** (migration `20261122150000_meta_ads_insights`):
+  - `MetaAdsLink` (one ad account per brand; the long-lived ≈60-day user token is encrypted; status PENDING_ACCOUNT / CONNECTED / NEEDS_RECONNECT / FIXTURE);
+  - `MetaAdsOAuthState`;
+  - `PaidSpendEntry.externalCampaignId`.
+- **Routes:**
+  - `GET /brands/:id/meta-ads` (analytics.read) returns the status, `read_only: true` and the scopes;
+  - `POST …/meta-ads/oauth/start` → `GET /meta-ads/callback` → `GET …/meta-ads/accounts` → `POST …/meta-ads/account`;
+  - `POST …/meta-ads/sync` and `POST …/meta-ads/disconnect` (forgets the token locally).
+  - All writes need `strategy.paid.edit` and are audited (`paid.meta_ads.*`).
+- **Sync** (`@oma/db syncBrandMetaAds`, shared by the API and the worker):
+  - Pulls daily campaign-level insights (spend, impressions, clicks, purchase/lead/registration conversions) with pagination.
+  - A campaign is tied to a flight when its name contains `[flight-key]` or equals the flight name. Otherwise its spend stays unassigned.
+  - Rows are aggregated per day and flight. The sync window is replaced on every run, so Meta's restatements win.
+  - An expired token or a 401 / code 190 / code 200 → NEEDS_RECONNECT.
+  - The worker syncs CONNECTED live links daily (last 7 days).
+- **No double counting.** When META_* rows exist for the same platform, day and flight, CSV/manual rows for that key are left out of pacing and spend totals (`preferApiSpend`).
+- UI: a Meta Ads card in the "Paid execution" panel (connect read-only → pick account → sync / disconnect). It is hidden when the mode is disabled.

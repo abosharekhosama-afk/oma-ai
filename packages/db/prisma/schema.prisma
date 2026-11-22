@@ -1600,27 +1600,62 @@ model StrategyPaidFlight {
   @@index([tenantId, brandId])
 }
 
+/// DEC-029 4.8: read-only Meta Ads connection (ads_read) for one ad account per brand.
+model MetaAdsLink {
+  id             String    @id
+  tenantId       String
+  brandId        String    @unique
+  /// PENDING_ACCOUNT | CONNECTED | NEEDS_RECONNECT | FIXTURE
+  status         String    @default("PENDING_ACCOUNT")
+  adAccountId    String?
+  adAccountName  String?
+  currency       String?
+  accessTokenEnc String?
+  tokenExpiresAt DateTime?
+  lastSyncAt     DateTime?
+  lastError      String?
+  connectedBy    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([tenantId, status])
+}
+
+model MetaAdsOAuthState {
+  id        String    @id
+  tenantId  String
+  brandId   String
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
 /// DEC-029 4.7: actual paid spend, entered manually or imported from CSV (no ads API yet).
 model PaidSpendEntry {
-  id                String               @id
-  tenantId          String
-  brandId           String
-  strategyVersionId String?
+  id                 String               @id
+  tenantId           String
+  brandId            String
+  strategyVersionId  String?
   /// Flight key within the version ('' = not tied to a flight).
-  flightKey         String               @default("")
-  platform          StrategyPaidPlatform
-  spendDate         DateTime             @db.Date
-  amount            Decimal              @db.Decimal(18, 2)
-  currency          String
-  impressions       Int?
-  clicks            Int?
-  conversions       Int?
+  flightKey          String               @default("")
+  platform           StrategyPaidPlatform
+  spendDate          DateTime             @db.Date
+  amount             Decimal              @db.Decimal(18, 2)
+  currency           String
+  impressions        Int?
+  clicks             Int?
+  conversions        Int?
   /// MANUAL | CSV | META_API
-  source            String               @default("MANUAL")
-  importBatchId     String?
-  createdBy         String?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  source             String               @default("MANUAL")
+  /// Provider campaign id/name for API rows (META_API).
+  externalCampaignId String?
+  importBatchId      String?
+  createdBy          String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
   @@unique([tenantId, brandId, platform, spendDate, flightKey, source])
   @@index([tenantId, brandId, spendDate])

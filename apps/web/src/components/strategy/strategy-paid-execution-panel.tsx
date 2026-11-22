@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { getApiError } from '../../lib/brand-api';
 import { useT } from '../../lib/use-locale';
+import { MetaAdsConnect } from './meta-ads-connect';
 
 type Flight = {
   key: string;
@@ -158,6 +159,7 @@ export function StrategyPaidExecutionPanel({
             {error}
           </p>
         ) : null}
+        <MetaAdsConnect brandId={brandId} onSynced={load} />
         {notice ? (
           <p className="oma-save-status" role="status">
             {notice}

@@ -61,6 +61,7 @@ export const envSchema = z
     DATAFORSEO_LOCATION_CODE: z.string().optional(),
     DATAFORSEO_BASE_URL: z.string().optional(),
     SEO_WEEKLY_SYNC: z.enum(['0', '1', 'true', 'false']).optional(),
+    META_ADS_MODE: z.enum(['disabled', 'fixture', 'live']).optional(),
     SEO_FIXTURES_ALLOWED: z.enum(['0', '1', 'true', 'false']).optional(),
     BRAND_SCAN_ENGINE: z.enum(['scrape-first', 'legacy-js-auto']).default('scrape-first'),
     /** off = static HTML only; auto = Playwright when SPA shell or weak catalog data; always = every page (costly). */
