@@ -77,6 +77,7 @@ export function StrategyTrackEnablement({
   return (
     <section
       className="oma-plx-listening-panel oma-plx-brand-section"
+      id="strategy-tracks"
       data-testid="strategy-track-enablement"
     >
       <header className="oma-plx-brand-section__head">

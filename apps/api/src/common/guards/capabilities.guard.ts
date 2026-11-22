@@ -203,6 +203,9 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/evidence-links/:linkId': [
     'strategy.read',
   ],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/readiness': [
+    'strategy.read',
+  ],
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/submit': [
     'strategy.submit',
   ],
@@ -601,6 +604,10 @@ export function matchRequirements(method: string, path: string): string[] | null
     .replace(
       /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/evidence-links/,
       '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/evidence-links',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/readiness/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/readiness',
     )
     .replace(
       /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/submit/,

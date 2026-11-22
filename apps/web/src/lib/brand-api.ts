@@ -18,16 +18,19 @@ export function getApiError(err: unknown): {
   message: string;
   status?: number;
   code?: string;
+  details?: unknown[];
 } {
   if (err instanceof Error) {
     const e = err as Error & {
       status?: number;
-      data?: { error?: { code?: string; message?: string } };
+      data?: { error?: { code?: string; message?: string; details?: unknown } };
     };
+    const details = e.data?.error?.details;
     return {
       message: e.message,
       status: e.status,
       code: e.data?.error?.code,
+      details: Array.isArray(details) ? details : undefined,
     };
   }
   return { message: friendlyApiMessage(null, 500) };

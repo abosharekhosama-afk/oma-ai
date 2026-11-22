@@ -27,6 +27,13 @@ import { SelectCompany } from '../../../../../../../../components/shell/select-c
 import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyLinkProfilePanel } from '../../../../../../../../components/strategy/strategy-link-profile-panel';
 import { StrategyDraftPreview } from '../../../../../../../../components/strategy/strategy-draft-preview';
+import { StrategyNextStep } from '../../../../../../../../components/strategy/strategy-next-step';
+import { StrategySubmitBlockers } from '../../../../../../../../components/strategy/strategy-submit-blockers';
+import type { StrategyBlockingItem } from '@oma/domain/browser';
+import {
+  blockingItemsFromDetails,
+  useStrategyReadiness,
+} from '../../../../../../../../lib/strategy-readiness';
 
 export default function StrategyReviewPage() {
   const t = useT();
@@ -40,6 +47,14 @@ export default function StrategyReviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
+  /** Blocking items returned by a refused submit/approve (overrides the readiness preview). */
+  const [refused, setRefused] = useState<StrategyBlockingItem[] | null>(null);
+  const { readiness, reload: reloadReadiness } = useStrategyReadiness(
+    brandId,
+    strategyId,
+    version?.id,
+    `${version?.status}:${version?.row_version}`,
+  );
 
   const load = useCallback(async () => {
     try {
@@ -67,6 +82,7 @@ export default function StrategyReviewPage() {
   async function post(path: string, body: Record<string, unknown>) {
     setError(null);
     setMessage(null);
+    setRefused(null);
     try {
       const res = await api<{ data: StrategyVersionDetail }>(path, {
         method: 'POST',
@@ -75,7 +91,15 @@ export default function StrategyReviewPage() {
       setVersion(res.data);
       setMessage(t('strategy.saved'));
     } catch (err) {
-      setError(getApiError(err).message);
+      const apiErr = getApiError(err);
+      const items = blockingItemsFromDetails(apiErr.details);
+      if (apiErr.code === 'APPROVAL_INELIGIBLE' && items.length > 0) {
+        // Show exactly what is missing instead of a generic refusal.
+        setRefused(items);
+        void reloadReadiness();
+      } else {
+        setError(apiErr.message);
+      }
     }
   }
 
@@ -95,6 +119,13 @@ export default function StrategyReviewPage() {
   if (!brand || !version) return <DetailShimmer />;
 
   const base = `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${version.id}`;
+  const gateAction =
+    version.status === 'DRAFT' ? 'submit' : version.status === 'IN_REVIEW' ? 'approve' : null;
+  const blockers: StrategyBlockingItem[] | null =
+    refused ?? (readiness && readiness.action === gateAction ? readiness.blocking_reasons : null);
+  const openBlockers = (blockers ?? []).filter(
+    (b) => !(unknowns && b.code === 'UNKNOWNS_ACK_REQUIRED'),
+  );
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
@@ -102,6 +133,12 @@ export default function StrategyReviewPage() {
       <BrandPlxPageHead
         title={t('strategy.review.title')}
         actions={<StrategyStatusBadge status={version.status} />}
+      />
+      <StrategyNextStep
+        brandId={brandId}
+        strategyId={strategyId}
+        journey={readiness?.journey}
+        status={version.status}
       />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <p className="oma-muted" data-testid="strategy-ai-assistant-link">
@@ -123,7 +160,7 @@ export default function StrategyReviewPage() {
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={version} />
       ) : null}
-      <label className="oma-plx-listening-card oma-plx-brand-catalog-card">
+      <label className="oma-plx-listening-card oma-plx-brand-catalog-card" id="strategy-unknowns">
         <CheckboxField
           checked={unknowns}
           onChange={(e) => setUnknowns(e.target.checked)}
@@ -132,10 +169,20 @@ export default function StrategyReviewPage() {
         {t('strategy.review.unknowns')}
       </label>
       <BrandPlxSection title={t('strategy.overview.actionsTitle')} testId="strategy-review-actions">
+        {gateAction && blockers ? (
+          <StrategySubmitBlockers
+            brandId={brandId}
+            strategyId={strategyId}
+            action={gateAction}
+            items={blockers}
+            unknownsChecked={unknowns}
+          />
+        ) : null}
         <div className="oma-form-actions">
           {version.status === 'DRAFT' ? (
             <SubmitEligibility
               missingProfile={Boolean(version.missing_source)}
+              disabled={openBlockers.length > 0}
               label={t('strategy.review.submit')}
               onClick={() =>
                 void post(`${base}/submit`, {
@@ -150,6 +197,7 @@ export default function StrategyReviewPage() {
               <Button
                 type="primary"
                 data-testid="strategy-approve"
+                disabled={openBlockers.length > 0}
                 onClick={() =>
                   void post(`${base}/approve`, {
                     row_version: version.row_version,
@@ -190,7 +238,7 @@ export default function StrategyReviewPage() {
               data-testid="strategy-revise"
               onClick={() => void post(`${base}/revise`, {})}
             >
-              Revise
+              {t('strategy.versions.revise')}
             </Button>
           ) : null}
         </div>

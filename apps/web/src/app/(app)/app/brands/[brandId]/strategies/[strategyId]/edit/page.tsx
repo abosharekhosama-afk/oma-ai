@@ -5,7 +5,7 @@ import { Button, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../lib/brand-types';
 import type { StrategyVersionDetail } from '../../../../../../../../lib/strategy-types';
@@ -26,10 +26,8 @@ import {
   readFoundationText,
   textToFoundationGoals,
 } from '../../../../../../../../lib/strategy-foundation-format';
-import {
-  StrategyCreationJourney,
-  newStrategyJourneySteps,
-} from '../../../../../../../../components/strategy/strategy-creation-journey';
+import { StrategyNextStep } from '../../../../../../../../components/strategy/strategy-next-step';
+import { useStrategyReadiness } from '../../../../../../../../lib/strategy-readiness';
 export default function StrategyFoundationPage() {
   const t = useT();
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -42,6 +40,12 @@ export default function StrategyFoundationPage() {
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
+  const { readiness } = useStrategyReadiness(
+    brandId,
+    strategyId,
+    version?.id,
+    `${version?.status}:${version?.row_version}`,
+  );
 
   const load = useCallback(async () => {
     try {
@@ -68,16 +72,6 @@ export default function StrategyFoundationPage() {
   useEffect(() => {
     void load();
   }, [load]);
-
-  const journeySteps = useMemo(
-    () =>
-      newStrategyJourneySteps(brandId, strategyId, t).map((step) => {
-        if (step.id === 'create') return { ...step, state: 'done' as const };
-        if (step.id === 'foundation') return { ...step, state: 'current' as const };
-        return step;
-      }),
-    [brandId, strategyId, t],
-  );
 
   async function onSave(e: FormEvent) {
     e.preventDefault();
@@ -117,7 +111,12 @@ export default function StrategyFoundationPage() {
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.foundation.title')} />
-      <StrategyCreationJourney brandId={brandId} steps={journeySteps} collapsible />
+      <StrategyNextStep
+        brandId={brandId}
+        strategyId={strategyId}
+        journey={readiness?.journey}
+        status={version.status}
+      />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <p className="oma-muted" data-testid="strategy-ai-assistant-link">
           <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>

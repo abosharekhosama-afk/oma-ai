@@ -8067,3 +8067,87 @@ button.oma-breadcrumb-workspace:hover {
   max-height: var(--oma-menu-max-height, 260px) !important;
   z-index: 1100 !important;
 }
+
+/* Guided next step (strategy workspace, Planable-like progress strip) */
+.oma-strategy-next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin-block: var(--space-3);
+}
+.oma-strategy-next__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.oma-strategy-next__step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  font-size: 0.8125rem;
+}
+.oma-strategy-next__step[data-state='current'] {
+  border-color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  font-weight: 600;
+}
+.oma-strategy-next__step[data-state='done'] {
+  opacity: 0.75;
+}
+.oma-strategy-next__dot {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  background: var(--surface-elevated);
+}
+.oma-strategy-next__step[data-state='current'] .oma-strategy-next__dot {
+  background: var(--brand-primary);
+  color: #fff;
+}
+.oma-strategy-next__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.oma-strategy-next__title {
+  margin: 0;
+  font-weight: 600;
+}
+.oma-strategy-next__hint {
+  margin: var(--space-1) 0 0;
+}
+.oma-strategy-blockers {
+  border: 1px solid color-mix(in srgb, var(--status-danger) 40%, transparent);
+  background: color-mix(in srgb, var(--status-danger) 6%, transparent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-block: var(--space-3);
+}
+.oma-strategy-blockers--ok {
+  border-color: color-mix(in srgb, var(--status-success, #2e7d32) 40%, transparent);
+  background: color-mix(in srgb, var(--status-success, #2e7d32) 6%, transparent);
+}
+.oma-strategy-blockers__title {
+  margin: 0 0 var(--space-1);
+  font-weight: 600;
+}
+.oma-strategy-blockers__list {
+  margin: var(--space-2) 0 0;
+  padding-inline-start: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
