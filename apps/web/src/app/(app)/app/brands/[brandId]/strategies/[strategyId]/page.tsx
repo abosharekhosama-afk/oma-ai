@@ -39,6 +39,7 @@ import {
 import { StrategyPlanRequestsPanel } from '../../../../../../../components/strategy/strategy-plan-requests-panel';
 import { StrategyExecutionPanel } from '../../../../../../../components/strategy/strategy-execution-panel';
 import { StrategyKpiPanel } from '../../../../../../../components/strategy/strategy-kpi-panel';
+import { StrategyPaidExecutionPanel } from '../../../../../../../components/strategy/strategy-paid-execution-panel';
 
 export default function StrategyOverviewPage() {
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -205,6 +206,11 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
             versionId={latest.id}
           />
           <StrategyExecutionPanel brandId={brandId} strategyId={strategyId} versionId={latest.id} />
+          <StrategyPaidExecutionPanel
+            brandId={brandId}
+            strategyId={strategyId}
+            versionId={latest.id}
+          />
         </>
       ) : null}
 

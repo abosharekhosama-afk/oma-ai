@@ -1191,6 +1191,129 @@ function PaidTables({
           {t('strategy.plan.addExperiment')}
         </Button>
       ) : null}
+
+      <h3>{t('strategy.plan.flights')}</h3>
+      <p className="oma-muted">{t('strategy.plan.flightsHint')}</p>
+      <div className="oma-plan-table-wrap">
+        <table className="oma-plan-table" data-testid="plan-flights">
+          <thead>
+            <tr>
+              <th>{t('strategy.plan.col.name')}</th>
+              <th>{t('strategy.plan.col.platform')}</th>
+              <th>{t('strategy.plan.col.audience')}</th>
+              <th>{t('strategy.plan.col.start')}</th>
+              <th>{t('strategy.plan.col.end')}</th>
+              <th>{t('strategy.plan.col.budget')}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {(plan.flights ?? []).map((f, i) => {
+              const update = (patch: Partial<typeof f>) => {
+                const rows = [...(plan.flights ?? [])];
+                rows[i] = { ...f, ...patch };
+                set('flights', rows);
+              };
+              return (
+                <tr key={`${f.key}-${i}`}>
+                  <td>
+                    <Input
+                      value={f.name}
+                      disabled={!editable}
+                      onChange={(e) => update({ name: e.target.value })}
+                    />
+                  </td>
+                  <td>
+                    <OmaSelect
+                      value={f.platform}
+                      disabled={!editable}
+                      options={options(PAID_PLATFORMS)}
+                      onChange={(v) => update({ platform: v })}
+                    />
+                  </td>
+                  <td>
+                    <OmaSelect
+                      value={f.audience_key ?? ''}
+                      disabled={!editable}
+                      options={audienceOptions}
+                      onChange={(v) => update({ audience_key: v || null })}
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      type="date"
+                      value={f.start_date}
+                      disabled={!editable}
+                      onChange={(e) => update({ start_date: e.target.value })}
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      type="date"
+                      value={f.end_date}
+                      disabled={!editable}
+                      onChange={(e) => update({ end_date: e.target.value })}
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      type="number"
+                      value={f.budget_amount ?? ''}
+                      disabled={!editable}
+                      onChange={(e) =>
+                        update({
+                          budget_amount: e.target.value === '' ? null : Number(e.target.value),
+                          currency: currency ?? f.currency ?? null,
+                        })
+                      }
+                    />
+                  </td>
+                  <td>
+                    {editable ? (
+                      <Button
+                        type="text"
+                        onClick={() =>
+                          set(
+                            'flights',
+                            (plan.flights ?? []).filter((_, j) => j !== i),
+                          )
+                        }
+                      >
+                        {t('strategy.plan.remove')}
+                      </Button>
+                    ) : null}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {editable ? (
+        <Button
+          onClick={() => {
+            const rows = plan.flights ?? [];
+            const today = new Date().toISOString().slice(0, 10);
+            const end = new Date(Date.now() + 27 * 86_400_000).toISOString().slice(0, 10);
+            let n = rows.length + 1;
+            while (rows.some((r) => r.key === `flight-${n}`)) n += 1;
+            set('flights', [
+              ...rows,
+              {
+                key: `flight-${n}`,
+                name: '',
+                platform: PAID_PLATFORMS[0]!,
+                start_date: today,
+                end_date: end,
+                budget_amount: null,
+                currency: currency ?? null,
+              },
+            ]);
+          }}
+        >
+          {t('strategy.plan.addFlight')}
+        </Button>
+      ) : null}
     </>
   );
 }

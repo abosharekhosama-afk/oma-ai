@@ -164,3 +164,35 @@ document, and default SEO numbers were sample data that looked measured.
     - the pages as references.
   - It goes through the normal brief approve → tasks route.
 - UI: the SEO page gets a "Weekly rank tracking" table (last 4 weeks plus change) and an "SEO gaps" checklist with "Create draft brief". The brief page shows the SEO origin.
+
+## PR 4.7: paid campaign plans, experiment results and spend
+
+- **Flights.** `flights` is part of the paid plan (`StrategyPaidFlight`, migration `20261122140000_paid_execution`). Each flight has:
+  - key, name, platform, objective and audience;
+  - `start_date` / `end_date`;
+  - a planned budget and currency.
+  - Like cadence in 4.1, omitting `flights` in `PUT …/plan/paid` keeps the stored ones, so AI proposals and older clients cannot wipe them.
+  - Validation: `FLIGHT_DATES_INVALID`, `DUPLICATE_FLIGHT_KEY`, `UNKNOWN_AUDIENCE`. Max 20.
+  - Revise copies the flights.
+- **Flights → campaigns.** `POST …/versions/:versionId/paid-flights/campaigns` (`strategy.read` + `campaign.create`) works on APPROVED versions only. It creates one DRAFT `PAID` campaign per flight, with the dates, budget, platform channel and a `strategy-flight:<version>:<key>` link. It is idempotent through `StrategyPaidFlight.campaignId`.
+- **Experiments after approval.** `POST …/experiments/:experimentId/status` (`strategy.paid.edit`) works on APPROVED versions only. Drafts keep editing through the plan.
+  - Transitions: PLANNED → RUNNING|CANCELLED, RUNNING → CONCLUDED|CANCELLED.
+  - CONCLUDED needs `result_summary`. The winner and per-variant results must use known variants.
+  - Stored: `startedAt`, `endedAt`, `statusUpdatedAt`/`By`, `resultsJson`.
+  - Each change is audited as `strategy.experiment.updated` with before and after values. `GET …/experiments/:id/history` returns that trail.
+- **Spend.** `PaidSpendEntry` rows are unique per tenant, brand, platform, date, flight key and source.
+  - `POST /brands/:brandId/paid-spend` takes manual entries. `POST /brands/:brandId/paid-spend/import` takes CSV (both `strategy.paid.edit`).
+  - The CSV parser:
+    - matches ads-manager header aliases (Day / Reporting starts, Amount spent (SAR), Link clicks, …);
+    - handles `,` `;` and tab separators and quotes;
+    - reads YYYY-MM-DD, YYYY/MM/DD and DD/MM/YYYY dates;
+    - uses default platform and currency when those columns are missing.
+  - Import is all-or-nothing: any bad row returns line-numbered errors and nothing is saved. Same-day rows are summed. Re-importing updates rows and never duplicates them.
+  - A flight key must belong to an approved version.
+  - `GET /brands/:brandId/paid-spend` (analytics.read) returns rows and totals per platform.
+- **Pacing.** `GET …/versions/:versionId/paid-execution` (`strategy.read`) returns, for each flight:
+  - actual spend, impressions, clicks and conversions;
+  - linear expected spend to date and pacing %;
+  - a status: not_started / on_pace (±15%) / under- or overspending / ended / no_budget.
+  - It also returns experiments with results, plus planned and actual spend and spend not tied to a flight.
+- UI: a flights table in the paid plan editor. On approved versions, a "Paid execution" panel on the overview shows pacing, a "create draft campaigns" action, experiment start / record result / cancel, and CSV import.

@@ -96,10 +96,26 @@ export type OrganicPlan = {
   seo_keywords: KeywordRow[];
   content_gaps: GapRow[];
 };
+/** DEC-029 4.7: a paid campaign flight (dates + planned budget). */
+export type FlightRow = {
+  key: string;
+  name: string;
+  platform: string;
+  objective?: string | null;
+  audience_key?: string | null;
+  start_date: string;
+  end_date: string;
+  budget_amount?: number | null;
+  currency?: string | null;
+  notes?: string | null;
+};
+
 export type PaidPlan = {
   allocations: AllocationRow[];
   audiences: AudienceRow[];
   experiments: ExperimentRow[];
+  /** Omitted = keep stored flights. */
+  flights?: FlightRow[];
 };
 
 export type StrategyPlan = {
@@ -219,6 +235,7 @@ export function paidPayload(plan: PaidPlan) {
     allocations: plan.allocations.map(({ amount: _amount, ...row }) => row),
     audiences: plan.audiences,
     experiments: plan.experiments,
+    ...(plan.flights ? { flights: plan.flights } : {}),
   };
 }
 
@@ -230,6 +247,9 @@ export function paidPlanWarnings(plan: PaidPlan): string[] {
   }
   if (plan.experiments.some((e) => e.variants.length < 2)) {
     warnings.push('strategy.plan.warn.variants');
+  }
+  if ((plan.flights ?? []).some((f) => !f.start_date || !f.end_date || f.end_date < f.start_date)) {
+    warnings.push('strategy.plan.warn.flightDates');
   }
   return warnings;
 }
