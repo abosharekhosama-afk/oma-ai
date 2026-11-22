@@ -293,7 +293,12 @@ export class SeoService {
           : 'Search Console sync failed',
         409,
         'errors.conflict_state',
-        [{ code: result.reason === 'needs_reconnect' ? 'GSC_NEEDS_RECONNECT' : 'GSC_PROVIDER_ERROR' }],
+        [
+          {
+            code:
+              result.reason === 'needs_reconnect' ? 'GSC_NEEDS_RECONNECT' : 'GSC_PROVIDER_ERROR',
+          },
+        ],
       );
     }
     await this.audit.write({
@@ -358,7 +363,8 @@ export class SeoService {
         series,
         latest_position: latest,
         // Positive = moved up (smaller position number).
-        change: latest != null && previous != null ? Math.round((previous - latest) * 10) / 10 : null,
+        change:
+          latest != null && previous != null ? Math.round((previous - latest) * 10) / 10 : null,
         status: rankStatus(latest),
       };
     });
@@ -425,16 +431,24 @@ export class SeoService {
       ? body.keywords.filter((k): k is string => typeof k === 'string').map(normalizeSeoKeyword)
       : [];
     if (!wanted.length || wanted.length > 30) {
-      throw new DomainError('VALIDATION_FAILED', 'Pick 1–30 gap keywords', 400, 'errors.validation', [
-        { field: 'keywords', code: 'INVALID_SELECTION' },
-      ]);
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Pick 1–30 gap keywords',
+        400,
+        'errors.validation',
+        [{ field: 'keywords', code: 'INVALID_SELECTION' }],
+      );
     }
     const { data } = await this.seoGaps(tenantId, brandId);
     const picked = data.gaps.filter((g) => wanted.includes(normalizeSeoKeyword(g.keyword)));
     if (!picked.length) {
-      throw new DomainError('CONFLICT_STATE', 'None of these keywords is a current gap', 409, 'errors.conflict_state', [
-        { code: 'GAP_NOT_FOUND' },
-      ]);
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'None of these keywords is a current gap',
+        409,
+        'errors.conflict_state',
+        [{ code: 'GAP_NOT_FOUND' }],
+      );
     }
     if (!this.briefs) {
       throw new DomainError('CONFLICT_STATE', 'Briefs are disabled', 409, 'errors.conflict_state');
@@ -442,16 +456,15 @@ export class SeoService {
     const title =
       typeof body.title === 'string' && body.title.trim()
         ? body.title.trim().slice(0, 200)
-        : `SEO gaps: ${picked.map((g) => g.keyword).slice(0, 3).join(', ')}`.slice(0, 200);
-    const brief = await this.briefs.createFromSeoGaps(
-      { tenantId, userId },
-      brandId,
-      {
-        title,
-        content: briefContentFromSeoGaps(picked),
-        strategyVersionId: data.strategy_version_id,
-      },
-    );
+        : `SEO gaps: ${picked
+            .map((g) => g.keyword)
+            .slice(0, 3)
+            .join(', ')}`.slice(0, 200);
+    const brief = await this.briefs.createFromSeoGaps({ tenantId, userId }, brandId, {
+      title,
+      content: briefContentFromSeoGaps(picked),
+      strategyVersionId: data.strategy_version_id,
+    });
     return { data: { brief_id: brief.id, gaps: picked.length } };
   }
 
