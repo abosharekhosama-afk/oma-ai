@@ -3,7 +3,6 @@ import {
   buildSeoStrategyProposals,
   createKeywordResearchPort,
   createSearchConsolePort,
-  decryptToken,
   DomainError,
   encryptToken,
   gscModeFromEnv,
