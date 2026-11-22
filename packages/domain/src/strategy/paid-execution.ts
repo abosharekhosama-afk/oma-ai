@@ -183,6 +183,7 @@ export function parsePaidSpendCsv(
       HEADER_ALIASES[
         h
           .toLowerCase()
+          .replace(/\(.*?\)/g, '')
           .replace(/[^a-z_ ]/g, '')
           .trim()
           .replace(/\s+/g, '_')
@@ -212,8 +213,9 @@ export function parsePaidSpendCsv(
       (!rawPlatform ? defaults.platform : null);
     if (!platform)
       return errors.push({ line: lineNo, code: 'UNKNOWN_PLATFORM', field: 'platform' });
-    const amount = Number((get('amount') ?? '').replace(/[^\d.-]/g, ''));
-    if ((get('amount') ?? '').trim() === '' || !Number.isFinite(amount) || amount < 0) {
+    const rawAmount = (get('amount') ?? '').replace(/[^\d.-]/g, '');
+    const amount = Number(rawAmount);
+    if (!/\d/.test(rawAmount) || !Number.isFinite(amount) || amount < 0) {
       return errors.push({ line: lineNo, code: 'INVALID_AMOUNT', field: 'amount' });
     }
     const currency = (
