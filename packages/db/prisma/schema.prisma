@@ -1717,6 +1717,12 @@ model ContentItem {
   syncGroupId            String?
   /// Preferred audience label (Planable post setting), free text.
   preferredAudience      String?
+  /// Approved strategy version this post executes (DEC-029 4.4).
+  strategyVersionId      String?
+  /// v2 content pillar key within that version.
+  pillarKey              String?
+  /// SEO keyword the post should target (from the plan), free text.
+  targetKeyword          String?
   /// True once AI-generated text was applied (DEC-024). Never reset by human edits.
   aiAssisted             Boolean                   @default(false)
   /// AiRun ids whose output was applied to this post (latest last, capped).
@@ -1747,6 +1753,7 @@ model ContentItem {
   @@index([tenantId, channel])
   @@index([publishState, nextPublishAt])
   @@index([tenantId, syncGroupId])
+  @@index([tenantId, strategyVersionId, pillarKey])
 }
 
 /// Ordered approval level (DEC-026). brandId null = workspace default plan.

@@ -164,6 +164,10 @@ export type ContentRowExtra = ContentRow & {
   timezone?: string;
   syncGroupId?: string | null;
   preferredAudience?: string | null;
+  /** DEC-029 4.4: strategy context of plan posts. */
+  strategyVersionId?: string | null;
+  pillarKey?: string | null;
+  targetKeyword?: string | null;
   mediaAssetIds?: string[];
   scheduleReadiness?: ApiScheduleReadiness | null;
   calendarState?: string | null;
@@ -218,6 +222,9 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     timezone: c.timezone,
     syncGroupId: (c as { sync_group_id?: string | null }).sync_group_id ?? null,
     preferredAudience: (c as { preferred_audience?: string | null }).preferred_audience ?? null,
+    strategyVersionId: (c as { strategy_version_id?: string | null }).strategy_version_id ?? null,
+    pillarKey: (c as { pillar_key?: string | null }).pillar_key ?? null,
+    targetKeyword: (c as { target_keyword?: string | null }).target_keyword ?? null,
     mediaAssetIds: c.media_asset_ids ?? [],
     approvalPolicy: c.workflow?.policy,
     scheduleBlocked: c.workflow?.scheduleBlocked,

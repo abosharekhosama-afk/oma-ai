@@ -231,6 +231,9 @@ function mapContent(
     publishedAt?: Date | null;
     syncGroupId?: string | null;
     preferredAudience?: string | null;
+    strategyVersionId?: string | null;
+    pillarKey?: string | null;
+    targetKeyword?: string | null;
     aiAssisted?: boolean;
     aiRunIds?: string[];
     aiReviewedAt?: Date | null;
@@ -318,6 +321,9 @@ function mapContent(
     client_visible: row.clientVisible,
     sync_group_id: row.syncGroupId ?? null,
     preferred_audience: row.preferredAudience ?? null,
+    strategy_version_id: row.strategyVersionId ?? null,
+    pillar_key: row.pillarKey ?? null,
+    target_keyword: row.targetKeyword ?? null,
     archived_at: row.archivedAt?.toISOString() ?? null,
     created_by: row.createdBy,
     created_at: row.createdAt.toISOString(),
