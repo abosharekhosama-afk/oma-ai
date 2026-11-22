@@ -1168,6 +1168,7 @@ model StrategyVersion {
   paidAllocations                StrategyPaidAllocation[]
   paidAudiences                  StrategyPaidAudience[]
   experiments                    StrategyExperiment[]
+  paidFlights                    StrategyPaidFlight[]
 
   @@unique([strategyId, versionNumber])
   @@index([tenantId, brandId, strategyId, createdAt])
@@ -1573,6 +1574,58 @@ model StrategyPaidAudience {
   @@index([tenantId, strategyVersionId])
 }
 
+/// DEC-029 4.7: a paid campaign flight in the strategy plan (dates + planned budget).
+model StrategyPaidFlight {
+  id                String                 @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  key               String
+  name              String
+  platform          StrategyPaidPlatform
+  objective         StrategyPaidObjective?
+  audienceKey       String?
+  startDate         DateTime               @db.Date
+  endDate           DateTime               @db.Date
+  budgetAmount      Decimal?               @db.Decimal(18, 2)
+  currency          String?
+  notes             String?
+  /// Campaign created from this flight on an approved version (idempotency).
+  campaignId        String?
+  sortOrder         Int                    @default(0)
+  createdAt         DateTime               @default(now())
+  version           StrategyVersion        @relation(fields: [strategyVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyVersionId, key])
+  @@index([tenantId, brandId])
+}
+
+/// DEC-029 4.7: actual paid spend, entered manually or imported from CSV (no ads API yet).
+model PaidSpendEntry {
+  id                String               @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String?
+  /// Flight key within the version ('' = not tied to a flight).
+  flightKey         String               @default("")
+  platform          StrategyPaidPlatform
+  spendDate         DateTime             @db.Date
+  amount            Decimal              @db.Decimal(18, 2)
+  currency          String
+  impressions       Int?
+  clicks            Int?
+  conversions       Int?
+  /// MANUAL | CSV | META_API
+  source            String               @default("MANUAL")
+  importBatchId     String?
+  createdBy         String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@unique([tenantId, brandId, platform, spendDate, flightKey, source])
+  @@index([tenantId, brandId, spendDate])
+}
+
 model StrategyExperiment {
   id                String                     @id
   tenantId          String
@@ -1589,6 +1642,15 @@ model StrategyExperiment {
   minSampleSize     Int?
   durationDays      Int?
   status            StrategyExperimentStatus   @default(PLANNED)
+  /// DEC-029 4.7: results recorded after approval (audited; not a plan edit).
+  resultSummary     String?
+  winnerVariantKey  String?
+  /// JSON [{ variant_key, value, sample_size }] for the primary metric.
+  resultsJson       String?
+  startedAt         DateTime?
+  endedAt           DateTime?
+  statusUpdatedAt   DateTime?
+  statusUpdatedBy   String?
   infoClass         StrategyInfoClass          @default(USER_AUTHORED)
   source            StrategyDataSource         @default(MANUAL)
   evidenceRefs      String[]                   @default([])

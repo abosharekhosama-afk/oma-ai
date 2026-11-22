@@ -100,6 +100,7 @@ export const STRATEGY_PLAN_LIMITS = {
   experiments: 10,
   variants: 5,
   cadence: 12,
+  flights: 20,
 } as const;
 
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -245,10 +246,35 @@ export const experimentInputSchema = z.strictObject({
   evidence_refs: evidenceRefs,
 });
 
+const dateKey = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD');
+
+/** DEC-029 4.7: a paid campaign flight (platform, dates, planned budget). */
+export const paidFlightInputSchema = z.strictObject({
+  key: pillarKey,
+  name: text(120),
+  platform: z.enum(STRATEGY_PAID_PLATFORMS),
+  objective: z.enum(STRATEGY_PAID_OBJECTIVES).nullish(),
+  audience_key: pillarKey.nullish(),
+  start_date: dateKey,
+  end_date: dateKey,
+  budget_amount: z.number().min(0).max(1_000_000_000).nullish(),
+  currency: z
+    .string()
+    .trim()
+    .regex(/^[A-Z]{3}$/, 'currency must be ISO-4217')
+    .nullish(),
+  notes: optionalText(600),
+});
+
 export const paidPlanInputSchema = z.strictObject({
   allocations: z.array(paidAllocationInputSchema).max(STRATEGY_PLAN_LIMITS.allocations).default([]),
   audiences: z.array(paidAudienceInputSchema).max(STRATEGY_PLAN_LIMITS.audiences).default([]),
   experiments: z.array(experimentInputSchema).max(STRATEGY_PLAN_LIMITS.experiments).default([]),
+  /** Omitted = keep the stored flights (older clients / AI proposals never wipe them). */
+  flights: z.array(paidFlightInputSchema).max(STRATEGY_PLAN_LIMITS.flights).optional(),
 });
 
 export type ChannelCadenceInput = z.infer<typeof channelCadenceInputSchema>;
@@ -260,6 +286,7 @@ export type PaidAllocationInput = z.infer<typeof paidAllocationInputSchema>;
 export type PaidAudienceInput = z.infer<typeof paidAudienceInputSchema>;
 export type ExperimentInput = z.infer<typeof experimentInputSchema>;
 export type PaidPlanInput = z.infer<typeof paidPlanInputSchema>;
+export type PaidFlightInput = z.infer<typeof paidFlightInputSchema>;
 
 export type PlanIssue = { path: string; code: string; message: string };
 
@@ -397,6 +424,26 @@ export function paidPlanIssues(plan: PaidPlanInput): PlanIssue[] {
     }
   });
   const knownAudiences = new Set(audienceKeys);
+  const flights = plan.flights ?? [];
+  for (const dup of duplicates(flights.map((f) => f.key))) {
+    issues.push({ path: 'flights', code: 'DUPLICATE_FLIGHT_KEY', message: `Duplicate ${dup}` });
+  }
+  flights.forEach((f, i) => {
+    if (f.end_date < f.start_date) {
+      issues.push({
+        path: `flights.${i}.end_date`,
+        code: 'FLIGHT_DATES_INVALID',
+        message: 'end_date must not be before start_date',
+      });
+    }
+    if (f.audience_key && !knownAudiences.has(f.audience_key)) {
+      issues.push({
+        path: `flights.${i}.audience_key`,
+        code: 'UNKNOWN_AUDIENCE',
+        message: `Unknown audience ${f.audience_key}`,
+      });
+    }
+  });
   plan.experiments.forEach((e, i) => {
     const variantKeys = e.variants.map((v) => v.key);
     if (duplicates(variantKeys).length > 0) {

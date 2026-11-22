@@ -17,3 +17,4 @@ export * from './content-context';
 export * from './kpi-scorecard';
 export * from './research-port';
 export * from './plan-proposal';
+export * from './paid-execution';
