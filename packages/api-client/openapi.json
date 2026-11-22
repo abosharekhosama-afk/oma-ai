@@ -1793,6 +1793,34 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/kpi-scorecard": {
+      "get": {
+        "operationId": "StrategyController_kpiScorecard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/kpi-scorecard/{kpiId}/manual": {
+      "post": {
+        "operationId": "StrategyController_recordManualKpi",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/kpis/{kpiId}": {
       "delete": {
         "operationId": "StrategyController_deleteKpi",
