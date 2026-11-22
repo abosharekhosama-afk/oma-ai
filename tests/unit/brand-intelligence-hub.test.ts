@@ -53,6 +53,8 @@ describe('withJourneyState', () => {
       website: 'done',
       scan: 'done',
       discovery: 'current',
+      // SEO tab (74e13941) has no journey step, so it carries no state.
+      seo: null,
       'evidence-hub': null,
     });
   });
