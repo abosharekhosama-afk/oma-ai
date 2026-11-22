@@ -19,6 +19,7 @@ import {
 import { buildContentGenerationPrompt, buildInboxReplyPrompt } from '@oma/ai';
 import { loadBrandContext } from './brand-context.service';
 import { runStructuredGeneration } from './structured-run';
+import { loadStrategyContentContext } from './strategy-content-context.service';
 
 function detectLanguage(input?: string | null): 'en' | 'ar' {
   const raw = (input ?? '').toLowerCase();
@@ -139,10 +140,17 @@ export async function generateBrandContent(input: {
     );
   }
 
+  const strategy = await loadStrategyContentContext(
+    input.tenantId,
+    input.brandId,
+    input.contentId,
+    language,
+  );
   const prompt = buildContentGenerationPrompt({
     kind,
     language,
     brand,
+    strategy,
     channel: input.channel,
     caption: input.caption,
     title: input.title,
@@ -168,7 +176,13 @@ export async function generateBrandContent(input: {
     idempotencyKey: input.idempotencyKey,
     correlationId: input.correlationId,
     caption: input.caption,
-    metadata: { kind, channel: limits.channel, language },
+    metadata: {
+      kind,
+      channel: limits.channel,
+      language,
+      strategyVersionId: strategy?.strategy_version_id ?? null,
+      pillarKey: strategy?.pillar_key ?? null,
+    },
   });
   assertUsable(moderated);
 
@@ -193,6 +207,14 @@ export async function generateBrandContent(input: {
     hashtags: moderated.value.hashtags,
     grounding_refs: moderated.refs,
     warnings: moderated.warnings,
+    strategy_context: strategy
+      ? {
+          strategy_version_id: strategy.strategy_version_id,
+          pillar_key: strategy.pillar_key,
+          pillar_name: strategy.pillar_name,
+          target_keyword: strategy.target_keyword,
+        }
+      : null,
   };
 }
 

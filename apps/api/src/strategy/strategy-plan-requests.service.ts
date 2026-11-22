@@ -443,6 +443,22 @@ export class StrategyPlanRequestsService {
     const skipped: string[] = [];
     let slotsCreated = 0;
     const cta = version.organicTrack?.messageCta ?? null;
+    // DEC-029 4.4: rotate each pillar's plan keywords (highest priority first) across its posts.
+    const keywordsByPillar = new Map<string, string[]>();
+    if (version.organicEnabled) {
+      const organic = (await readStrategyPlan(getPrisma(), version.id)).organic;
+      for (const k of [...organic.seo_keywords].sort((a, b) => a.priority - b.priority)) {
+        if (!k.pillar_key) continue;
+        keywordsByPillar.set(k.pillar_key, [
+          ...(keywordsByPillar.get(k.pillar_key) ?? []),
+          k.keyword,
+        ]);
+      }
+    }
+    const keywordFor = (pillarKey: string | null | undefined, index: number) => {
+      const list = pillarKey ? keywordsByPillar.get(pillarKey) : undefined;
+      return list?.length ? list[index % list.length]! : null;
+    };
 
     for (const draft of selected) {
       const existing = await getPrisma().workRequest.findFirst({
@@ -496,10 +512,11 @@ export class StrategyPlanRequestsService {
         {
           campaignId: defaults.campaignId,
           dueAt: firstPlanned ? new Date(firstPlanned) : (defaults.dueAt ?? null),
+          targetKeyword: keywordFor(draft.pillar_key, 0),
         },
       );
       if (content?.created) createdContent.push(content.contentId);
-      for (const slot of slots.slice(1)) {
+      for (const [slotIndex, slot] of slots.slice(1).entries()) {
         const slotContent = await createStrategyPlanSlotContent(
           this.audit,
           {
@@ -512,7 +529,12 @@ export class StrategyPlanRequestsService {
             correlationId,
           },
           draftForSlot(draft, slot),
-          { campaignId: defaults.campaignId ?? null, plannedAt: new Date(slot.planned_at), slot },
+          {
+            campaignId: defaults.campaignId ?? null,
+            plannedAt: new Date(slot.planned_at),
+            slot,
+            targetKeyword: keywordFor(slot.pillar_key, slotIndex + 1),
+          },
         );
         createdContent.push(slotContent.contentId);
         slotsCreated += 1;

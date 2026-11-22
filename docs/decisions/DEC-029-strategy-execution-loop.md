@@ -99,3 +99,18 @@ document, and default SEO numbers were sample data that looked measured.
 - Plan content now carries a `strategy-version:<id>` label, so execution counts never mix in content from another version.
 - UI: a "Plan execution" panel on the strategy overview and review pages. The commit message tells the user to approve the briefs.
 - Strengthening: the Arabic text for `brand.seo.searchConsole` was copied from English, which made the base fail the i18n audit. It is now translated.
+
+## PR 4.4: content carries strategy context; content AI is grounded in it
+
+- `ContentItem` gets three new columns: `strategyVersionId`, `pillarKey` and `targetKeyword` (migration `20261122120000_content_strategy_context`, with an index on tenant + version + pillar).
+  - Backfill: the version comes from the request's anchor content or the `strategy-version:*` label.
+  - The pillar comes from slug-style `organic:pillar:*` labels. Legacy numeric keys are skipped.
+- Plan commit stamps every anchor and slot post with its version and pillar. Each pillar's v2 keywords rotate across its posts, highest priority first.
+- The content API returns `strategy_version_id`, `pillar_key` and `target_keyword`.
+- AI generation with `content_id` loads the strategy context, only from an APPROVED version of the same tenant and brand:
+  - pillar name, focus and funnel stage;
+  - objective, audience and key message (brief first, then the foundation);
+  - CTA and target keyword.
+- The prompt gets an "approved strategy context" block outside the untrusted-input fence. A rule tells the model to serve the pillar and message and to use the keyword once, naturally. The strategy is guidance, never a source of brand facts, so grounding rules are unchanged.
+- The run metadata records `strategyVersionId` / `pillarKey`. The response includes `strategy_context`.
+- UI: the content detail shows a line with the pillar and keyword for strategy posts.

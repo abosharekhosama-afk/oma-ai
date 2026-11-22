@@ -31,7 +31,7 @@ export async function createStrategyPlanContentDraft(
   audit: AuditService,
   ctx: PlanContentCtx,
   draft: PlanWorkRequestDraft,
-  defaults: { campaignId?: string | null; dueAt?: Date | null },
+  defaults: { campaignId?: string | null; dueAt?: Date | null; targetKeyword?: string | null },
 ): Promise<{ contentId: string; created: boolean } | null> {
   if (!shouldCreatePlanContentDraft(draft)) return null;
   await billingService.assertWriteAccess(ctx.tenantId);
@@ -76,6 +76,9 @@ export async function createStrategyPlanContentDraft(
       approverRequired: requiredApprovers,
       approverApproved: 0,
       labels: ['strategy-plan', draft.plan_source_key, `strategy-version:${ctx.strategyVersionId}`],
+      strategyVersionId: ctx.strategyVersionId,
+      pillarKey: draft.pillar_key ?? null,
+      targetKeyword: defaults.targetKeyword ?? null,
       createdBy: ctx.actorUserId,
     },
   });
@@ -111,6 +114,7 @@ export async function createStrategyPlanSlotContent(
     campaignId: string | null;
     plannedAt: Date;
     slot: { slot_key: string; pillar_key: string | null };
+    targetKeyword?: string | null;
   },
 ): Promise<{ contentId: string }> {
   await billingService.assertWriteAccess(ctx.tenantId);
@@ -143,6 +147,9 @@ export async function createStrategyPlanSlotContent(
         `plan-slot:${opts.slot.slot_key}`,
         ...(opts.slot.pillar_key ? [`pillar:${opts.slot.pillar_key}`] : []),
       ],
+      strategyVersionId: ctx.strategyVersionId,
+      pillarKey: opts.slot.pillar_key ?? draft.pillar_key ?? null,
+      targetKeyword: opts.targetKeyword ?? null,
       createdBy: ctx.actorUserId,
     },
   });

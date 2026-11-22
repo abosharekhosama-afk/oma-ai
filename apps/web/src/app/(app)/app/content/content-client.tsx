@@ -5719,6 +5719,18 @@ export default function ContentPage() {
                     </button>
                   </div>
 
+                  {(selected as ContentRowExtra).pillarKey ||
+                  (selected as ContentRowExtra).targetKeyword ? (
+                    <p className="oma-muted" data-testid="content-strategy-context">
+                      {t('content.strategyContext')}
+                      {(selected as ContentRowExtra).pillarKey
+                        ? ` · ${t('content.strategyPillar')}: ${(selected as ContentRowExtra).pillarKey}`
+                        : ''}
+                      {(selected as ContentRowExtra).targetKeyword
+                        ? ` · ${t('content.strategyKeyword')}: ${(selected as ContentRowExtra).targetKeyword}`
+                        : ''}
+                    </p>
+                  ) : null}
                   {detailPreviewMode !== 'edit' ? (
                     <div
                       className="oma-pv-modal-stage"

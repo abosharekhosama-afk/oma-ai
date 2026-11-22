@@ -4,7 +4,9 @@ import {
   estimateTokens,
   kindToUseCase,
   lengthBudget,
+  strategyContextText,
   type BrandContext,
+  type StrategyContentContext,
   type ContentGenerationKind,
   type ContentLength,
 } from '@oma/domain';
@@ -76,8 +78,11 @@ export function buildContentGenerationPrompt(input: {
   tone?: string;
   length?: ContentLength;
   variantCount?: number;
+  /** DEC-029 4.4: approved strategy context of the post (pillar, message, keyword). */
+  strategy?: StrategyContentContext | null;
 }): PromptSpec & { estimatedTokens: number } {
   const useCase = kindToUseCase(input.kind);
+  const strategyText = strategyContextText(input.strategy);
   const promptId = `oma.${useCase}`;
   const promptVersion = PROMPT_VERSIONS[useCase] ?? '1';
   const limits = channelLimits(input.channel);
@@ -97,7 +102,12 @@ export function buildContentGenerationPrompt(input: {
     input.brand.usedApprovedProfile
       ? 'An approved brand profile is available. Match its tone, audiences, and messaging.'
       : 'No approved brand profile is available. Use only the brand name and stay generic. Do not invent a brand voice.',
-  ].join('\n');
+    strategyText
+      ? 'This post executes an approved strategy. Serve its pillar and key message, speak to its audience, end with its CTA when it fits the channel, and use the target keyword naturally once (never stuffed). The strategy context is guidance, not a source of brand facts.'
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
   const user = [
     `kind=${input.kind}`,
     `language=${input.language}`,
@@ -109,6 +119,7 @@ export function buildContentGenerationPrompt(input: {
     `sourceVersion=${input.brand.profileVersionId ?? 'none'}`,
     'Approved brand context (trusted after human review):',
     input.brand.compactText,
+    strategyText ? `Approved strategy context (trusted after human review):\n${strategyText}` : '',
     USER_INPUT_OPEN,
     `title=${input.title ?? ''}`,
     `caption=${input.caption ?? ''}`,
