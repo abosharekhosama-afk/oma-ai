@@ -28,6 +28,10 @@ import {
   BrandPlxStatGrid,
 } from '../../../../../../../components/brand/brand-plx-section';
 import { buildBrandJourneySteps } from '../../../../../../../lib/brand-journey';
+import {
+  NETWORK_FAILURE_EVENT,
+  NETWORK_RECOVERED_EVENT,
+} from '../../../../../../../components/ui/offline-banner';
 
 const TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
 const PHASES = ['QUEUED', 'CRAWLING', 'EXTRACTING', 'ANALYZING'] as const;
@@ -79,21 +83,24 @@ export default function ScanDetailPage() {
     return res.data;
   }, [brandId, scanId]);
 
+  // Connectivity is owned by the app-wide OfflineBanner (single listener); the scan page
+  // only reacts to its recovered/failure signals plus its own poll results.
   useEffect(() => {
     const goOnline = () => {
       setNetworkOnline(true);
       void loadScan().catch(() => undefined);
     };
     const goOffline = () => {
+      if (navigator.onLine) return;
       setNetworkOnline(false);
       setSyncLost(true);
     };
-    window.addEventListener('online', goOnline);
-    window.addEventListener('offline', goOffline);
+    window.addEventListener(NETWORK_RECOVERED_EVENT, goOnline);
+    window.addEventListener(NETWORK_FAILURE_EVENT, goOffline);
     setNetworkOnline(navigator.onLine);
     return () => {
-      window.removeEventListener('online', goOnline);
-      window.removeEventListener('offline', goOffline);
+      window.removeEventListener(NETWORK_RECOVERED_EVENT, goOnline);
+      window.removeEventListener(NETWORK_FAILURE_EVENT, goOffline);
     };
   }, [loadScan]);
 
