@@ -97,9 +97,11 @@ describe('media folder drill-down navigation', () => {
 
 describe('media source choice', () => {
   const both = { mode: 'OMA_INTERNAL', internal_available: true, byos_connected: true };
-  it('keeps the remembered store when it is usable', () => {
-    expect(resolveInitialSource('workdrive', both)).toBe('workdrive');
-    expect(resolveInitialSource('oma', { ...both, mode: 'USER_WORKDRIVE' })).toBe('oma');
+  it('follows the workspace storage setting over a remembered store', () => {
+    // Regression: a remembered WorkDrive browse used to redirect uploads despite OMA mode.
+    expect(resolveInitialSource('workdrive', both)).toBe('oma');
+    expect(resolveInitialSource('workdrive', { ...both, mode: 'SYNC_BACKUP' })).toBe('oma');
+    expect(resolveInitialSource('oma', { ...both, mode: 'USER_WORKDRIVE' })).toBe('workdrive');
   });
   it('falls back to the workspace mode, then to whichever store exists', () => {
     expect(resolveInitialSource(null, { ...both, mode: 'USER_WORKDRIVE' })).toBe('workdrive');

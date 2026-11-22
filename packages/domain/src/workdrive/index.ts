@@ -10,3 +10,4 @@ export * from './stream-copy';
 export * from './webhook';
 export * from './scoped-key';
 export * from './list-folder';
+export * from './storage-mode';

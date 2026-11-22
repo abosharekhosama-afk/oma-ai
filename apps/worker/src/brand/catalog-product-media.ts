@@ -1,18 +1,20 @@
 import { createHash } from 'node:crypto';
-import { getPrisma } from '@oma/db';
+import {
+  enqueueStorageBackupIfNeeded,
+  getPrisma,
+  resolveStorageWriteTarget,
+  uploadToStorageTarget,
+} from '@oma/db';
 import {
   allowedMimeFor,
   assertSsrfAllowed,
-  brandFolderSlug,
-  clientFromConnection,
+  DomainError,
   IMAGE_MIME,
   maxBytesForMime,
   mediaIdentityKey,
-  mediaFolderSegments,
   newId,
   safeFileName,
   VIDEO_MIME,
-  workDriveSecretKey,
   type ExtractedProductMedia,
   type FetchLike,
 } from '@oma/domain';
@@ -43,12 +45,13 @@ function mimeFromUrl(url: string): string | null {
   return null;
 }
 
-async function clientForTenant(tenantId: string, fetchImpl?: FetchLike) {
-  const key = workDriveSecretKey();
-  if (!key) return null;
-  const conn = await getPrisma().workDriveConnection.findUnique({ where: { tenantId } });
-  if (!conn || conn.status !== 'CONNECTED') return null;
-  return { conn, client: clientFromConnection(conn, key, fetchImpl) };
+/** Scan media follows the workspace storage setting (OMA storage unless WorkDrive is selected). */
+async function writeTargetForTenant(tenantId: string, fetchImpl?: FetchLike) {
+  try {
+    return await resolveStorageWriteTarget(tenantId, { fetchImpl });
+  } catch {
+    return null;
+  }
 }
 
 type ScanRole = 'SCAN_THUMBNAIL' | 'SCAN_IMAGE' | 'SCAN_VIDEO';
@@ -114,11 +117,10 @@ export async function syncProductScanMedia(input: {
   }
 
   const c = desired.some((d) => !keptByKey.has(d.key))
-    ? await clientForTenant(input.tenantId, input.fetchImpl)
+    ? await writeTargetForTenant(input.tenantId, input.fetchImpl)
     : null;
   const fetchImpl = input.fetchImpl ?? fetch;
-  const brandSlug = brandFolderSlug(input.brandName, input.brandId.slice(-8).toLowerCase());
-  let folderId: string | null = null;
+  const brand = { id: input.brandId, name: input.brandName };
 
   let sortOrder = 0;
   let hasThumbnail = false;
@@ -141,28 +143,33 @@ export async function syncProductScanMedia(input: {
       result.skipped++;
       continue;
     }
-    const assetId = await importAsset({
-      tenantId: input.tenantId,
-      brandId: input.brandId,
-      productName: input.productName,
-      item,
-      fetchImpl,
-      upload: async (args) => {
-        if (!folderId) {
-          folderId = (
-            await c.client.ensurePath(
-              mediaFolderSegments({
-                brandSlug,
-                kind: 'catalog',
-                rootFolderName: c.conn.rootFolderName,
-              }),
-            )
-          ).folderId;
-        }
-        const uploaded = await c.client.upload({ folderId, ...args });
-        return { ...uploaded, folderId };
-      },
-    });
+    let assetId: string | null;
+    try {
+      assetId = await importAsset({
+        tenantId: input.tenantId,
+        brandId: input.brandId,
+        productName: input.productName,
+        item,
+        fetchImpl,
+        upload: (args) =>
+          uploadToStorageTarget({
+            target: c,
+            brand,
+            kind: 'catalog',
+            name: args.name,
+            mime: args.mimeType,
+            bytes: args.source.full(),
+            sha256: args.sha256,
+          }),
+      });
+    } catch (e) {
+      // Over the OMA storage quota: keep the product, skip storing more media.
+      if (e instanceof DomainError && e.code === 'PLAN_LIMIT_REACHED') {
+        result.skipped++;
+        continue;
+      }
+      throw e;
+    }
     if (!assetId) {
       result.skipped++;
       continue;
@@ -208,7 +215,13 @@ async function importAsset(input: {
   productName: string;
   item: ExtractedProductMedia;
   fetchImpl: FetchLike;
-  upload: (args: UploadArgs) => Promise<{ fileId: string; name: string; folderId: string }>;
+  upload: (args: UploadArgs) => Promise<{
+    fileId: string;
+    name: string;
+    folderId: string;
+    storageProvider: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+    storagePath: string | null;
+  }>;
 }): Promise<string | null> {
   const prisma = getPrisma();
   const { item } = input;
@@ -268,7 +281,8 @@ async function importAsset(input: {
       kind: 'catalog',
       workdriveFileId: uploaded.fileId,
       folderId: uploaded.folderId,
-      storageProvider: 'USER_WORKDRIVE',
+      storageProvider: uploaded.storageProvider,
+      storagePath: uploaded.storagePath,
       name: uploaded.name,
       mime,
       size: BigInt(buf.length),
@@ -278,5 +292,6 @@ async function importAsset(input: {
       createdBy: 'system',
     },
   });
+  await enqueueStorageBackupIfNeeded(row);
   return row.id;
 }

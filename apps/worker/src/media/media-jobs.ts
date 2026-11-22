@@ -1,10 +1,16 @@
 import { createHash } from 'node:crypto';
-import { getPrisma } from '@oma/db';
 import {
-  brandFolderSlug,
-  clientFromConnection,
+  enqueueStorageBackupIfNeeded,
+  getPrisma,
+  resolveStorageWriteTarget,
+  storageTargetFolderSegments,
+  storageTargetForAsset,
+  assertOmaStorageQuota,
+  storagePathFor,
+  type StorageTarget,
+} from '@oma/db';
+import {
   IMAGE_MIME,
-  mediaFolderSegments,
   newId,
   SocialProviderError,
   WorkDriveError,
@@ -34,14 +40,23 @@ export function decodeImageDataUrl(url: string): { mime: string; bytes: Buffer }
   return bytes.length ? { mime, bytes } : null;
 }
 
-async function clientForTenant(tenantId: string, key: Buffer, fetchImpl?: FetchLike) {
-  const conn = await getPrisma().workDriveConnection.findUnique({ where: { tenantId } });
-  if (!conn || conn.status !== 'CONNECTED') return null;
-  return { conn, client: clientFromConnection(conn, key, fetchImpl) };
+/** Client that can read an asset, by the provider it was stored on (null when unavailable). */
+async function readerForAsset(
+  tenantId: string,
+  asset: { storageProvider?: string | null },
+  key: Buffer | null,
+  fetchImpl?: FetchLike,
+): Promise<StorageTarget | null> {
+  try {
+    return await storageTargetForAsset(tenantId, asset, { key, fetchImpl });
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Moves data-URL brand logos into the tenant's WorkDrive (`…/{brand}/logos`).
+ * Moves data-URL brand logos into the workspace's configured storage (OMA storage unless the
+ * storage setting selects WorkDrive) under the brand `logos` folder.
  * Idempotent: the file name is derived from the content hash, an existing MediaAsset or WorkDrive
  * file with that hash is reused, and the brand row only switches over if its logo is unchanged.
  */
@@ -50,16 +65,8 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
   const out = { scanned: 0, migrated: 0, reused: 0, skipped: 0, failed: 0 };
   if (!key) return out;
   const prisma = getPrisma();
-  const tenants = (
-    await prisma.workDriveConnection.findMany({
-      where: { status: 'CONNECTED' },
-      select: { tenantId: true },
-    })
-  ).map((t) => t.tenantId);
-  if (!tenants.length) return out;
   const brands = await prisma.brandWorkspace.findMany({
     where: {
-      tenantId: { in: tenants },
       logoAssetId: null,
       logoUrl: { startsWith: 'data:' },
       deletedAt: null,
@@ -76,8 +83,10 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
       continue;
     }
     try {
-      const c = await clientForTenant(b.tenantId, key, deps.fetchImpl);
-      if (!c) {
+      let c: StorageTarget;
+      try {
+        c = await resolveStorageWriteTarget(b.tenantId, { key, fetchImpl: deps.fetchImpl });
+      } catch {
         out.skipped++;
         continue;
       }
@@ -89,16 +98,15 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
       else {
         const name = `logo-${sha256.slice(0, 12)}.${EXT[decoded.mime]}`;
         const { folderId } = await c.client.ensurePath(
-          mediaFolderSegments({
-            brandSlug: brandFolderSlug(b.name, b.id.slice(-8).toLowerCase()),
-            kind: 'logos',
-            rootFolderName: c.conn.rootFolderName,
-          }),
+          storageTargetFolderSegments(c, { id: b.id, name: b.name }, 'logos'),
         );
         // A previous run may have uploaded the file and crashed before recording it.
         const existing = (await c.client.getFolder(folderId)).files.find(
           (f) => f.name === name && f.size === decoded.bytes.length,
         );
+        if (!existing && c.provider === 'OMA_INTERNAL') {
+          await assertOmaStorageQuota(b.tenantId, decoded.bytes.length);
+        }
         const fileId =
           existing?.id ??
           (
@@ -129,7 +137,8 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
             kind: 'logos',
             workdriveFileId: fileId,
             folderId,
-            storageProvider: 'USER_WORKDRIVE',
+            storageProvider: c.provider,
+            storagePath: storagePathFor(c, b.id, 'logos'),
             name,
             mime: decoded.mime,
             size: BigInt(decoded.bytes.length),
@@ -140,6 +149,7 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
           },
           update: { status: 'READY', missingSince: null },
         });
+        await enqueueStorageBackupIfNeeded(asset);
         if (existing) out.reused++;
       }
       // Only switch if nobody changed the logo meanwhile.
@@ -183,11 +193,13 @@ export async function runMediaReconcileTick(deps: Deps = {}) {
     take: deps.limit ?? 50,
     orderBy: { lastCheckedAt: 'asc' },
   });
-  const clients = new Map<string, Awaited<ReturnType<typeof clientForTenant>>>();
+  // One reader per tenant+provider: OMA-stored files are checked with OMA storage, never with
+  // the user's WorkDrive key (which cannot see them and used to mark them MISSING).
+  const clients = new Map<string, StorageTarget | null>();
   for (const a of rows) {
-    if (!clients.has(a.tenantId))
-      clients.set(a.tenantId, await clientForTenant(a.tenantId, key, deps.fetchImpl));
-    const c = clients.get(a.tenantId);
+    const ck = `${a.tenantId}:${a.storageProvider}`;
+    if (!clients.has(ck)) clients.set(ck, await readerForAsset(a.tenantId, a, key, deps.fetchImpl));
+    const c = clients.get(ck);
     if (!c) continue;
     out.checked++;
     try {
@@ -220,8 +232,8 @@ async function signedUrlForAsset(
     where: { id: assetId, tenantId },
   });
   if (!asset) throw new SocialProviderError('The post media was removed', { retryable: false });
-  const c = key ? await clientForTenant(tenantId, key, deps.fetchImpl) : null;
-  if (!c) throw new SocialProviderError('WorkDrive is not connected', { retryable: true });
+  const c = await readerForAsset(tenantId, asset, key, deps.fetchImpl);
+  if (!c) throw new SocialProviderError('Media storage is not available', { retryable: true });
   try {
     return (await c.client.downloadUrl(asset.workdriveFileId)).url;
   } catch (e) {

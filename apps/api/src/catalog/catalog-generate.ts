@@ -1,14 +1,13 @@
 import { createHash } from 'node:crypto';
-import { getPrisma, tenantWhere } from '@oma/db';
 import {
-  DomainError,
-  brandFolderSlug,
-  clientFromConnection,
-  mediaFolderSegments,
-  newId,
-  safeFileName,
-  workDriveSecretKey,
-} from '@oma/domain';
+  enqueueStorageBackupIfNeeded,
+  getPrisma,
+  resolveStorageWriteTarget,
+  storageTargetForAsset,
+  tenantWhere,
+  uploadToStorageTarget,
+} from '@oma/db';
+import { DomainError, newId, safeFileName } from '@oma/domain';
 
 import type { CatalogGenerateKind } from '@oma/domain';
 
@@ -26,14 +25,6 @@ async function loadSharp() {
       'errors.media_transcode_unavailable',
     );
   }
-}
-
-async function clientForTenant(tenantId: string) {
-  const key = workDriveSecretKey();
-  if (!key) return null;
-  const conn = await getPrisma().workDriveConnection.findUnique({ where: { tenantId } });
-  if (!conn || conn.status !== 'CONNECTED') return null;
-  return { conn, client: clientFromConnection(conn, key) };
 }
 
 export async function generateCatalogProductCreative(input: {
@@ -93,17 +84,11 @@ export async function generateCatalogProductCreative(input: {
     );
   }
 
-  const c = await clientForTenant(input.tenantId);
-  if (!c) {
-    throw new DomainError(
-      'WORKDRIVE_NOT_CONNECTED',
-      'WorkDrive is not connected.',
-      503,
-      'errors.workdrive_not_configured',
-    );
-  }
+  // Read the source from wherever it lives; write output where the workspace setting says.
+  const reader = await storageTargetForAsset(input.tenantId, sourceLink.mediaAsset);
+  const target = await resolveStorageWriteTarget(input.tenantId);
 
-  const signed = await c.client.downloadUrl(sourceLink.mediaAsset.workdriveFileId);
+  const signed = await reader.client.downloadUrl(sourceLink.mediaAsset.workdriveFileId);
   const res = await fetch(signed.url);
   if (!res.ok) {
     throw new DomainError(
@@ -129,15 +114,6 @@ export async function generateCatalogProductCreative(input: {
         ]
       : [];
 
-  const brandSlug = brandFolderSlug(brand.name, brand.id.slice(-8).toLowerCase());
-  const { folderId } = await c.client.ensurePath(
-    mediaFolderSegments({
-      brandSlug,
-      kind: 'catalog',
-      rootFolderName: c.conn.rootFolderName,
-    }),
-  );
-
   const created: string[] = [];
   for (const v of variants) {
     const out = await sharp(sourceBytes)
@@ -147,16 +123,14 @@ export async function generateCatalogProductCreative(input: {
       .toBuffer();
     const sha256 = createHash('sha256').update(out).digest('hex');
     const name = safeFileName(`${product.name}-${v.label}-${sha256.slice(0, 8)}.jpg`);
-    const uploaded = await c.client.upload({
-      folderId,
+    const uploaded = await uploadToStorageTarget({
+      target,
+      brand,
+      kind: 'catalog',
       name,
-      mimeType: 'image/jpeg',
+      mime: 'image/jpeg',
+      bytes: out,
       sha256,
-      source: {
-        size: out.length,
-        full: () => out,
-        part: async (s, e) => out.subarray(s, e),
-      },
     });
     const asset = await getPrisma().mediaAsset.create({
       data: {
@@ -165,8 +139,9 @@ export async function generateCatalogProductCreative(input: {
         brandId: input.brandId,
         kind: 'catalog',
         workdriveFileId: uploaded.fileId,
-        folderId,
-        storageProvider: 'USER_WORKDRIVE',
+        folderId: uploaded.folderId,
+        storageProvider: uploaded.storageProvider,
+        storagePath: uploaded.storagePath,
         name: uploaded.name,
         mime: 'image/jpeg',
         size: BigInt(out.length),
@@ -176,6 +151,7 @@ export async function generateCatalogProductCreative(input: {
         createdBy: input.actorUserId,
       },
     });
+    await enqueueStorageBackupIfNeeded(asset);
     const link = await getPrisma().catalogProductMedia.create({
       data: {
         id: newId(),

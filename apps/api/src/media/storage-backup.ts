@@ -1,4 +1,4 @@
-import { getPrisma } from '@oma/db';
+import { enqueueStorageBackupIfNeeded, getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 
 type AssetLike = {
@@ -8,42 +8,9 @@ type AssetLike = {
   status: string;
 };
 
+/** Shared with worker jobs so every OMA write in SYNC_BACKUP mode gets a WorkDrive copy. */
 export async function enqueueBackupIfNeeded(asset: AssetLike) {
-  if (asset.storageProvider !== 'OMA_INTERNAL' || asset.status === 'MISSING') return null;
-  const prisma = getPrisma();
-  const setting = await prisma.workspaceStorageSetting.findUnique({
-    where: { tenantId: asset.tenantId },
-  });
-  if (setting?.mode !== 'SYNC_BACKUP') return null;
-  const conn = await prisma.workDriveConnection.findUnique({ where: { tenantId: asset.tenantId } });
-  if (!conn || conn.status !== 'CONNECTED') return null;
-  const existing = await prisma.storageBackupJob.findUnique({
-    where: {
-      mediaAssetId_workdriveConnectionId_kind: {
-        mediaAssetId: asset.id,
-        workdriveConnectionId: conn.id,
-        kind: 'BACKUP',
-      },
-    },
-  });
-  if (existing) return existing;
-  const job = await prisma.storageBackupJob.create({
-    data: {
-      id: newId(),
-      tenantId: asset.tenantId,
-      mediaAssetId: asset.id,
-      workdriveConnectionId: conn.id,
-      kind: 'BACKUP',
-      status: 'PENDING',
-      attempts: 0,
-      nextAttemptAt: new Date(),
-    },
-  });
-  await prisma.mediaAsset.update({
-    where: { id: asset.id },
-    data: { replicaStatus: asset.storageProvider === 'OMA_INTERNAL' ? 'pending' : undefined },
-  });
-  return job;
+  return enqueueStorageBackupIfNeeded(asset);
 }
 
 export async function backupStatus(tenantId: string) {
