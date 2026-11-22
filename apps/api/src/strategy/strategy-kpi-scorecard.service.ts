@@ -179,9 +179,13 @@ export class StrategyKpiScorecardService {
     }
     const value = typeof input.value === 'number' ? input.value : Number(input.value);
     if (input.value === null || input.value === '' || !Number.isFinite(value)) {
-      throw new DomainError('VALIDATION_FAILED', 'value must be a number', 400, 'errors.validation', [
-        { field: 'value', code: 'INVALID_NUMBER' },
-      ]);
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'value must be a number',
+        400,
+        'errors.validation',
+        [{ field: 'value', code: 'INVALID_NUMBER' }],
+      );
     }
     const note = typeof input.note === 'string' ? input.note.trim().slice(0, 500) || null : null;
     const before = { value: kpi.manualValue, note: kpi.manualNote };

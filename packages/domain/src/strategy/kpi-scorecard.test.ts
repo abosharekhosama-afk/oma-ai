@@ -32,7 +32,10 @@ describe('kpi scorecard', () => {
     expect(measureKpi('publish_rate', w, posts, [])).toBe(50);
     expect(measureKpi('publish_rate', w, [], [])).toBeNull();
     expect(measureKpi('impressions', w, posts, [])).toBeNull();
-    const rows = [metric({ impressions: 100, likes: 3, comments: 1, engagementRate: 0.04 }), metric({ impressions: 50, shares: 2, engagementRate: 0.02 })];
+    const rows = [
+      metric({ impressions: 100, likes: 3, comments: 1, engagementRate: 0.04 }),
+      metric({ impressions: 50, shares: 2, engagementRate: 0.02 }),
+    ];
     expect(measureKpi('impressions', w, posts, rows)).toBe(150);
     expect(measureKpi('engagements', w, posts, rows)).toBe(6);
     expect(measureKpi('engagement_rate', w, posts, rows)).toBe(3);

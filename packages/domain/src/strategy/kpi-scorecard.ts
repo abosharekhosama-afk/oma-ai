@@ -98,14 +98,16 @@ export function measureKpi(
   }
 }
 
-export type KpiStatus = 'on_track' | 'at_risk' | 'behind' | 'no_data' | 'no_target' | 'not_recorded';
+export type KpiStatus =
+  'on_track' | 'at_risk' | 'behind' | 'no_data' | 'no_target' | 'not_recorded';
 
 export function kpiProgress(
   actual: number | null,
   target: number | null,
   opts: { manual?: boolean } = {},
 ): { progress_pct: number | null; status: KpiStatus } {
-  if (actual == null) return { progress_pct: null, status: opts.manual ? 'not_recorded' : 'no_data' };
+  if (actual == null)
+    return { progress_pct: null, status: opts.manual ? 'not_recorded' : 'no_data' };
   if (target == null || target <= 0) return { progress_pct: null, status: 'no_target' };
   const pct = Math.round((actual / target) * 100);
   return { progress_pct: pct, status: pct >= 100 ? 'on_track' : pct >= 70 ? 'at_risk' : 'behind' };

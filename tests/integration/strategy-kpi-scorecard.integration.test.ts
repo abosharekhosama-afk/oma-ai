@@ -38,10 +38,20 @@ describe('strategy KPI scorecard', () => {
 
     expect((await post('/kpis', { name: 'Bad', metric: 'followers_magic' })).status).toBe(400);
     const published = await (
-      await post('/kpis', { name: 'Posts', metric: 'posts_published', target_number: 2, period: 'WEEK' })
+      await post('/kpis', {
+        name: 'Posts',
+        metric: 'posts_published',
+        target_number: 2,
+        period: 'WEEK',
+      })
     ).json();
     const rate = await (
-      await post('/kpis', { name: 'On-time', metric: 'publish_rate', target_value: '80%', period: 'WEEK' })
+      await post('/kpis', {
+        name: 'On-time',
+        metric: 'publish_rate',
+        target_value: '80%',
+        period: 'WEEK',
+      })
     ).json();
     const manual = await (await post('/kpis', { name: 'Awareness', target_value: '50' })).json();
     expect(manual.data.metric).toBeNull();
@@ -81,7 +91,9 @@ describe('strategy KPI scorecard', () => {
       data: { plannedAt: new Date(Date.now() - day) },
     });
 
-    const card = await (await fetch(`${base}/kpi-scorecard`, { headers: authHeaders(seed) })).json();
+    const card = await (
+      await fetch(`${base}/kpi-scorecard`, { headers: authHeaders(seed) })
+    ).json();
     const byId = Object.fromEntries(
       (card.data.kpis as Array<{ id: string }>).map((k) => [k.id, k]),
     ) as Record<string, Record<string, unknown>>;
@@ -92,21 +104,38 @@ describe('strategy KPI scorecard', () => {
       status: 'behind',
     });
     expect(byId[rate.data.id]).toMatchObject({ actual: 50, status: 'behind', unit: 'percent' });
-    expect(byId[manual.data.id]).toMatchObject({ source: 'manual', actual: null, status: 'not_recorded' });
+    expect(byId[manual.data.id]).toMatchObject({
+      source: 'manual',
+      actual: null,
+      status: 'not_recorded',
+    });
     expect(card.data.summary).toMatchObject({ total: 3, measured: 2, manual: 1 });
 
     // Approved version: KPI definitions are immutable, results are still recordable.
     expect((await post('/kpis', { name: 'Late' })).status).toBe(409);
-    expect((await post(`/kpi-scorecard/${published.data.id}/manual`, { value: 5 })).status).toBe(409);
-    expect((await post(`/kpi-scorecard/${manual.data.id}/manual`, { value: 'x' })).status).toBe(400);
-    const rec = await post(`/kpi-scorecard/${manual.data.id}/manual`, { value: 60, note: 'survey' });
+    expect((await post(`/kpi-scorecard/${published.data.id}/manual`, { value: 5 })).status).toBe(
+      409,
+    );
+    expect((await post(`/kpi-scorecard/${manual.data.id}/manual`, { value: 'x' })).status).toBe(
+      400,
+    );
+    const rec = await post(`/kpi-scorecard/${manual.data.id}/manual`, {
+      value: 60,
+      note: 'survey',
+    });
     expect(rec.status).toBe(200);
-    const after = await (await fetch(`${base}/kpi-scorecard`, { headers: authHeaders(seed) })).json();
+    const after = await (
+      await fetch(`${base}/kpi-scorecard`, { headers: authHeaders(seed) })
+    ).json();
     expect(
       (after.data.kpis as Array<Record<string, unknown>>).find((k) => k.id === manual.data.id),
     ).toMatchObject({ actual: 60, note: 'survey', status: 'on_track', progress_pct: 120 });
     const audit = await getPrisma().auditEvent.findFirst({
-      where: { tenantId: seed.tenantId, action: 'strategy.kpi.manual_recorded', targetId: manual.data.id },
+      where: {
+        tenantId: seed.tenantId,
+        action: 'strategy.kpi.manual_recorded',
+        targetId: manual.data.id,
+      },
     });
     expect(audit?.afterRef).toContain('"value":60');
   });

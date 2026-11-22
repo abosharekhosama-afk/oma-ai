@@ -110,7 +110,10 @@ export function StrategyKpiPanel({
     v == null ? '—' : unit === 'percent' || unit === '%' ? `${v}%` : v.toLocaleString();
 
   return (
-    <section className="oma-plx-listening-panel oma-plx-brand-section" data-testid="strategy-kpi-panel">
+    <section
+      className="oma-plx-listening-panel oma-plx-brand-section"
+      data-testid="strategy-kpi-panel"
+    >
       <header className="oma-plx-brand-section__head">
         <div>
           <h3 className="oma-plx-brand-section__title">{t('strategy.kpi.title')}</h3>
@@ -152,7 +155,11 @@ export function StrategyKpiPanel({
                         ? t(`strategy.kpi.metric.${k.metric}`)
                         : t('strategy.kpi.manual')}
                     </td>
-                    <td>{k.target_number != null ? fmt(k.target_number, k.unit) : (k.target_value ?? '—')}</td>
+                    <td>
+                      {k.target_number != null
+                        ? fmt(k.target_number, k.unit)
+                        : (k.target_value ?? '—')}
+                    </td>
                     <td>
                       {fmt(k.actual, k.unit)}
                       {k.source === 'manual' ? (

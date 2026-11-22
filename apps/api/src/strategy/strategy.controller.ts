@@ -492,7 +492,12 @@ export class StrategyController {
     @Param('versionId') versionId: string,
   ) {
     this.requireTenant(req);
-    return strategyKpiScorecardService.scorecard(req.oma!.tenantId!, brandId, strategyId, versionId);
+    return strategyKpiScorecardService.scorecard(
+      req.oma!.tenantId!,
+      brandId,
+      strategyId,
+      versionId,
+    );
   }
 
   @Post('strategies/:strategyId/versions/:versionId/kpi-scorecard/:kpiId/manual')

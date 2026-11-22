@@ -1087,7 +1087,8 @@ export class StrategyService {
   }) {
     const fields: { field: string; code: string }[] = [];
     const metric = input.metric ? String(input.metric) : null;
-    if (metric && !isMeasurableKpiMetric(metric)) fields.push({ field: 'metric', code: 'UNKNOWN_METRIC' });
+    if (metric && !isMeasurableKpiMetric(metric))
+      fields.push({ field: 'metric', code: 'UNKNOWN_METRIC' });
     const period = input.period ?? 'MONTH';
     if (!(STRATEGY_KPI_PERIODS as readonly string[]).includes(period))
       fields.push({ field: 'period', code: 'INVALID_PERIOD' });
@@ -1097,12 +1098,19 @@ export class StrategyService {
     let targetNumber: number | null = null;
     if (input.target_number != null) {
       targetNumber = Number(input.target_number);
-      if (!Number.isFinite(targetNumber)) fields.push({ field: 'target_number', code: 'INVALID_NUMBER' });
+      if (!Number.isFinite(targetNumber))
+        fields.push({ field: 'target_number', code: 'INVALID_NUMBER' });
     } else {
       targetNumber = parseKpiTarget(input.target_value);
     }
     if (fields.length) {
-      throw new DomainError('VALIDATION_FAILED', 'Invalid KPI binding', 400, 'errors.validation', fields);
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Invalid KPI binding',
+        400,
+        'errors.validation',
+        fields,
+      );
     }
     return {
       metric,
