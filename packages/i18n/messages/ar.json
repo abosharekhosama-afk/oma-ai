@@ -404,7 +404,7 @@
   "strategy.ai.reject": "رفض الاقتراح",
   "strategy.ai.proposing": "جارٍ إنشاء الاقتراح…",
   "strategy.ai.panelTitle": "مساعد الاستراتيجية بالذكاء الاصطناعي",
-  "strategy.ai.panelHint": "الاقتراحات بأسلوب Jasper: سياق العلامة ثم قبول بشري قبل تعديل المسودة.",
+  "strategy.ai.panelHint": "تعتمد الاقتراحات على سياق علامتك، ولا يتغير شيء في المسودة حتى يقبله شخص من الفريق.",
   "strategy.ai.sourceProfile": "مصدر ذكاء العلامة",
   "strategy.ai.linkProfileFirst": "اربط ملف علامة معتمداً قبل استراتيجية جاهزة للاعتماد.",
   "strategy.ai.usedProfile": "استُخدم سياق الملف المعتمد.",
@@ -4016,5 +4016,9 @@
   "strategy.execution.pager": "صفحات بنود الخطة",
   "strategy.execution.prev": "السابق",
   "strategy.execution.next": "التالي",
-  "strategy.execution.pageOf": "صفحة {page} من {pages}"
+  "strategy.execution.pageOf": "صفحة {page} من {pages}",
+  "strategy.plan.empty.allocations": "لا يوجد توزيع للميزانية بعد. أضف منصة ونسبتها من الميزانية المدفوعة.",
+  "strategy.plan.empty.audiences": "لا توجد جماهير مدفوعة بعد. أضف من يجب أن تصل إليه الإعلانات.",
+  "strategy.plan.empty.experiments": "لا توجد تجارب بعد. أضف تجربة بفرضية ومقياس.",
+  "strategy.plan.empty.flights": "لا توجد فترات حملة بعد. أضف تواريخ الحملة والميزانية لكل فترة."
 }

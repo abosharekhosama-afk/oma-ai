@@ -233,3 +233,133 @@
     margin-inline-start: 0;
   }
 }
+
+/* Strategy header + mobile (fix/strategy-i18n-mobile). RTL-safe logical properties. */
+.oma-strategy-header {
+  display: grid;
+  gap: 10px;
+  margin-block-end: 16px;
+  min-inline-size: 0;
+}
+.oma-strategy-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  background: var(--oma-surface);
+}
+.oma-strategy-identity__name {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--oma-ink-strong);
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+.oma-strategy-identity__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.oma-track-pill--off {
+  opacity: 0.75;
+  background: var(--oma-surface-raised);
+  color: var(--oma-muted);
+  border: 1px dashed var(--oma-border-strong);
+}
+.oma-strategy-sections {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-block-end: 2px;
+}
+.oma-strategy-sections::-webkit-scrollbar {
+  display: none;
+}
+.oma-strategy-sections > * {
+  flex: 0 0 auto;
+}
+[data-testid='strategy-subnav'] {
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-inline-size: 100%;
+}
+[data-testid='strategy-subnav']::-webkit-scrollbar {
+  display: none;
+}
+[data-testid='strategy-subnav'] a {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .oma-strategy-identity {
+    padding: 12px;
+  }
+  .oma-strategy-identity__name {
+    font-size: 18px;
+  }
+  .oma-plan-editor,
+  .oma-plan-table-wrap,
+  [data-testid='strategy-execution-tab'],
+  [data-testid='strategy-header'] {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+  .oma-plan-table-wrap {
+    -webkit-overflow-scrolling: touch;
+    margin-inline: -4px;
+  }
+  .oma-plan-table {
+    font-size: 14px;
+  }
+  .oma-plan-table th,
+  .oma-plan-table td {
+    padding: 8px 6px;
+  }
+  .oma-plan-toolbar {
+    gap: 6px;
+  }
+  .oma-plan-toolbar > h2 {
+    flex-basis: 100%;
+    font-size: 17px;
+  }
+  .oma-strategy-next .oma-strategy-next__steps {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .oma-strategy-next .oma-strategy-next__step {
+    flex: 0 0 auto;
+  }
+  .oma-plx-brand-data-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .oma-form-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .oma-form-actions {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 5;
+    padding-block: 8px;
+    background: var(--oma-surface);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .oma-form-actions > button,
+  .oma-form-actions > a {
+    flex: 1 1 100%;
+  }
+  .oma-brief-deliverable {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
