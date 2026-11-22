@@ -98,7 +98,7 @@ describe('Planable media library side panel', () => {
     const source = read('apps/web/src/components/content/media-source.ts');
     expect(picker).toContain('persistSource');
     expect(source).toContain('media_source');
-    expect(source).toContain('localStorage');
+    expect(source).toContain('sessionStorage');
     expect(picker).toContain('storageSource');
     expect(picker).toContain('storageSource ?? undefined');
     expect(picker).toContain("t('errors.storage_oma_unavailable')");

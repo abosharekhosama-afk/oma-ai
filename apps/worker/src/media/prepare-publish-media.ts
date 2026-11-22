@@ -3,16 +3,19 @@
  * Ensures TikTok (and similar) get JPEG/WebP ≤1080p before PULL_FROM_URL.
  */
 import { createHash } from 'node:crypto';
-import { getPrisma } from '@oma/db';
 import {
-  brandFolderSlug,
-  clientFromConnection,
+  enqueueStorageBackupIfNeeded,
+  getPrisma,
+  resolveStorageWriteTarget,
+  storageTargetForAsset,
+  uploadToStorageTarget,
+} from '@oma/db';
+import {
+  DomainError,
   imageNeedsTranscode,
-  mediaFolderSegments,
   newId,
   NETWORK_MEDIA_CONSTRAINTS,
   SocialProviderError,
-  workDriveSecretKey,
   type FetchLike,
   type SocialNetworkKey,
 } from '@oma/domain';
@@ -129,15 +132,6 @@ async function uploadVariant(input: {
   mime: string;
   fetchImpl: FetchLike;
 }): Promise<PreparedMedia> {
-  const key = workDriveSecretKey();
-  if (!key) throw new SocialProviderError('WorkDrive encryption key missing', { retryable: true });
-  const conn = await getPrisma().workDriveConnection.findUnique({
-    where: { tenantId: input.tenantId },
-  });
-  if (!conn || conn.status !== 'CONNECTED') {
-    throw new SocialProviderError('WorkDrive is not connected', { retryable: true });
-  }
-  const client = clientFromConnection(conn, key, input.fetchImpl);
   const sha256 = createHash('sha256').update(input.bytes).digest('hex');
   const name = `pub-${input.network}-${input.assetId.slice(-8)}-${sha256.slice(0, 10)}.jpg`;
 
@@ -151,29 +145,41 @@ async function uploadVariant(input: {
     },
   });
   if (existing) {
-    const url = (await client.downloadUrl(existing.workdriveFileId)).url;
+    const reader = await storageTargetForAsset(input.tenantId, existing, {
+      fetchImpl: input.fetchImpl,
+    });
+    const url = (await reader.client.downloadUrl(existing.workdriveFileId)).url;
     return { url, mime: existing.mime, sizeBytes: Number(existing.size) };
   }
 
-  const { folderId } = await client.ensurePath(
-    mediaFolderSegments({
-      brandSlug: brandFolderSlug(input.brandName, input.brandId.slice(-8).toLowerCase()),
+  // Publish variants follow the workspace storage setting like every other write.
+  let target;
+  try {
+    target = await resolveStorageWriteTarget(input.tenantId, { fetchImpl: input.fetchImpl });
+  } catch (e) {
+    throw new SocialProviderError(
+      e instanceof DomainError ? e.message : 'Media storage is not available',
+      { retryable: true },
+    );
+  }
+  let uploaded;
+  try {
+    uploaded = await uploadToStorageTarget({
+      target,
+      brand: { id: input.brandId, name: input.brandName },
       kind: 'posts',
-      rootFolderName: conn.rootFolderName,
-    }),
-  );
-  const uploaded = await client.upload({
-    folderId,
-    name,
-    mimeType: input.mime,
-    sha256,
-    source: {
-      size: input.bytes.length,
-      full: () => input.bytes,
-      part: async (s, e) => input.bytes.subarray(s, e),
-    },
-  });
-  await getPrisma().mediaAsset.upsert({
+      name,
+      mime: input.mime,
+      bytes: input.bytes,
+      sha256,
+    });
+  } catch (e) {
+    if (e instanceof DomainError && e.code === 'PLAN_LIMIT_REACHED') {
+      throw new SocialProviderError(`Storage limit reached: ${e.message}`, { retryable: false });
+    }
+    throw e;
+  }
+  const row = await getPrisma().mediaAsset.upsert({
     where: {
       tenantId_brandId_workdriveFileId: {
         tenantId: input.tenantId,
@@ -187,8 +193,9 @@ async function uploadVariant(input: {
       brandId: input.brandId,
       kind: 'posts',
       workdriveFileId: uploaded.fileId,
-      folderId,
-      storageProvider: 'USER_WORKDRIVE',
+      folderId: uploaded.folderId,
+      storageProvider: uploaded.storageProvider,
+      storagePath: uploaded.storagePath,
       name: uploaded.name,
       mime: input.mime,
       size: BigInt(input.bytes.length),
@@ -198,6 +205,7 @@ async function uploadVariant(input: {
     },
     update: { status: 'READY', missingSince: null, mime: input.mime },
   });
-  const url = (await client.downloadUrl(uploaded.fileId)).url;
+  await enqueueStorageBackupIfNeeded(row);
+  const url = (await target.client.downloadUrl(uploaded.fileId)).url;
   return { url, mime: input.mime, sizeBytes: input.bytes.length };
 }

@@ -256,6 +256,9 @@ export class MediaService {
     const bytes = Buffer.concat(chunks);
     const sha256 = createHash('sha256').update(bytes).digest('hex');
     const c = await this.workdrive.resolveWriteTarget(ctx.tenantId);
+    if (c.provider === 'OMA_INTERNAL') {
+      await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: size });
+    }
     const avatarSegs =
       c.provider === 'OMA_INTERNAL'
         ? internalMediaSegments({ tenantId: ctx.tenantId, kind: 'avatars', userId: ctx.userId })
@@ -690,7 +693,10 @@ export class MediaService {
       ),
     );
     if (target.provider === 'OMA_INTERNAL') {
-      await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: 0 });
+      // Fail fast on the declared size; the streamed size is re-checked below.
+      await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', {
+        adding: input.length ?? 0,
+      });
     }
     const brand = await this.brand(ctx.tenantId, brandId);
     if (brand.status === 'ARCHIVED')

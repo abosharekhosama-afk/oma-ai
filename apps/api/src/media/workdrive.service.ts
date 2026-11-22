@@ -21,6 +21,9 @@ import {
   workDriveSecretKey,
   type FetchLike,
   type PlatformKeyStore,
+  decideStorageWriteProvider,
+  defaultLibrarySource,
+  effectiveStorageMode,
 } from '@oma/domain';
 import { billingService } from '../billing/billing.service';
 import { AuditService } from '../audit/audit.service';
@@ -269,9 +272,10 @@ export class WorkDriveService {
     tenantId: string,
   ): Promise<'OMA_INTERNAL' | 'USER_WORKDRIVE' | 'SYNC_BACKUP'> {
     const setting = await getPrisma().workspaceStorageSetting.findUnique({ where: { tenantId } });
-    if (setting) return setting.mode;
-    if (await this.connection(tenantId)) return 'USER_WORKDRIVE';
-    return 'OMA_INTERNAL';
+    return effectiveStorageMode({
+      settingMode: setting?.mode ?? null,
+      byosConnected: !!(await this.connection(tenantId)),
+    });
   }
 
   /**
@@ -317,7 +321,7 @@ export class WorkDriveService {
 
   async resolveLibraryClient(tenantId: string, source?: 'oma' | 'workdrive' | null) {
     const mode = await this.effectiveMode(tenantId);
-    const want = source ?? (mode === 'USER_WORKDRIVE' ? 'workdrive' : 'oma');
+    const want = source ?? defaultLibrarySource(mode);
     if (want === 'workdrive') {
       const user = await this.clientFor(tenantId);
       if (!user) throw this.unavailableWorkDrive();
@@ -334,36 +338,40 @@ export class WorkDriveService {
   }
 
   /**
-   * Client used to write a new file. An explicit library `source` always wins so the media
-   * picker can upload to OMA or the user's WorkDrive independently of the workspace mode.
-   * Otherwise prefers the workspace mode: BYOS when explicitly set (or when a connection
-   * exists and no setting row was created), otherwise the platform master.
+   * Client used to write a new file. An explicit library `source` (the user picked a store in
+   * the media library) wins; otherwise the workspace storage setting decides via
+   * `decideStorageWriteProvider`. OMA / sync-backup modes never fall back to the user's
+   * WorkDrive key, even when one is connected.
    */
   async resolveWriteTarget(tenantId: string, source?: 'oma' | 'workdrive' | null) {
-    if (source === 'workdrive') {
-      const user = await this.clientFor(tenantId);
-      if (!user) throw this.unavailableWorkDrive();
-      return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
+    const mode = await this.effectiveMode(tenantId);
+    const user = source === 'oma' ? null : await this.clientFor(tenantId);
+    const decision = decideStorageWriteProvider({
+      mode,
+      source: source ?? null,
+      internalAvailable: !!this.masterConfig(),
+      byosAvailable: !!user,
+    });
+    if (!decision.ok) {
+      // No storage at all (no platform storage, nothing connected): keep the "connect storage" error.
+      if (!source && !user) {
+        throw new DomainError(
+          'WORKDRIVE_NOT_CONNECTED',
+          'WorkDrive is not connected',
+          409,
+          'errors.workdrive_not_connected',
+        );
+      }
+      throw decision.reason === 'oma_unavailable'
+        ? this.unavailableOma()
+        : this.unavailableWorkDrive();
     }
-    if (source === 'oma') {
+    if (decision.provider === 'OMA_INTERNAL') {
       const internal = await this.ensureInternalClient(tenantId);
       if (!internal) throw this.unavailableOma();
       return internal;
     }
-    const mode = await this.effectiveMode(tenantId);
-    const user = await this.clientFor(tenantId);
-    if (mode === 'USER_WORKDRIVE' && user) {
-      return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
-    }
-    const internal = await this.ensureInternalClient(tenantId);
-    if (internal) return internal;
-    if (user) return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
-    throw new DomainError(
-      'WORKDRIVE_NOT_CONNECTED',
-      'WorkDrive is not connected',
-      409,
-      'errors.workdrive_not_connected',
-    );
+    return { ...user!, provider: 'USER_WORKDRIVE' as const, tenantId };
   }
 
   async clientForAsset(tenantId: string, asset: { storageProvider?: string | null }) {
