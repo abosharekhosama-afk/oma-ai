@@ -11,7 +11,11 @@ import { getPrisma } from './prisma.service';
 
 export type SearchConsoleSyncResult =
   | { ok: true; rows: number; source: string }
-  | { ok: false; reason: 'not_connected' | 'token_unavailable' | 'needs_reconnect' | 'provider_error'; message?: string };
+  | {
+      ok: false;
+      reason: 'not_connected' | 'token_unavailable' | 'needs_reconnect' | 'provider_error';
+      message?: string;
+    };
 
 /**
  * DEC-029 4.6: one Search Console sync used by the API (manual "sync now") and the
@@ -76,7 +80,10 @@ export async function syncBrandSearchConsole(
     const message = String(err instanceof Error ? err.message : err).slice(0, 300);
     await prisma.brandSearchConsoleLink.update({
       where: { id: link.id },
-      data: { lastError: message, ...(/ 40[13]\b/.test(message) ? { status: 'NEEDS_RECONNECT' } : {}) },
+      data: {
+        lastError: message,
+        ...(/ 40[13]\b/.test(message) ? { status: 'NEEDS_RECONNECT' } : {}),
+      },
     });
     return { ok: false, reason: 'provider_error', message };
   }
@@ -133,7 +140,9 @@ async function refreshGoogleToken(
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { access_token?: string; expires_in?: number };
-    return body.access_token ? { access_token: body.access_token, expires_in: body.expires_in } : null;
+    return body.access_token
+      ? { access_token: body.access_token, expires_in: body.expires_in }
+      : null;
   } catch {
     return null;
   }

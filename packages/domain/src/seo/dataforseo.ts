@@ -14,7 +14,9 @@ export type DataForSeoConfig = {
   locationCode?: number;
 };
 
-export function dataForSeoConfigFromEnv(env: NodeJS.ProcessEnv = process.env): DataForSeoConfig | null {
+export function dataForSeoConfigFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): DataForSeoConfig | null {
   const login = env.DATAFORSEO_LOGIN?.trim();
   const password = env.DATAFORSEO_PASSWORD?.trim();
   if (!login || !password) return null;
@@ -89,12 +91,15 @@ export function createDataForSeoKeywordSearch(
           search_volume: number | null;
           competition: string | null;
         }>('/v3/keywords_data/google_ads/search_volume/live', params);
-        const difficulty = await post<{ items?: Array<{ keyword: string; keyword_difficulty: number | null }> }>(
-          '/v3/dataforseo_labs/google/bulk_keyword_difficulty/live',
-          [{ keywords, location_code: location, language_code: locale }],
-        ).catch(() => []);
+        const difficulty = await post<{
+          items?: Array<{ keyword: string; keyword_difficulty: number | null }>;
+        }>('/v3/dataforseo_labs/google/bulk_keyword_difficulty/live', [
+          { keywords, location_code: location, language_code: locale },
+        ]).catch(() => []);
         const kd = new Map(
-          difficulty.flatMap((r) => r.items ?? []).map((i) => [i.keyword.toLowerCase(), i.keyword_difficulty]),
+          difficulty
+            .flatMap((r) => r.items ?? [])
+            .map((i) => [i.keyword.toLowerCase(), i.keyword_difficulty]),
         );
         for (const keyword of keywords) {
           const vol = volumes.find((v) => v.keyword.toLowerCase() === keyword.toLowerCase());
@@ -110,7 +115,9 @@ export function createDataForSeoKeywordSearch(
       }
       return request.keywords.map(
         (k) =>
-          out.get(`${(k.locale || 'ar').slice(0, 2).toLowerCase()}:${k.keyword.trim().toLowerCase()}`) ?? {
+          out.get(
+            `${(k.locale || 'ar').slice(0, 2).toLowerCase()}:${k.keyword.trim().toLowerCase()}`,
+          ) ?? {
             keyword: k.keyword,
             locale: k.locale,
             monthly_volume: null,
