@@ -853,6 +853,18 @@ function OrganicTables({
   );
 }
 
+function EmptyPlanRow({ text }: { text: string }) {
+  return (
+    <tr>
+      <td colSpan={12}>
+        <div className="oma-plan-empty" data-testid="plan-table-empty">
+          {text}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 function PaidTables({
   plan,
   onChange,
@@ -900,6 +912,9 @@ function PaidTables({
             </tr>
           </thead>
           <tbody>
+            {plan.allocations.length === 0 ? (
+              <EmptyPlanRow text={t('strategy.plan.empty.allocations')} />
+            ) : null}
             {plan.allocations.map((a, i) => (
               <tr key={`${a.platform}-${a.objective}-${i}`}>
                 <td>
@@ -995,6 +1010,9 @@ function PaidTables({
             </tr>
           </thead>
           <tbody>
+            {plan.audiences.length === 0 ? (
+              <EmptyPlanRow text={t('strategy.plan.empty.audiences')} />
+            ) : null}
             {plan.audiences.map((a, i) => {
               const update = (patch: Partial<typeof a>) => {
                 const rows = [...plan.audiences];
@@ -1120,6 +1138,9 @@ function PaidTables({
             </tr>
           </thead>
           <tbody>
+            {plan.experiments.length === 0 ? (
+              <EmptyPlanRow text={t('strategy.plan.empty.experiments')} />
+            ) : null}
             {plan.experiments.map((x, i) => {
               const update = (patch: Partial<typeof x>) => {
                 const rows = [...plan.experiments];
@@ -1255,6 +1276,9 @@ function PaidTables({
             </tr>
           </thead>
           <tbody>
+            {(plan.flights ?? []).length === 0 ? (
+              <EmptyPlanRow text={t('strategy.plan.empty.flights')} />
+            ) : null}
             {(plan.flights ?? []).map((f, i) => {
               const update = (patch: Partial<typeof f>) => {
                 const rows = [...(plan.flights ?? [])];

@@ -404,7 +404,7 @@
   "strategy.ai.reject": "Reject proposal",
   "strategy.ai.proposing": "Generating proposal…",
   "strategy.ai.panelTitle": "AI strategy assistant",
-  "strategy.ai.panelHint": "Proposals follow Jasper-style governed generation: brand context in, human accept before draft changes.",
+  "strategy.ai.panelHint": "Proposals use your brand context, and nothing changes in the draft until a person accepts it.",
   "strategy.ai.sourceProfile": "Brand intelligence source",
   "strategy.ai.linkProfileFirst": "Link an approved brand profile before approve-ready strategy.",
   "strategy.ai.usedProfile": "Proposal used the approved brand profile context.",
@@ -4016,5 +4016,9 @@
   "strategy.execution.pager": "Plan items pages",
   "strategy.execution.prev": "Previous",
   "strategy.execution.next": "Next",
-  "strategy.execution.pageOf": "Page {page} of {pages}"
+  "strategy.execution.pageOf": "Page {page} of {pages}",
+  "strategy.plan.empty.allocations": "No budget split yet. Add a platform and its share of the paid budget.",
+  "strategy.plan.empty.audiences": "No paid audiences yet. Add who the ads should reach.",
+  "strategy.plan.empty.experiments": "No experiments yet. Add a test with a hypothesis and a metric.",
+  "strategy.plan.empty.flights": "No flights yet. Add the campaign dates and budget per period."
 }

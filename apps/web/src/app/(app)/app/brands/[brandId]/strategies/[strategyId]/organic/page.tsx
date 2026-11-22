@@ -15,7 +15,6 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
-import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
@@ -95,7 +94,6 @@ export default function StrategyOrganicPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <BrandPlxPageHead title={t('strategy.organic.title')} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <p className="oma-muted" data-testid="strategy-ai-assistant-link">
           <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
@@ -109,11 +107,6 @@ export default function StrategyOrganicPage() {
         data-testid="strategy-organic-form"
       >
         <section className="oma-form-section">
-          <h2>
-            <span className="oma-track-pill oma-track-pill--organic">
-              {t('strategy.nav.organic')}
-            </span>
-          </h2>
           {/* DEC-029 4.1: pillars, channels, formats and cadence moved to the v2 plan below. */}
           <p className="oma-muted" data-testid="organic-legacy-moved">
             {t('strategy.organic.legacyMoved')}
@@ -144,9 +137,7 @@ export default function StrategyOrganicPage() {
           <Button type="primary" htmlType="submit">
             {t('strategy.organic.save')}
           </Button>
-        ) : (
-          <p>{t('strategy.warning.immutable')}</p>
-        )}
+        ) : null}
       </form>
       <StrategyPlanEditor
         brandId={brandId}
