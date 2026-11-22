@@ -108,7 +108,15 @@ export function SeoRankTracking({ brandId }: { brandId: string }) {
                   {k.series.slice(-4).map((p) => (
                     <td key={p.week}>{p.position ?? '—'}</td>
                   ))}
-                  <td>{k.change == null ? '—' : k.change > 0 ? `▲ ${k.change}` : k.change < 0 ? `▼ ${-k.change}` : '='}</td>
+                  <td>
+                    {k.change == null
+                      ? '—'
+                      : k.change > 0
+                        ? `▲ ${k.change}`
+                        : k.change < 0
+                          ? `▼ ${-k.change}`
+                          : '='}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -132,7 +140,9 @@ export function SeoRankTracking({ brandId }: { brandId: string }) {
                     checked={picked.includes(g.keyword)}
                     onChange={(e) =>
                       setPicked((p) =>
-                        e.target.checked ? [...p, g.keyword].slice(0, 30) : p.filter((x) => x !== g.keyword),
+                        e.target.checked
+                          ? [...p, g.keyword].slice(0, 30)
+                          : p.filter((x) => x !== g.keyword),
                       )
                     }
                   />{' '}

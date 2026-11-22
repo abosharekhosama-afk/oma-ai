@@ -71,7 +71,8 @@ export type WeeklyRankPoint = {
 /** Latest observation per keyword per ISO week, oldest week first. */
 export function weeklyRankSeries(observations: RankObservation[], weeks: number, now: Date) {
   const keys: string[] = [];
-  for (let i = weeks - 1; i >= 0; i--) keys.push(isoWeekKey(new Date(now.getTime() - i * 7 * 86_400_000)));
+  for (let i = weeks - 1; i >= 0; i--)
+    keys.push(isoWeekKey(new Date(now.getTime() - i * 7 * 86_400_000)));
   const byKeyword = new Map<string, Map<string, RankObservation>>();
   for (const o of observations) {
     const k = normalizeSeoKeyword(o.keyword);
@@ -144,9 +145,27 @@ export function seoKeywordGaps(
   for (const t of tracked) {
     const o = best.get(normalizeSeoKeyword(t.keyword));
     if (!o || o.position == null) {
-      gaps.push({ kind: 'not_ranking', keyword: t.keyword, locale: t.locale, pillar_key: t.pillar_key, position: null, impressions: null, page_url: null, priority: t.priority });
+      gaps.push({
+        kind: 'not_ranking',
+        keyword: t.keyword,
+        locale: t.locale,
+        pillar_key: t.pillar_key,
+        position: null,
+        impressions: null,
+        page_url: null,
+        priority: t.priority,
+      });
     } else if (o.position > 10 && o.position <= 30) {
-      gaps.push({ kind: 'striking_distance', keyword: t.keyword, locale: t.locale, pillar_key: t.pillar_key, position: o.position, impressions: o.impressions, page_url: o.pageUrl ?? null, priority: t.priority });
+      gaps.push({
+        kind: 'striking_distance',
+        keyword: t.keyword,
+        locale: t.locale,
+        pillar_key: t.pillar_key,
+        position: o.position,
+        impressions: o.impressions,
+        page_url: o.pageUrl ?? null,
+        priority: t.priority,
+      });
     }
   }
   for (const [k, o] of best) {
@@ -165,7 +184,12 @@ export function seoKeywordGaps(
   }
   const order = { striking_distance: 0, not_ranking: 1, unplanned_demand: 2 } as const;
   return gaps
-    .sort((a, b) => order[a.kind] - order[b.kind] || a.priority - b.priority || (b.impressions ?? 0) - (a.impressions ?? 0))
+    .sort(
+      (a, b) =>
+        order[a.kind] - order[b.kind] ||
+        a.priority - b.priority ||
+        (b.impressions ?? 0) - (a.impressions ?? 0),
+    )
     .slice(0, opts.limit ?? 50);
 }
 
@@ -177,7 +201,10 @@ export function briefContentFromSeoGaps(gaps: SeoGap[], now: Date = new Date()) 
     objective_en: `Win search visibility for: ${keywords.join(', ')}`.slice(0, 1000),
     objective_ar: `تحسين الظهور في البحث للكلمات: ${keywords.join('، ')}`.slice(0, 1000),
     channels: ['Website'],
-    references: gaps.filter((g) => g.page_url).map((g) => g.page_url!).slice(0, 20),
+    references: gaps
+      .filter((g) => g.page_url)
+      .map((g) => g.page_url!)
+      .slice(0, 20),
     mandatories: gaps
       .map((g) =>
         g.kind === 'striking_distance'
@@ -198,7 +225,11 @@ export function briefContentFromSeoGaps(gaps: SeoGap[], now: Date = new Date()) 
       channel: 'Website',
       department: 'SEO',
       due_at: due,
-      notes: `${g.kind}${g.position != null ? ` · position ${Math.round(g.position)}` : ''}${g.page_url ? ` · ${g.page_url}` : ''}`.slice(0, 1000),
+      notes:
+        `${g.kind}${g.position != null ? ` · position ${Math.round(g.position)}` : ''}${g.page_url ? ` · ${g.page_url}` : ''}`.slice(
+          0,
+          1000,
+        ),
     })),
   };
 }

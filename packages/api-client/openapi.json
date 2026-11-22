@@ -1213,6 +1213,48 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/seo/rank-tracking": {
+      "get": {
+        "operationId": "SeoController_rankTracking",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/gaps": {
+      "get": {
+        "operationId": "SeoController_gaps",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/seo/gaps/brief": {
+      "post": {
+        "operationId": "SeoController_gapsToBrief",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Seo"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/scans/{scanId}/pages": {
       "get": {
         "operationId": "DiscoveryController_pages",
@@ -1785,6 +1827,34 @@
         "parameters": [],
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/kpi-scorecard": {
+      "get": {
+        "operationId": "StrategyController_kpiScorecard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/kpi-scorecard/{kpiId}/manual": {
+      "post": {
+        "operationId": "StrategyController_recordManualKpi",
+        "parameters": [],
+        "responses": {
+          "200": {
             "description": ""
           }
         },
