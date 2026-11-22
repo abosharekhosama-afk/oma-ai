@@ -3703,7 +3703,7 @@
   "strategy.plan.warn.flightDates": "A flight ends before it starts.",
   "strategy.paidExec.title": "Paid execution",
   "strategy.metaAds.title": "Meta Ads",
-  "strategy.metaAds.readOnly": "Read-only: OMA reads spend and results (ads_read) and never changes your ads.",
+  "strategy.metaAds.readOnly": "Read-only: OMA reads spend and results (read-only permission) and never changes your ads.",
   "strategy.metaAds.connect": "Connect Meta Ads (read-only)",
   "strategy.metaAds.pickAccount": "Pick an ad account",
   "strategy.metaAds.sync": "Sync last 28 days",
