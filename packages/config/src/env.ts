@@ -53,7 +53,14 @@ export const envSchema = z
     /** scrape-first scan disables JS render regardless; legacy-js-auto uses this (off | auto | always). */
     /** Unset = fixture outside production, disabled in production (see seoFixturesAllowed). */
     BRAND_GSC_MODE: z.enum(['disabled', 'fixture', 'live']).optional(),
-    BRAND_KEYWORD_RESEARCH_MODE: z.enum(['manual', 'external_fixture', 'fixture']).optional(),
+    BRAND_KEYWORD_RESEARCH_MODE: z
+      .enum(['manual', 'external_fixture', 'fixture', 'dataforseo'])
+      .optional(),
+    DATAFORSEO_LOGIN: z.string().optional(),
+    DATAFORSEO_PASSWORD: z.string().optional(),
+    DATAFORSEO_LOCATION_CODE: z.string().optional(),
+    DATAFORSEO_BASE_URL: z.string().optional(),
+    SEO_WEEKLY_SYNC: z.enum(['0', '1', 'true', 'false']).optional(),
     SEO_FIXTURES_ALLOWED: z.enum(['0', '1', 'true', 'false']).optional(),
     BRAND_SCAN_ENGINE: z.enum(['scrape-first', 'legacy-js-auto']).default('scrape-first'),
     /** off = static HTML only; auto = Playwright when SPA shell or weak catalog data; always = every page (costly). */

@@ -120,4 +120,34 @@ export class SeoController {
     const days = Math.min(90, Math.max(7, Number(period ?? 30) || 30));
     return seoService.analyticsSeo(ctx(req).tenantId, brandId, days);
   }
+
+  @Get('api/v1/brands/:brandId/seo/rank-tracking')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  @RequireCapabilities('brand.read')
+  rankTracking(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Query('weeks') weeks?: string,
+  ) {
+    return seoService.rankTracking(ctx(req).tenantId, brandId, weeks);
+  }
+
+  @Get('api/v1/brands/:brandId/seo/gaps')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  @RequireCapabilities('brand.read')
+  gaps(@Req() req: Request, @Param('brandId') brandId: string) {
+    return seoService.seoGaps(ctx(req).tenantId, brandId);
+  }
+
+  @Post('api/v1/brands/:brandId/seo/gaps/brief')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  @RequireCapabilities('brief.create')
+  gapsToBrief(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Body() body: { keywords?: string[]; title?: string },
+  ) {
+    const c = ctx(req);
+    return seoService.gapsToBrief(c.tenantId, c.userId, brandId, body ?? {});
+  }
 }

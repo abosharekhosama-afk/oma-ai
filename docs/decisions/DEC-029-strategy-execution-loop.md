@@ -134,3 +134,33 @@ document, and default SEO numbers were sample data that looked measured.
   - Audited as `strategy.kpi.manual_recorded`, with before and after values.
   - Measured KPIs return 409 `KPI_MEASURED`.
 - UI: a "KPI scorecard" panel on the strategy overview. Adding a KPI with a metric or as manual is only possible on drafts. Manual values can be recorded inline.
+
+## PR 4.6: SEO — DataForSEO behind a flag, live GSC hardening, weekly rank tracking, gaps → brief
+
+- **DataForSEO.** `BRAND_KEYWORD_RESEARCH_MODE=dataforseo` turns it on, and only if `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` are set. Without a key the mode resolves to `manual`, and nothing is invented.
+  - Volume comes from `keywords_data/google_ads/search_volume/live` and difficulty from `dataforseo_labs/google/bulk_keyword_difficulty/live`, per locale.
+  - Location comes from the market (SA/AE/EG/KW/QA/BH/OM/JO/US/GB), else `DATAFORSEO_LOCATION_CODE`, else SA.
+  - Metrics are labelled `EXTERNAL` / `measured: true`. A missing keyword gives nulls. Provider errors throw instead of returning numbers.
+- **Search Console sync is shared** (`@oma/db` `syncBrandSearchConsole`, used by both the API "sync now" and the worker). It fixes several problems in the live path:
+  - Expired access tokens are refreshed with the stored refresh token. If the refresh fails, the link goes to `NEEDS_RECONNECT` and the API returns 409 `GSC_NEEDS_RECONNECT`.
+  - Each query's locale is detected from its script, instead of always being `ar`.
+  - The window ends 2 days back, because GSC data lags. Up to 250 rows.
+  - Provider errors are stored in `lastError`; a 401/403 → `NEEDS_RECONNECT`.
+  - There is one dated snapshot per source per day. It is written atomically.
+  - On OAuth, the chosen property is the one that matches the brand website, not the first site Google lists. With no verified site, the user is redirected with `gsc=no_verified_site`.
+- **Weekly rank tracking.** In the worker, every 6 hours, each CONNECTED live link with no sync in over 7 days is synced (`SEO_WEEKLY_SYNC=false` turns this off; live mode only).
+  - `GET /brands/:brandId/seo/rank-tracking?weeks=N` (brand.read) shows the keywords of the latest APPROVED strategy version, with:
+    - the latest snapshot of each ISO week;
+    - the latest position and the week-over-week change;
+    - a status (top3 / top10 / striking / deep / not_ranking);
+    - GSC link status.
+- **Gaps → brief.**
+  - `GET /brands/:brandId/seo/gaps` compares the last 28 days with the plan:
+    - plan keywords that don't rank;
+    - plan or unplanned queries at positions 11–30;
+    - unplanned queries with ≥ 50 impressions.
+  - `POST /brands/:brandId/seo/gaps/brief` (`brief.create`) turns the selected gaps into one DRAFT brief (`origin: seo`, linked to the approved version):
+    - one deliverable per gap: a page refresh or an article, Website channel, due in 14 days;
+    - the pages as references.
+  - It goes through the normal brief approve → tasks route.
+- UI: the SEO page gets a "Weekly rank tracking" table (last 4 weeks plus change) and an "SEO gaps" checklist with "Create draft brief". The brief page shows the SEO origin.

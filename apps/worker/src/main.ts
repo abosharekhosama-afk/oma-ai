@@ -57,6 +57,16 @@ async function main() {
     },
     Number.isFinite(scanRecoveryMs) && scanRecoveryMs >= 15_000 ? scanRecoveryMs : 45_000,
   );
+  // DEC-029 4.6: weekly Search Console rank snapshot (live mode only; SEO_WEEKLY_SYNC=false disables).
+  const seoWeekly = () =>
+    void import('./brand/seo-weekly-sync')
+      .then(({ runSeoWeeklySync }) => runSeoWeeklySync())
+      .then((res) => {
+        if (!res.skipped) log.info(res, 'seo weekly sync tick');
+      })
+      .catch((err) => log.error({ err: String(err) }, 'seo weekly sync failed'));
+  setTimeout(seoWeekly, 60_000);
+  setInterval(seoWeekly, 6 * 60 * 60 * 1000);
   startAnalysisProcessor(connection);
   startAiProcessor(connection);
   startInboxProcessor(connection);

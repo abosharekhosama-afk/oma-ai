@@ -3,14 +3,22 @@ import {
   buildSeoStrategyProposals,
   createKeywordResearchPort,
   createSearchConsolePort,
-  decryptToken,
   DomainError,
   encryptToken,
   gscModeFromEnv,
   newId,
   tokenKeyFromEnv,
   type KeywordResearchRequest,
+  type TrackedKeyword,
+  briefContentFromSeoGaps,
+  normalizeSeoKeyword,
+  pickSearchConsoleSite,
+  rankStatus,
+  seoKeywordGaps,
+  weeklyRankSeries,
 } from '@oma/domain';
+import { syncBrandSearchConsole } from '@oma/db';
+import type { BriefService } from '../brief/brief.service';
 import { AuditService } from '../audit/audit.service';
 
 const STATE_TTL_MS = 15 * 60_000;
@@ -27,7 +35,10 @@ function gscRedirectUri(env = process.env) {
 }
 
 export class SeoService {
-  constructor(private readonly audit: AuditService) {}
+  constructor(
+    private readonly audit: AuditService,
+    private readonly briefs?: BriefService,
+  ) {}
 
   private tokenKey() {
     const key = tokenKeyFromEnv();
@@ -212,7 +223,12 @@ export class SeoService {
       BRAND_GSC_MODE: 'live',
     });
     const sites = await port.listVerifiedSites();
-    const siteUrl = sites[0] ?? 'https://example.com/';
+    const website = await prisma.websiteSource.findFirst({
+      where: { tenantId: row.tenantId, brandId: row.brandId, validationStatus: 'VALID' },
+    });
+    // DEC-029 4.6: match the brand website instead of whichever property Google lists first.
+    const siteUrl = pickSearchConsoleSite(sites, website?.normalizedUrl);
+    if (!siteUrl) return `${base}/app/brands/${row.brandId}/seo?gsc=no_verified_site`;
     const linkId = newId();
     await prisma.brandSearchConsoleLink.upsert({
       where: { brandId: row.brandId },
@@ -259,61 +275,31 @@ export class SeoService {
         website?.normalizedUrl ?? 'https://example-brand.test/',
       );
     }
-    const refreshed = await prisma.brandSearchConsoleLink.findFirst({
-      where: tenantWhere(tenantId, { brandId }),
-    });
-    if (!refreshed) {
+    const result = await syncBrandSearchConsole(tenantId, brandId);
+    if (!result.ok) {
+      if (result.reason === 'not_connected' || result.reason === 'token_unavailable') {
+        throw new DomainError(
+          'PROVIDER_NOT_CONFIGURED',
+          'Search Console is not connected',
+          503,
+          'errors.provider_not_configured',
+        );
+      }
       throw new DomainError(
-        'PROVIDER_NOT_CONFIGURED',
-        'Search Console is not connected',
-        503,
-        'errors.provider_not_configured',
+        'CONFLICT_STATE',
+        result.reason === 'needs_reconnect'
+          ? 'Search Console access expired; reconnect it'
+          : 'Search Console sync failed',
+        409,
+        'errors.conflict_state',
+        [
+          {
+            code:
+              result.reason === 'needs_reconnect' ? 'GSC_NEEDS_RECONNECT' : 'GSC_PROVIDER_ERROR',
+          },
+        ],
       );
     }
-
-    let accessToken: string | undefined;
-    if (refreshed.accessTokenEnc) {
-      accessToken = decryptToken(refreshed.accessTokenEnc, this.tokenKey());
-    }
-    const port = createSearchConsolePort(accessToken);
-    const end = new Date();
-    const start = new Date(end.getTime() - 28 * 86_400_000);
-    const fmt = (d: Date) => d.toISOString().slice(0, 10);
-    const rows = await port.querySearchAnalytics({
-      siteUrl: refreshed.siteUrl,
-      startDate: fmt(start),
-      endDate: fmt(end),
-    });
-
-    await prisma.keywordRankObservation.deleteMany({
-      where: {
-        tenantId,
-        brandId,
-        source: port.source,
-        capturedAt: { gte: new Date(Date.now() - 86_400_000) },
-      },
-    });
-    for (const row of rows) {
-      await prisma.keywordRankObservation.create({
-        data: {
-          id: newId(),
-          tenantId,
-          brandId,
-          keyword: row.query,
-          locale: 'ar',
-          position: row.position,
-          impressions: row.impressions,
-          clicks: row.clicks,
-          ctr: row.ctr,
-          pageUrl: row.page ?? null,
-          source: port.source,
-        },
-      });
-    }
-    await prisma.brandSearchConsoleLink.update({
-      where: { id: refreshed.id },
-      data: { lastSyncAt: new Date(), lastError: null },
-    });
     await this.audit.write({
       tenantId,
       actorUserId: userId,
@@ -321,7 +307,164 @@ export class SeoService {
       targetType: 'BrandWorkspace',
       targetId: brandId,
     });
-    return { data: { synced: true, rows: rows.length, source: port.source } };
+    return { data: { synced: true, rows: result.rows, source: result.source } };
+  }
+
+  /** Keywords of the brand's latest APPROVED strategy version (the plan to track). */
+  private async trackedKeywords(tenantId: string, brandId: string) {
+    const prisma = getPrisma();
+    const version = await prisma.strategyVersion.findFirst({
+      where: tenantWhere(tenantId, { brandId, status: 'APPROVED' }),
+      orderBy: { approvedAt: 'desc' },
+      select: { id: true, strategyId: true },
+    });
+    if (!version) return { version: null, keywords: [] as TrackedKeyword[] };
+    const rows = await prisma.strategySeoKeyword.findMany({
+      where: { tenantId, strategyVersionId: version.id },
+      orderBy: { priority: 'asc' },
+      take: 200,
+    });
+    return {
+      version,
+      keywords: rows.map((k) => ({
+        keyword: k.keyword,
+        locale: k.locale,
+        pillar_key: k.pillarKey,
+        priority: k.priority,
+      })),
+    };
+  }
+
+  /** DEC-029 4.6: weekly position per tracked keyword (latest GSC snapshot of each ISO week). */
+  async rankTracking(tenantId: string, brandId: string, weeksRaw?: string) {
+    await this.brand(tenantId, brandId);
+    const weeks = Math.min(26, Math.max(2, Number(weeksRaw) || 8));
+    const now = new Date();
+    const { version, keywords } = await this.trackedKeywords(tenantId, brandId);
+    const observations = await getPrisma().keywordRankObservation.findMany({
+      where: tenantWhere(tenantId, {
+        brandId,
+        capturedAt: { gte: new Date(now.getTime() - (weeks * 7 + 7) * 86_400_000) },
+      }),
+      orderBy: { capturedAt: 'asc' },
+    });
+    const link = await getPrisma().brandSearchConsoleLink.findFirst({
+      where: tenantWhere(tenantId, { brandId }),
+    });
+    const tracker = weeklyRankSeries(observations, weeks, now);
+    const rows = keywords.map((k) => {
+      const series = tracker.series(k.keyword);
+      const withPos = series.filter((p) => p.position != null);
+      const latest = withPos.at(-1)?.position ?? null;
+      const previous = withPos.length > 1 ? withPos.at(-2)!.position : null;
+      return {
+        ...k,
+        series,
+        latest_position: latest,
+        // Positive = moved up (smaller position number).
+        change:
+          latest != null && previous != null ? Math.round((previous - latest) * 10) / 10 : null,
+        status: rankStatus(latest),
+      };
+    });
+    return {
+      data: {
+        strategy_version_id: version?.id ?? null,
+        weeks: tracker.weeks,
+        source: observations.at(-1)?.source ?? null,
+        gsc: {
+          status: link?.status ?? 'NOT_CONNECTED',
+          last_sync_at: link?.lastSyncAt?.toISOString() ?? null,
+          last_error: link?.lastError ?? null,
+          mode: gscModeFromEnv(),
+        },
+        keywords: rows,
+        summary: {
+          tracked: rows.length,
+          top10: rows.filter((r) => r.status === 'top3' || r.status === 'top10').length,
+          striking: rows.filter((r) => r.status === 'striking').length,
+          not_ranking: rows.filter((r) => r.status === 'not_ranking').length,
+        },
+      },
+    };
+  }
+
+  /** DEC-029 4.6: SEO gaps from the last 28 days of Search Console vs the approved plan. */
+  async seoGaps(tenantId: string, brandId: string) {
+    await this.brand(tenantId, brandId);
+    const { version, keywords } = await this.trackedKeywords(tenantId, brandId);
+    const latest = await getPrisma().keywordRankObservation.findMany({
+      where: tenantWhere(tenantId, {
+        brandId,
+        capturedAt: { gte: new Date(Date.now() - 28 * 86_400_000) },
+      }),
+      orderBy: { capturedAt: 'desc' },
+      take: 2000,
+    });
+    // Latest snapshot per keyword only.
+    const seen = new Set<string>();
+    const fresh = latest.filter((o) => {
+      const k = normalizeSeoKeyword(o.keyword);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+    return {
+      data: {
+        strategy_version_id: version?.id ?? null,
+        source: fresh[0]?.source ?? null,
+        has_search_data: fresh.length > 0,
+        gaps: seoKeywordGaps(keywords, fresh),
+      },
+    };
+  }
+
+  /** DEC-029 4.6: turn selected gaps into one DRAFT brief (plan → brief route; a person approves it). */
+  async gapsToBrief(
+    tenantId: string,
+    userId: string,
+    brandId: string,
+    body: { keywords?: unknown; title?: unknown },
+  ) {
+    const wanted = Array.isArray(body?.keywords)
+      ? body.keywords.filter((k): k is string => typeof k === 'string').map(normalizeSeoKeyword)
+      : [];
+    if (!wanted.length || wanted.length > 30) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Pick 1–30 gap keywords',
+        400,
+        'errors.validation',
+        [{ field: 'keywords', code: 'INVALID_SELECTION' }],
+      );
+    }
+    const { data } = await this.seoGaps(tenantId, brandId);
+    const picked = data.gaps.filter((g) => wanted.includes(normalizeSeoKeyword(g.keyword)));
+    if (!picked.length) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'None of these keywords is a current gap',
+        409,
+        'errors.conflict_state',
+        [{ code: 'GAP_NOT_FOUND' }],
+      );
+    }
+    if (!this.briefs) {
+      throw new DomainError('CONFLICT_STATE', 'Briefs are disabled', 409, 'errors.conflict_state');
+    }
+    const title =
+      typeof body.title === 'string' && body.title.trim()
+        ? body.title.trim().slice(0, 200)
+        : `SEO gaps: ${picked
+            .map((g) => g.keyword)
+            .slice(0, 3)
+            .join(', ')}`.slice(0, 200);
+    const brief = await this.briefs.createFromSeoGaps({ tenantId, userId }, brandId, {
+      title,
+      content: briefContentFromSeoGaps(picked),
+      strategyVersionId: data.strategy_version_id,
+    });
+    return { data: { brief_id: brief.id, gaps: picked.length } };
   }
 
   async keywordResearch(tenantId: string, brandId: string, body: KeywordResearchRequest) {
