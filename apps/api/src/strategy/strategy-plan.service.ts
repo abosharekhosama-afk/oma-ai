@@ -792,7 +792,12 @@ export class StrategyPlanService {
     strategyId: string,
     versionId: string,
     body: Record<string, unknown>,
-    opts: { idempotencyKey?: string; correlationId?: string } = {},
+    opts: {
+      idempotencyKey?: string;
+      correlationId?: string;
+      /** DEC-029 4.10: internal only (never read from the request body). */
+      reviewFindings?: unknown[];
+    } = {},
   ) {
     const mode = body?.mode == null ? 'ai' : body.mode;
     if (mode !== 'ai' && mode !== 'template') {
@@ -894,6 +899,7 @@ export class StrategyPlanService {
       paidEnabled: tracks.paid,
       foundation: JSON.parse(version.foundationJson || '{}'),
       currentPlan: { organic: current.organic, paid: current.paid },
+      reviewFindings: opts.reviewFindings ?? null,
     });
     const run = await runStructuredGeneration({
       tenantId,
@@ -916,7 +922,11 @@ export class StrategyPlanService {
       testValue: deterministic,
       serialize: (value) => value,
       brandProfileVersionId: brand.profileVersionId,
-      metadata: { kind: PLAN_PROPOSAL_KIND, tracks: base.tracks },
+      metadata: {
+        kind: PLAN_PROPOSAL_KIND,
+        tracks: base.tracks,
+        ...(opts.reviewFindings?.length ? { monthly_review: true } : {}),
+      },
     });
     const checked = validateStrategyPlanProposal(run.value, tracks, {
       source: 'AI_ESTIMATE',
