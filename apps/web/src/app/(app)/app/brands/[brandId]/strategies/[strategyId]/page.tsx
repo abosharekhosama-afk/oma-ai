@@ -38,6 +38,8 @@ import {
   BrandPlxSection,
 } from '../../../../../../../components/brand/brand-plx-section';
 import { StrategyKpiPanel } from '../../../../../../../components/strategy/strategy-kpi-panel';
+import { StrategyNextStep } from '../../../../../../../components/strategy/strategy-next-step';
+import { useStrategyReadiness } from '../../../../../../../lib/strategy-readiness';
 
 export default function StrategyOverviewPage() {
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -60,6 +62,12 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
   const [versionDetail, setVersionDetail] = useState<StrategyVersionDetail | null>(null);
+  const { readiness } = useStrategyReadiness(
+    brandId,
+    strategyId,
+    versionDetail?.id,
+    `${versionDetail?.status}:${versionDetail?.row_version}`,
+  );
   const load = useCallback(async () => {
     try {
       const [brandRes, stratRes, currentRes] = await Promise.all([
@@ -176,6 +184,13 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
           </span>
         ) : null}
       </div>
+
+      <StrategyNextStep
+        brandId={brandId}
+        strategyId={strategyId}
+        journey={readiness?.journey}
+        status={versionDetail?.status}
+      />
 
       <StrategyOverviewSummary brandId={brandId} strategyId={strategyId} strategy={strategy} />
 

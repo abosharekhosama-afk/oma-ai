@@ -31,3 +31,15 @@ export {
 } from './social/media-constraints';
 export { PLAN_CODES, PLAN_CATALOG, type PlanCode, type PlanDefinition } from './billing/plans';
 export { brandFolderSlug } from './workdrive/layout';
+export {
+  STRATEGY_BLOCKING_CODES,
+  checkFoundation,
+  expandFoundationReasons,
+  strategyBlockingItem,
+  strategyJourney,
+  type StrategyBlockingItem,
+  type StrategyFixSection,
+  type StrategyJourney,
+  type StrategyJourneyStepId,
+  type StrategyJourneyState,
+} from './strategy/strategy-readiness';

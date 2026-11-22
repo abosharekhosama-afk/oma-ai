@@ -619,6 +619,18 @@ export class StrategyController {
     );
   }
 
+  /** Read-only: what still blocks submit/approve, with fix links, plus the guided journey. */
+  @Get('strategies/:strategyId/versions/:versionId/readiness')
+  async readiness(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Param('strategyId') strategyId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    this.requireTenant(req);
+    return strategyService.readiness(req.oma!.tenantId!, brandId, strategyId, versionId);
+  }
+
   @Post('strategies/:strategyId/versions/:versionId/submit')
   @UseGuards(CsrfGuard)
   async submit(

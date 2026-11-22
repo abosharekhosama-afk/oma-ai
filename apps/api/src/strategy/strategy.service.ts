@@ -23,6 +23,10 @@ import {
   STRATEGY_KPI_SCOPES,
   isMeasurableKpiMetric,
   parseKpiTarget,
+  checkFoundation,
+  expandFoundationReasons,
+  strategyBlockingItem,
+  strategyJourney,
 } from '@oma/domain';
 import { buildStrategyProposePrompt } from '@oma/ai';
 import { loadBrandContext } from '../ai/brand-context.service';
@@ -47,19 +51,19 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
 }
 
 function foundationHasRequired(foundationJson: string | null | undefined): boolean {
-  const f = parseJson<Record<string, unknown>>(foundationJson, {});
-  const goals = f.goals;
-  const positioning = f.positioning;
-  const hasGoals = Array.isArray(goals) ? goals.length > 0 : Boolean(goals);
-  const hasPositioning =
-    typeof positioning === 'string'
-      ? positioning.trim().length > 0
-      : Boolean(
-          positioning &&
-          typeof positioning === 'object' &&
-          (positioning as { value?: string }).value,
-        );
-  return hasGoals && hasPositioning;
+  const check = checkFoundation(parseJson<Record<string, unknown>>(foundationJson, {}));
+  return check.hasGoals && check.hasPositioning;
+}
+
+function foundationCheckOf(foundationJson: string | null | undefined) {
+  return checkFoundation(parseJson<Record<string, unknown>>(foundationJson, {}));
+}
+
+/** 422 details: one entry per missing item, with where to fix it (UI deep link). */
+function blockingDetails(reasons: string[], foundationJson: string | null | undefined) {
+  return expandFoundationReasons(reasons, foundationCheckOf(foundationJson)).map((code) =>
+    strategyBlockingItem(code),
+  );
 }
 
 @Injectable()
@@ -1255,6 +1259,71 @@ export class StrategyService {
     };
   }
 
+  /**
+   * Read-only readiness for the latest action on a version (submit while DRAFT,
+   * approve while IN_REVIEW) plus the five-step guided journey. Never mutates.
+   */
+  async readiness(tenantId: string, brandId: string, strategyId: string, versionId: string) {
+    const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
+    const action =
+      version.status === 'DRAFT' ? 'submit' : version.status === 'IN_REVIEW' ? 'approve' : null;
+    let linkedStatus: string | null = null;
+    if (version.linkedApprovedProfileVersionId) {
+      const profile = await getPrisma().profileVersion.findFirst({
+        where: tenantWhere(tenantId, { id: version.linkedApprovedProfileVersionId, brandId }),
+        select: { status: true },
+      });
+      linkedStatus = profile?.status ?? null;
+    }
+    const foundation = foundationCheckOf(version.foundationJson);
+    let reasons: string[] = [];
+    if (action) {
+      const eligibility = evaluatePackageEligibility({
+        linkedApprovedProfileVersionId: version.linkedApprovedProfileVersionId,
+        linkedProfileStatus: linkedStatus,
+        organicEnabled: version.organicEnabled,
+        paidEnabled: version.paidEnabled,
+        organicDisabledRationale: version.organicDisabledRationale,
+        paidDisabledRationale: version.paidDisabledRationale,
+        requiredFoundationPresent: foundation.hasGoals && foundation.hasPositioning,
+        unknownsAcknowledged: version.unknownsAcknowledged,
+        forAction: action,
+      });
+      reasons = [
+        ...eligibility.blockingReasons,
+        ...(await this.paidPlanSubmitBlockingReasons(version)),
+      ];
+    }
+    const plan = await readStrategyPlan(getPrisma(), version.id);
+    const planHasContent =
+      (version.organicEnabled &&
+        (plan.organic.pillars.length > 0 ||
+          (plan.organic.cadence ?? []).some((c) => c.posts_per_week > 0))) ||
+      (version.paidEnabled && plan.paid.allocations.length > 0);
+    const executionStarted =
+      version.status === 'APPROVED'
+        ? (await getPrisma().workRequest.count({
+            where: { tenantId, brandId, strategyVersionId: versionId },
+          })) > 0
+        : false;
+    const items = blockingDetails(reasons, version.foundationJson);
+    return {
+      data: {
+        version_id: version.id,
+        status: version.status,
+        action,
+        eligible: action ? items.length === 0 : false,
+        blocking_reasons: items,
+        journey: strategyJourney({
+          versionStatus: version.status,
+          foundation,
+          planHasContent,
+          executionStarted,
+        }),
+      },
+    };
+  }
+
   async submit(
     tenantId: string,
     actorUserId: string,
@@ -1299,8 +1368,8 @@ export class StrategyService {
         'APPROVAL_INELIGIBLE',
         'Submit blocked',
         422,
-        'errors.approval_ineligible',
-        submitBlocking.map((r) => ({ code: r })),
+        'errors.strategy_submit_blocked',
+        blockingDetails(submitBlocking, version.foundationJson),
       );
     }
 
@@ -1384,7 +1453,7 @@ export class StrategyService {
         'Unknowns must be acknowledged',
         422,
         'errors.approval_ineligible',
-        [{ code: 'UNKNOWNS_ACK_REQUIRED' }],
+        [strategyBlockingItem('UNKNOWNS_ACK_REQUIRED')],
       );
     }
     const profile = version.linkedApprovedProfileVersionId
@@ -1414,7 +1483,7 @@ export class StrategyService {
         'Approve blocked',
         422,
         'errors.approval_ineligible',
-        approveBlocking.map((r) => ({ code: r })),
+        blockingDetails(approveBlocking, version.foundationJson),
       );
     }
 

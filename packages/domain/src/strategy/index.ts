@@ -19,3 +19,4 @@ export * from './research-port';
 export * from './plan-proposal';
 export * from './paid-execution';
 export * from './monthly-review';
+export * from './strategy-readiness';

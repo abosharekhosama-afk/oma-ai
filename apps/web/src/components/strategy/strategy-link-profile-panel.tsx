@@ -68,11 +68,49 @@ export function StrategyLinkProfilePanel({
     }
   }, [brand, brandId, onLinked, rowVersion, strategyId, t, versionId]);
 
+  const currentApprovedId = brand?.current_approved_profile_version_id ?? null;
+  const staleLink = Boolean(
+    !missingSource &&
+    linkedProfileVersionId &&
+    currentApprovedId &&
+    currentApprovedId !== linkedProfileVersionId,
+  );
+
+  if (staleLink && currentApprovedId) {
+    // The linked profile was replaced by a newer approved one: submit is blocked
+    // (LINKED_PROFILE_NOT_APPROVED) until the draft points at the current profile.
+    return (
+      <section
+        className="oma-banner oma-banner-warning oma-stack"
+        id="strategy-link-profile"
+        data-testid="strategy-profile-stale"
+        aria-label={t('strategy.linkProfile.staleTitle')}
+      >
+        <strong>{t('strategy.linkProfile.staleTitle')}</strong>
+        <p className="oma-muted">{t('strategy.linkProfile.staleHint')}</p>
+        <LinkProfileActions
+          approvedId={currentApprovedId}
+          brandId={brandId}
+          versionEditable={versionEditable}
+          busy={busy}
+          onLink={() => void linkApproved()}
+        />
+        {message ? <p role="status">{message}</p> : null}
+        {error ? (
+          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+            {error}
+          </p>
+        ) : null}
+      </section>
+    );
+  }
+
   if (!missingSource && linkedProfileVersionId) {
     return (
       <div
         className="oma-banner oma-banner-info"
         role="status"
+        id="strategy-link-profile"
         data-testid="strategy-profile-linked"
       >
         <strong>{t('strategy.linkProfile.linkedTitle')}</strong>
@@ -91,11 +129,12 @@ export function StrategyLinkProfilePanel({
 
   if (!missingSource) return null;
 
-  const approvedId = brand?.current_approved_profile_version_id;
+  const approvedId = currentApprovedId;
 
   return (
     <section
       className="oma-plx-listening-panel oma-plx-brand-section oma-stack"
+      id="strategy-link-profile"
       data-testid="strategy-missing-profile"
       aria-label={t('strategy.linkProfile.title')}
     >
