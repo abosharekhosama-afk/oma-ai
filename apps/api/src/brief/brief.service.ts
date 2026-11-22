@@ -399,7 +399,11 @@ export class BriefService {
         return {};
       }
     })();
+    const cadenceChannels = (plan.organic.cadence ?? [])
+      .filter((c) => c.posts_per_week > 0)
+      .map((c) => c.channel);
     const organicChannels = (() => {
+      if (cadenceChannels.length) return cadenceChannels;
       try {
         return z.array(z.string()).parse(JSON.parse(version.organicTrack?.channelsJson || '[]'));
       } catch {

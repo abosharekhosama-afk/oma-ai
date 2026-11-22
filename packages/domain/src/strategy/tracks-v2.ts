@@ -99,6 +99,7 @@ export const STRATEGY_PLAN_LIMITS = {
   audiences: 12,
   experiments: 10,
   variants: 5,
+  cadence: 12,
 } as const;
 
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -159,7 +160,18 @@ export const contentGapInputSchema = z.strictObject({
   evidence_refs: evidenceRefs,
 });
 
+/** Publishing rhythm for one channel (DEC-029 4.1). Replaces legacy free-text frequency. */
+export const channelCadenceInputSchema = z.strictObject({
+  channel: text(40),
+  posts_per_week: z.number().int().min(0).max(28),
+  formats: z.array(text(40)).max(8).default([]),
+  info_class: infoClass.default('USER_AUTHORED'),
+  source: source.default('MANUAL'),
+});
+
 export const organicPlanInputSchema = z.strictObject({
+  /** Omitted = keep the stored cadence (older clients / AI proposals do not send it). */
+  cadence: z.array(channelCadenceInputSchema).max(STRATEGY_PLAN_LIMITS.cadence).optional(),
   pillars: z.array(contentPillarInputSchema).max(STRATEGY_PLAN_LIMITS.pillars).default([]),
   seo_keywords: z.array(seoKeywordInputSchema).max(STRATEGY_PLAN_LIMITS.seoKeywords).default([]),
   content_gaps: z.array(contentGapInputSchema).max(STRATEGY_PLAN_LIMITS.contentGaps).default([]),
@@ -239,6 +251,7 @@ export const paidPlanInputSchema = z.strictObject({
   experiments: z.array(experimentInputSchema).max(STRATEGY_PLAN_LIMITS.experiments).default([]),
 });
 
+export type ChannelCadenceInput = z.infer<typeof channelCadenceInputSchema>;
 export type ContentPillarInput = z.infer<typeof contentPillarInputSchema>;
 export type SeoKeywordInput = z.infer<typeof seoKeywordInputSchema>;
 export type ContentGapInput = z.infer<typeof contentGapInputSchema>;
@@ -305,7 +318,51 @@ export function organicPlanIssues(plan: OrganicPlanInput): PlanIssue[] {
       });
     }
   });
+  const channels = (plan.cadence ?? []).map((c) => c.channel.trim().toLowerCase());
+  for (const dup of duplicates(channels)) {
+    issues.push({
+      path: 'cadence',
+      code: 'DUPLICATE_CHANNEL',
+      message: `Duplicate channel ${dup}`,
+    });
+  }
   return issues;
+}
+
+/** Lowercase slug usable as a pillar key; falls back to `pillar-<n>`. */
+export function pillarKeyFromLabel(label: string, index: number, taken: Set<string>): string {
+  const base =
+    label
+      .normalize('NFKD')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || `pillar-${index + 1}`;
+  let key = /^[a-z0-9]/.test(base) ? base : `pillar-${index + 1}`;
+  let n = 2;
+  while (taken.has(key)) key = `${base.slice(0, 40)}-${n++}`;
+  taken.add(key);
+  return key;
+}
+
+/**
+ * Best-effort posts-per-week from legacy free text ("3 per week", "daily", "يوميا").
+ * Returns null when nothing usable is found.
+ */
+export function postsPerWeekFromText(text: string | null | undefined): number | null {
+  const raw = (text ?? '').toLowerCase();
+  if (!raw.trim()) return null;
+  const num = raw.match(/(\d+)/);
+  const n = num ? Number(num[1]) : null;
+  const daily = /daily|day|يوم|يومي/.test(raw);
+  const monthly = /month|شهر/.test(raw);
+  if (n != null) {
+    const v = daily ? n * 7 : monthly ? Math.round(n / 4) : n;
+    return Math.max(0, Math.min(28, v));
+  }
+  if (daily) return 7;
+  if (/weekly|week|أسبوع|اسبوع/.test(raw)) return 1;
+  return null;
 }
 
 /** Cross-row invariants for the paid plan. */

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getStrategyPlan } from '../../lib/strategy-plan-api';
 import { readFoundationText, trackListToText } from '../../lib/strategy-foundation-format';
 import type { StrategyVersionDetail } from '../../lib/strategy-types';
-import { useT } from '../../lib/use-locale';
+import { useLocale, useT } from '../../lib/use-locale';
 
 type Props = {
   brandId: string;
@@ -15,26 +15,47 @@ type Props = {
 
 export function StrategyDraftPreview({ brandId, strategyId, version }: Props) {
   const t = useT();
+  const locale = useLocale();
   const foundation = version.foundation ?? {};
   const goals = readFoundationText(foundation.goals);
   const positioning = readFoundationText(foundation.positioning);
   const keyMessages = readFoundationText(foundation.keyMessages);
   const organic = version.organic;
-  const pillars = organic ? trackListToText(organic.pillars) : '';
-  const channels = organic ? trackListToText(organic.channels) : '';
-  const formats = organic ? trackListToText(organic.formats) : '';
+  const [organicV2, setOrganicV2] = useState<{
+    pillars: string;
+    channels: string;
+    formats: string;
+  } | null>(null);
+  // v2 plan is the source of truth (DEC-029 4.1); legacy lists only before migration.
+  const pillars = organicV2?.pillars || (organic ? trackListToText(organic.pillars) : '');
+  const channels = organicV2?.channels || (organic ? trackListToText(organic.channels) : '');
+  const formats = organicV2?.formats || (organic ? trackListToText(organic.formats) : '');
 
   const [paidSummary, setPaidSummary] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!version.paid_enabled) {
+    if (!version.paid_enabled && !version.organic_enabled) {
       setPaidSummary(null);
+      setOrganicV2(null);
       return;
     }
     let cancelled = false;
     void getStrategyPlan(brandId, strategyId, version.id)
       .then((res) => {
         if (cancelled) return;
+        const org = res.data.organic;
+        const cadence = (org.cadence ?? []).filter((c) => c.posts_per_week > 0);
+        setOrganicV2({
+          pillars: org.pillars.map((p) => (locale === 'ar' ? p.name_ar : p.name_en)).join('\n'),
+          channels: cadence
+            .map((c) => `${c.channel} · ${c.posts_per_week}/${t('strategy.plan.cadence.week')}`)
+            .join('\n'),
+          formats: [...new Set(cadence.flatMap((c) => c.formats))].join('\n'),
+        });
+        if (!version.paid_enabled) {
+          setPaidSummary(null);
+          return;
+        }
         const paid = res.data.paid;
         const lines: string[] = [];
         if (paid.budget_amount) {
@@ -61,7 +82,7 @@ export function StrategyDraftPreview({ brandId, strategyId, version }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [brandId, strategyId, version.id, version.paid_enabled, t]);
+  }, [brandId, strategyId, version.id, version.paid_enabled, version.organic_enabled, locale, t]);
 
   const hasContent = Boolean(
     goals || positioning || keyMessages || pillars || channels || formats || paidSummary,

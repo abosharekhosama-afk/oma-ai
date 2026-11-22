@@ -1,7 +1,7 @@
 'use client';
 import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
-import { Button, Input, TextArea } from '@oma/ui/controls';
+import { Button, Input } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
@@ -18,18 +18,9 @@ import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
-import { useLocale, useT } from '../../../../../../../../lib/use-locale';
-import {
-  ChannelChoiceCards,
-  pickerValueToTrackListText,
-  trackListTextToPickerValue,
-} from '../../../../../../../../components/content/channel-choice-cards';
+import { useT } from '../../../../../../../../lib/use-locale';
 import { StrategyAiAssistant } from '../../../../../../../../components/strategy/strategy-ai-assistant';
 import { StrategyPlanEditor } from '../../../../../../../../components/strategy/strategy-plan-editor';
-import {
-  textToTrackList,
-  trackListToText,
-} from '../../../../../../../../lib/strategy-foundation-format';
 
 async function loadLatestVersion(brandId: string, strategyId: string) {
   const brandRes = await api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`);
@@ -45,16 +36,11 @@ async function loadLatestVersion(brandId: string, strategyId: string) {
 
 export default function StrategyOrganicPage() {
   const t = useT();
-  const locale = useLocale();
   const params = useParams<{ brandId: string; strategyId: string }>();
   const { brandId, strategyId } = params;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [version, setVersion] = useState<StrategyVersionDetail | null>(null);
-  const [frequency, setFrequency] = useState('');
   const [cta, setCta] = useState('');
-  const [pillars, setPillars] = useState('');
-  const [channels, setChannels] = useState('');
-  const [formats, setFormats] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -65,11 +51,7 @@ export default function StrategyOrganicPage() {
       const data = await loadLatestVersion(brandId, strategyId);
       setBrand(data.brand);
       setVersion(data.version);
-      setFrequency(String(data.version.organic?.frequency ?? ''));
       setCta(String(data.version.organic?.message_cta ?? data.version.organic?.messageCta ?? ''));
-      setPillars(trackListToText(data.version.organic?.pillars));
-      setChannels(trackListToText(data.version.organic?.channels));
-      setFormats(trackListToText(data.version.organic?.formats));
     } catch (err) {
       if (isTenantRequired(err)) setTenantRequired(true);
       else if (isPermissionDenied(err)) setDenied(true);
@@ -94,11 +76,7 @@ export default function StrategyOrganicPage() {
               (version.organic as { rowVersion?: number; row_version?: number }).row_version ??
               (version.organic as { rowVersion?: number }).rowVersion ??
               1,
-            frequency,
             message_cta: cta,
-            pillars: textToTrackList(pillars),
-            channels: textToTrackList(channels),
-            formats: textToTrackList(formats),
           }),
         },
       );
@@ -141,59 +119,18 @@ export default function StrategyOrganicPage() {
               {t('strategy.nav.organic')}
             </span>
           </h2>
+          {/* DEC-029 4.1: pillars, channels, formats and cadence moved to the v2 plan below. */}
+          <p className="oma-muted" data-testid="organic-legacy-moved">
+            {t('strategy.organic.legacyMoved')}
+          </p>
           <div className="oma-form-grid">
-            <label>
-              Frequency
-              <Input
-                value={frequency}
-                onChange={(e) => setFrequency(e.target.value)}
-                disabled={!editable}
-                data-testid="organic-frequency"
-              />
-            </label>
-            <label>
+            <label className="oma-field-span">
               CTA
               <Input
                 value={cta}
                 onChange={(e) => setCta(e.target.value)}
                 disabled={!editable}
                 data-testid="organic-cta"
-              />
-            </label>
-            <label className="oma-field-span">
-              {t('strategy.organic.pillars')}
-              <TextArea
-                value={pillars}
-                onChange={(e) => setPillars(e.target.value)}
-                disabled={!editable}
-                rows={4}
-                data-testid="organic-pillars"
-                placeholder={t('strategy.organic.listPlaceholder')}
-              />
-            </label>
-            <div className="oma-field-span">
-              <span className="oma-compose__label">{t('strategy.organic.channels')}</span>
-              <fieldset disabled={!editable}>
-                <ChannelChoiceCards
-                  brandId={brandId}
-                  value={trackListTextToPickerValue(channels)}
-                  multiple
-                  variant="dropdown"
-                  locale={locale}
-                  testId="organic-channels"
-                  onChange={(v) => setChannels(pickerValueToTrackListText(v))}
-                />
-              </fieldset>
-            </div>
-            <label className="oma-field-span">
-              {t('strategy.organic.formats')}
-              <TextArea
-                value={formats}
-                onChange={(e) => setFormats(e.target.value)}
-                disabled={!editable}
-                rows={3}
-                data-testid="organic-formats"
-                placeholder={t('strategy.organic.listPlaceholder')}
               />
             </label>
           </div>

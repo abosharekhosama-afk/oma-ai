@@ -29,7 +29,7 @@ import {
  */
 
 export const STRATEGY_PLAN_PROMPT_ID = 'oma.strategy_plan_generate';
-export const STRATEGY_PLAN_PROMPT_VERSION = '1';
+export const STRATEGY_PLAN_PROMPT_VERSION = '2';
 export const STRATEGY_PLAN_SCHEMA_VERSION = '1';
 
 const s = (max: number) => z.string().min(1).max(max);
@@ -48,6 +48,12 @@ const aiPillar = z.strictObject({
   description: nullableText(600),
   funnel_stage: z.enum(STRATEGY_FUNNEL_STAGES).nullable(),
   share_target_pct: z.number().int().min(0).max(100).nullable(),
+});
+
+const aiCadence = z.strictObject({
+  channel: s(40),
+  posts_per_week: z.number().int().min(0).max(28),
+  formats: z.array(s(40)).max(8),
 });
 
 const aiKeyword = z.strictObject({
@@ -114,6 +120,8 @@ export const aiStrategyPlanProposalSchema = z.strictObject({
   rationale: s(1200),
   organic: z
     .strictObject({
+      /** Per-channel publishing rhythm; null keeps the stored cadence (DEC-029 4.1). */
+      cadence: z.array(aiCadence).max(STRATEGY_PLAN_LIMITS.cadence).nullable(),
       pillars: z.array(aiPillar).max(STRATEGY_PLAN_LIMITS.pillars),
       seo_keywords: z.array(aiKeyword).max(STRATEGY_PLAN_LIMITS.seoKeywords),
       content_gaps: z.array(aiGap).max(STRATEGY_PLAN_LIMITS.contentGaps),
@@ -190,6 +198,15 @@ export function proposalToPlanInputs(
   const organic =
     tracks.organic && proposal.organic
       ? organicPlanInputSchema.parse({
+          cadence: proposal.organic.cadence
+            ? proposal.organic.cadence.map((c) => ({
+                channel: c.channel,
+                posts_per_week: c.posts_per_week,
+                formats: c.formats,
+                info_class: tag.info_class,
+                source: tag.source,
+              }))
+            : undefined,
           pillars: proposal.organic.pillars.map((p) => ({ ...p, ...tag })),
           seo_keywords: proposal.organic.seo_keywords.map((k) => {
             const hasMetric = k.monthly_volume_estimate != null || k.difficulty_estimate != null;
@@ -241,12 +258,21 @@ export type PlanProposalCheck =
  * Validate raw model output: strict schema, then the same cross-row invariants
  * a human edit must satisfy, then "the enabled tracks are present".
  */
+/** Proposals stored before 4.1 have no `organic.cadence`; treat it as null (keep stored). */
+function withLegacyDefaults(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const record = raw as Record<string, unknown>;
+  const organic = record.organic;
+  if (!organic || typeof organic !== 'object' || 'cadence' in organic) return raw;
+  return { ...record, organic: { cadence: null, ...(organic as Record<string, unknown>) } };
+}
+
 export function validateStrategyPlanProposal(
   raw: unknown,
   tracks: StrategyPlanTracks,
   opts: { source: 'AI_ESTIMATE' | 'DETERMINISTIC'; evidenceRefs?: string[] },
 ): PlanProposalCheck {
-  const parsed = aiStrategyPlanProposalSchema.safeParse(raw);
+  const parsed = aiStrategyPlanProposalSchema.safeParse(withLegacyDefaults(raw));
   if (!parsed.success) {
     return {
       ok: false,
@@ -331,6 +357,7 @@ export function deterministicStrategyPlanProposal(
         : `Template draft built from ${name}'s approved brand profile. It contains no measured metrics; review and edit before approval.`,
     organic: ctx.tracks.organic
       ? {
+          cadence: null,
           pillars: [
             {
               key: 'education',
