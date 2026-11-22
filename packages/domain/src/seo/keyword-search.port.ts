@@ -12,10 +12,13 @@ export interface ExternalKeywordSearchPort {
   lookup(request: KeywordResearchRequest): Promise<KeywordMetric[]>;
 }
 
-/** Fixture “measured” metrics for integration tests (not live Semrush/DataForSEO). */
+/**
+ * Sample metrics for dev/CI only (not live Semrush/DataForSEO). Labelled FIXTURE and
+ * `measured: false` so they are never shown as real market data (DEC-029 4.0).
+ */
 export const externalFixtureKeywordSearch: ExternalKeywordSearchPort = {
   provider: 'external_fixture',
-  measured: true,
+  measured: false,
   async lookup(request) {
     return request.keywords.map((k, i) => ({
       keyword: k.keyword,
@@ -23,7 +26,7 @@ export const externalFixtureKeywordSearch: ExternalKeywordSearchPort = {
       monthly_volume: 400 + i * 120,
       difficulty: 35 + (i % 5) * 8,
       intent: i % 2 === 0 ? 'COMMERCIAL' : 'INFORMATIONAL',
-      source: 'EXTERNAL',
+      source: 'FIXTURE',
     }));
   },
 };
@@ -36,7 +39,8 @@ export function asStrategyResearchPort(adapter: ExternalKeywordSearchPort): Stra
       const rows = await adapter.lookup(request);
       return rows.map((r) => ({
         ...r,
-        source: 'EXTERNAL' as const,
+        // Only a measured (live) provider may label metrics EXTERNAL.
+        source: adapter.measured ? ('EXTERNAL' as const) : ('FIXTURE' as const),
       }));
     },
   };

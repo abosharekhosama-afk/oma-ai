@@ -38,6 +38,9 @@ describe('brand SEO visibility (integration)', () => {
     const kw = await kwRes.json();
     expect(kw.data.metrics[0].monthly_volume).toBeGreaterThan(0);
     expect(kw.data.provider).toBe('external');
+    // Fixture metrics are sample data, never "measured" (DEC-029 4.0).
+    expect(kw.data.measured).toBe(false);
+    expect(kw.data.metrics[0].source).toBe('FIXTURE');
 
     await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/seo/search-console/connect-fixture`, {
       method: 'POST',

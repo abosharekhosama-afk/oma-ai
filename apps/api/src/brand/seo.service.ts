@@ -97,6 +97,15 @@ export class SeoService {
 
   async connectFixtureGsc(tenantId: string, userId: string, brandId: string, siteUrl: string) {
     await this.brand(tenantId, brandId);
+    if (gscModeFromEnv() !== 'fixture') {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Sample Search Console data is disabled in this environment.',
+        409,
+        'errors.conflict_state',
+        [{ code: 'SEO_FIXTURES_DISABLED' }],
+      );
+    }
     const prisma = getPrisma();
     const id = newId();
     const normalized = siteUrl.trim();

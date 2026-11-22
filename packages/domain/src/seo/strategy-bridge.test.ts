@@ -54,7 +54,8 @@ describe('buildSeoStrategyProposals', () => {
       keyword: 'عطر عود',
       monthly_volume: 5400,
       metric_source: 'EXTERNAL',
-      source: 'EXTERNAL',
+      gsc_impressions: 1200,
+      source: 'FIXTURE',
     });
     expect(pkg.context.audit_score).toBe(72);
   });
