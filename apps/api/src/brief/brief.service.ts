@@ -262,7 +262,7 @@ export class BriefService {
     input: {
       title: string;
       content: BriefContent;
-      origin: 'manual' | 'strategy';
+      origin: 'manual' | 'strategy' | 'seo';
       requestId?: string | null;
       strategyId?: string | null;
       strategyVersionId?: string | null;
@@ -339,6 +339,32 @@ export class BriefService {
       strategyVersionId: input.strategyVersionId,
     });
     return { id: (res.data as { id: string }).id, created: true };
+  }
+
+  /** DEC-029 4.6: a DRAFT brief from Search Console gaps (origin `seo`). */
+  async createFromSeoGaps(
+    actor: Actor,
+    brandId: string,
+    input: { title: string; content: unknown; strategyVersionId: string | null },
+  ): Promise<{ id: string }> {
+    this.ensureEnabled();
+    const content = parseContent(input.content);
+    let strategyId: string | null = null;
+    if (input.strategyVersionId) {
+      const v = await getPrisma().strategyVersion.findFirst({
+        where: tenantWhere(actor.tenantId, { id: input.strategyVersionId, brandId }),
+        select: { strategyId: true },
+      });
+      strategyId = v?.strategyId ?? null;
+    }
+    const res = await this.createBrief(actor, brandId, {
+      title: input.title,
+      content,
+      origin: 'seo',
+      strategyId,
+      strategyVersionId: strategyId ? input.strategyVersionId : null,
+    });
+    return { id: (res.data as { id: string }).id };
   }
 
   async create(actor: Actor, brandId: string, body: Record<string, unknown>) {

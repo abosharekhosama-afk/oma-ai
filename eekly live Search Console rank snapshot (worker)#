@@ -1,0 +1,2 @@
+# BRAND_KEYWORD_RESEARCH_MODE=manual|external_fixture|dataforseo (dataforseo needs DATAFORSEO_LOGIN + DATAFORSEO_PASSWORD; otherwise manual)
+# SEO_WEEKLY_SYNC=true  

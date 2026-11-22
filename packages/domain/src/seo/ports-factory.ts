@@ -1,6 +1,7 @@
 import { manualResearchAdapter, type StrategyResearchPort } from '../strategy/research-port';
 import { externalFixtureKeywordSearch, asStrategyResearchPort } from './keyword-search.port';
 import { createLiveSearchConsolePort } from './search-console-live';
+import { createDataForSeoKeywordSearch, dataForSeoConfigFromEnv } from './dataforseo';
 import { fixtureSearchConsolePort } from './search-console-fixture';
 import { refusingSearchConsolePort, type SearchConsolePort } from './search-console.port';
 
@@ -31,6 +32,8 @@ export function keywordSearchModeFromEnv(env: NodeJS.ProcessEnv = process.env): 
     .trim()
     .toLowerCase();
   if ((raw === 'external_fixture' || raw === 'fixture') && !fixturesOk) return 'manual';
+  // DEC-029 4.6: DataForSEO only when the flag is set AND credentials exist; otherwise manual.
+  if (raw === 'dataforseo') return dataForSeoConfigFromEnv(env) ? 'dataforseo' : 'manual';
   return raw;
 }
 
@@ -52,6 +55,10 @@ export function createKeywordResearchPort(
   const mode = keywordSearchModeFromEnv(env);
   if (mode === 'external_fixture' || mode === 'fixture') {
     return asStrategyResearchPort(externalFixtureKeywordSearch);
+  }
+  if (mode === 'dataforseo') {
+    const config = dataForSeoConfigFromEnv(env);
+    if (config) return asStrategyResearchPort(createDataForSeoKeywordSearch(config));
   }
   return manualResearchAdapter;
 }

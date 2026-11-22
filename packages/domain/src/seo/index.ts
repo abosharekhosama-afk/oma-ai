@@ -5,3 +5,5 @@ export * from './search-console-live';
 export * from './keyword-search.port';
 export * from './ports-factory';
 export * from './strategy-bridge';
+export * from './dataforseo';
+export * from './rank-tracking';
