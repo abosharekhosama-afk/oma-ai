@@ -223,6 +223,18 @@ const routeRequirements: Record<string, string[]> = {
     ['strategy.read', 'request.create'],
   'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/plan-to-requests/convert-tasks':
     ['strategy.read', 'request.write'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/paid-execution': [
+    'strategy.read',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/paid-flights/campaigns':
+    ['strategy.read', 'campaign.create'],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/experiments/:experimentId/status':
+    ['strategy.paid.edit'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/experiments/:experimentId/history':
+    ['strategy.read'],
+  'GET /api/v1/brands/:brandId/paid-spend': ['analytics.read'],
+  'POST /api/v1/brands/:brandId/paid-spend': ['strategy.paid.edit'],
+  'POST /api/v1/brands/:brandId/paid-spend/import': ['strategy.paid.edit'],
   'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/kpi-scorecard': [
     'strategy.read',
   ],
@@ -544,6 +556,10 @@ export function matchRequirements(method: string, path: string): string[] | null
     .replace(
       /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/competitors/,
       '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/competitors',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/experiments\/[^/]+\/(status|history)$/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/experiments/:experimentId/$1',
     )
     .replace(
       /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/kpi-scorecard\/[^/]+\/manual$/,

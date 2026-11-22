@@ -235,6 +235,28 @@ export async function writePaidPlan(
       })),
     });
   }
+  if (plan.flights !== undefined) {
+    await tx.strategyPaidFlight.deleteMany({ where: { strategyVersionId: scope.versionId } });
+    if (plan.flights.length) {
+      await tx.strategyPaidFlight.createMany({
+        data: plan.flights.map((f, i) => ({
+          ...base,
+          id: newId(),
+          key: f.key,
+          name: f.name,
+          platform: f.platform,
+          objective: f.objective ?? null,
+          audienceKey: f.audience_key ?? null,
+          startDate: new Date(`${f.start_date}T00:00:00Z`),
+          endDate: new Date(`${f.end_date}T00:00:00Z`),
+          budgetAmount: f.budget_amount ?? null,
+          currency: f.currency ?? null,
+          notes: f.notes ?? null,
+          sortOrder: i,
+        })),
+      });
+    }
+  }
   if (plan.experiments.length) {
     await tx.strategyExperiment.createMany({
       data: plan.experiments.map((e, i) => ({
@@ -336,8 +358,8 @@ export async function readStrategyPlan(
 ): Promise<{ organic: OrganicPlanInput; paid: PaidPlanInput; aiRunIds: string[] }> {
   const where = { strategyVersionId: versionId };
   const orderBy = { sortOrder: 'asc' as const };
-  const [cadence, pillars, keywords, gaps, allocations, audiences, experiments] = await Promise.all(
-    [
+  const [cadence, pillars, keywords, gaps, allocations, audiences, experiments, flights] =
+    await Promise.all([
       db.strategyChannelCadence.findMany({ where, orderBy }),
       db.strategyContentPillar.findMany({ where, orderBy }),
       db.strategySeoKeyword.findMany({ where, orderBy }),
@@ -345,8 +367,8 @@ export async function readStrategyPlan(
       db.strategyPaidAllocation.findMany({ where, orderBy }),
       db.strategyPaidAudience.findMany({ where, orderBy }),
       db.strategyExperiment.findMany({ where, orderBy }),
-    ],
-  );
+      db.strategyPaidFlight.findMany({ where, orderBy }),
+    ]);
   const aiRunIds = [
     ...new Set(
       [...pillars, ...keywords, ...gaps, ...allocations, ...audiences, ...experiments]
@@ -445,6 +467,18 @@ export async function readStrategyPlan(
         info_class: e.infoClass,
         source: e.source,
         evidence_refs: e.evidenceRefs,
+      })),
+      flights: flights.map((f) => ({
+        key: f.key,
+        name: f.name,
+        platform: f.platform,
+        objective: f.objective,
+        audience_key: f.audienceKey,
+        start_date: f.startDate.toISOString().slice(0, 10),
+        end_date: f.endDate.toISOString().slice(0, 10),
+        budget_amount: f.budgetAmount != null ? Number(f.budgetAmount) : null,
+        currency: f.currency,
+        notes: f.notes,
       })),
     },
   };
