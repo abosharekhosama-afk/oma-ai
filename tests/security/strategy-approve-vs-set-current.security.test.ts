@@ -29,9 +29,11 @@ describe('approve vs set_current separation', () => {
     await owner.app.close();
   });
 
-  it('approve leaves currentApprovedStrategyId null', async () => {
+  it('DEC-030: owner approve (has strategy.set_current) makes the strategy current', async () => {
     const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
+    expect(brand.currentApprovedStrategyId).toBe(strategyId);
+    // Clear it so the capability checks below start from no pointer.
+    await setCurrentStrategy(owner, brandId, null, brand.version);
   });
 
   it('set_current requires separate strategy.set_current capability', async () => {

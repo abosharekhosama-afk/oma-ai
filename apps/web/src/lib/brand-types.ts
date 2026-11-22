@@ -22,6 +22,10 @@ export type BrandDetail = {
   version: number;
   current_approved_profile_version_id: string | null;
   current_approved_strategy_id: string | null;
+  /** DEC-030: true when no pointer is set and the latest approved strategy is used. */
+  current_strategy_inferred?: boolean;
+  /** Non-archived strategies (drafts included) — avoids "create" CTAs when one exists. */
+  active_strategy_count?: number;
   website: {
     website_source_id: string;
     normalized_url: string;

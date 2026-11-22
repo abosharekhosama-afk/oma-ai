@@ -4,6 +4,7 @@ import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 import { OmaLinkButton } from '../../../../../../components/ui/oma-link-button';
 
 import Link from 'next/link';
+import { StrategyStatusBadge } from '../../../../../../components/strategy/status-badge';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../../lib/api';
@@ -14,7 +15,6 @@ import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-wo
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../components/shell/select-company';
 import { useLocale, useT } from '../../../../../../lib/use-locale';
-import { StatusChip } from '../../../../../../components/ui/status-chip';
 import { EmptyState, ErrorState } from '../../../../../../components/ui/empty-state';
 import { BrandPlxPageHead } from '../../../../../../components/brand/brand-plx-section';
 import { formatBrandDateTime } from '../../../../../../lib/brand-format';
@@ -139,15 +139,7 @@ export default function StrategiesListPage() {
                   </div>
                 </div>
                 <div className="oma-chip-row">
-                  <StatusChip status={row.status} />
-                  {row.is_current ? (
-                    <StatusChip tone="info" label={t('strategy.list.current')} />
-                  ) : null}
-                  {row.has_approved_version ? (
-                    <StatusChip tone="success" label={t('strategy.list.hasApproved')} />
-                  ) : (
-                    <StatusChip tone="warning" label={t('strategy.list.noApprovedVersion')} />
-                  )}
+                  <StrategyStatusBadge strategy={row} />
                 </div>
                 <span className="oma-plx-brand-hub-card__foot">
                   <span>{t('home.action.open')}</span>

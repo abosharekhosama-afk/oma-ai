@@ -27,7 +27,10 @@ import {
   expandFoundationReasons,
   strategyBlockingItem,
   strategyJourney,
+  shouldAutoSetCurrentOnApprove,
+  strategyDisplayStatus,
 } from '@oma/domain';
+import { resolveEffectiveCurrentStrategy } from './effective-current';
 import { buildStrategyProposePrompt } from '@oma/ai';
 import { loadBrandContext } from '../ai/brand-context.service';
 import { runStructuredGeneration } from '../ai/structured-run';
@@ -178,12 +181,23 @@ export class StrategyService {
 
   private mapStrategyFlags(
     strategy: { id: string; status: string },
-    brandCurrentId: string | null | undefined,
+    current: { id: string | null; inferred: boolean },
     approvedCount: number,
+    latestVersionStatus: string | null,
   ) {
+    const isCurrent = current.id === strategy.id;
     return {
       has_approved_version: approvedCount > 0,
-      is_current: brandCurrentId === strategy.id,
+      is_current: isCurrent,
+      // DEC-030: true when no explicit pointer exists and this is the latest approved strategy.
+      current_inferred: isCurrent && current.inferred,
+      latest_version_status: latestVersionStatus,
+      display_status: strategyDisplayStatus({
+        strategyStatus: strategy.status,
+        isCurrent,
+        hasApprovedVersion: approvedCount > 0,
+        latestVersionStatus,
+      }),
     };
   }
 
@@ -199,6 +213,22 @@ export class StrategyService {
       _count: { _all: true },
     });
     const approvedByStrategy = new Map(versionCounts.map((v) => [v.strategyId, v._count._all]));
+    const latestRows = rows.length
+      ? await getPrisma().strategyVersion.findMany({
+          where: { tenantId, brandId, strategyId: { in: rows.map((r) => r.id) } },
+          orderBy: { versionNumber: 'desc' },
+          select: { strategyId: true, status: true },
+        })
+      : [];
+    const latestStatus = new Map<string, string>();
+    for (const row of latestRows) {
+      if (!latestStatus.has(row.strategyId)) latestStatus.set(row.strategyId, row.status);
+    }
+    const current = await resolveEffectiveCurrentStrategy(
+      tenantId,
+      brandId,
+      brand.currentApprovedStrategyId,
+    );
     return {
       data: rows.map((s) => ({
         id: s.id,
@@ -207,8 +237,9 @@ export class StrategyService {
         version: s.version,
         ...this.mapStrategyFlags(
           s,
-          brand.currentApprovedStrategyId,
+          current,
           approvedByStrategy.get(s.id) ?? 0,
+          latestStatus.get(s.id) ?? null,
         ),
         updated_at: s.updatedAt.toISOString(),
         archived_at: s.archivedAt?.toISOString() ?? null,
@@ -329,6 +360,17 @@ export class StrategyService {
     const latest = versions[0] ?? null;
     const approvedCount = versions.filter((v) => v.status === 'APPROVED').length;
     const missingSource = !latest?.linkedApprovedProfileVersionId;
+    const current = await resolveEffectiveCurrentStrategy(
+      tenantId,
+      brandId,
+      brand.currentApprovedStrategyId,
+    );
+    const linkedProfile = latest?.linkedApprovedProfileVersionId
+      ? await getPrisma().profileVersion.findFirst({
+          where: tenantWhere(tenantId, { id: latest.linkedApprovedProfileVersionId, brandId }),
+          select: { id: true, status: true, approvedAt: true, createdAt: true },
+        })
+      : null;
     return {
       data: {
         id: strategy.id,
@@ -336,7 +378,7 @@ export class StrategyService {
         status: strategy.status,
         version: strategy.version,
         origin_strategy_id: strategy.originStrategyId,
-        ...this.mapStrategyFlags(strategy, brand.currentApprovedStrategyId, approvedCount),
+        ...this.mapStrategyFlags(strategy, current, approvedCount, latest?.status ?? null),
         latest_version: latest
           ? {
               id: latest.id,
@@ -349,6 +391,16 @@ export class StrategyService {
               paid_enabled: latest.paidEnabled,
               missing_source: missingSource,
               evidence_backed: Boolean(latest.linkedApprovedProfileVersionId),
+              // The linked approved brand profile is the strategy's primary evidence.
+              linked_profile: linkedProfile
+                ? {
+                    id: linkedProfile.id,
+                    status: linkedProfile.status,
+                    approved_at: (
+                      linkedProfile.approvedAt ?? linkedProfile.createdAt
+                    ).toISOString(),
+                  }
+                : null,
               ai_availability: latest.aiAvailability,
             }
           : null,
@@ -1439,6 +1491,7 @@ export class StrategyService {
     versionId: string,
     input: { row_version: number; comment?: string; unknowns_acknowledged: boolean },
     correlationId?: string,
+    options: { actorCanSetCurrent?: boolean } = {},
   ) {
     const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
     if (version.status !== 'IN_REVIEW') {
@@ -1487,6 +1540,11 @@ export class StrategyService {
       );
     }
 
+    const autoSetCurrent = shouldAutoSetCurrentOnApprove({
+      actorCanSetCurrent: Boolean(options.actorCanSetCurrent),
+    });
+    let previousCurrentId: string | null = null;
+    let currentChanged = false;
     await getPrisma().$transaction(async (tx) => {
       const priorApproved = await tx.strategyVersion.findMany({
         where: tenantWhere(tenantId, { strategyId, status: 'APPROVED' }),
@@ -1535,14 +1593,46 @@ export class StrategyService {
           correlationId,
         },
       });
+      if (autoSetCurrent) {
+        // DEC-030: the approved strategy becomes the brand's current strategy.
+        const brandRow = await tx.brandWorkspace.findFirst({
+          where: { id: brandId, tenantId },
+          select: { currentApprovedStrategyId: true },
+        });
+        previousCurrentId = brandRow?.currentApprovedStrategyId ?? null;
+        if (previousCurrentId !== strategyId) {
+          await tx.brandWorkspace.updateMany({
+            where: { id: brandId, tenantId },
+            data: { currentApprovedStrategyId: strategyId, version: { increment: 1 } },
+          });
+          currentChanged = true;
+          await this.writeOutbox(tx, tenantId, 'strategy.current_changed', {
+            brandId,
+            strategyId,
+            previous_strategy_id: previousCurrentId,
+            via: 'approve',
+          });
+        }
+      }
       await this.writeOutbox(tx, tenantId, 'strategy.approved', {
         brandId,
         strategyId,
         versionId,
-        // Explicit: never set current on approve
-        current_auto_set: false,
+        current_auto_set: autoSetCurrent,
       });
     });
+    if (currentChanged) {
+      await this.audit.write({
+        actorUserId,
+        tenantId,
+        action: 'strategy.current_set',
+        targetType: 'BrandWorkspace',
+        targetId: brandId,
+        beforeRef: previousCurrentId ?? undefined,
+        afterRef: strategyId,
+        correlationId,
+      });
+    }
 
     await this.audit.write({
       actorUserId,
@@ -2414,6 +2504,25 @@ export class StrategyService {
   async getCurrentStrategy(tenantId: string, brandId: string) {
     const brand = await this.requireBrand(tenantId, brandId);
     if (!brand.currentApprovedStrategyId) {
+      // DEC-030: older approvals never set the pointer; surface the latest approved one.
+      const inferred = await resolveEffectiveCurrentStrategy(tenantId, brandId, null);
+      if (inferred.id) {
+        const strategy = await getPrisma().strategy.findFirst({
+          where: tenantWhere(tenantId, { id: inferred.id, brandId }),
+        });
+        const approved = await getPrisma().strategyVersion.findFirst({
+          where: tenantWhere(tenantId, { strategyId: inferred.id, status: 'APPROVED' }),
+        });
+        if (strategy && approved) {
+          return {
+            data: {
+              strategy: { id: strategy.id, name: strategy.name, approved_version_id: approved.id },
+              inferred: true,
+              brand_version: brand.version,
+            },
+          };
+        }
+      }
       return { data: { strategy: null, brand_version: brand.version } };
     }
     const strategy = await getPrisma().strategy.findFirst({
@@ -2501,7 +2610,9 @@ export class StrategyService {
         targetId: brandId,
         correlationId,
       });
-      return this.getCurrentStrategy(tenantId, brandId);
+      const cleared = await this.requireBrand(tenantId, brandId);
+      // The explicit pointer is cleared; reads may still infer the latest approved strategy (DEC-030).
+      return { data: { strategy: null, brand_version: cleared.version } };
     }
 
     const strategy = await this.requireStrategy(tenantId, brandId, input.strategy_id);

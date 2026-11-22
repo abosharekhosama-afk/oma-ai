@@ -91,15 +91,20 @@ export function brandPrimaryNextStep(
     return { href: `/app/brands/${brandId}/profiles`, label: t('brand.detail.intelligenceCta') };
   }
   if (!brand.current_approved_strategy_id) {
-    return {
-      href: `/app/brands/${brandId}/strategies/new`,
-      label: t('brand.detail.createStrategyCta'),
-    };
+    return (brand.active_strategy_count ?? 0) > 0
+      ? {
+          href: `/app/brands/${brandId}/strategies`,
+          label: t('brand.detail.continueStrategyCta'),
+        }
+      : {
+          href: `/app/brands/${brandId}/strategies/new`,
+          label: t('brand.detail.createStrategyCta'),
+        };
   }
   const strategyId = brand.current_approved_strategy_id;
   if (!hasPlanRequestsCommitted(hints)) {
     return {
-      href: `/app/brands/${brandId}/strategies/${strategyId}/review`,
+      href: `/app/brands/${brandId}/strategies/${strategyId}/execution`,
       label: t('brand.detail.planRequestsCta'),
     };
   }

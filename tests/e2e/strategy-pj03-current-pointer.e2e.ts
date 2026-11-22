@@ -126,17 +126,17 @@ test.describe('PJ-03 current pointer', () => {
     const strategyA = await seedApprovedStrategy('Strategy A');
     const strategyB = await seedApprovedStrategy('Strategy B');
 
+    // DEC-030: the last approval (B) is current; switch back to A with "set current".
     await page.goto(`/app/brands/${brandId}/strategies/${strategyB}`);
-    await expect(page.getByTestId('strategy-set-current')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('strategy-set-current').click();
     await expect(page.getByTestId('strategy-current-badge')).toBeVisible({ timeout: 15_000 });
 
     await page.goto(`/app/brands/${brandId}/strategies/${strategyA}`);
     await expect(page.getByTestId('strategy-name-heading')).toBeVisible();
     await expect(page.getByTestId('strategy-current-badge')).toHaveCount(0);
+    await page.getByTestId('strategy-set-current').click();
+    await expect(page.getByTestId('strategy-current-badge')).toBeVisible({ timeout: 15_000 });
 
     await page.goto(`/app/brands/${brandId}/strategies/${strategyB}`);
-    await page.getByTestId('strategy-clear-current').click();
     await expect(page.getByTestId('strategy-current-badge')).toHaveCount(0);
     expect(
       errors.filter((e) => !/hydration|favicon|Failed to load resource|409|401|403|404/i.test(e)),

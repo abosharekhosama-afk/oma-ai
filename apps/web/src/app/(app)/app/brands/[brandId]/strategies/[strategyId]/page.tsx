@@ -3,7 +3,7 @@ import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 
 import { Button } from '@oma/ui/controls';
 
-import Link from 'next/link';
+import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
@@ -24,7 +24,6 @@ import { StrategySubnav } from '../../../../../../../components/strategy/strateg
 import { StrategyAiAssistant } from '../../../../../../../components/strategy/strategy-ai-assistant';
 import { CurrentStrategyControls } from '../../../../../../../components/strategy/current-strategy-controls';
 import { ConflictBanner } from '../../../../../../../components/strategy/conflict-banner';
-import { StrategyStatusBadge } from '../../../../../../../components/strategy/status-badge';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../components/shell/select-company';
 import {
@@ -33,12 +32,8 @@ import {
 } from '../../../../../../../components/demo/demo-strategy-document';
 import { useT } from '../../../../../../../lib/use-locale';
 import { StrategyOverviewSummary } from '../../../../../../../components/strategy/strategy-overview-summary';
-import {
-  BrandPlxPageHead,
-  BrandPlxSection,
-} from '../../../../../../../components/brand/brand-plx-section';
+import { BrandPlxSection } from '../../../../../../../components/brand/brand-plx-section';
 import { StrategyKpiPanel } from '../../../../../../../components/strategy/strategy-kpi-panel';
-import { StrategyNextStep } from '../../../../../../../components/strategy/strategy-next-step';
 import { useStrategyReadiness } from '../../../../../../../lib/strategy-readiness';
 
 export default function StrategyOverviewPage() {
@@ -98,7 +93,7 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
     void load();
   }, [load]);
 
-  async function setCurrent(strategy_id: string | null) {
+  async function setCurrent(strategy_id: string) {
     setMessage(null);
     setError(null);
     try {
@@ -149,47 +144,10 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
       websiteUrl={brand.website?.normalized_url}
       latestScanId={brand.latest_scan?.id}
     >
-      <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <BrandPlxPageHead title={strategy.name} titleTestId="strategy-name-heading" />
-      <div
-        className="oma-chip-row oma-plx-brand-page-head-meta"
-        data-testid="strategy-name-heading-wrap"
-      >
-        <StrategyStatusBadge status={strategy.status} />
-        {strategy.is_current ? (
-          <span className="oma-badge oma-badge-muted" data-testid="strategy-current-badge">
-            {t('strategy.list.current')}
-          </span>
-        ) : null}
-        {latest ? (
-          <span className="oma-strategy-tracks" aria-label={t('strategy.overview.tracks')}>
-            <span
-              className={
-                latest.organic_enabled
-                  ? 'oma-track-pill oma-track-pill--organic'
-                  : 'oma-track-pill oma-track-pill--off'
-              }
-            >
-              {t('strategy.nav.organic')}
-            </span>
-            <span
-              className={
-                latest.paid_enabled
-                  ? 'oma-track-pill oma-track-pill--paid'
-                  : 'oma-track-pill oma-track-pill--off'
-              }
-            >
-              {t('strategy.nav.paid')}
-            </span>
-          </span>
-        ) : null}
-      </div>
-
-      <StrategyNextStep
+      <StrategySubnav
         brandId={brandId}
         strategyId={strategyId}
-        journey={readiness?.journey}
-        status={versionDetail?.status}
+        refreshKey={`${strategy.version}:${latest?.status}:${latest?.row_version}:${strategy.is_current}`}
       />
 
       <StrategyOverviewSummary brandId={brandId} strategyId={strategyId} strategy={strategy} />
@@ -217,12 +175,15 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
           testId="strategy-overview-execution-link"
         >
           <p className="oma-muted">{t('strategy.executionTab.lead')}</p>
-          <Link
-            className="oma-text-link"
+          <OmaLinkButton
+            type="primary"
+            data-testid="strategy-start-execution"
             href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
           >
-            {t('strategy.executionTab.open')}
-          </Link>
+            {readiness?.journey.current === 'execute' || !readiness
+              ? t('strategy.executionTab.start')
+              : t('strategy.executionTab.open')}
+          </OmaLinkButton>
         </BrandPlxSection>
       ) : null}
 
@@ -258,24 +219,24 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         </p>
       ) : null}
 
-      <BrandPlxSection
-        title={t('strategy.overview.actionsTitle')}
-        testId="strategy-overview-actions"
-      >
-        <div className="oma-form-actions">
-          <CurrentStrategyControls
-            canSet={Boolean(strategy.has_approved_version)}
-            isCurrent={Boolean(strategy.is_current)}
-            onSet={() => void setCurrent(strategyId)}
-            onClear={() => void setCurrent(null)}
-          />
-          {strategy.status === 'ACTIVE' ? (
-            <Button type="default" onClick={() => void archive()}>
+      {strategy.status === 'ACTIVE' ? (
+        <BrandPlxSection
+          title={t('strategy.overview.actionsTitle')}
+          testId="strategy-overview-actions"
+        >
+          <div className="oma-form-actions">
+            <CurrentStrategyControls
+              canSet={Boolean(strategy.has_approved_version)}
+              isCurrent={Boolean(strategy.is_current)}
+              inferred={Boolean(strategy.current_inferred)}
+              onSet={() => void setCurrent(strategyId)}
+            />
+            <Button type="default" danger onClick={() => void archive()}>
               {t('strategy.overview.archive')}
             </Button>
-          ) : null}
-        </div>
-      </BrandPlxSection>
+          </div>
+        </BrandPlxSection>
+      ) : null}
     </BrandWorkspaceShell>
   );
 }

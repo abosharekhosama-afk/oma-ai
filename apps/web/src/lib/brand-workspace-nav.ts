@@ -60,11 +60,34 @@ const BRAND_TRAIL_SEGMENT_KEYS: Record<string, string> = {
   edit: 'strategy.nav.foundation',
   review: 'strategy.nav.review',
   versions: 'strategy.nav.versions',
+  execution: 'strategy.tab.execution',
   compare: 'brand.profile.compare',
   products: 'brand.discovery.productsTitle',
   pages: 'brand.discovery.pagesTitle',
   new: 'common.new',
 };
+
+/** `/app/brands/:brandId/strategies/:strategyId[/section]` → ids, else null. */
+export function strategyRouteParts(
+  pathname: string,
+  brandId: string,
+): { strategyId: string; section: string | null } | null {
+  const prefix = `/app/brands/${brandId}/strategies/`;
+  if (!pathname.startsWith(prefix)) return null;
+  const [strategyId, section] = pathname.slice(prefix.length).split('/');
+  if (!strategyId || !isBrandRecordId(strategyId)) return null;
+  return { strategyId, section: section || null };
+}
+
+/** Section label under a strategy (null on the strategy overview itself). */
+export function strategySectionLabel(
+  section: string | null,
+  t: (key: string) => string,
+): string | null {
+  if (!section) return null;
+  const key = section === 'evidence' ? 'strategy.nav.evidence' : BRAND_TRAIL_SEGMENT_KEYS[section];
+  return key ? t(key) : null;
+}
 
 /** Human tail for shell breadcrumb on brand routes (no raw record ids). */
 export function brandPathTailLabel(

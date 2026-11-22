@@ -40,7 +40,7 @@ describe('strategy workspace integration', () => {
     expect(JSON.stringify(body)).toMatch(/APPROVED|اعتماد ملف|BRAND_PROFILE_NOT_APPROVED/i);
   });
 
-  it('package approve does not set current; set_current is explicit; archive clears pointer', async () => {
+  it('package approve sets current (DEC-030); set_current is idempotent; archive clears pointer', async () => {
     const seed = await seedBrandTenant();
     closers.push(async () => seed.app.close());
     const { body: brandBody } = await createBrand(seed);
@@ -68,7 +68,7 @@ describe('strategy workspace integration', () => {
     expect(approved.body.data.status).toBe('APPROVED');
 
     const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
+    expect(brand.currentApprovedStrategyId).toBe(ready.strategyId);
 
     const set = await setCurrentStrategy(seed, brandId, ready.strategyId, brand.version);
     expect([200, 201]).toContain(set.res.status);

@@ -26,8 +26,7 @@ import {
   readFoundationText,
   textToFoundationGoals,
 } from '../../../../../../../../lib/strategy-foundation-format';
-import { StrategyNextStep } from '../../../../../../../../components/strategy/strategy-next-step';
-import { useStrategyReadiness } from '../../../../../../../../lib/strategy-readiness';
+import { isMeaningfulPositioning } from '@oma/domain/browser';
 export default function StrategyFoundationPage() {
   const t = useT();
   const params = useParams<{ brandId: string; strategyId: string }>();
@@ -40,12 +39,6 @@ export default function StrategyFoundationPage() {
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [tenantRequired, setTenantRequired] = useState(false);
-  const { readiness } = useStrategyReadiness(
-    brandId,
-    strategyId,
-    version?.id,
-    `${version?.status}:${version?.row_version}`,
-  );
 
   const load = useCallback(async () => {
     try {
@@ -78,6 +71,10 @@ export default function StrategyFoundationPage() {
     if (!version) return;
     setMessage(null);
     setError(null);
+    if (positioning.trim() && !isMeaningfulPositioning(positioning)) {
+      setError(t('strategy.foundation.positioningTooShort'));
+      return;
+    }
     try {
       const res = await api<{ data: StrategyVersionDetail }>(
         `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${version.id}`,
@@ -109,14 +106,12 @@ export default function StrategyFoundationPage() {
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
-      <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <BrandPlxPageHead title={t('strategy.foundation.title')} />
-      <StrategyNextStep
+      <StrategySubnav
         brandId={brandId}
         strategyId={strategyId}
-        journey={readiness?.journey}
-        status={version.status}
+        refreshKey={`${version.status}:${version.row_version}`}
       />
+      <BrandPlxPageHead title={t('strategy.foundation.title')} />
       {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
         <p className="oma-muted" data-testid="strategy-ai-assistant-link">
           <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
@@ -165,7 +160,7 @@ export default function StrategyFoundationPage() {
         >
           <section className="oma-form-section oma-doc-section" id="strategy-goals">
             <h2>{t('strategy.foundation.goals')}</h2>
-            <p className="oma-help">{t('strategy.list.hint')}</p>
+            <p className="oma-help">{t('strategy.foundation.goalsHint')}</p>
             <label className="oma-field-span">
               <TextArea
                 value={goals}
@@ -178,15 +173,29 @@ export default function StrategyFoundationPage() {
           </section>
           <section className="oma-form-section oma-doc-section" id="strategy-positioning">
             <h2>{t('strategy.foundation.positioning')}</h2>
+            <p className="oma-help">{t('strategy.foundation.positioningHint')}</p>
             <label className="oma-field-span">
               <TextArea
                 value={positioning}
                 onChange={(e) => setPositioning(e.target.value)}
                 disabled={!editable}
                 data-testid="strategy-positioning"
+                placeholder={t('strategy.foundation.positioningPlaceholder')}
+                aria-invalid={
+                  positioning.trim() && !isMeaningfulPositioning(positioning) ? true : undefined
+                }
                 rows={3}
               />
             </label>
+            {editable && positioning.trim() && !isMeaningfulPositioning(positioning) ? (
+              <p
+                className="oma-field-hint"
+                data-state="warning"
+                data-testid="positioning-too-short"
+              >
+                {t('strategy.foundation.positioningTooShort')}
+              </p>
+            ) : null}
           </section>
           {message ? (
             <p className="oma-save-status" data-state="saved" role="status">

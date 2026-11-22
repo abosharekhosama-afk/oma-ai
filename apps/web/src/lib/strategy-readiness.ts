@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import type {
-  StrategyBlockingItem,
-  StrategyJourney,
-  StrategyJourneyStepId,
+import {
+  checkFoundation,
+  strategyJourney,
+  type StrategyBlockingItem,
+  type StrategyJourney,
+  type StrategyJourneyStepId,
 } from '@oma/domain/browser';
 import { api } from './api';
 
@@ -78,4 +80,40 @@ export function useStrategyReadiness(
     void reload();
   }, [reload, refreshKey]);
   return { readiness, reload };
+}
+
+type VersionForJourney = {
+  status: string;
+  foundation?: Record<string, unknown> | null;
+  organic_enabled?: boolean;
+  paid_enabled?: boolean;
+  organic?: Record<string, unknown> | null;
+  paid?: Record<string, unknown> | null;
+};
+
+function hasAny(value: unknown): boolean {
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (value && typeof value === 'object') return Object.values(value).some(hasAny);
+  return typeof value === 'number' && value > 0;
+}
+
+/**
+ * Same five steps as `GET …/readiness`, computed from the version detail the page
+ * already has. Used when the readiness endpoint is unavailable (e.g. an API
+ * deploy that lags the web deploy) so the guided strip never silently vanishes.
+ */
+export function fallbackStrategyJourney(
+  version: VersionForJourney,
+  executionStarted = false,
+): StrategyJourney {
+  const planHasContent =
+    (Boolean(version.organic_enabled) && hasAny(version.organic)) ||
+    (Boolean(version.paid_enabled) && hasAny(version.paid));
+  return strategyJourney({
+    versionStatus: version.status,
+    foundation: checkFoundation(version.foundation ?? {}),
+    planHasContent,
+    executionStarted,
+  });
 }

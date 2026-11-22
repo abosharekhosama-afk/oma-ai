@@ -35,6 +35,8 @@ export {
   STRATEGY_BLOCKING_CODES,
   checkFoundation,
   expandFoundationReasons,
+  isMeaningfulPositioning,
+  POSITIONING_MIN_CHARS,
   strategyBlockingItem,
   strategyJourney,
   type StrategyBlockingItem,
@@ -43,3 +45,8 @@ export {
   type StrategyJourneyStepId,
   type StrategyJourneyState,
 } from './strategy/strategy-readiness';
+export {
+  effectiveCurrentStrategy,
+  strategyDisplayStatus,
+  type StrategyDisplayStatus,
+} from './strategy/current-pointer';
