@@ -137,11 +137,12 @@ export type WorkDriveBrowseFile = {
 };
 
 export type WorkDriveBrowse = {
-  folder: { id: string; name: string; parent_id: string | null };
+  /** `name` is the storage folder name (slug/id); `label` is a display name (brand folders). */
+  folder: { id: string; name: string; label?: string; parent_id: string | null };
   root_name: string | null;
   brand_folder?: { id: string; name: string } | null;
-  path?: Array<{ id: string; name: string }>;
-  folders: Array<{ id: string; name: string }>;
+  path?: Array<{ id: string; name: string; label?: string }>;
+  folders: Array<{ id: string; name: string; label?: string }>;
   files: WorkDriveBrowseFile[];
   filter_facets?: {
     campaigns: Array<{ id: string; name: string }>;

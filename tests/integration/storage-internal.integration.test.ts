@@ -232,6 +232,18 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
       expect.arrayContaining(['brands']),
     );
     expect(orgBody.data.files.map((f: { name: string }) => f.name)).toContain('hero.png');
+    // Real storage tree: tenants/{tenantId}/brands/{brandId}; the brand id folder is labelled.
+    const brandsFolder = orgBody.data.folders.find((f: { name: string }) => f.name === 'brands');
+    const brandsBody = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization&folder_id=${encodeURIComponent(brandsFolder.id)}`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    const own = brandsBody.data.folders.find((f: { name: string }) => f.name === brandId);
+    expect(own).toBeDefined();
+    expect(own.label).toBeTruthy();
+    expect(own.label).not.toBe(brandId);
 
     const brand = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=brand`,

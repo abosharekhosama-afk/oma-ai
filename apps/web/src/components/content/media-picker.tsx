@@ -60,7 +60,8 @@ function humanizeBrowse(
     workspaceLabel: string | null;
   },
 ): WorkDriveBrowse {
-  const label = (folderId: string, raw: string) =>
+  const label = (folderId: string, raw: string, serverLabel?: string) =>
+    serverLabel ||
     displayFolderLabel(raw, t, {
       brandId: ctx.brandId,
       brandName: ctx.brandName,
@@ -72,10 +73,10 @@ function humanizeBrowse(
     ...data,
     folder: {
       ...data.folder,
-      name: label(data.folder.id, data.folder.name),
+      name: label(data.folder.id, data.folder.name, data.folder.label),
     },
-    path: data.path?.map((p) => ({ ...p, name: label(p.id, p.name) })),
-    folders: data.folders.map((f) => ({ ...f, name: label(f.id, f.name) })),
+    path: data.path?.map((p) => ({ ...p, name: label(p.id, p.name, p.label) })),
+    folders: data.folders.map((f) => ({ ...f, name: label(f.id, f.name, f.label) })),
   };
 }
 

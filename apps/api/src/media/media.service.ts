@@ -376,51 +376,25 @@ export class MediaService {
     return folderId;
   }
 
-  private tenantBrandFoldersCache = new Map<
-    string,
-    Array<{ id: string; name: string; brand_id: string }>
-  >();
-
-  /** Every brand workspace folder under tenants/{tenantId}/brands for organization browse. */
-  private async listTenantBrandFolders(
-    c: {
-      client: WorkDriveClient;
-      conn: { id: string; rootFolderName: string | null };
-      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
-      tenantId?: string;
-    },
+  /**
+   * Map storage folder names back to tenant brands, without touching storage.
+   * Folder identity stays slug/id based: OMA internal brand folders are named by brand id
+   * (`tenants/{tenantId}/brands/{brandId}`), WorkDrive brand folders by `brandFolderSlug`.
+   * The brand display name is only ever returned as a `label`.
+   */
+  private async brandsByFolderName(
     tenantId: string,
-  ): Promise<Array<{ id: string; name: string; brand_id: string }>> {
-    const cacheKey = c.conn.id;
-    const cached = this.tenantBrandFoldersCache.get(cacheKey);
-    if (cached) return cached;
+  ): Promise<Map<string, { id: string; name: string }>> {
     const brands = await getPrisma().brandWorkspace.findMany({
       where: tenantWhere(tenantId, { deletedAt: null }),
       select: { id: true, name: true },
-      orderBy: { name: 'asc' },
     });
-    const rows: Array<{ id: string; name: string; brand_id: string }> = [];
+    const map = new Map<string, { id: string; name: string }>();
     for (const b of brands) {
-      const folderId = await this.brandFolderFor(c, b);
-      rows.push({ id: folderId, name: b.name, brand_id: b.id });
+      map.set(b.id, b);
+      map.set(brandFolderSlug(b.name, b.id.slice(-8).toLowerCase()), b);
     }
-    this.tenantBrandFoldersCache.set(cacheKey, rows);
-    return rows;
-  }
-
-  private async brandAtFolder(
-    c: {
-      client: WorkDriveClient;
-      conn: { id: string; rootFolderName: string | null };
-      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
-      tenantId?: string;
-    },
-    tenantId: string,
-    folderId: string,
-  ): Promise<{ id: string; name: string; folderId: string } | null> {
-    const rows = await this.listTenantBrandFolders(c, tenantId);
-    const hit = rows.find((r) => r.id === folderId);
-    return hit ? { id: hit.brand_id, name: hit.name, folderId: hit.id } : null;
+    return map;
   }
 
   /** The brand browsing scope starts at the brand folder, not at one media-kind child. */
@@ -464,32 +438,17 @@ export class MediaService {
     throw notFound();
   }
 
-  private static readonly ULID_FOLDER = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/i;
-
-  private async humanizeBrowseFolderNames(
-    tenantId: string,
+  /** Keep each folder's real (slug/id) name; add a human `label` for brand folders only. */
+  private labelBrowseFolders(
     brand: { id: string; name: string },
     brandFolderId: string,
+    byName: Map<string, { id: string; name: string }>,
     rows: Array<{ id: string; name: string }>,
-  ): Promise<Array<{ id: string; name: string }>> {
-    if (!rows.length) return rows;
-    const lookup = new Set<string>([brand.id]);
-    for (const row of rows) {
-      if (MediaService.ULID_FOLDER.test(row.name)) lookup.add(row.name);
-    }
-    const brands = await getPrisma().brandWorkspace.findMany({
-      where: tenantWhere(tenantId, { id: { in: [...lookup] } }),
-      select: { id: true, name: true },
-    });
-    const names = new Map(brands.map((b) => [b.id, b.name]));
-    names.set(brand.id, brand.name);
+  ): Array<{ id: string; name: string; label?: string }> {
     return rows.map((row) => {
-      if (row.id === brandFolderId || row.name === brand.id) {
-        return { ...row, name: brand.name };
-      }
-      const mapped = names.get(row.name);
-      if (mapped) return { ...row, name: mapped };
-      return row;
+      if (row.id === brandFolderId) return { ...row, label: brand.name };
+      const hit = byName.get(row.name);
+      return hit ? { ...row, label: hit.name } : row;
     });
   }
 
@@ -1144,24 +1103,25 @@ export class MediaService {
             }));
       const atInternalOrgRoot =
         c.provider === 'OMA_INTERNAL' && !allScope && tenantRootId != null && f.id === tenantRootId;
+      const byName = allScope ? new Map() : await this.brandsByFolderName(tenantId);
+      // A folder is a brand folder when it is the active brand's, or (organization browse) its
+      // name is another tenant brand's id/slug. Never created or renamed here.
       const brandAtFolder =
-        c.provider === 'OMA_INTERNAL' && !allScope
-          ? await this.brandAtFolder(c, tenantId, f.id)
-          : null;
+        f.id === brandFolderId ? brand : !allScope ? (byName.get(f.name) ?? null) : null;
       const isKindFolder = ['posts', 'logos', 'deliverables'].includes(f.name);
-      // Brand scope only: flatten kind folders for a quicker grid. Organization browse keeps kind tabs.
-      if (
-        !organizationScope &&
-        !atInternalOrgRoot &&
+      const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
+      // Brand scope (and WorkDrive organization browse): flatten the active brand's kind
+      // folders for a quicker grid.
+      // OMA organization root: surface the active brand's kind files, so a file uploaded
+      // "at the organization root" (stored under the brand's kind folder) is visible there.
+      // OMA organization browse inside a brand folder keeps the kind folders as tabs.
+      const flattenBrandFolder =
+        (!organizationScope || c.provider !== 'OMA_INTERNAL') &&
         !isKindFolder &&
-        (f.id === brandFolderId || brandAtFolder != null) &&
-        files.length === 0
-      ) {
-        const listing =
-          brandAtFolder != null || f.id === brandFolderId
-            ? f
-            : await c.client.getFolder(brandFolderId);
-        const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
+        f.id === brandFolderId &&
+        files.length === 0;
+      if (flattenBrandFolder || atInternalOrgRoot) {
+        const listing = atInternalOrgRoot ? await c.client.getFolder(brandFolderId) : f;
         const kids = listing.folders.filter((child) => flattenNames.includes(child.name));
         if (kids.length) {
           const nested = await Promise.all(kids.map((child) => c.client.getFolder(child.id)));
@@ -1181,22 +1141,15 @@ export class MediaService {
           }
         }
       }
+      // Folder listing is the real storage tree (slug/id names); labels are added below.
       let rawFolders = f.folders;
-      const workdriveOrgRoot =
-        c.provider === 'USER_WORKDRIVE' &&
-        organizationScope &&
-        c.conn.rootFolderId &&
-        f.id === c.conn.rootFolderId;
-      const omaOrgRoot =
-        c.provider === 'OMA_INTERNAL' && tenantRootId != null && f.id === tenantRootId;
       if (
+        c.provider === 'OMA_INTERNAL' &&
         organizationScope &&
         !allScope &&
-        (omaOrgRoot || workdriveOrgRoot || f.name === 'brands')
+        brandAtFolder != null &&
+        !isKindFolder
       ) {
-        const brandRows = await this.listTenantBrandFolders(c, tenantId);
-        rawFolders = brandRows.map((row) => ({ id: row.id, name: row.name }));
-      } else if (organizationScope && !allScope && brandAtFolder != null && !isKindFolder) {
         const kindNames =
           kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos', 'deliverables'];
         rawFolders = f.folders.filter((child) => kindNames.includes(child.name));
@@ -1212,21 +1165,17 @@ export class MediaService {
       const filesTotal = decoratedFiles.length;
       const humanPath = allScope
         ? [{ id: '__all__', name: 'All files' }]
-        : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, path);
+        : this.labelBrowseFolders(brand, brandFolderId, byName, path);
       const humanFolders = allScope
         ? []
-        : await this.humanizeBrowseFolderNames(tenantId, brand, brandFolderId, rawFolders);
-      const mappedFolderLabel = allScope
-        ? 'All files'
-        : (brandAtFolder?.name ??
-          (f.id === brandFolderId || f.name === brand.id
-            ? brand.name
-            : (humanPath[humanPath.length - 1]?.name ?? f.name)));
+        : this.labelBrowseFolders(brand, brandFolderId, byName, rawFolders);
+      const folderLabel = allScope ? 'All files' : (brandAtFolder?.name ?? undefined);
       return {
         data: {
           folder: {
             id: allScope ? '__all__' : f.id,
-            name: allScope ? 'All files' : mappedFolderLabel,
+            name: allScope ? 'All files' : f.name,
+            ...(folderLabel ? { label: folderLabel } : {}),
             parent_id: allScope || atRoot ? null : f.parentId,
           },
           root_name: c.conn.rootFolderName,
