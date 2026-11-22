@@ -17,7 +17,9 @@ export async function runMetaAdsDailySync(now: Date = new Date(), limit = 100) {
   let synced = 0;
   let failed = 0;
   for (const link of due) {
-    const res = await syncBrandMetaAds(link.tenantId, link.brandId, { now, days: 7 }).catch(() => null);
+    const res = await syncBrandMetaAds(link.tenantId, link.brandId, { now, days: 7 }).catch(
+      () => null,
+    );
     if (res?.ok) synced += 1;
     else failed += 1;
   }
