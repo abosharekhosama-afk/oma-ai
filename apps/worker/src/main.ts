@@ -67,6 +67,16 @@ async function main() {
       .catch((err) => log.error({ err: String(err) }, 'seo weekly sync failed'));
   setTimeout(seoWeekly, 60_000);
   setInterval(seoWeekly, 6 * 60 * 60 * 1000);
+  // DEC-029 4.8: daily read-only Meta Ads insights (META_ADS_MODE=live only).
+  const metaAdsDaily = () =>
+    void import('./brand/meta-ads-daily-sync')
+      .then(({ runMetaAdsDailySync }) => runMetaAdsDailySync())
+      .then((res) => {
+        if (!res.skipped) log.info(res, 'meta ads daily sync tick');
+      })
+      .catch((err) => log.error({ err: String(err) }, 'meta ads daily sync failed'));
+  setTimeout(metaAdsDaily, 90_000);
+  setInterval(metaAdsDaily, 3 * 60 * 60 * 1000);
   startAnalysisProcessor(connection);
   startAiProcessor(connection);
   startInboxProcessor(connection);

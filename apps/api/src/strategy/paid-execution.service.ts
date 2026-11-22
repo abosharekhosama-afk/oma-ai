@@ -8,6 +8,7 @@ import {
   newId,
   paidSpendEntrySchema,
   parsePaidSpendCsv,
+  preferApiSpend,
   STRATEGY_PAID_PLATFORMS,
   type PaidSpendEntryInput,
   type StrategyExperimentStatus,
@@ -68,12 +69,14 @@ export class PaidExecutionService {
         orderBy: { sortOrder: 'asc' },
       }),
     ]);
-    const spend = await prisma.paidSpendEntry.findMany({
-      where: tenantWhere(tenantId, {
-        brandId,
-        OR: [{ strategyVersionId: versionId }, { strategyVersionId: null }],
+    const spend = preferApiSpend(
+      await prisma.paidSpendEntry.findMany({
+        where: tenantWhere(tenantId, {
+          brandId,
+          OR: [{ strategyVersionId: versionId }, { strategyVersionId: null }],
+        }),
       }),
-    });
+    );
     const flightRows = flights.map((f) => {
       const entries = spend.filter(
         (e) => e.flightKey === f.key && (e.strategyVersionId === versionId || !e.strategyVersionId),
@@ -457,11 +460,13 @@ export class PaidExecutionService {
     const start = isKey(from)
       ? new Date(`${from}T00:00:00Z`)
       : new Date(end.getTime() - 30 * 86_400_000);
-    const rows = await getPrisma().paidSpendEntry.findMany({
-      where: tenantWhere(tenantId, { brandId, spendDate: { gte: start, lte: end } }),
-      orderBy: [{ spendDate: 'asc' }, { platform: 'asc' }],
-      take: 2000,
-    });
+    const rows = preferApiSpend(
+      await getPrisma().paidSpendEntry.findMany({
+        where: tenantWhere(tenantId, { brandId, spendDate: { gte: start, lte: end } }),
+        orderBy: [{ spendDate: 'asc' }, { platform: 'asc' }],
+        take: 5000,
+      }),
+    );
     const byPlatform: Record<string, { amount: number; currency: string }> = {};
     for (const r of rows) {
       const k = `${r.platform}`;
