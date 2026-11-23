@@ -396,4 +396,278 @@
     font-size: 14px !important;
     margin: 0 !important;
   }
+
+  /* ---- Tasks ---- */
+  html body .oma-tasks-page .oma-req-main {
+    padding-inline: 8px !important;
+  }
+
+  html body .oma-tasks-page .oma-kb-board {
+    padding: 0 !important;
+  }
+
+  html body .oma-tasks-page .oma-kb-board__grid {
+    gap: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  html body .oma-tasks-page .oma-kb-col__head {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  html body .oma-tasks-page .oma-kb-col__cards {
+    gap: 8px !important;
+    padding: 0 6px 8px !important;
+  }
+
+  html body .oma-tasks-page .oma-kb-board .oma-kb-card {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+  }
+
+  html body .oma-tasks-page .oma-kb-card__title {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__head {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-height: auto !important;
+    padding: 10px 12px !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__head-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: auto !important;
+    max-width: 100%;
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__head-actions .ant-btn,
+  html body .oma-task-detail-drawer .oma-task-detail__head-actions button {
+    width: auto !important;
+    flex: 0 1 auto !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__title-input,
+  html body .oma-task-detail-drawer .oma-task-detail__title-input.ant-input {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    min-height: 28px !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__grid {
+    padding: 8px 10px 20px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__card {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__card h3 {
+    margin-bottom: 8px !important;
+    font-size: 11px !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__fields {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__fields label {
+    gap: 4px !important;
+    font-size: 11px !important;
+  }
+
+  html body .oma-task-detail-drawer .oma-task-detail__handoff .ant-btn {
+    width: auto !important;
+    flex: 0 1 auto !important;
+  }
+
+  /* ---- Content (plan / feed / list) ---- */
+  html body .oma-plx-listening.oma-plx-content,
+  html body .oma-content-plan.oma-plx-content {
+    padding: 0 8px 12px !important;
+    max-width: none !important;
+  }
+
+  html body .oma-plx-content-header-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: auto !important;
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+
+  html body .oma-plx-content-header-btn {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: 100%;
+    min-height: var(--oma-control-height, 28px) !important;
+    height: var(--oma-control-height, 28px) !important;
+    padding-inline: 10px !important;
+    font-size: 12px !important;
+  }
+
+  html body .oma-plx-content-header-btn--primary {
+    padding-inline: 12px !important;
+  }
+
+  html body .oma-plx-content-list.oma-plan-list {
+    padding: 6px 4px 56px !important;
+  }
+
+  html body .oma-plx-content-list .oma-plan-list__head {
+    padding: 8px 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  html body .oma-plx-content-list .oma-plan-list__row {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  html body .oma-plx-content-feed {
+    padding: 4px 0 8px !important;
+    gap: 8px;
+  }
+
+  html body .oma-plx-content-feed .oma-pp,
+  html body .oma-content-feed .oma-fp {
+    margin-bottom: 8px !important;
+    border-radius: 10px !important;
+  }
+
+  html body .oma-content-plan .oma-cal-toolbar {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 6px 0 !important;
+  }
+
+  html body .oma-content-plan .oma-cal-toolbar .ant-btn {
+    flex: 0 1 auto !important;
+    width: auto !important;
+  }
+
+  /* ---- Deliverables list ---- */
+  html body .oma-deliv-page .oma-req-main,
+  html body .oma-deliv-page .oma-deliv-workspace {
+    padding-inline: 8px !important;
+  }
+
+  html body .oma-deliv-page .oma-deliv-topbar,
+  html body .oma-deliv-page .oma-req-topbar.oma-deliv-topbar {
+    padding: 6px 8px !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+
+  html body .oma-deliv-page [data-testid='demo-deliv-groups'] {
+    gap: 4px !important;
+    padding: 4px 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  html body .oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab,
+  html body .oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    flex: 0 1 auto !important;
+    width: auto !important;
+  }
+
+  html body .oma-deliv-page .oma-plx-deliv-table-wrap {
+    padding: 4px 0 8px !important;
+  }
+
+  /* ---- Brand workspace ---- */
+  html body .oma-plx-listening.oma-plx-brand,
+  html body .oma-plx-listening.oma-plx-brand-portfolio {
+    padding: 0 8px 12px !important;
+  }
+
+  html body .oma-plx-brand.oma-brand-shell {
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand-panel__body {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand-hub-card,
+  html body .oma-brand-hub-card {
+    padding: 10px !important;
+    border-radius: 10px !important;
+    gap: 4px !important;
+  }
+
+  html body .oma-plx-brand-nav--primary {
+    gap: 4px !important;
+    padding: 4px 6px !important;
+  }
+
+  html body .oma-plx-brand-section__body {
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-form-actions {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-form-actions > .ant-btn,
+  html body .oma-plx-brand .oma-form-actions > button,
+  html body .oma-plx-brand .oma-form-actions > a {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: 100%;
+  }
+
+  /* ---- Home hub ---- */
+  html body .oma-plx-listening.oma-plx-home {
+    padding: 0 8px 12px !important;
+  }
+
+  html body .oma-plx-home .oma-home-card,
+  html body .oma-plx-home .oma-plx-listening-panel.oma-home-card {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  html body .oma-plx-home-week {
+    gap: 8px !important;
+  }
+
+  /* ---- Settings / team (workspace tables) ---- */
+  html body .oma-ws-page .oma-page-header {
+    padding: 8px 10px !important;
+  }
+
+  html body .oma-ws-page .oma-panel {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+  }
+
+  html body .oma-ws-page .oma-form-grid {
+    gap: 8px !important;
+  }
+
+  html body .oma-ws-page .oma-form-actions .ant-btn {
+    flex: 0 1 auto !important;
+    width: auto !important;
+  }
 }

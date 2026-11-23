@@ -83,6 +83,8 @@ Use the command/skill names exposed by the installed Spec Kit integration. Curso
 
 ## UI reference gate
 
+For mobile UI polish or “make it feel better” on small screens, load `.agents/skills/oma-mobile-feel-better` (vendored [`make-interfaces-feel-better`](https://github.com/jakubkrehel/make-interfaces-feel-better) + OMA CSS constraints).
+
 For every UI plan or change:
 
 1. Name the screen archetype from `docs/DESIGN_REFERENCE_STRATEGY.md`.
