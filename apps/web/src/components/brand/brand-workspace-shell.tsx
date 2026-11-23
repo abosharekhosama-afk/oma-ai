@@ -98,30 +98,30 @@ export function BrandWorkspaceShell({
       data-testid="brand-workspace"
     >
       {!hideIntro ? (
-      <div className="oma-plx-listening__intro oma-plx-deliv__intro oma-plx-brand__intro">
-        <div className="oma-plx-brand__identity">
-          <BrandMark name={brandName} logoUrl={logoUrl} />
-          <div className="oma-plx-brand__identity-copy">
-            <h1 className="oma-plx-listening__title">{brandName}</h1>
-            {websiteUrl ? <p className="oma-plx-deliv__subtitle oma-ltr">{websiteUrl}</p> : null}
-            <div className="oma-plx-brand__chips">
-              {brandStatus ? <StatusChip status={brandStatus} /> : null}
-              {scanStatus ? <StatusChip status={scanStatus} /> : null}
-              {profileStatus ? <StatusChip status={profileStatus} /> : null}
+        <div className="oma-plx-listening__intro oma-plx-deliv__intro oma-plx-brand__intro">
+          <div className="oma-plx-brand__identity">
+            <BrandMark name={brandName} logoUrl={logoUrl} />
+            <div className="oma-plx-brand__identity-copy">
+              <h1 className="oma-plx-listening__title">{brandName}</h1>
+              {websiteUrl ? <p className="oma-plx-deliv__subtitle oma-ltr">{websiteUrl}</p> : null}
+              <div className="oma-plx-brand__chips">
+                {brandStatus ? <StatusChip status={brandStatus} /> : null}
+                {scanStatus ? <StatusChip status={scanStatus} /> : null}
+                {profileStatus ? <StatusChip status={profileStatus} /> : null}
+              </div>
             </div>
           </div>
+          {nextStepHref && nextStepLabel && !nextStepHref.includes('/connect') ? (
+            <OmaLinkButton
+              href={nextStepHref}
+              type="primary"
+              className="oma-plx-brand__cta"
+              data-testid="brand-next-step"
+            >
+              {nextStepLabel}
+            </OmaLinkButton>
+          ) : null}
         </div>
-        {nextStepHref && nextStepLabel && !nextStepHref.includes('/connect') ? (
-          <OmaLinkButton
-            href={nextStepHref}
-            type="primary"
-            className="oma-plx-brand__cta"
-            data-testid="brand-next-step"
-          >
-            {nextStepLabel}
-          </OmaLinkButton>
-        ) : null}
-      </div>
       ) : null}
 
       <section className="oma-plx-listening-panel oma-plx-brand-panel">

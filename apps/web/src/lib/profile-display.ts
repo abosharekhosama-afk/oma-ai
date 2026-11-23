@@ -34,7 +34,11 @@ function formatValuePart(value: unknown, depth = 0): string {
 function formatObjectLine(record: Record<string, unknown>, depth = 0): string {
   if (Array.isArray(record.profiles)) {
     return record.profiles
-      .map((row) => (row && typeof row === 'object' ? formatObjectLine(row as Record<string, unknown>, depth + 1) : formatValuePart(row, depth + 1)))
+      .map((row) =>
+        row && typeof row === 'object'
+          ? formatObjectLine(row as Record<string, unknown>, depth + 1)
+          : formatValuePart(row, depth + 1),
+      )
       .filter((line) => line !== '—')
       .join('\n');
   }

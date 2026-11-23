@@ -313,7 +313,10 @@ export default function BrandDetailPage() {
 
           <nav className="oma-brand-quick-links" aria-label={t('brand.detail.quickLinks')}>
             {scan ? (
-              <Link href={`/app/brands/${brandId}/discovery`} className="oma-brand-quick-links__item">
+              <Link
+                href={`/app/brands/${brandId}/discovery`}
+                className="oma-brand-quick-links__item"
+              >
                 {t('brand.discovery.hubTitle')}
               </Link>
             ) : null}

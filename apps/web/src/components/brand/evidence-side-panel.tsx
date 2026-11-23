@@ -53,10 +53,18 @@ function EvidencePanelBody({
         <div className="oma-evidence-panel__foot">
           {(prevId || nextId) && onNavigate ? (
             <div className="oma-header-actions">
-              <Button type="default" disabled={!prevId} onClick={() => prevId && onNavigate(prevId)}>
+              <Button
+                type="default"
+                disabled={!prevId}
+                onClick={() => prevId && onNavigate(prevId)}
+              >
                 {t('brand.evidence.prev')}
               </Button>
-              <Button type="default" disabled={!nextId} onClick={() => nextId && onNavigate(nextId)}>
+              <Button
+                type="default"
+                disabled={!nextId}
+                onClick={() => nextId && onNavigate(nextId)}
+              >
                 {t('brand.evidence.next')}
               </Button>
             </div>

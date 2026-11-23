@@ -171,7 +171,7 @@ function provenanceBadgeClass(infoState: string): string {
 
 function insightMetaChips(t: (key: string) => string, insight: InsightItem) {
   return (
-  <>
+    <>
       <span
         className={provenanceBadgeClass(insight.info_state)}
         data-testid={`insight-provenance-${insight.info_state}`}
@@ -179,7 +179,9 @@ function insightMetaChips(t: (key: string) => string, insight: InsightItem) {
         {t(`brand.infoState.${insight.info_state}`)}
       </span>
       {insight.discovery_tier === 'REQUIRED_FOR_APPROVAL' ? (
-        <span className="oma-badge oma-badge-muted">{t(`brand.tier.${insight.discovery_tier}`)}</span>
+        <span className="oma-badge oma-badge-muted">
+          {t(`brand.tier.${insight.discovery_tier}`)}
+        </span>
       ) : null}
     </>
   );
@@ -207,7 +209,9 @@ function InsightFieldRow({
     >
       <div className="oma-insight-field-row__label">
         <span>{fieldLabel(t, insight.field_key)}</span>
-        {!compact ? <span className="oma-insight-field-row__chips">{insightMetaChips(t, insight)}</span> : null}
+        {!compact ? (
+          <span className="oma-insight-field-row__chips">{insightMetaChips(t, insight)}</span>
+        ) : null}
       </div>
       {empty ? (
         <p className="oma-muted oma-insight-field-row__empty" role="status">
@@ -248,10 +252,7 @@ function EvidenceBundleCard({
   const sourceUrl = bundleSourceUrl(bundle.insights);
   const primary = bundle.insights[0];
   return (
-    <li
-      className="oma-insight-bundle oma-plx-listening-card"
-      data-testid="insight-evidence-bundle"
-    >
+    <li className="oma-insight-bundle oma-plx-listening-card" data-testid="insight-evidence-bundle">
       <header className="oma-insight-bundle__head">
         <div className="oma-insight-bundle__titles">
           <h4 className="oma-insight-bundle__title" dir="auto">

@@ -65,7 +65,9 @@ function catalogItemMediaUrl(row: Record<string, unknown>): string | undefined {
 function catalogItems(payload: unknown): CatalogItem[] {
   const rows: unknown[] = Array.isArray(payload)
     ? payload
-    : payload && typeof payload === 'object' && Array.isArray((payload as { items?: unknown }).items)
+    : payload &&
+        typeof payload === 'object' &&
+        Array.isArray((payload as { items?: unknown }).items)
       ? ((payload as { items: unknown[] }).items ?? [])
       : [];
   if (rows.length === 0) return [];
@@ -150,7 +152,12 @@ export function InsightRichValue({ insight }: { insight: InsightItem }) {
           return (
             <li key={`${network}-${idx}`}>
               <span className="oma-insight-social-list__net">{network}</span>
-              <a href={url} className="oma-text-link oma-ltr" target="_blank" rel="noreferrer noopener">
+              <a
+                href={url}
+                className="oma-text-link oma-ltr"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
                 {shortDisplayUrl(url, 56)}
               </a>
             </li>
@@ -177,7 +184,12 @@ export function InsightRichValue({ insight }: { insight: InsightItem }) {
     return (
       <div className="oma-insight-color-row">
         {colors.map((color) => (
-          <span key={color} className="oma-insight-color-swatch" title={color} style={{ background: color }} />
+          <span
+            key={color}
+            className="oma-insight-color-swatch"
+            title={color}
+            style={{ background: color }}
+          />
         ))}
       </div>
     );
