@@ -2,7 +2,8 @@
  * Requests workspace — mobile redesign overrides (wins over stage4 767px table mode).
  */
 @media (max-width: 767px) {
-  html[data-oma-mobile-redesign='v1'] body .oma-shell[data-mobile-redesign-ws='requests'] {
+  /* Does not depend on html[data-oma-mobile-redesign]; ws attr is set on first shell paint */
+  html body .oma-shell[data-mobile-redesign-ws='requests'] {
     /* Shell: icons only (filter + create) */
     .oma-top-actions--workspace .oma-requests-header-title {
       display: none !important;

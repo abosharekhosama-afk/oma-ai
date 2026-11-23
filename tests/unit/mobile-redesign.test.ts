@@ -50,4 +50,11 @@ describe('mobile redesign v1', () => {
     expect(shell).toContain('data-mobile-redesign-ws');
     expect(shell).toContain('applyMobileRedesignFlag');
   });
+
+  it('bootstraps redesign flag before interactive (no flash / no missing CSS)', () => {
+    const layout = read('apps/web/src/app/layout.tsx');
+    expect(layout).toContain('oma-mobile-redesign-bootstrap');
+    expect(layout).toContain('MOBILE_REDESIGN_ATTR');
+    expect(layout).toContain('beforeInteractive');
+  });
 });
