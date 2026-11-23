@@ -65,6 +65,17 @@ describe('css cleanup (stage2/4/5)', () => {
     expect(css).not.toMatch(/oma-req-page \.oma-req-mobile[\s\S]{0,60}display:\s*none !important/);
   });
 
+  it('uses fluid compact content rows on phone', () => {
+    const mobile = read('apps/web/src/styles/mobile-precise-nov03.css');
+    expect(mobile).not.toContain('920px');
+    expect(mobile).toContain("'check thumb main actions'");
+    expect(mobile).toContain('minmax(0, 1fr)');
+
+    const reset = read('apps/web/src/styles/mobile-ux-pro-max-reset.css');
+    expect(reset).toContain('--oma-mobile-gap: 6px;');
+    expect(reset).toContain('--oma-mobile-section: 10px;');
+  });
+
   it('stage4 requests tab uses tokens after cleanup', () => {
     const css = read('apps/web/src/styles/stage4/20-ops-deliverables-tasks.css');
     expect(css).toContain('var(--oma-workspace-tab-active-bg)');

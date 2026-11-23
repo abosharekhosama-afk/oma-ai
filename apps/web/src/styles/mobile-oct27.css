@@ -367,8 +367,6 @@ html body .oma-drawer.oma-drawer--nav .ant-drawer-mask {
     min-width: 0 !important;
   }
   html body .oma-deliv-detail__title {
-    font-size: 18px !important;
-    line-height: 1.3 !important;
     overflow-wrap: anywhere !important;
   }
   html body .oma-deliv-detail__chips {
@@ -490,9 +488,6 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
   display: none !important;
 }
 @media (max-width: 767px) {
-  html body .oma-plan-post__rail {
-    display: none !important;
-  }
   html body .oma-plan-post__main {
     min-width: 0 !important;
     width: 100% !important;

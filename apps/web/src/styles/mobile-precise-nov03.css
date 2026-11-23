@@ -2,7 +2,7 @@
    Mobile precise fixes (Nov 03) — <768 only. Desktop unchanged.
    1) Page title in shell next to menu toggle
    2) Deliverables tabs: single horizontal scroll row
-   3) Prefer desktop tables over mobile cards
+   3) Use compact card rows for content lists on phones
    4) Create / invite: icon-only +
    5) Team permissions: no sticky first column
    ========================================================================== */
@@ -102,7 +102,7 @@
     white-space: nowrap !important;
   }
 
-  /* ---- 3. Ops lists: mobile card layouts (stage4 @media ≤900px); no 920px table trap ---- */
+  /* ---- 3. Ops lists: compact card layouts for narrow screens ---- */
   html body .oma-deliv-page .oma-deliv-desktop,
   html body .oma-deliv-desktop {
     display: none !important;
@@ -127,33 +127,85 @@
     -webkit-overflow-scrolling: touch !important;
   }
 
-  /* Content list: keep the desktop column rhythm and scroll the list itself. */
+  /* Content list: use fluid, compact rows instead of a desktop-width table. */
   html body .oma-content-plan .oma-plan-list {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior-inline: contain !important;
-    touch-action: pan-x pan-y !important;
+    touch-action: pan-y !important;
+  }
+  html body .oma-content-plan .oma-plan-list__scroll {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
   html body .oma-content-plan .oma-plan-list__head,
   html body .oma-content-plan .oma-plan-list__body {
-    width: 920px !important;
-    min-width: 920px !important;
-    max-width: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     margin-inline: 0 !important;
     box-sizing: border-box !important;
   }
   html body .oma-content-plan .oma-plan-list__row {
     width: 100% !important;
-    min-width: 920px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    grid-template-columns: 20px 34px minmax(0, 1fr) minmax(52px, max-content) !important;
+    grid-template-areas:
+      'check thumb main actions'
+      'check thumb labels date'
+      'check thumb mid date' !important;
+    gap: 4px 8px !important;
+    min-height: auto !important;
+    padding: 8px !important;
     box-sizing: border-box !important;
+  }
+  html body .oma-content-plan .oma-plan-list__check {
+    grid-area: check !important;
+  }
+  html body .oma-content-plan .oma-plan-list__thumb {
+    grid-area: thumb !important;
+    width: 32px !important;
+    height: 32px !important;
   }
   html body .oma-content-plan .oma-plan-list__main,
   html body .oma-content-plan .oma-plan-list__title {
     min-width: 0 !important;
+  }
+  html body .oma-content-plan .oma-plan-list__main {
+    grid-area: main !important;
+  }
+  html body .oma-content-plan .oma-plan-list__title {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+  html body .oma-content-plan .oma-plan-list__labels {
+    grid-area: labels !important;
+    min-width: 0 !important;
+  }
+  html body .oma-content-plan .oma-plan-list__mid {
+    grid-area: mid !important;
+    justify-self: start !important;
+  }
+  html body .oma-content-plan .oma-plan-list__hover {
+    display: none !important;
+  }
+  html body .oma-content-plan .oma-card-actions-btn--list {
+    grid-area: actions !important;
+    justify-self: end !important;
+  }
+  html body .oma-content-plan .oma-plan-list__when {
+    grid-area: date !important;
+    max-width: 100% !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-align: end !important;
   }
 
   /* ---- 4. Create / invite icon-only ---- */
