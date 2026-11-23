@@ -2,8 +2,15 @@
 import { Button, TextArea } from '@oma/ui/controls';
 
 import type { InsightItem } from '../../lib/brand-types';
-import { formatInsightText } from '../../lib/profile-display';
+import { formatInsightText, shortDisplayUrl } from '../../lib/profile-display';
 import { groupInsightsByFieldAndValue } from '../../lib/brand-scan-ui';
+import {
+  bundleSourceUrl,
+  bundleTitle,
+  groupInsightsByEvidence,
+  type EvidenceInsightBundle,
+} from '../../lib/profile-insight-groups';
+import { InsightRichValue } from './insight-rich-value';
 import { useT } from '../../lib/use-locale';
 
 type ProfileSectionsProps = {
@@ -162,6 +169,194 @@ function provenanceBadgeClass(infoState: string): string {
   return 'oma-badge oma-badge-muted';
 }
 
+function insightMetaChips(t: (key: string) => string, insight: InsightItem) {
+  return (
+  <>
+      <span
+        className={provenanceBadgeClass(insight.info_state)}
+        data-testid={`insight-provenance-${insight.info_state}`}
+      >
+        {t(`brand.infoState.${insight.info_state}`)}
+      </span>
+      {insight.discovery_tier === 'REQUIRED_FOR_APPROVAL' ? (
+        <span className="oma-badge oma-badge-muted">{t(`brand.tier.${insight.discovery_tier}`)}</span>
+      ) : null}
+    </>
+  );
+}
+
+function InsightFieldRow({
+  insight,
+  editable,
+  onInsightChange,
+  t,
+  compact,
+}: {
+  insight: InsightItem;
+  editable: boolean;
+  onInsightChange?: (id: string, text: string) => void;
+  t: (key: string) => string;
+  compact?: boolean;
+}) {
+  const empty = insight.text_value == null || String(insight.text_value).trim() === '';
+  const required = insight.discovery_tier === 'REQUIRED_FOR_APPROVAL';
+  return (
+    <div
+      className={`oma-insight-field-row${compact ? ' oma-insight-field-row--compact' : ''}`}
+      data-field={insight.field_key}
+    >
+      <div className="oma-insight-field-row__label">
+        <span>{fieldLabel(t, insight.field_key)}</span>
+        {!compact ? <span className="oma-insight-field-row__chips">{insightMetaChips(t, insight)}</span> : null}
+      </div>
+      {empty ? (
+        <p className="oma-muted oma-insight-field-row__empty" role="status">
+          {required ? t('brand.profile.requiredNotFound') : t('brand.profile.optionalUnknown')}
+        </p>
+      ) : editable ? (
+        <label className="oma-insight-edit">
+          <span className="oma-sr-only">{insight.field_key}</span>
+          <TextArea
+            rows={2}
+            value={insight.text_value ?? ''}
+            onChange={(e) => onInsightChange?.(insight.id, e.target.value)}
+          />
+        </label>
+      ) : (
+        <div className="oma-insight-field-row__value">
+          <InsightRichValue insight={insight} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EvidenceBundleCard({
+  bundle,
+  editable,
+  onInsightChange,
+  onViewEvidence,
+  t,
+}: {
+  bundle: EvidenceInsightBundle;
+  editable: boolean;
+  onInsightChange?: (id: string, text: string) => void;
+  onViewEvidence?: (evidenceId: string) => void;
+  t: (key: string) => string;
+}) {
+  const title = bundleTitle(bundle.insights);
+  const sourceUrl = bundleSourceUrl(bundle.insights);
+  const primary = bundle.insights[0];
+  return (
+    <li
+      className="oma-insight-bundle oma-plx-listening-card"
+      data-testid="insight-evidence-bundle"
+    >
+      <header className="oma-insight-bundle__head">
+        <div className="oma-insight-bundle__titles">
+          <h4 className="oma-insight-bundle__title" dir="auto">
+            {title ?? fieldLabel(t, primary?.field_key ?? 'brand.name')}
+          </h4>
+          {sourceUrl ? (
+            <a
+              href={sourceUrl}
+              className="oma-text-link oma-ltr oma-insight-bundle__source"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {shortDisplayUrl(sourceUrl, 72)}
+            </a>
+          ) : null}
+        </div>
+        {primary ? (
+          <span className="oma-insight-bundle__meta">{insightMetaChips(t, primary)}</span>
+        ) : null}
+      </header>
+      <dl className="oma-insight-bundle__fields">
+        {bundle.insights.map((insight) => {
+          if (insight.field_key === 'brand.name' && title) return null;
+          if (insight.field_key === 'brand.source_url' && sourceUrl) return null;
+          return (
+            <div key={insight.id}>
+              <InsightFieldRow
+                insight={insight}
+                editable={editable}
+                onInsightChange={onInsightChange}
+                t={t}
+                compact
+              />
+            </div>
+          );
+        })}
+      </dl>
+      <footer className="oma-insight-footer">
+        {bundle.evidenceId ? (
+          <Button
+            type="link"
+            className="oma-insight-footer__evidence"
+            onClick={() => onViewEvidence?.(bundle.evidenceId!)}
+          >
+            {t('brand.evidence.view')}
+          </Button>
+        ) : (
+          <span className="oma-muted oma-insight-footer__dup">{t('brand.evidence.none')}</span>
+        )}
+      </footer>
+    </li>
+  );
+}
+
+function SingletonInsightCard({
+  insight,
+  dupCount,
+  editable,
+  onInsightChange,
+  onViewEvidence,
+  t,
+}: {
+  insight: InsightItem;
+  dupCount: number;
+  editable: boolean;
+  onInsightChange?: (id: string, text: string) => void;
+  onViewEvidence?: (evidenceId: string) => void;
+  t: (key: string) => string;
+}) {
+  const isCatalog =
+    insight.field_key === 'catalog.products' || insight.field_key === 'catalog.services';
+  return (
+    <li
+      className={`oma-insight-item oma-plx-listening-card oma-plx-brand-insight-card${isCatalog ? ' oma-insight-item--catalog' : ''}`}
+    >
+      <InsightFieldRow
+        insight={insight}
+        editable={editable}
+        onInsightChange={onInsightChange}
+        t={t}
+      />
+      {!editable && isCatalog ? null : editable ? null : (
+        <div className="oma-insight-footer">
+          {dupCount > 0 ? (
+            <span className="oma-muted oma-insight-footer__dup">
+              {t('brand.profile.duplicateEvidence').replace('{count}', String(dupCount + 1))}
+            </span>
+          ) : null}
+          {insight.evidence_id ? (
+            <Button
+              type="link"
+              className="oma-insight-footer__evidence"
+              onClick={() => onViewEvidence?.(insight.evidence_id!)}
+            >
+              {t('brand.evidence.view')}
+            </Button>
+          ) : (
+            <span className="oma-muted oma-insight-footer__dup">{t('brand.evidence.none')}</span>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
 /**
  * Brand Intelligence editor: Planable section navigation + white editor surface.
  */
@@ -239,94 +434,39 @@ export function ProfileSections({
             >
               <h3 id={`heading-${key}`}>{sectionTitle(t, key)}</h3>
               {key === 'visual_identity' ? <VisualIdentity value={sections[key]} /> : null}
-              <SectionData label={t('brand.profile.sectionDataTitle')} value={sections[key]} />
-              <ul className="oma-insight-list">
-                {groupInsightsByFieldAndValue(insightsBySection.get(key) ?? []).map((group) => {
-                  const insight = group.primary;
-                  const dupCount = group.duplicates.length;
-                  return (
-                    <li
-                      key={insight.id}
-                      className="oma-insight-item oma-plx-listening-card oma-plx-brand-insight-card oma-social-insight-card"
-                    >
-                      <div className="oma-insight-header oma-insight-header--compact">
-                        <strong className="oma-insight-header__title">
-                          {fieldLabel(t, insight.field_key)}
-                        </strong>
-                        <span className="oma-insight-header__meta">
-                          <span
-                            className={provenanceBadgeClass(insight.info_state)}
-                            data-testid={`insight-provenance-${insight.info_state}`}
-                          >
-                            {t(`brand.infoState.${insight.info_state}`)}
-                          </span>
-                          {insight.discovery_tier === 'REQUIRED_FOR_APPROVAL' ? (
-                            <span className="oma-badge oma-badge-muted">
-                              {t(`brand.tier.${insight.discovery_tier}`)}
-                            </span>
-                          ) : null}
-                        </span>
-                      </div>
-                      {(() => {
-                        const empty =
-                          insight.text_value == null || String(insight.text_value).trim() === '';
-                        if (!empty) return null;
-                        const required = insight.discovery_tier === 'REQUIRED_FOR_APPROVAL';
-                        return (
-                          <p
-                            className="oma-muted"
-                            role="status"
-                            data-absence={required ? 'required-not-found' : 'optional-unknown'}
-                          >
-                            {required
-                              ? t('brand.profile.requiredNotFound')
-                              : t('brand.profile.optionalUnknown')}
-                          </p>
-                        );
-                      })()}
-                      {editable ? (
-                        <label className="oma-insight-edit">
-                          <span className="oma-sr-only">{insight.field_key}</span>
-                          <TextArea
-                            rows={2}
-                            value={insight.text_value ?? ''}
-                            onChange={(e) => onInsightChange?.(insight.id, e.target.value)}
-                          />
-                        </label>
-                      ) : (
-                        <p className="oma-insight-value oma-social-insight-card__value">
-                          {formatInsightText(insight.text_value) !== '—'
-                            ? formatInsightText(insight.text_value)
-                            : t('brand.profile.emptyValue')}
-                        </p>
-                      )}
-                      <div className="oma-insight-footer">
-                        {dupCount > 0 ? (
-                          <span className="oma-muted oma-insight-footer__dup">
-                            {t('brand.profile.duplicateEvidence').replace(
-                              '{count}',
-                              String(dupCount + 1),
-                            )}
-                          </span>
-                        ) : null}
-                        {insight.evidence_id ? (
-                          <Button
-                            type="link"
-                            className="oma-insight-footer__evidence"
-                            onClick={() => onViewEvidence?.(insight.evidence_id!)}
-                          >
-                            {t('brand.evidence.view')}
-                          </Button>
-                        ) : (
-                          <span className="oma-muted oma-insight-footer__dup">
-                            {t('brand.evidence.none')}
-                          </span>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+              {(insightsBySection.get(key) ?? []).length === 0 ? (
+                <SectionData label={t('brand.profile.sectionDataTitle')} value={sections[key]} />
+              ) : null}
+              {(() => {
+                const sectionInsights = insightsBySection.get(key) ?? [];
+                const { bundles, singletons } = groupInsightsByEvidence(sectionInsights);
+                const singletonGroups = groupInsightsByFieldAndValue(singletons);
+                return (
+                  <ul className="oma-insight-list oma-insight-list--spaced">
+                    {bundles.map((bundle) => (
+                      <EvidenceBundleCard
+                        key={bundle.evidenceId ?? bundle.insights[0]?.id}
+                        bundle={bundle}
+                        editable={editable}
+                        onInsightChange={onInsightChange}
+                        onViewEvidence={onViewEvidence}
+                        t={t}
+                      />
+                    ))}
+                    {singletonGroups.map((group) => (
+                      <SingletonInsightCard
+                        key={group.primary.id}
+                        insight={group.primary}
+                        dupCount={group.duplicates.length}
+                        editable={editable}
+                        onInsightChange={onInsightChange}
+                        onViewEvidence={onViewEvidence}
+                        t={t}
+                      />
+                    ))}
+                  </ul>
+                );
+              })()}
             </section>
           ))}
         </div>
