@@ -35,6 +35,7 @@
 @import '../styles/mobile-feel-better.css';
 @import '../styles/mobile-ux-pro-max-reset.css';
 @import '../styles/mobile-redesign-v1.css';
+@import '../styles/mobile-redesign-requests.css';
 
 * {
   box-sizing: border-box;

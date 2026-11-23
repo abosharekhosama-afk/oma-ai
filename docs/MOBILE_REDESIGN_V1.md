@@ -8,7 +8,7 @@
 | ------------ | -------------------------------- | ------ |
 | Home         | `/app`                           | v1 CSS |
 | Content      | `/app/content`, `/app/approvals` | v1 CSS |
-| Requests     | `/app/requests/*`                | v1 CSS |
+| Requests     | `/app/requests/*`                | v1 + requests override (icons, tabs, cards) |
 | Tasks        | `/app/tasks/*`                   | v1 CSS |
 | Deliverables | `/app/deliverables/*`            | v1 CSS |
 

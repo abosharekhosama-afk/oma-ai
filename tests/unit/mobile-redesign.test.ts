@@ -23,6 +23,13 @@ describe('mobile redesign v1', () => {
     expect(redesign).toBeGreaterThan(legacy);
   });
 
+  it('loads requests mobile overrides after redesign v1', () => {
+    const globals = read('apps/web/src/app/globals.css');
+    const req = globals.indexOf('mobile-redesign-requests.css');
+    const v1 = globals.indexOf('mobile-redesign-v1.css');
+    expect(req).toBeGreaterThan(v1);
+  });
+
   it('documents the redesign gate attribute', () => {
     const css = read('apps/web/src/styles/mobile-redesign-v1.css');
     expect(css).toContain(`${MOBILE_REDESIGN_ATTR}='${MOBILE_REDESIGN_VALUE}'`);
