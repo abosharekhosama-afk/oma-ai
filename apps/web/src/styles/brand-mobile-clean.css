@@ -16,9 +16,15 @@
   }
 
   .oma-plx-brand__identity .oma-plx-listening__title {
-    font-size: 17px;
+    font-size: var(--text-title-sm, 15px);
     font-weight: 600;
     line-height: 1.25;
+  }
+
+  .oma-plx-brand__identity .oma-brand-mark {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
   }
 
   .oma-plx-brand__cta {
@@ -99,7 +105,7 @@
   }
 
   .oma-plx-brand .oma-plx-brand-stat-card__value {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
   }
 
@@ -126,7 +132,7 @@
   }
 
   .oma-plx-brand-main .oma-plx-brand-page-head__titles h2 {
-    font-size: 16px;
+    font-size: var(--text-title-sm, 15px);
   }
 
   .oma-plx-brand .oma-ws-tabs.oma-brand-section-nav {
@@ -143,7 +149,7 @@
   }
 
   .oma-plx-brand .oma-scan-hero__percent {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .oma-plx-brand .oma-scan-hero__facts {
