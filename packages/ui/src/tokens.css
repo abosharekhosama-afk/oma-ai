@@ -154,6 +154,22 @@
   --oma-action-radius: 8px;
   --oma-action-height: 34px;
   --oma-action-weight: 600;
+
+  /* Workspace chrome (stage4/5); replaces scattered #hex in ops surfaces */
+  --oma-workspace-bg: #f7f8f9;
+  --oma-workspace-bg-subtle: #fafbfc;
+  --oma-workspace-bg-hover: #f8f9fa;
+  --oma-workspace-border: #eef0f2;
+  --oma-workspace-border-card: #e8e9eb;
+  --oma-workspace-border-strong: #e5e7eb;
+  --oma-workspace-muted: #6b7280;
+  --oma-workspace-ink: #111827;
+  --oma-workspace-ink-soft: #8c8c8c;
+  --oma-workspace-tab-active-bg: #e8f1ff;
+  --oma-workspace-tab-active-fg: var(--oma-primary);
+  --oma-workspace-primary-border: #2563eb;
+  --oma-kb-board-bg: #f6f7f9;
+  --oma-kb-board-border: #eef0f3;
 }
 
 /* Home (Planable calm palette) */
