@@ -2241,7 +2241,6 @@ export default function ContentPage() {
     } else if (filters.brandIds.length === 0 && activeBrandId && prevActiveBrand.current) {
       setActiveBrandId(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to filter edits
   }, [filters.brandIds]);
   const createFromUrl = useRef(false);
   useEffect(() => {

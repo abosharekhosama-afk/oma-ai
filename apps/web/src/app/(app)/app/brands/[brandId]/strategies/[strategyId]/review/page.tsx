@@ -3,7 +3,6 @@ import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
 import { Button, CheckboxField, TextArea } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
