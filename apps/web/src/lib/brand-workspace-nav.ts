@@ -133,17 +133,22 @@ export function brandPathTailLabel(
 
 export type BrandWorkspaceNavMode = 'primary-only' | 'evidence-only' | 'strategy-only' | 'none';
 
+export function isBrandDiscoverySection(pathname: string, brandId: string): boolean {
+  const base = `/app/brands/${brandId}/discovery`;
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
 export function isBrandDeepWorkspaceRoute(pathname: string, brandId: string): boolean {
   if (isBrandStrategyDetailRoute(pathname, brandId)) return true;
   const base = `/app/brands/${brandId}`;
   if (!pathname.startsWith(`${base}/`)) return false;
   if (/\/profiles\/[^/]+/.test(pathname)) return true;
-  if (/\/scans\/[^/]+/.test(pathname)) return true;
   if (/\/briefs\/[^/]+/.test(pathname)) return true;
   return false;
 }
 
 export function brandWorkspaceNavMode(pathname: string, brandId: string): BrandWorkspaceNavMode {
+  if (isBrandDiscoverySection(pathname, brandId)) return 'none';
   if (isBrandDeepWorkspaceRoute(pathname, brandId)) return 'none';
   const base = `/app/brands/${brandId}`;
   if (pathname === base) return 'primary-only';

@@ -33,7 +33,7 @@ export function BrandWorkspaceSubnav({ links, ariaLabel, backHref, backLabel }: 
             href={link.href}
             role="tab"
             aria-current={active ? 'page' : undefined}
-            className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
+            className={`oma-ws-tab oma-brand-nav-link${active ? ' is-active' : ''}`}
           >
             {link.state ? (
               <span className="oma-brand-nav-state" data-state={link.state} aria-hidden="true" />

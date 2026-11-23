@@ -26,9 +26,9 @@ import { MediaPlaceholder } from '../../../../../../components/brand/product-med
 import { OmaLinkButton } from '../../../../../../components/ui/oma-link-button';
 import { StatusChip, statusLabel } from '../../../../../../components/ui/status-chip';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
-import { useLocale, useT } from '../../../../../../lib/use-locale';
+import { useT } from '../../../../../../lib/use-locale';
 import { buildBrandJourneySteps } from '../../../../../../lib/brand-journey';
-import { formatBrandDateTime } from '../../../../../../lib/brand-format';
+import { ScanRunMetaCard } from '../../../../../../components/brand/scan-run-meta-card';
 import { catalogStats, productGallery } from '../../../../../../lib/product-media';
 
 const PREVIEW_PAGES = 5;
@@ -36,7 +36,6 @@ const PREVIEW_PRODUCTS = 6;
 
 export default function DiscoveryHubPage() {
   const t = useT();
-  const locale = useLocale();
   const params = useParams<{ brandId: string }>();
   const brandId = params.brandId;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
@@ -99,8 +98,6 @@ export default function DiscoveryHubPage() {
 
   const summary = scan?.discovery_summary;
   const base = `/app/brands/${brandId}`;
-  const scannedAt = scan?.finished_at ?? scan?.started_at ?? null;
-
   return (
     <BrandWorkspaceShell
       brandId={brandId}
@@ -136,14 +133,7 @@ export default function DiscoveryHubPage() {
                 <p>{error}</p>
               </div>
             ) : null}
-            {scannedAt ? (
-              <p className="oma-muted oma-brand-meta-line" data-testid="discovery-scanned-at">
-                {t('brand.discovery.scannedAt').replace(
-                  '{date}',
-                  formatBrandDateTime(scannedAt, locale),
-                )}
-              </p>
-            ) : null}
+            {scan ? <ScanRunMetaCard scan={scan} /> : null}
             <BrandPlxStatGrid
               testId="discovery-summary-stats"
               stats={[

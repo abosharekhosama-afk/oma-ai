@@ -22,40 +22,40 @@ export function BrandPipelineOutcome({
   const endGoal = pipelineEndGoal(t, brand, hints);
 
   return (
-    <section
-      className="oma-plx-listening-panel oma-plx-brand-section"
-      data-testid="brand-pipeline-outcome"
-    >
-      <header className="oma-plx-brand-section__head">
+    <section className="oma-brand-pipeline-v2" data-testid="brand-pipeline-outcome">
+      <header className="oma-brand-pipeline-v2__head">
         <div>
-          <h3 className="oma-plx-brand-section__title">{t('brand.pipeline.title')}</h3>
-          <p className="oma-muted oma-plx-brand-section__desc">{t('brand.pipeline.subtitle')}</p>
+          <h3 className="oma-brand-pipeline-v2__title">{t('brand.pipeline.title')}</h3>
+          <p className="oma-muted">{t('brand.pipeline.subtitle')}</p>
         </div>
-      </header>
-      <div className="oma-plx-brand-section__body">
-        <p className="oma-plx-listening__next-check" role="status">
-          <strong>{t('brand.pipeline.endGoalLabel')}</strong> {endGoal}
+        <p className="oma-brand-pipeline-v2__goal" role="status">
+          <span className="oma-brand-pipeline-v2__goal-label">
+            {t('brand.pipeline.endGoalLabel')}
+          </span>{' '}
+          {endGoal}
         </p>
-        <ol className="oma-plx-brand-data-grid">
-          {stages.map((stage) => (
-            <li
-              key={stage.id}
-              className="oma-plx-listening-card oma-plx-brand-catalog-card"
-              data-pipeline-state={stage.state}
-            >
-              <div className="oma-title-row">
-                <Link href={stage.href} className="oma-text-link">
-                  {stage.label}
-                </Link>
-                <span className="oma-badge oma-badge-muted">
-                  {t(`brand.pipeline.state.${stage.state}`)}
-                </span>
-              </div>
-              <p className="oma-muted">{stage.detail}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
+      </header>
+      <ol className="oma-brand-pipeline-v2__track">
+        {stages.map((stage, index) => (
+          <li
+            key={stage.id}
+            className="oma-brand-pipeline-v2__step"
+            data-pipeline-state={stage.state}
+            data-step={index + 1}
+          >
+            <span className="oma-brand-pipeline-v2__marker" aria-hidden />
+            <h4 className="oma-brand-pipeline-v2__step-title">
+              <Link href={stage.href} className="oma-text-link">
+                {stage.label}
+              </Link>
+            </h4>
+            <p className="oma-brand-pipeline-v2__step-detail">{stage.detail}</p>
+            <span className="oma-brand-pipeline-v2__badge">
+              {t(`brand.pipeline.state.${stage.state}`)}
+            </span>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

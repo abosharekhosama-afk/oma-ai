@@ -24,33 +24,33 @@ export function BrandSectionNav({
   const t = useT();
   const label = backLabel ?? t('brand.nav.back');
   return (
-    <div className="oma-brand-section-nav" data-testid={testId}>
+    <nav
+      className="oma-ws-tabs oma-brand-section-nav"
+      data-testid={testId}
+      aria-label={ariaLabel}
+      role="tablist"
+    >
       <Link
         href={backHref}
-        className="oma-brand-nav-back"
+        className="oma-ws-tab oma-brand-nav-back--tab"
         aria-label={label}
         data-testid="brand-nav-back"
       >
-        <ArrowLeftOutlined width={18} height={18} aria-hidden />
+        <ArrowLeftOutlined width={14} height={14} aria-hidden />
         <span className="oma-brand-nav-back__label">{label}</span>
       </Link>
-      <nav
-        className="oma-plx-deliv-groups oma-plx-brand-nav oma-plx-brand-nav--primary oma-brand-nav"
-        aria-label={ariaLabel}
-      >
-        {children}
-      </nav>
-    </div>
+      {children}
+    </nav>
   );
 }
 
 export function BrandBackLink({ href, label }: { href: string; label: string }) {
   return (
-    <div className="oma-brand-back-only" data-testid="brand-back-only">
-      <Link href={href} className="oma-brand-nav-back" aria-label={label}>
-        <ArrowLeftOutlined width={18} height={18} aria-hidden />
+    <nav className="oma-ws-tabs oma-brand-back-only" data-testid="brand-back-only" role="tablist">
+      <Link href={href} className="oma-ws-tab oma-brand-nav-back--tab" aria-label={label}>
+        <ArrowLeftOutlined width={14} height={14} aria-hidden />
         <span className="oma-brand-nav-back__label">{label}</span>
       </Link>
-    </div>
+    </nav>
   );
 }

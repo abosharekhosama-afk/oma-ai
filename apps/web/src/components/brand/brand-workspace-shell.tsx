@@ -15,7 +15,6 @@ import {
   buildBrandPrimaryNav,
   buildBrandStrategySubnav,
   brandWorkspaceNavMode,
-  journeyStepHref,
   withJourneyState,
 } from '../../lib/brand-workspace-nav';
 import { BrandWorkspaceSubnav } from './brand-workspace-subnav';
@@ -87,10 +86,6 @@ export function BrandWorkspaceShell({
     navMode === 'evidence-only'
       ? withJourneyState(buildBrandEvidenceSubnav(brandId, latestScanId, t), journey)
       : null;
-  // The journey strip only renders on the overview; inside a section its progress is folded
-  // into the sub-nav tabs (same destinations — no second row of links).
-  const showJourney = section === 'overview' && journey && journey.length > 0;
-
   return (
     <div className="oma-plx-listening oma-plx-brand oma-brand-shell" data-testid="brand-workspace">
       <div className="oma-plx-listening__intro oma-plx-deliv__intro oma-plx-brand__intro">
@@ -117,21 +112,6 @@ export function BrandWorkspaceShell({
           </OmaLinkButton>
         ) : null}
       </div>
-
-      {showJourney ? (
-        <ol className="oma-plx-brand-journey" aria-label={t('home.journeyTitle')}>
-          {journey!.map((step) => (
-            <li key={step.id} data-state={step.state}>
-              <Link
-                href={journeyStepHref(brandId, step.id, latestScanId)}
-                className="oma-plx-brand-journey__link"
-              >
-                {step.label}
-              </Link>
-            </li>
-          ))}
-        </ol>
-      ) : null}
 
       <section className="oma-plx-listening-panel oma-plx-brand-panel">
         {navMode !== 'none' ? (

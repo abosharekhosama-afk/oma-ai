@@ -176,7 +176,7 @@ export default function BrandDetailPage() {
           testId="brand-overview-strategy"
         />
       </div>
-      <div className="oma-workboard-split oma-brand-detail-workboard">
+      <div className="oma-brand-detail-workboard oma-brand-detail-workboard--single">
         <div className="oma-workboard-primary">
           <Panel title={t('brand.detail.overview')} labelledBy="brand-overview">
             <dl className="oma-detail-dl">
@@ -310,63 +310,21 @@ export default function BrandDetailPage() {
               </ul>
             )}
           </Panel>
-        </div>
 
-        <aside className="oma-workboard-side">
-          <Panel title={t('home.needsActionTitle')} priority labelledBy="brand-next-steps">
-            <ul className="oma-dense-list">
-              <li>
-                <Link href={nextStep.href} className="oma-work-row">
-                  <strong>{nextStep.label}</strong>
-                  <span className="oma-work-row-cta" aria-hidden="true">
-                    {t('home.action.open')}
-                  </span>
-                </Link>
-              </li>
-              {scan ? (
-                <li>
-                  <Link href={`/app/brands/${brandId}/discovery`} className="oma-work-row">
-                    <strong>{t('brand.discovery.hubTitle')}</strong>
-                    <span className="oma-work-row-cta" aria-hidden="true">
-                      {t('home.action.open')}
-                    </span>
-                  </Link>
-                </li>
-              ) : null}
-              <li>
-                <Link href={`/app/brands/${brandId}/profiles`} className="oma-work-row">
-                  <strong>{t('brand.detail.intelligenceCta')}</strong>
-                  <span className="oma-work-row-cta" aria-hidden="true">
-                    {t('home.action.open')}
-                  </span>
-                </Link>
-              </li>
-              {brand.current_approved_profile_version_id &&
-              brand.current_approved_strategy_id &&
-              !nextStep.href.includes('/strategies') ? (
-                <li>
-                  <Link
-                    href={
-                      brand.current_approved_strategy_id
-                        ? `/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}`
-                        : `/app/brands/${brandId}/strategies`
-                    }
-                    className="oma-work-row"
-                  >
-                    <strong>
-                      {brand.current_approved_strategy_id
-                        ? t('brand.detail.openStrategyCta')
-                        : t('brand.detail.createStrategyCta')}
-                    </strong>
-                    <span className="oma-work-row-cta" aria-hidden="true">
-                      {t('home.action.open')}
-                    </span>
-                  </Link>
-                </li>
-              ) : null}
-            </ul>
-          </Panel>
-        </aside>
+          <nav className="oma-brand-quick-links" aria-label={t('brand.detail.quickLinks')}>
+            {scan ? (
+              <Link href={`/app/brands/${brandId}/discovery`} className="oma-brand-quick-links__item">
+                {t('brand.discovery.hubTitle')}
+              </Link>
+            ) : null}
+            <Link href={`/app/brands/${brandId}/profiles`} className="oma-brand-quick-links__item">
+              {t('brand.detail.intelligenceCta')}
+            </Link>
+            <Link href={`/app/brands/${brandId}/evidence`} className="oma-brand-quick-links__item">
+              {t('brand.nav.evidence')}
+            </Link>
+          </nav>
+        </div>
       </div>
     </BrandWorkspaceShell>
   );
