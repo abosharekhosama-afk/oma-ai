@@ -15,6 +15,8 @@ export function selectStrategyUseCase(input: {
   return 'strategy_foundation';
 }
 
+export type StrategyProposeFocus = 'foundation' | 'organic' | 'paid' | 'full';
+
 export function buildStrategyProposePrompt(input: {
   language: 'en' | 'ar';
   brand: BrandContext;
@@ -26,13 +28,24 @@ export function buildStrategyProposePrompt(input: {
   paid: unknown;
   audiences: unknown;
   kpis: unknown;
+  focus?: StrategyProposeFocus;
 }): PromptSpec & { estimatedTokens: number } {
   const useCase = selectStrategyUseCase(input);
+  const focus = input.focus ?? 'full';
   const promptId = 'oma.strategy_propose';
   const promptVersion = '2';
+  const focusLine =
+    focus === 'foundation'
+      ? 'User is on the Foundation editor. Prioritize foundation.goals, foundation.positioning, foundation.keyMessages, foundation.constraints, audienceGoals, and kpis. Leave organic and paid null unless the user already has strong draft content there.'
+      : focus === 'organic'
+        ? 'User is on the Organic plan editor. Prioritize organic pillars, channels, formats, and frequency. Only fill foundation fields that are clearly missing and required for organic coherence.'
+        : focus === 'paid'
+          ? 'User is on the Paid plan editor. Prioritize paid campaignObjectives, offerAngle, and placements. Only fill foundation fields that are clearly missing and required for paid coherence.'
+          : 'User is on the strategy overview. Propose a balanced first draft across enabled tracks.';
   const system = [
     'You are OMA strategy intelligence. You produce a reviewable proposal. A human must accept it before a draft strategy changes. Never modify an approved strategy.',
-    `Task: propose strategy sections for useCase=${useCase}.`,
+    `Task: propose strategy sections for useCase=${useCase}. Workspace focus=${focus}.`,
+    focusLine,
     'Fill the typed fields: foundation.goals, foundation.positioning, foundation.keyMessages, foundation.constraints, audienceGoals, kpis, and rationale. Each list item is one short, concrete entry (no numbering, no joined sentences). Use null for positioning when unsupported.',
     input.organicEnabled
       ? 'organic: fill pillars, channels, formats and frequency.'

@@ -17,7 +17,7 @@ import {
   isPermissionDenied,
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
-import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
 import {
   BrandPlxPageHead,
   BrandPlxSection,
@@ -69,7 +69,7 @@ export default function StrategyEvidencePage() {
   if (!brand || !version) return <DetailShimmer />;
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <StrategyWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <BrandPlxPageHead title={t('strategy.evidence.title')} />
       {error ? <p role="alert">{error}</p> : null}
@@ -126,6 +126,6 @@ export default function StrategyEvidencePage() {
           </ul>
         )}
       </BrandPlxSection>
-    </BrandWorkspaceShell>
+    </StrategyWorkspaceShell>
   );
 }

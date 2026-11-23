@@ -111,7 +111,8 @@ describe('P2 Planable brand/strategy surfaces', () => {
     expect(profile).toContain('brand-profile-completeness');
     expect(profile).not.toMatch(/Jasper/);
     expect(foundation).toContain('strategy-document-canvas');
-    expect(foundation).toContain('oma-editor-shell');
+    expect(foundation).toContain('oma-strategy-page-stack');
+    expect(foundation).toContain('StrategyPageAi');
   });
 
   it('presents Organic/Paid as labeled chips not color-only tracks', () => {

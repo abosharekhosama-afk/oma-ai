@@ -10,7 +10,6 @@ import { useT } from '../../lib/use-locale';
 import { StatusChip } from '../ui/status-chip';
 import { BrandMark } from './workspace-card';
 import {
-  brandNavSection,
   buildBrandEvidenceSubnav,
   buildBrandPrimaryNav,
   buildBrandStrategySubnav,
@@ -81,7 +80,6 @@ export function BrandWorkspaceShell({
       window.removeEventListener(BRAND_LOGO_EVENT, onLogo);
     };
   }, [brandId, brandLogoUrl]);
-  const section = brandNavSection(pathname, brandId);
   const primaryLinks = buildBrandPrimaryNav(brandId, t);
   const navMode = brandWorkspaceNavMode(pathname, brandId);
   const strategySubnav =

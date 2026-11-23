@@ -3,7 +3,6 @@ import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
 import { Button, Input } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
@@ -14,7 +13,8 @@ import {
   isPermissionDenied,
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
-import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
+import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
@@ -92,59 +92,57 @@ export default function StrategyOrganicPage() {
   const editable = version.status === 'DRAFT';
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <StrategyWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <p className="oma-muted" data-testid="strategy-ai-assistant-link">
-          <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
-            {t('strategy.ai.openAssistant')}
-          </Link>
-        </p>
-      ) : null}
-      <form
-        className="oma-panel oma-sectioned-form"
-        onSubmit={onSave}
-        data-testid="strategy-organic-form"
-      >
-        <section className="oma-form-section">
-          {/* DEC-029 4.1: pillars, channels, formats and cadence moved to the v2 plan below. */}
-          <p className="oma-muted" data-testid="organic-legacy-moved">
-            {t('strategy.organic.legacyMoved')}
-          </p>
-          <div className="oma-form-grid">
-            <label className="oma-field-span">
-              CTA
-              <Input
-                value={cta}
-                onChange={(e) => setCta(e.target.value)}
-                disabled={!editable}
-                data-testid="organic-cta"
-              />
-            </label>
-          </div>
-        </section>
-        {message ? (
-          <p className="oma-save-status" data-state="saved" role="status">
-            {message}
-          </p>
-        ) : null}
-        {error ? (
-          <p className="oma-save-status" data-state="error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {editable ? (
-          <Button type="primary" htmlType="submit">
-            {t('strategy.organic.save')}
-          </Button>
-        ) : null}
-      </form>
-      <StrategyPlanEditor
-        brandId={brandId}
-        strategyId={strategyId}
-        versionId={version.id}
-        track="organic"
-      />
-    </BrandWorkspaceShell>
+      <div className="oma-strategy-page-stack">
+        <StrategyPageAi
+          brandId={brandId}
+          strategyId={strategyId}
+          version={version}
+          focus="organic"
+          onApplied={() => void load()}
+        />
+        <form className="oma-sectioned-form" onSubmit={onSave} data-testid="strategy-organic-form">
+          <section className="oma-form-section">
+            {/* DEC-029 4.1: pillars, channels, formats and cadence moved to the v2 plan below. */}
+            <p className="oma-muted" data-testid="organic-legacy-moved">
+              {t('strategy.organic.legacyMoved')}
+            </p>
+            <div className="oma-form-grid">
+              <label className="oma-field-span">
+                CTA
+                <Input
+                  value={cta}
+                  onChange={(e) => setCta(e.target.value)}
+                  disabled={!editable}
+                  data-testid="organic-cta"
+                />
+              </label>
+            </div>
+          </section>
+          {message ? (
+            <p className="oma-save-status" data-state="saved" role="status">
+              {message}
+            </p>
+          ) : null}
+          {error ? (
+            <p className="oma-save-status" data-state="error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {editable ? (
+            <Button type="primary" htmlType="submit">
+              {t('strategy.organic.save')}
+            </Button>
+          ) : null}
+        </form>
+        <StrategyPlanEditor
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+          track="organic"
+        />
+      </div>
+    </StrategyWorkspaceShell>
   );
 }

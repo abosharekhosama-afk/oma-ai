@@ -75,74 +75,76 @@ export function StrategyTrackEnablement({
   }
 
   return (
-    <section
-      className="oma-plx-listening-panel oma-plx-brand-section"
+    <form
+      className="oma-strategy-track-form"
       id="strategy-tracks"
       data-testid="strategy-track-enablement"
+      onSubmit={onSubmit}
     >
-      <header className="oma-plx-brand-section__head">
-        <h3 className="oma-plx-brand-section__title">{t('strategy.enablement.title')}</h3>
-        <p className="oma-muted oma-plx-brand-section__desc">{t('strategy.enablement.hint')}</p>
-      </header>
-      <form className="oma-plx-brand-section__body oma-stack" onSubmit={onSubmit}>
-        <fieldset className="oma-chip-row" disabled={!editable || busy}>
-          <label className="oma-plx-listening-card oma-plx-brand-catalog-card">
-            <CheckboxField
-              checked={organicEnabled}
-              onChange={(e) => setOrganicEnabled(e.target.checked)}
-              data-testid="enablement-organic"
-            />{' '}
-            {t('strategy.nav.organic')}
-          </label>
-          <label className="oma-plx-listening-card oma-plx-brand-catalog-card">
-            <CheckboxField
-              checked={paidEnabled}
-              onChange={(e) => setPaidEnabled(e.target.checked)}
-              data-testid="enablement-paid"
-            />{' '}
-            {t('strategy.nav.paid')}
-          </label>
-        </fieldset>
-        {!organicEnabled ? (
-          <label className="oma-field-span">
-            {t('strategy.enablement.organicOff')}
-            <TextArea
-              value={organicRationale}
-              onChange={(e) => setOrganicRationale(e.target.value)}
-              disabled={!editable || busy}
-              rows={2}
-              data-testid="enablement-organic-rationale"
-            />
-          </label>
-        ) : null}
-        {!paidEnabled ? (
-          <label className="oma-field-span">
-            {t('strategy.enablement.paidOff')}
-            <TextArea
-              value={paidRationale}
-              onChange={(e) => setPaidRationale(e.target.value)}
-              disabled={!editable || busy}
-              rows={2}
-              data-testid="enablement-paid-rationale"
-            />
-          </label>
-        ) : null}
-        {error ? (
-          <p className="oma-save-status" data-state="error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {saved ? (
-          <p className="oma-save-status" data-state="saved" role="status">
-            {t('strategy.saved')}
-          </p>
-        ) : null}
-        {editable ? (
-          <Button type="primary" htmlType="submit" disabled={busy}>
-            {t('strategy.enablement.save')}
-          </Button>
-        ) : null}
-      </form>
-    </section>
+      <div className="oma-strategy-track-form__head">
+        <h3 className="oma-strategy-track-form__title">{t('strategy.enablement.title')}</h3>
+        <p className="oma-muted">{t('strategy.enablement.hint')}</p>
+      </div>
+      <fieldset
+        className="oma-strategy-track-toggles oma-strategy-track-toggles--inline"
+        disabled={!editable || busy}
+      >
+        <label className="oma-strategy-track-toggle">
+          <CheckboxField
+            checked={organicEnabled}
+            onChange={(e) => setOrganicEnabled(e.target.checked)}
+            data-testid="enablement-organic"
+          />
+          <span>{t('strategy.nav.organic')}</span>
+        </label>
+        <label className="oma-strategy-track-toggle">
+          <CheckboxField
+            checked={paidEnabled}
+            onChange={(e) => setPaidEnabled(e.target.checked)}
+            data-testid="enablement-paid"
+          />
+          <span>{t('strategy.nav.paid')}</span>
+        </label>
+      </fieldset>
+      {!organicEnabled ? (
+        <label className="oma-field-span">
+          {t('strategy.enablement.organicOff')}
+          <TextArea
+            value={organicRationale}
+            onChange={(e) => setOrganicRationale(e.target.value)}
+            disabled={!editable || busy}
+            rows={2}
+            data-testid="enablement-organic-rationale"
+          />
+        </label>
+      ) : null}
+      {!paidEnabled ? (
+        <label className="oma-field-span">
+          {t('strategy.enablement.paidOff')}
+          <TextArea
+            value={paidRationale}
+            onChange={(e) => setPaidRationale(e.target.value)}
+            disabled={!editable || busy}
+            rows={2}
+            data-testid="enablement-paid-rationale"
+          />
+        </label>
+      ) : null}
+      {error ? (
+        <p className="oma-save-status" data-state="error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {saved ? (
+        <p className="oma-save-status" data-state="saved" role="status">
+          {t('strategy.saved')}
+        </p>
+      ) : null}
+      {editable ? (
+        <Button type="primary" htmlType="submit" disabled={busy}>
+          {t('strategy.enablement.save')}
+        </Button>
+      ) : null}
+    </form>
   );
 }

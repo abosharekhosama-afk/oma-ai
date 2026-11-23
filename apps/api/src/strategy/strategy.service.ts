@@ -2188,7 +2188,11 @@ export class StrategyService {
     strategyId: string,
     versionId: string,
     actorUserId: string,
-    opts?: { idempotencyKey?: string; correlationId?: string },
+    opts?: {
+      idempotencyKey?: string;
+      correlationId?: string;
+      focus?: 'foundation' | 'organic' | 'paid' | 'full';
+    },
   ) {
     const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
     const mode = strategyAiMode();
@@ -2242,6 +2246,7 @@ export class StrategyService {
       paid: detail.data.paid,
       audiences: detail.data.audiences,
       kpis: detail.data.kpis,
+      focus: opts?.focus ?? 'full',
     });
 
     const tracks = { organic: version.organicEnabled, paid: version.paidEnabled };
