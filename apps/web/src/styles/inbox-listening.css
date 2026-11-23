@@ -2344,8 +2344,9 @@
 
 .oma-plx-listening__title {
   margin: 0 0 8px;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
   color: #111827;
 }
 
@@ -4865,9 +4866,11 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 
 .oma-plx-brand-hub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 12px;
   margin-bottom: 14px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .oma-plx-brand-hub-grid--compact {
@@ -5192,6 +5195,9 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 
 .oma-plx-brand-page-head__titles h2 {
   margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .oma-plx-brand-page-head__titles .oma-muted {
@@ -5435,6 +5441,18 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 }
 
 @media (max-width: 767px) {
+  .oma-plx-brand-hub-grid,
+  .oma-plx-brand-hub-grid--compact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .oma-plx-brand-main .oma-detail-dl,
+  .oma-workboard-primary .oma-panel {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .oma-plx-listening.oma-plx-brand,
   .oma-plx-listening.oma-plx-brand-portfolio {
     padding: 4px 10px 16px;

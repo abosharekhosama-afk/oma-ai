@@ -9,6 +9,7 @@ import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-wo
 import {
   BrandPlxPageHead,
   BrandPlxSection,
+  BrandPlxStatGrid,
 } from '../../../../../../components/brand/brand-plx-section';
 import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
@@ -150,7 +151,7 @@ export default function BrandSeoPage() {
       latestScanId={brand.latest_scan?.id}
       journey={journey}
     >
-      <div className="oma-seo-page" data-testid="brand-seo-page">
+      <div className="oma-seo-page oma-seo-page--rich" data-testid="brand-seo-page">
         <BrandPlxPageHead title={t('brand.seo.title')} description={t('brand.seo.lead')} />
 
         {error ? (
@@ -159,75 +160,93 @@ export default function BrandSeoPage() {
           </p>
         ) : null}
 
-        <BrandPlxSection title={t('brand.seo.siteHealth')} testId="brand-seo-health">
-          {health?.audit ? (
-            <>
-              <p>
-                {t('brand.seo.score')}: <strong>{health.audit.score}</strong> —{' '}
-                {health.audit.findings_count} {t('brand.seo.findings')}
-              </p>
-              {health.audit.findings.length > 0 ? (
-                <ul className="oma-list-plain">
-                  {health.audit.findings
-                    .filter((f) => f.severity === 'critical' || f.severity === 'warning')
-                    .slice(0, 8)
-                    .map((f) => (
-                      <li key={`${f.page_url}-${f.code}`}>
-                        <code>{f.code}</code> — <span dir="auto">{f.page_url}</span>
-                      </li>
-                    ))}
-                </ul>
-              ) : null}
-            </>
-          ) : (
-            <p className="oma-muted">{t('brand.seo.noAudit')}</p>
-          )}
-        </BrandPlxSection>
+        {health?.audit ? (
+          <BrandPlxStatGrid
+            testId="brand-seo-score-strip"
+            stats={[
+              { label: t('brand.seo.score'), value: health.audit.score },
+              {
+                label: t('brand.seo.findings'),
+                value: health.audit.findings_count,
+              },
+              {
+                label: t('brand.seo.gscStatus'),
+                value: health.search_console.status ?? '—',
+                hint: health.search_console.gsc_mode ?? undefined,
+              },
+            ]}
+          />
+        ) : null}
 
-        <BrandPlxSection title={t('brand.seo.searchConsole')} testId="brand-seo-gsc">
-          <p className="oma-muted">
-            {t('brand.seo.gscStatus')}: {health?.search_console.status ?? '—'} (
-            {health?.search_console.gsc_mode ?? '—'})
-          </p>
-          {gscNotice ? (
-            <p
-              className="oma-callout oma-callout--success"
-              role="status"
-              data-testid="brand-seo-gsc-notice"
-            >
-              {gscNotice}
+        <div className="oma-seo-page__grid">
+          <BrandPlxSection title={t('brand.seo.siteHealth')} testId="brand-seo-health">
+            {health?.audit ? (
+              <>
+                {health.audit.findings.length > 0 ? (
+                  <ul className="oma-list-plain oma-seo-findings-list">
+                    {health.audit.findings
+                      .filter((f) => f.severity === 'critical' || f.severity === 'warning')
+                      .slice(0, 8)
+                      .map((f) => (
+                        <li key={`${f.page_url}-${f.code}`}>
+                          <code>{f.code}</code> — <span dir="auto">{f.page_url}</span>
+                        </li>
+                      ))}
+                  </ul>
+                ) : (
+                  <p className="oma-muted">{t('brand.seo.noAudit')}</p>
+                )}
+              </>
+            ) : (
+              <p className="oma-muted">{t('brand.seo.noAudit')}</p>
+            )}
+          </BrandPlxSection>
+
+          <BrandPlxSection title={t('brand.seo.searchConsole')} testId="brand-seo-gsc">
+            <p className="oma-muted">
+              {t('brand.seo.gscStatus')}: {health?.search_console.status ?? '—'} (
+              {health?.search_console.gsc_mode ?? '—'})
             </p>
-          ) : null}
-          {gscError ? (
-            <p
-              className="oma-callout oma-callout--warning"
-              role="alert"
-              data-testid="brand-seo-gsc-error"
-            >
-              {gscError}
-            </p>
-          ) : null}
-          <div className="oma-chip-row">
-            {health?.search_console.gsc_mode === 'fixture' ? (
+            {gscNotice ? (
+              <p
+                className="oma-callout oma-callout--success"
+                role="status"
+                data-testid="brand-seo-gsc-notice"
+              >
+                {gscNotice}
+              </p>
+            ) : null}
+            {gscError ? (
+              <p
+                className="oma-callout oma-callout--warning"
+                role="alert"
+                data-testid="brand-seo-gsc-error"
+              >
+                {gscError}
+              </p>
+            ) : null}
+            <div className="oma-chip-row">
+              {health?.search_console.gsc_mode === 'fixture' ? (
+                <button
+                  type="button"
+                  className="oma-btn oma-btn--secondary"
+                  disabled={busy}
+                  onClick={() => void connectFixture()}
+                >
+                  {t('brand.seo.connectFixture')}
+                </button>
+              ) : null}
               <button
                 type="button"
-                className="oma-btn oma-btn--secondary"
+                className="oma-btn oma-btn--primary"
                 disabled={busy}
-                onClick={() => void connectFixture()}
+                onClick={() => void syncGsc()}
               >
-                {t('brand.seo.connectFixture')}
+                {t('brand.seo.syncGsc')}
               </button>
-            ) : null}
-            <button
-              type="button"
-              className="oma-btn oma-btn--primary"
-              disabled={busy}
-              onClick={() => void syncGsc()}
-            >
-              {t('brand.seo.syncGsc')}
-            </button>
-          </div>
-        </BrandPlxSection>
+            </div>
+          </BrandPlxSection>
+        </div>
 
         <SeoRankTracking brandId={brandId} />
 

@@ -40,7 +40,10 @@ export function ScanRunMetaCard({ scan, testId = 'scan-run-meta' }: Props) {
         </div>
         <div className="oma-scan-run-meta__chips">
           <StatusChip status={scan.status} label={statusLabel(t, scan.status)} />
-          <ConnectorModeChip mode={scan.connector_mode} />
+          <ConnectorModeChip
+            mode={scan.connector_mode}
+            scanHint={{ pages_fetched: scan.pages_fetched, status: scan.status }}
+          />
         </div>
       </div>
       <dl className="oma-scan-run-meta__grid">

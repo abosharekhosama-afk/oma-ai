@@ -33,12 +33,11 @@ export function BrandWorkspaceSubnav({ links, ariaLabel, backHref, backLabel }: 
             href={link.href}
             role="tab"
             aria-current={active ? 'page' : undefined}
-            className={`oma-ws-tab oma-brand-nav-link${active ? ' is-active' : ''}`}
+            className={`oma-ws-tab oma-brand-nav-link oma-brand-nav-link--tab${
+              active ? ' is-active' : ''
+            }${link.state ? ` is-journey-${link.state}` : ''}`}
           >
-            {link.state ? (
-              <span className="oma-brand-nav-state" data-state={link.state} aria-hidden="true" />
-            ) : null}
-            {link.label}
+            <span className="oma-brand-nav-link__label">{link.label}</span>
           </Link>
         );
       })}

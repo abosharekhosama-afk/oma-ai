@@ -19,10 +19,6 @@ import type {
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
 import { likelySpaShell } from '../../../../../../../lib/brand-scan-ui';
-import {
-  ConnectorModeChip,
-  type ConnectorMode,
-} from '../../../../../../../components/brand/connector-mode-banner';
 import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import {
@@ -78,7 +74,6 @@ export default function DiscoveryProductsPage() {
   const [products, setProducts] = useState<DiscoveredProduct[]>([]);
   const [coverage, setCoverage] = useState<CatalogCoverageSummary | null>(null);
   const [scanId, setScanId] = useState<string | null>(null);
-  const [connectorMode, setConnectorMode] = useState<ConnectorMode | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -141,7 +136,6 @@ export default function DiscoveryProductsPage() {
           profilePromise,
         ]);
         setScan(scanRes.data);
-        setConnectorMode(scanRes.data.connector_mode);
         setProducts(productsRes.products);
         setCoverage(productsRes.summary);
         setProfile(profileRes?.data ?? null);
@@ -237,7 +231,6 @@ export default function DiscoveryProductsPage() {
         actions={
           scanId ? (
             <div className="oma-chip-row">
-              <ConnectorModeChip mode={connectorMode} />
               <Button
                 type="default"
                 loading={reimportBusy}
@@ -442,6 +435,7 @@ export default function DiscoveryProductsPage() {
       <EvidenceSidePanel
         brandId={brandId}
         evidenceId={evidenceId}
+        presentation="modal"
         onClose={() => setEvidenceId(null)}
       />
     </BrandWorkspaceShell>
