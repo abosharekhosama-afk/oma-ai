@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { readStage3Styles } from '../../helpers/stage-styles';
 import { assertCanSchedule, resolveContentWorkflow } from '@oma/demo';
 import {
   bucketForScheduleRow,
@@ -8,7 +9,7 @@ import {
 
 describe('W1 closure contracts', () => {
   it('pins calendar cards to Planable cell-contained chrome', () => {
-    const css = readFileSync('apps/web/src/styles/stage3.css', 'utf8');
+    const css = readStage3Styles();
     // LIVE_VERIFIED rebuild: cards fluidly fill the day cell (not a fixed 126×172 box).
     expect(css).toContain('.oma-cal-cell .oma-post-card--calendar');
     expect(css).toContain('max-width: 100%');

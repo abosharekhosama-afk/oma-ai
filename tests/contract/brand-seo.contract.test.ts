@@ -41,7 +41,7 @@ describe('brand SEO contract', () => {
     expect(kw.data.metrics[0]).toMatchObject({
       keyword: 'test',
       locale: 'en',
-      source: 'EXTERNAL',
+      source: 'FIXTURE',
     });
     expect(kw.data.measured).toBe(true);
 

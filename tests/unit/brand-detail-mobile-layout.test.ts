@@ -11,7 +11,8 @@ describe('brand detail mobile layout', () => {
     const css = read('apps/web/src/app/globals.css');
     const mobileRules = css.slice(css.lastIndexOf('Brand detail phone layout:'));
 
-    expect(source).toContain('className="oma-workboard-split oma-brand-detail-workboard"');
+    expect(source).toContain('oma-brand-detail-workboard');
+    expect(source).toContain('oma-workboard-primary');
     expect(mobileRules).toContain('@media (max-width: 767px)');
     expect(mobileRules).toContain('.oma-brand-detail-workboard');
     expect(mobileRules).toContain('grid-template-columns: minmax(0, 1fr) !important');

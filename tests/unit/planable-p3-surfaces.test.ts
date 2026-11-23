@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { readStage3Styles } from '../helpers/stage-styles';
 
 const root = process.cwd();
 
@@ -11,7 +12,7 @@ function read(rel: string): string {
 describe('P3 Planable campaign/content surfaces', () => {
   it('rebuilds campaign portfolio without giant cards, tables, or signal aliases', () => {
     const page = read('apps/web/src/app/(app)/app/campaigns/page.tsx');
-    const css = read('apps/web/src/styles/stage3.css');
+    const css = readStage3Styles();
     const depth = read('apps/web/src/styles/stage-depth.css');
     expect(page).toContain('demo-campaign-portfolio');
     expect(page).toContain('TrackPill');
@@ -93,7 +94,7 @@ describe('P3 Planable campaign/content surfaces', () => {
 
   it('documents remaining P1_COMPAT aliases after P3 signal removal', () => {
     const inventory = read('docs/PLANABLE_P1_COMPAT_INVENTORY.md');
-    const stage3 = read('apps/web/src/styles/stage3.css');
+    const stage3 = readStage3Styles();
     expect(stage3).not.toContain('--oma-signal');
     expect(inventory).toMatch(/P6|CLOSED|Deleted/);
   });

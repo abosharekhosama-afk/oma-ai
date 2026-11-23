@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { readStage4Styles } from '../helpers/stage-styles';
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), 'utf8');
@@ -18,7 +19,7 @@ describe('mobile deliverables width and task/output filter actions', () => {
   });
 
   it('makes only task and deliverables filter labels icon-only below the phone breakpoint', () => {
-    const css = read('apps/web/src/styles/stage4.css');
+    const css = readStage4Styles();
     const mobileRules = css.slice(css.lastIndexOf('Phone headers: filter controls'));
     const deliverables = read('apps/web/src/app/(app)/app/deliverables/deliverables-client.tsx');
     const tasks = read('apps/web/src/app/(app)/app/tasks/tasks-client.tsx');

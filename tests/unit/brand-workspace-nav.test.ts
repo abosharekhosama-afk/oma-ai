@@ -42,9 +42,7 @@ describe('brand workspace navigation', () => {
 
   it('exposes one nav layer per depth', () => {
     expect(brandWorkspaceNavMode(`/app/brands/${brandId}`, brandId)).toBe('primary-only');
-    expect(brandWorkspaceNavMode(`/app/brands/${brandId}/discovery`, brandId)).toBe(
-      'evidence-only',
-    );
+    expect(brandWorkspaceNavMode(`/app/brands/${brandId}/discovery`, brandId)).toBe('none');
     expect(brandWorkspaceNavMode(`/app/brands/${brandId}/strategies/s1/organic`, brandId)).toBe(
       'none',
     );
