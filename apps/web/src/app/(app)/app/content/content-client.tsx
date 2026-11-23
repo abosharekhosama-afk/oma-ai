@@ -4050,7 +4050,7 @@ export default function ContentPage() {
       {/* Portal: Filter / Media / Share / Compose into shell header */}
       {headerSlot &&
         createPortal(
-          <div className="oma-plx-content-header-actions">
+          <div className="oma-plx-content-header-actions oma-action-bar">
             <button
               type="button"
               className="oma-plx-content-header-btn oma-top-action oma-top-action--view"

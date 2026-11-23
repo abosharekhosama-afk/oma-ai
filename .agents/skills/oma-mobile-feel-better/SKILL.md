@@ -45,9 +45,11 @@ Report findings in the vendored review table format; file paths under `apps/web/
 
 Update this table when a family is polished:
 
-| Family                     | Layout (`mobile-surfaces-clean`) | Feel (`mobile-feel-better`) |
-| -------------------------- | -------------------------------- | --------------------------- |
-| Requests detail/list       | yes                              | yes                         |
-| Deliverable detail         | yes                              | yes                         |
-| Content / tasks / settings | pending                          | pending                     |
-| Brand workspace            | partial                          | partial                     |
+| Family                    | Layout (`mobile-surfaces-clean`) | Feel (`mobile-feel-better`) |
+| ------------------------- | -------------------------------- | --------------------------- |
+| Requests detail/list      | yes                              | yes                         |
+| Deliverable detail + list | yes                              | yes                         |
+| Tasks board + drawer      | yes                              | yes                         |
+| Content plan/feed/list    | yes                              | yes                         |
+| Brand workspace + home    | yes                              | yes                         |
+| Workspace settings panels | yes                              | partial                     |

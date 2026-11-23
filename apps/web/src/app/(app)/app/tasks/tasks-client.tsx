@@ -799,7 +799,7 @@ export default function TasksPage() {
                   <StatusChip status={selected.priority} />
                 </div>
               </div>
-              <div className="oma-task-detail__head-actions">
+              <div className="oma-task-detail__head-actions oma-action-bar">
                 <Button data-testid="demo-task-copy-link" onClick={() => void copyLink()}>
                   {t('demo.tasks.copyLink')}
                 </Button>

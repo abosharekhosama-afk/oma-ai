@@ -12,7 +12,12 @@
   html body .oma-plx-listening-panel,
   html body .oma-plx-listening-card,
   html body .oma-req-detail__card,
-  html body .oma-deliv-detail__card {
+  html body .oma-deliv-detail__card,
+  html body .oma-task-detail__card,
+  html body .oma-tasks-page .oma-kb-board .oma-kb-card,
+  html body .oma-plx-brand-hub-card,
+  html body .oma-brand-hub-card,
+  html body .oma-plx-home .oma-home-card {
     border-radius: 12px;
     box-shadow:
       0 1px 2px rgb(15 23 42 / 0.04),
@@ -46,7 +51,10 @@
   /* Typography */
   html body .oma-req-detail__title,
   html body .oma-deliv-detail__title,
-  html body .oma-plx-listening-card__name-row strong {
+  html body .oma-plx-listening-card__name-row strong,
+  html body .oma-task-detail-drawer .oma-task-detail__title-input,
+  html body .oma-tasks-page .oma-kb-card__title,
+  html body .oma-plx-brand-hub-card strong {
     text-wrap: balance;
   }
 
@@ -60,8 +68,26 @@
   html body .oma-req-detail__card-head .oma-req-detail__meta,
   html body .oma-deliv-detail__unresolved,
   html body .oma-ltr[data-testid],
-  html body .oma-req-detail__meta {
+  html body .oma-req-detail__meta,
+  html body .oma-task-detail__id,
+  html body .oma-plx-content-header-count,
+  html body .oma-kb-col__count {
     font-variant-numeric: tabular-nums;
+  }
+
+  html body .oma-plx-content-feed .oma-pp,
+  html body .oma-content-feed .oma-fp {
+    box-shadow:
+      0 1px 2px rgb(15 23 42 / 0.04),
+      0 0 0 1px rgb(15 23 42 / 0.03);
+    border-color: #eceef1;
+    transition:
+      border-color 0.15s cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  html body .oma-tasks-page .oma-kb-board .oma-kb-card:active {
+    transform: scale(0.98);
   }
 
   /* Press feedback — interruptible transform only */
@@ -123,6 +149,7 @@
 
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   html body a.oma-plx-request-card:active,
+  html body .oma-tasks-page .oma-kb-board .oma-kb-card:active,
   html body .oma-shell .ant-btn:not(.ant-btn-circle):not(:disabled):active {
     transform: none;
   }
