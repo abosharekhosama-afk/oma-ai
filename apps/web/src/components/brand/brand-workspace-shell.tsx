@@ -33,6 +33,10 @@ type BrandWorkspaceShellProps = {
   journey?: Array<{ id: string; label: string; state: 'done' | 'current' | 'todo' }>;
   children: React.ReactNode;
   aside?: React.ReactNode;
+  /** Hide the large brand hero above the tab panel (profile editor). */
+  hideIntro?: boolean;
+  /** Flat white workspace panel without gray body strip under tabs. */
+  unifiedPanelChrome?: boolean;
 };
 
 export function BrandWorkspaceShell({
@@ -49,6 +53,8 @@ export function BrandWorkspaceShell({
   journey,
   children,
   aside,
+  hideIntro = false,
+  unifiedPanelChrome = false,
 }: BrandWorkspaceShellProps) {
   const t = useT();
   const pathname = usePathname();
@@ -87,7 +93,11 @@ export function BrandWorkspaceShell({
       ? withJourneyState(buildBrandEvidenceSubnav(brandId, latestScanId, t), journey)
       : null;
   return (
-    <div className="oma-plx-listening oma-plx-brand oma-brand-shell" data-testid="brand-workspace">
+    <div
+      className={`oma-plx-listening oma-plx-brand oma-brand-shell${unifiedPanelChrome ? ' oma-plx-brand--unified-panel' : ''}`}
+      data-testid="brand-workspace"
+    >
+      {!hideIntro ? (
       <div className="oma-plx-listening__intro oma-plx-deliv__intro oma-plx-brand__intro">
         <div className="oma-plx-brand__identity">
           <BrandMark name={brandName} logoUrl={logoUrl} />
@@ -112,6 +122,7 @@ export function BrandWorkspaceShell({
           </OmaLinkButton>
         ) : null}
       </div>
+      ) : null}
 
       <section className="oma-plx-listening-panel oma-plx-brand-panel">
         {navMode !== 'none' ? (

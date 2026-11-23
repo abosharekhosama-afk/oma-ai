@@ -1658,6 +1658,23 @@ video.oma-media-carousel__media {
   border-radius: 0;
   background: transparent;
   gap: 0;
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+}
+
+.oma-plx-brand-panel .oma-ws-tabs.oma-brand-section-nav {
+  padding: 0 12px;
+}
+
+.oma-evidence-modal .oma-evidence-panel__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #eceef1;
 }
 
 .oma-discovery-tabs__back,
@@ -2142,14 +2159,18 @@ video.oma-media-carousel__media {
 }
 
 .oma-insight-item--catalog {
-  padding: 16px !important;
+  padding: 18px 20px !important;
+}
+
+.oma-insight-item--catalog .oma-insight-catalog-grid {
+  margin-top: 4px;
 }
 
 .oma-insight-catalog-card {
   display: grid;
   grid-template-columns: 64px 1fr;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 14px 16px;
   border: 1px solid #f3f4f6;
   border-radius: 10px;
   background: #fafbfc;

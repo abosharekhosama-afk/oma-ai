@@ -49,6 +49,16 @@ function formatObjectLine(record: Record<string, unknown>, depth = 0): string {
     .join(' · ');
 }
 
+/** Resolve relative API media paths for `<img src>` on the web app origin. */
+export function resolvePublicAssetUrl(url: string | undefined | null): string | undefined {
+  const trimmed = url?.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  if (trimmed.startsWith('/')) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return trimmed;
+}
+
 export function shortDisplayUrl(url: string, max = 52): string {
   try {
     const u = new URL(url);

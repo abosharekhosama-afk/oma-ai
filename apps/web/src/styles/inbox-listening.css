@@ -4754,7 +4754,7 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 .oma-plx-brand-nav-head {
   overflow-x: auto;
   padding: 0;
-  border-bottom: 1px solid #eceef1;
+  border-bottom: none;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -4805,8 +4805,8 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 
 .oma-plx-brand-subnav-wrap {
   padding: 8px 12px 10px;
-  background: #f9fafb;
-  border-top: 1px solid #eceef1;
+  background: transparent;
+  border-top: none;
 }
 
 .oma-plx-brand-subnav.oma-brand-nav-secondary {
@@ -5099,13 +5099,31 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   border-radius: 12px;
   background: #fff;
   margin-bottom: 12px;
-  padding: 0;
+  padding: 16px 18px;
   overflow: hidden;
+}
+
+.oma-plx-brand-editor.oma-doc-canvas--profile-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.oma-doc-main--full {
+  max-width: none;
 }
 
 .oma-plx-brand-panel__body {
   padding: 12px;
   background: #f4f5f7;
+}
+
+.oma-plx-brand--unified-panel .oma-plx-brand-panel__body {
+  padding: 14px 16px 18px;
+  background: #fff;
+}
+
+.oma-plx-brand--unified-panel .oma-plx-brand-nav-head {
+  border-bottom: none;
+  background: #fff;
 }
 
 .oma-plx-brand.oma-brand-shell .oma-brand-body,
@@ -5162,6 +5180,28 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   background: #fff;
   border: 1px solid #eceef1;
   border-radius: 12px;
+}
+
+.oma-plx-brand-page-head__lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  min-width: 0;
+}
+
+.oma-plx-brand-page-head__titles h2 {
+  margin: 0;
+}
+
+.oma-plx-brand-page-head__titles .oma-muted {
+  margin: 2px 0 0;
+  font-size: 13px;
+}
+
+.oma-plx-brand-page-head__back {
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .oma-plx-brand-main .oma-plx-brand-page-head__actions {

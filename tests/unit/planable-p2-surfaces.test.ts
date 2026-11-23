@@ -159,7 +159,7 @@ describe('P2 Planable brand/strategy surfaces', () => {
       'utf8',
     );
     expect(panel).toContain('<Drawer');
-    expect(panel).toContain('ArrowLeft');
+    expect(panel).toContain("presentation?: 'drawer' | 'modal'");
     expect(panel).toContain('brand.evidence.prev');
   });
 
@@ -178,7 +178,8 @@ describe('P2 Planable brand/strategy surfaces', () => {
       ),
       'utf8',
     );
-    expect(profile).toContain('immutable-banner');
+    expect(profile).toContain('hideIntro');
+    expect(profile).toContain('presentation="modal"');
     expect(profile).toContain("profile?.status === 'DRAFT'");
   });
 

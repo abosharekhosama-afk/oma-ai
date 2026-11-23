@@ -1,7 +1,7 @@
 'use client';
 
 import type { InsightItem } from '../../lib/brand-types';
-import { insightPayload, shortDisplayUrl } from '../../lib/profile-display';
+import { insightPayload, resolvePublicAssetUrl, shortDisplayUrl } from '../../lib/profile-display';
 import { useT } from '../../lib/use-locale';
 
 function imageUrlsFromLogo(payload: unknown): string[] {
@@ -44,20 +44,53 @@ type CatalogItem = {
   primary_media_view_url?: string;
 };
 
+function catalogItemMediaUrl(row: Record<string, unknown>): string | undefined {
+  for (const key of [
+    'primary_media_view_url',
+    'image_url',
+    'image',
+    'thumbnail_url',
+    'thumbnail',
+    'primary_image',
+    'media_url',
+  ]) {
+    const value = row[key];
+    if (typeof value === 'string' && value.trim()) {
+      return resolvePublicAssetUrl(value);
+    }
+  }
+  return undefined;
+}
+
 function catalogItems(payload: unknown): CatalogItem[] {
-  if (!payload || typeof payload !== 'object') return [];
-  const items = (payload as { items?: unknown }).items;
-  if (!Array.isArray(items)) return [];
-  return items
+  const rows: unknown[] = Array.isArray(payload)
+    ? payload
+    : payload && typeof payload === 'object' && Array.isArray((payload as { items?: unknown }).items)
+      ? ((payload as { items: unknown[] }).items ?? [])
+      : [];
+  if (rows.length === 0) return [];
+  return rows
     .filter((r): r is Record<string, unknown> => r != null && typeof r === 'object')
-    .map((r) => ({
-      name: typeof r.name === 'string' ? r.name : undefined,
-      description: typeof r.description === 'string' ? r.description : undefined,
-      category: typeof r.category === 'string' ? r.category : undefined,
-      price: typeof r.price === 'string' ? r.price : undefined,
-      primary_media_view_url:
-        typeof r.primary_media_view_url === 'string' ? r.primary_media_view_url : undefined,
-    }))
+    .map((r) => {
+      const nameRaw =
+        (typeof r.name === 'string' && r.name) ||
+        (typeof r.title === 'string' && r.title) ||
+        (typeof r.label === 'string' && r.label) ||
+        '';
+      const name = nameRaw.trim();
+      return {
+        name: name || undefined,
+        description: typeof r.description === 'string' ? r.description : undefined,
+        category: typeof r.category === 'string' ? r.category : undefined,
+        price:
+          typeof r.price === 'string'
+            ? r.price
+            : typeof r.price === 'number'
+              ? String(r.price)
+              : undefined,
+        primary_media_view_url: catalogItemMediaUrl(r),
+      };
+    })
     .filter((i) => i.name);
 }
 
@@ -157,8 +190,8 @@ export function InsightRichValue({ insight }: { insight: InsightItem }) {
     }
     return (
       <ul className="oma-insight-catalog-grid">
-        {items.map((item) => (
-          <li key={item.name} className="oma-insight-catalog-card">
+        {items.map((item, idx) => (
+          <li key={`${item.name}-${idx}`} className="oma-insight-catalog-card">
             {item.primary_media_view_url ? (
               <img
                 src={item.primary_media_view_url}
