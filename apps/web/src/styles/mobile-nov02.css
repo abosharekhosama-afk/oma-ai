@@ -127,7 +127,7 @@
     align-items: center !important;
     justify-content: space-between !important;
     flex-wrap: nowrap !important;
-    min-height: 50px !important;
+    min-height: var(--shell-header-height, 44px) !important;
     height: auto !important;
     padding: 6px 10px !important;
     padding-top: max(6px, env(safe-area-inset-top, 0px)) !important;

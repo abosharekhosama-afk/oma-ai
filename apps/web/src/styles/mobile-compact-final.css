@@ -1,0 +1,129 @@
+/*
+ * Final mobile density pass — wins over mobile-nov02 + inbox-listening mobile rules.
+ * App-wide; keep fields at 16px computed for iOS (mobile-density).
+ */
+@media (max-width: 767px) {
+  :root {
+    --text-body: 12.5px;
+    --leading-body: 17px;
+    --text-control: 12.5px;
+    --text-title-sm: 14px;
+    --text-title: 15px;
+    --oma-control-height: 28px;
+    --oma-control-height-compact: 26px;
+    --shell-header-height: 44px;
+    --oma-tap: 34px;
+  }
+
+  html body .oma-top,
+  html body .oma-shell .oma-top {
+    min-height: var(--shell-header-height) !important;
+    padding: 5px 8px !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-shell .oma-container,
+  html body .oma-shell-main,
+  html body .oma-page,
+  html body .oma-workspace {
+    padding-inline: 8px !important;
+  }
+
+  html body .ant-btn:not(.ant-btn-lg):not(.ant-btn-circle) {
+    height: var(--oma-control-height) !important;
+    min-height: var(--oma-control-height) !important;
+    padding-inline: 10px !important;
+    font-size: var(--text-control) !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .ant-btn-sm {
+    height: var(--oma-control-height-compact) !important;
+    min-height: var(--oma-control-height-compact) !important;
+    font-size: 11.5px !important;
+    padding-inline: 8px !important;
+  }
+
+  html body .ant-input-affix-wrapper,
+  html body .ant-select-selector {
+    min-height: var(--oma-control-height) !important;
+    max-height: 32px !important;
+    padding-block: 0 !important;
+  }
+
+  html body .ant-select-selection-item,
+  html body .ant-select-selection-placeholder {
+    line-height: calc(var(--oma-control-height) - 2px) !important;
+    font-size: var(--text-control) !important;
+  }
+
+  html body .ant-tag {
+    font-size: 10.5px !important;
+    line-height: 16px !important;
+    padding-inline: 5px !important;
+  }
+
+  html body .ant-tabs-tab {
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+
+  html body .oma-plx-brand-nav--primary .oma-plx-deliv-groups__btn,
+  html body .oma-plx-brand-nav--primary .oma-brand-nav-link {
+    padding: 7px 9px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .oma-plx-brand-nav:not(.oma-plx-brand-nav--primary) .oma-plx-deliv-groups__btn,
+  html body .oma-plx-brand-nav:not(.oma-plx-brand-nav--primary) .oma-brand-nav-link {
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+
+  html body .oma-plx-listening-card,
+  html body .oma-panel,
+  html body .oma-plx-listening-panel {
+    padding: 10px !important;
+    border-radius: 10px;
+  }
+
+  html body .oma-plx-brand-section__head {
+    padding: 8px 10px 4px !important;
+  }
+
+  html body .oma-plx-brand-section__body {
+    padding: 8px 10px 10px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand-section__title {
+    font-size: 13px !important;
+  }
+
+  html body .oma-plx-listening__title {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-plx-brand-page-head__titles h2 {
+    font-size: 14px !important;
+  }
+
+  html body .oma-status-chip,
+  html body .oma-badge {
+    font-size: 10px !important;
+    padding: 1px 6px !important;
+  }
+
+  html body .oma-drawer .ant-drawer-body {
+    padding: 10px !important;
+    font-size: var(--text-body) !important;
+  }
+
+  html body .oma-m-tabbar {
+    min-height: 48px !important;
+    padding-block: 4px !important;
+    font-size: 11px !important;
+  }
+}

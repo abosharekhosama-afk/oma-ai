@@ -1,0 +1,148 @@
+/* Strategy + briefs surfaces — compact mobile (native scale, Planable density) */
+
+@media (max-width: 767px) {
+  .oma-plx-brand-nav--primary .oma-plx-deliv-groups__btn,
+  .oma-plx-brand-nav--primary .oma-brand-nav-link {
+    padding: 8px 10px !important;
+    font-size: 12.5px !important;
+    line-height: 1.25 !important;
+  }
+
+  .oma-plx-brand-nav-head .oma-btn,
+  .oma-plx-brand-nav-head .ant-btn {
+    height: var(--oma-control-height-compact, 28px);
+    min-height: var(--oma-control-height-compact, 28px);
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  .oma-strategy-header--flat {
+    gap: 8px;
+    margin-block-end: 12px;
+  }
+
+  .oma-strategy-identity--compact {
+    padding: 6px 0 8px;
+    gap: 6px;
+  }
+
+  .oma-strategy-identity__name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .oma-strategy-summary {
+    padding: 8px 0 4px;
+    margin-bottom: 4px;
+  }
+
+  .oma-strategy-summary__head {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .oma-strategy-summary__title {
+    font-size: 14px;
+  }
+
+  .oma-strategy-summary__grid {
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .oma-strategy-evidence-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .oma-plx-brand-main .oma-strategy-sections .oma-ws-tab {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .oma-plan-toolbar[data-testid='brief-create'] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .oma-plan-toolbar[data-testid='brief-create'] .ant-input,
+  .oma-plan-toolbar[data-testid='brief-create'] input {
+    flex: 1 1 100%;
+    max-inline-size: 100% !important;
+    min-height: var(--oma-control-height, 30px) !important;
+  }
+
+  .oma-plan-toolbar[data-testid='brief-create'] .ant-select,
+  .oma-plan-toolbar[data-testid='brief-create'] .ant-select-selector {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .oma-plan-toolbar[data-testid='brief-create'] .ant-btn {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  .oma-plan-toolbar[role='tablist'][aria-label] {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    padding-bottom: 2px;
+  }
+
+  .oma-plan-toolbar[role='tablist'][aria-label] .ant-btn {
+    flex: 0 0 auto;
+    height: var(--oma-control-height-compact, 28px);
+    min-height: var(--oma-control-height-compact, 28px);
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  .oma-plan-table-wrap {
+    margin-inline: 0;
+    border: 1px solid #eceef1;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .oma-plan-table {
+    font-size: 12px;
+  }
+
+  .oma-plan-table th,
+  .oma-plan-table td {
+    padding: 6px 8px;
+  }
+
+  .oma-plan-table .oma-text-link {
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .oma-plx-brand-main .oma-plx-brand-page-head__titles .oma-muted {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .oma-plx-brand-main .oma-plx-brand-section__desc {
+    font-size: 12px;
+  }
+
+  .oma-plx-brand-main .oma-banner {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .oma-plx-brand-main .oma-banner p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+}

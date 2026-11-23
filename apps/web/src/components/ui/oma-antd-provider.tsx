@@ -8,11 +8,14 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/ar';
 import 'dayjs/locale/en';
 import { omaAntdTheme, omaArabicFontFamily } from '@oma/ui';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+
+const MOBILE_MAX = '(max-width: 767px)';
 
 export function OmaAntdProvider({ locale, children }: { locale: string; children: ReactNode }) {
   const ar = locale.toLowerCase().startsWith('ar');
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [mobileCompact, setMobileCompact] = useState(false);
   dayjs.locale(ar ? 'ar' : 'en');
 
   useEffect(() => {
@@ -23,19 +26,53 @@ export function OmaAntdProvider({ locale, children }: { locale: string; children
     return () => media.removeEventListener('change', apply);
   }, []);
 
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MAX);
+    const apply = () => setMobileCompact(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  const theme = useMemo(() => {
+    const base = { ...omaAntdTheme.components };
+    const mobileTokens = mobileCompact
+      ? {
+          fontSize: 13,
+          fontSizeSM: 11,
+          fontSizeLG: 15,
+          controlHeight: 30,
+          controlHeightSM: 28,
+          lineHeight: 1.35,
+        }
+      : {};
+    return {
+      ...omaAntdTheme,
+      token: {
+        ...omaAntdTheme.token,
+        fontFamily: ar ? omaArabicFontFamily : omaAntdTheme.token.fontFamily,
+        motion: !reducedMotion,
+        ...mobileTokens,
+      },
+      components: mobileCompact
+        ? {
+            ...base,
+            Button: { ...base.Button, controlHeight: 30, paddingInline: 10, fontSize: 13 },
+            Input: { ...base.Input, paddingBlock: 2 },
+            Select: { ...base.Select, controlHeight: 30 },
+            Tabs: { ...base.Tabs, titleFontSize: 12, horizontalItemPadding: '6px 8px' },
+          }
+        : omaAntdTheme.components,
+    };
+  }, [ar, mobileCompact, reducedMotion]);
+
   return (
     <AntdRegistry>
       <ConfigProvider
         direction={ar ? 'rtl' : 'ltr'}
         locale={ar ? arEG : enUS}
-        theme={{
-          ...omaAntdTheme,
-          token: {
-            ...omaAntdTheme.token,
-            fontFamily: ar ? omaArabicFontFamily : omaAntdTheme.token.fontFamily,
-            motion: !reducedMotion,
-          },
-        }}
+        componentSize={mobileCompact ? 'small' : 'middle'}
+        theme={theme}
       >
         <App>{children}</App>
       </ConfigProvider>
