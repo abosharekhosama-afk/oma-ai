@@ -481,7 +481,8 @@
   .oma-strategy-next .oma-strategy-next__step {
     flex: 0 0 auto;
   }
-  .oma-plx-brand-data-grid {
+  .oma-strategy-page-stack .oma-plx-brand-data-grid,
+  .oma-reviews-page .oma-plx-brand-data-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
   .oma-form-grid {

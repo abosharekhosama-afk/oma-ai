@@ -50,8 +50,8 @@ test('mobile schedule fills the available screen and keeps week scrolling local'
   expect(geometry.schedule!.x).toBeCloseTo(geometry.viewport!.x, 0);
   expect(geometry.schedule!.right).toBeCloseTo(geometry.viewport!.right, 0);
   expect(geometry.schedule!.bottom).toBeCloseTo(geometry.viewport!.bottom, 0);
-  expect(geometry.zoom).toBe('0.7');
-  expect(geometry.density).toBe('0.7');
+  expect(geometry.zoom).toBe('1');
+  expect(geometry.density).toBe('1');
   expect(geometry.documentScrollWidth).toBeLessThanOrEqual(geometry.documentClientWidth);
   expect(geometry.calendarOverflowX).toBe('auto');
   expect(geometry.calendarScrollWidth).toBeGreaterThan(geometry.calendarClientWidth);

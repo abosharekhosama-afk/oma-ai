@@ -43,7 +43,7 @@ export const metadata: Metadata = {
       }),
 };
 
-/** Default viewport for all devices. Mobile 70% scale uses CSS zoom, not meta scale. */
+/** Native device-width viewport; mobile uses responsive CSS (no document zoom). */
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,

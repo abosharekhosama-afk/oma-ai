@@ -91,8 +91,8 @@ describe('schedule agenda and queue layouts', () => {
 
     expect(scheduleRule).toContain('@media (max-width: 767px)');
     expect(scheduleRule).toContain('.oma-plx-schedule');
-    expect(density).toContain('--oma-mobile-density: 0.7');
-    expect(density).toContain('zoom: var(--oma-mobile-density)');
+    expect(density).toContain('--oma-mobile-density: 1');
+    expect(density).not.toContain('zoom: var(--oma-mobile-density)');
   });
 
   it('makes the schedule layout a flex column so the calendar fills remaining height', () => {

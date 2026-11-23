@@ -24,6 +24,7 @@
 @import '../styles/side-drawers.css';
 @import '../styles/mobile-precise-nov03.css';
 @import '../styles/mobile-density.css';
+@import '../styles/brand-mobile-clean.css';
 @import '../styles/strategy-plan-briefs.css';
 @import '../styles/inbox-listening.css';
 @import '../styles/brand-intel.css';
@@ -2534,24 +2535,15 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
   }
 }
 
-/* Mobile zoom fill — CSS zoom 0.7; compensate shell height with density var. */
+/* Mobile shell fill — native scale (--oma-mobile-vh = 100dvh). */
 @media (max-width: 767px) {
-  @supports (zoom: 1) {
-    html body .oma-shell {
-      height: calc(100dvh / var(--oma-mobile-density)) !important;
-      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
-      max-height: none !important;
-      width: 100% !important;
-      max-width: none !important;
-    }
-
-    html body .oma-shell-column {
-      height: calc(100dvh / var(--oma-mobile-density)) !important;
-      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
-      max-height: none !important;
-      width: 100% !important;
-      max-width: none !important;
-    }
+  html body .oma-shell,
+  html body .oma-shell-column {
+    height: var(--oma-mobile-vh, 100dvh) !important;
+    min-height: var(--oma-mobile-vh, 100dvh) !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100vw !important;
   }
 }
 
