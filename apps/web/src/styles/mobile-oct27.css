@@ -709,7 +709,7 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
   -webkit-overflow-scrolling: touch;
 }
 .oma-member-table-scroll .oma-ws-table {
-  min-width: 900px;
+  min-width: min(100%, 56rem);
 }
 
 /* Task board: one horizontal status lane; each column owns its vertical card scroll. */

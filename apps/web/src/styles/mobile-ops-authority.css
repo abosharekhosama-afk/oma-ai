@@ -1,0 +1,44 @@
+/*
+ * Phase 3 — canonical mobile ops layouts (requests, deliverables, tasks list).
+ * Loaded last; prefers specificity over scattered !important in legacy mobile files.
+ * Parent: html[data-oma-ops-mobile='v1'] set by layout bootstrap (see mobile-ops-flag.ts).
+ */
+@media (max-width: 767px) {
+  html[data-oma-ops-mobile='v1'] body .oma-req-page .oma-req-desktop,
+  html[data-oma-ops-mobile='v1'] body .oma-deliv-page .oma-deliv-desktop,
+  html[data-oma-ops-mobile='v1'] body .oma-deliv-desktop {
+    display: none;
+  }
+
+  html[data-oma-ops-mobile='v1'] body .oma-req-page .oma-req-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  html[data-oma-ops-mobile='v1'] body .oma-deliv-page .oma-deliv-mobile,
+  html[data-oma-ops-mobile='v1'] body .oma-deliv-mobile {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  html[data-oma-ops-mobile='v1'] body .oma-req-page .oma-req-header__subtitle {
+    display: none;
+  }
+
+  html[data-oma-ops-mobile='v1'] body .oma-req-page .oma-ws-tabs .oma-ws-tab,
+  html[data-oma-ops-mobile='v1'] body .oma-req-page .oma-req-tabs .oma-ws-tab {
+    white-space: nowrap;
+    font-size: 11px;
+    padding: 6px 9px;
+    flex: 0 0 auto;
+  }
+
+  html[data-oma-ops-mobile='v1'] body .oma-req-page .oma-req-table-wrap {
+    box-shadow: none;
+    border: 1px solid var(--oma-workspace-border-card);
+  }
+}

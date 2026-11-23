@@ -84,8 +84,20 @@ pnpm format
 
 **Total stage4 shrink (phase 1+2):** 8153 → **~5480** lines (−32%).
 
-## 6. Follow-ups (not in this PR)
+## Phase 3 (modular + cascade authority)
 
-- Tokenize kanban lane accent colors
-- Split `stage4.css` into domain partials; delete legacy once `mobile-redesign-v1` owns ops chrome
-- PurgeCSS only after route-level ownership map + visual PASS per surface
+| Deliverable                  | Detail                                                                                                                             |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **stage4/**                  | `00-foundation`, `10-requests`, `20-ops-deliverables-tasks`, `30-kanban-board`, `40-detail-components`; `stage4.css` is index only |
+| **stage3/**                  | `00-base`, `10-content-chrome`, `20-content-views`, `30-content-polish`                                                            |
+| **Kanban tokens**            | `--oma-kb-lane-*` in `tokens.css`; `30-kanban-board.css` migrated                                                                  |
+| **mobile-ops-authority.css** | Last mobile layer; `data-oma-ops-mobile=v1`; card lists without table traps                                                        |
+| **Route map**                | `docs/CSS_ROUTE_OWNERSHIP.md`                                                                                                      |
+| **PurgeCSS**                 | `pnpm css:audit:purge` (dry-run scaffold; not CI)                                                                                  |
+| **member table**             | `mobile-oct27`: `min-width: 900px` → `min(100%, 56rem)`                                                                            |
+
+## 6. Follow-ups
+
+- Reduce remaining `!important` in `stage4/40-detail-components.css` per route after visual PASS
+- Enable PurgeCSS in CI only with per-route screenshot gate
+- Merge `mobile-redesign-v1` branch (#261) with this branch before production cut

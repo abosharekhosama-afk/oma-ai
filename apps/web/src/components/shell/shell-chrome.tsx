@@ -41,6 +41,7 @@ const SettingsPanel = dynamic(
 );
 import { PlxLogo } from '../ui/plx-icons';
 import { FloatingTooltips } from '../ui/floating-tooltips';
+import { applyMobileOpsFlag } from '../../lib/mobile-ops-flag';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
@@ -425,6 +426,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
       document.removeEventListener('scroll', onScroll, true);
       for (const timer of timers.values()) window.clearTimeout(timer);
     };
+  }, []);
+
+  useEffect(() => {
+    applyMobileOpsFlag();
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = () => applyMobileOpsFlag();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, []);
 
   useEffect(() => {

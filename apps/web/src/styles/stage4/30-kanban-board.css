@@ -1,0 +1,221 @@
+/* ============================================================
+   Tasks Board — Planable grid (2 rows × 3 columns)
+   Soft canvas, white cells, lavender accents, drag & drop kept
+   ============================================================ */
+
+.oma-kb-board {
+  background: var(--oma-kb-board-bg);
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--oma-kb-board-border);
+  max-width: 100%;
+  min-height: 520px;
+}
+
+.oma-kb-board__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(280px, 1fr));
+  gap: 14px;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* ---- Cell / Column ---- */
+.oma-kb-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 280px;
+  height: 100%;
+  padding: 14px;
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-workspace-border-card);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.03);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+  border-inline-start: 3px solid var(--oma-kb-lane-backlog);
+}
+
+.oma-kb-col.is-over {
+  border-color: var(--oma-kb-lane-drop);
+  box-shadow: 0 0 0 3px var(--oma-kb-lane-drop-glow);
+  background: var(--oma-kb-lane-drop-bg);
+}
+
+.oma-kb-col--backlog {
+  border-inline-start-color: var(--oma-kb-lane-backlog);
+}
+.oma-kb-col--ready {
+  border-inline-start-color: var(--oma-kb-lane-ready);
+}
+.oma-kb-col--progress {
+  border-inline-start-color: var(--oma-kb-lane-progress);
+}
+.oma-kb-col--review {
+  border-inline-start-color: var(--oma-kb-lane-review);
+}
+.oma-kb-col--blocked {
+  border-inline-start-color: var(--oma-kb-lane-blocked);
+}
+.oma-kb-col--done {
+  border-inline-start-color: var(--oma-kb-lane-done);
+}
+.oma-kb-col--overdue {
+  border-inline-start-color: var(--oma-kb-lane-blocked);
+}
+
+.oma-kb-col__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 4px;
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.oma-kb-col__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--oma-kb-lane-backlog);
+}
+.oma-kb-col--backlog .oma-kb-col__dot {
+  background: var(--oma-kb-lane-backlog);
+}
+.oma-kb-col--ready .oma-kb-col__dot {
+  background: var(--oma-kb-lane-ready);
+}
+.oma-kb-col--progress .oma-kb-col__dot {
+  background: var(--oma-kb-lane-progress);
+}
+.oma-kb-col--review .oma-kb-col__dot {
+  background: var(--oma-kb-lane-review);
+}
+.oma-kb-col--blocked .oma-kb-col__dot {
+  background: var(--oma-kb-lane-blocked);
+}
+.oma-kb-col--done .oma-kb-col__dot {
+  background: var(--oma-kb-lane-done);
+}
+.oma-kb-col--overdue .oma-kb-col__dot {
+  background: var(--oma-kb-lane-blocked);
+}
+
+.oma-kb-col__title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--oma-workspace-ink);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oma-kb-col__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: var(--oma-workspace-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.oma-kb-col__add {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.oma-kb-col__add:hover {
+  background: #f3f4f6;
+  color: var(--oma-workspace-ink);
+}
+
+.oma-kb-col__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-inline-end: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--oma-workspace-border-strong) transparent;
+}
+
+/* Empty drop zone */
+.oma-kb-col__empty {
+  border: 1.5px dashed var(--oma-workspace-border-strong);
+  border-radius: 10px;
+  padding: 20px 12px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+  background: #fafafa;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+  margin-top: auto;
+}
+.oma-kb-col.is-over .oma-kb-col__empty {
+  border-color: #a5b4fc;
+  background: #f5f3ff;
+  color: #6366f1;
+}
+
+/* ---- Card: see 'Task card (Planable)' block at end of file ---- */
+
+/* Responsive: 2 cols on tablet, 1 on mobile */
+@media (max-width: 1100px) {
+  .oma-kb-board__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+}
+@media (max-width: 640px) {
+  .oma-kb-board {
+    padding: 12px;
+  }
+  .oma-kb-board__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .oma-kb-col {
+    min-height: 220px;
+  }
+}
+
+/* RTL */
+[dir='rtl'] .oma-kb-card__meta,
+[dir='rtl'] .oma-kb-col__head {
+  flex-direction: row;
+}

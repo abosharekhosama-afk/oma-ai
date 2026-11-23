@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { JetBrains_Mono, Noto_Sans_Arabic } from 'next/font/google';
+import { MOBILE_OPS_ATTR, MOBILE_OPS_VALUE } from '../lib/mobile-ops-flag';
 import { cookies, headers } from 'next/headers';
 import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
 import { publicSiteIndexable, resolvePublicSiteUrl } from '../lib/public-site';
@@ -65,6 +67,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <body data-oma-font="oma-system-ui">
+        <Script id="oma-mobile-ops-bootstrap" strategy="beforeInteractive">
+          {`(function(){try{var m=window.matchMedia('(max-width: 767px)');var k='${MOBILE_OPS_ATTR}';var v='${MOBILE_OPS_VALUE}';var r=document.documentElement;var s=function(){if(m.matches)r.setAttribute(k,v);else r.removeAttribute(k);};s();if(m.addEventListener)m.addEventListener('change',s);else if(m.addListener)m.addListener(s);}catch(e){}})();`}
+        </Script>
         <a href="#main" className="oma-skip-link">
           {t(locale, 'shell.skip')}
         </a>

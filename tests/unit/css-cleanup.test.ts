@@ -25,10 +25,30 @@ function md5Sections(css: string): string[] {
 }
 
 describe('css cleanup (stage2/4/5)', () => {
-  it('removed byte-identical duplicate block from stage4.css', () => {
-    const css = read('apps/web/src/styles/stage4.css');
+  it('stage4 is modular (phase 3)', () => {
+    const index = read('apps/web/src/styles/stage4.css');
+    expect(index).toContain("@import './stage4/00-foundation.css'");
+    expect(index).toContain("@import './stage4/40-detail-components.css'");
+    const foundation = read('apps/web/src/styles/stage4/00-foundation.css');
+    expect(foundation).toContain('.oma-req-table-wrap');
+  });
+
+  it('stage3 is modular (phase 3)', () => {
+    const index = read('apps/web/src/styles/stage3.css');
+    expect(index).toContain("@import './stage3/10-content-chrome.css'");
+  });
+
+  it('loads mobile ops authority last among mobile layers', () => {
+    const globals = read('apps/web/src/app/globals.css');
+    const ops = globals.indexOf('mobile-ops-authority.css');
+    const ux = globals.indexOf('mobile-ux-pro-max-reset.css');
+    expect(ops).toBeGreaterThan(ux);
+  });
+
+  it('removed byte-identical duplicate block from stage4 (legacy monolith)', () => {
+    const css = read('apps/web/src/styles/stage4/40-detail-components.css');
     const lineCount = css.split('\n').length;
-    expect(lineCount).toBeLessThan(5600);
+    expect(lineCount).toBeLessThan(2600);
     const dupSections = md5Sections(css);
     expect(dupSections.length).toBe(0);
   });
@@ -46,7 +66,7 @@ describe('css cleanup (stage2/4/5)', () => {
   });
 
   it('stage4 requests tab uses tokens after cleanup', () => {
-    const css = read('apps/web/src/styles/stage4.css');
+    const css = read('apps/web/src/styles/stage4/20-ops-deliverables-tasks.css');
     expect(css).toContain('var(--oma-workspace-tab-active-bg)');
     expect(css).not.toMatch(/oma-req-page \.oma-ws-tab\.is-active[^}]*#e8f1ff/);
   });

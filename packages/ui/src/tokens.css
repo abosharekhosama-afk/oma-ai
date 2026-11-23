@@ -170,6 +170,17 @@
   --oma-workspace-primary-border: #2563eb;
   --oma-kb-board-bg: #f6f7f9;
   --oma-kb-board-border: #eef0f3;
+
+  /* Kanban lane semantics (stage4) — external brand accents, tokenized once */
+  --oma-kb-lane-backlog: #9ca3af;
+  --oma-kb-lane-ready: #83aeff;
+  --oma-kb-lane-progress: #8180fd;
+  --oma-kb-lane-review: #ff9052;
+  --oma-kb-lane-blocked: #ff5f5f;
+  --oma-kb-lane-done: #21cc99;
+  --oma-kb-lane-drop: #c4b5fd;
+  --oma-kb-lane-drop-glow: rgb(129 128 253 / 0.16);
+  --oma-kb-lane-drop-bg: #faf9ff;
 }
 
 /* Home (Planable calm palette) */
