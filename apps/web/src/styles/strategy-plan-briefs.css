@@ -443,10 +443,10 @@
 
 @media (max-width: 640px) {
   .oma-strategy-identity {
-    padding: 12px;
+    padding: 10px 12px;
   }
   .oma-strategy-identity__name {
-    font-size: 18px;
+    font-size: 15px;
   }
   .oma-plan-editor,
   .oma-plan-table-wrap,
