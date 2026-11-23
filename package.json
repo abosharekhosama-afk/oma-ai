@@ -16,6 +16,7 @@
     "dev:local": "bash scripts/dev-local.sh",
     "lint": "eslint .",
     "format": "prettier --check .",
+    "ux:search": "python3 .agents/skills/ui-ux-pro-max/scripts/search.py",
     "format:fix": "prettier --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",

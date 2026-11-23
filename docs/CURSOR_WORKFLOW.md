@@ -83,7 +83,7 @@ Use the command/skill names exposed by the installed Spec Kit integration. Curso
 
 ## UI reference gate
 
-For mobile UI polish or “make it feel better” on small screens, load `.agents/skills/oma-mobile-feel-better` (vendored [`make-interfaces-feel-better`](https://github.com/jakubkrehel/make-interfaces-feel-better) + OMA CSS constraints).
+For mobile UI polish or “make it feel better” on small screens, load `.agents/skills/oma-mobile-feel-better` (vendored [`make-interfaces-feel-better`](https://github.com/jakubkrehel/make-interfaces-feel-better) + OMA CSS constraints). When **all** surfaces still feel wrong, add `.agents/skills/oma-ui-ux-pro-max` and run `pnpm ux:search` against vendored [`ui-ux-pro-max`](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) before editing CSS.
 
 For every UI plan or change:
 
