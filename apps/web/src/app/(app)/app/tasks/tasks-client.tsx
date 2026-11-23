@@ -98,6 +98,10 @@ export default function TasksPage() {
     type: 'DESIGN',
   });
 
+  function isMobileTasksViewport() {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+  }
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -139,7 +143,7 @@ export default function TasksPage() {
       if (raw === 'board' || raw === 'list') {
         const urlView = new URLSearchParams(window.location.search).get('view');
         if (urlView !== 'board' && urlView !== 'list') {
-          setView(raw);
+          setView(raw === 'list' && isMobileTasksViewport() ? 'board' : raw);
         }
       }
     } catch {
@@ -166,9 +170,16 @@ export default function TasksPage() {
     }
     const urlView = searchParams.get('view');
     if (urlView === 'board' || urlView === 'list') {
-      setView(urlView);
+      setView(urlView === 'list' && isMobileTasksViewport() ? 'board' : urlView);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    if (isMobileTasksViewport() && view === 'list') {
+      setView('board');
+    }
+  }, [prefsLoaded, view]);
 
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
@@ -197,9 +208,10 @@ export default function TasksPage() {
   }, []);
 
   async function changeView(next: ViewMode) {
-    setView(next);
+    const resolved = isMobileTasksViewport() && next === 'list' ? 'board' : next;
+    setView(resolved);
     try {
-      window.localStorage.setItem('oma.tasks.defaultView', next);
+      window.localStorage.setItem('oma.tasks.defaultView', resolved);
     } catch {
       /* non-blocking */
     }

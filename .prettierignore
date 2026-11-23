@@ -7,6 +7,7 @@ playwright-report
 test-results
 packages/api-client/openapi.json
 .cursor/
+.agents/skills/ui-ux-pro-max/
 .specify/
 docs/CURSOR_WORKFLOW.md
 docs/DESIGN_REFERENCE_STRATEGY.md

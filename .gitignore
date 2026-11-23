@@ -28,3 +28,5 @@ packages/db/prisma/*.db
 .reference/**/auth-state.json
 .reference/**/*.storage-state.json
 .opencode/auth.json
+*.pyc
+__pycache__/

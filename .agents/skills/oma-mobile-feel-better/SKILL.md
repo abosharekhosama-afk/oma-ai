@@ -10,9 +10,10 @@ description: >-
 
 ## 1. Read (mandatory)
 
-1. `.agents/skills/make-interfaces-feel-better/SKILL.md` (+ `surfaces.md`, `typography.md`, `animations.md` as needed).
-2. `docs/DESIGN_REFERENCE_STRATEGY.md`, `docs/PLANABLE_DESIGN_TOKENS_SPEC.md`.
-3. Mobile CSS order in `apps/web/src/app/globals.css` (ends with `mobile-surfaces-clean.css`, `mobile-feel-better.css`).
+1. `.agents/skills/oma-ui-ux-pro-max/SKILL.md` — run `pnpm ux:search` for touch/layout conflicts.
+2. `.agents/skills/make-interfaces-feel-better/SKILL.md` (+ `surfaces.md`, `typography.md`, `animations.md` as needed).
+3. `docs/DESIGN_REFERENCE_STRATEGY.md`, `docs/PLANABLE_DESIGN_TOKENS_SPEC.md`.
+4. Mobile CSS order in `apps/web/src/app/globals.css` (ends with `mobile-ux-pro-max-reset.css`).
 
 ## 2. OMA constraints (override generic skill defaults)
 

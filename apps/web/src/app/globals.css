@@ -33,6 +33,7 @@
 @import '../styles/mobile-compact-final.css';
 @import '../styles/mobile-surfaces-clean.css';
 @import '../styles/mobile-feel-better.css';
+@import '../styles/mobile-ux-pro-max-reset.css';
 
 * {
   box-sizing: border-box;
@@ -2333,8 +2334,10 @@ html body .oma-activity-page .oma-activity-sticky {
   }
   html body .oma-tasks-page .oma-req-table,
   html body .oma-tasks-page .oma-task-table {
-    width: max-content !important;
-    min-width: 760px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    font-size: 12px !important;
   }
   html body .oma-tasks-page .oma-req-main .oma-req-table th:first-child,
   html body .oma-tasks-page .oma-req-main .oma-req-table td:first-child,
