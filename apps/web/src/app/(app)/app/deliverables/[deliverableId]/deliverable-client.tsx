@@ -537,7 +537,7 @@ export default function DeliverableDetailClient() {
           )}
         </div>
         {row ? (
-          <div className="oma-deliv-detail__top-actions">
+          <div className="oma-deliv-detail__top-actions oma-action-bar">
             <Button
               type={reviewMode ? 'primary' : 'default'}
               data-testid="demo-open-review"
