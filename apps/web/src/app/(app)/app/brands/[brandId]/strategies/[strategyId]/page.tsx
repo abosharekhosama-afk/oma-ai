@@ -19,9 +19,9 @@ import {
   isPermissionDenied,
   isTenantRequired,
 } from '../../../../../../../lib/brand-api';
-import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { StrategyWorkspaceShell } from '../../../../../../../components/strategy/strategy-workspace-shell';
 import { StrategySubnav } from '../../../../../../../components/strategy/strategy-subnav';
-import { StrategyAiAssistant } from '../../../../../../../components/strategy/strategy-ai-assistant';
+import { StrategyPageAi } from '../../../../../../../components/strategy/strategy-page-ai';
 import { CurrentStrategyControls } from '../../../../../../../components/strategy/current-strategy-controls';
 import { ConflictBanner } from '../../../../../../../components/strategy/conflict-banner';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
@@ -137,106 +137,95 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
   const latest = strategy.latest_version;
 
   return (
-    <BrandWorkspaceShell
-      brandId={brandId}
-      brandName={brand.name}
-      brandLogoUrl={brand.logo_url}
-      websiteUrl={brand.website?.normalized_url}
-      latestScanId={brand.latest_scan?.id}
-    >
-      <StrategySubnav
-        brandId={brandId}
-        strategyId={strategyId}
-        refreshKey={`${strategy.version}:${latest?.status}:${latest?.row_version}:${strategy.is_current}`}
-      />
-
-      <StrategyOverviewSummary brandId={brandId} strategyId={strategyId} strategy={strategy} />
-
-      {latest ? (
-        <StrategyLinkProfilePanel
+    <StrategyWorkspaceShell brandId={brandId} brandName={brand.name} brandLogoUrl={brand.logo_url}>
+      <div className="oma-strategy-page-stack">
+        <StrategySubnav
           brandId={brandId}
           strategyId={strategyId}
-          versionId={latest.id}
-          rowVersion={latest.row_version}
-          linkedProfileVersionId={latest.linked_approved_profile_version_id}
-          missingSource={latest.missing_source}
-          versionEditable={latest.status === 'DRAFT' || latest.status === 'IN_REVIEW'}
-          onLinked={() => void load()}
+          refreshKey={`${strategy.version}:${latest?.status}:${latest?.row_version}:${strategy.is_current}`}
         />
-      ) : null}
 
-      {versionDetail && latest && (latest.status === 'DRAFT' || latest.status === 'IN_REVIEW') ? (
-        <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={versionDetail} />
-      ) : null}
+        <StrategyOverviewSummary brandId={brandId} strategyId={strategyId} strategy={strategy} />
 
-      {strategy.has_approved_version ? (
-        <BrandPlxSection
-          title={t('strategy.tab.execution')}
-          testId="strategy-overview-execution-link"
-        >
-          <p className="oma-muted">{t('strategy.executionTab.lead')}</p>
-          <OmaLinkButton
-            type="primary"
-            data-testid="strategy-start-execution"
-            href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
-          >
-            {readiness?.journey.current === 'execute' || !readiness
-              ? t('strategy.executionTab.start')
-              : t('strategy.executionTab.open')}
-          </OmaLinkButton>
-        </BrandPlxSection>
-      ) : null}
-
-      {latest && latest.status === 'DRAFT' && !latest.missing_source ? (
-        <StrategyKpiPanel
-          brandId={brandId}
-          strategyId={strategyId}
-          versionId={latest.id}
-          editable
-        />
-      ) : null}
-
-      {latest && (latest.status === 'DRAFT' || latest.status === 'IN_REVIEW') ? (
-        <div id="strategy-ai-assistant">
-          <StrategyAiAssistant
+        {latest ? (
+          <StrategyLinkProfilePanel
             brandId={brandId}
             strategyId={strategyId}
             versionId={latest.id}
-            versionStatus={latest.status}
+            rowVersion={latest.row_version}
             linkedProfileVersionId={latest.linked_approved_profile_version_id}
-            organicEnabled={latest.organic_enabled}
-            paidEnabled={latest.paid_enabled}
-            onApplied={() => void load()}
+            missingSource={latest.missing_source}
+            versionEditable={latest.status === 'DRAFT' || latest.status === 'IN_REVIEW'}
+            onLinked={() => void load()}
           />
-        </div>
-      ) : null}
+        ) : null}
 
-      {message ? <p role="status">{message}</p> : null}
-      <ConflictBanner show={Boolean(error && error === t('strategy.conflict'))} />
-      {error && error !== t('strategy.conflict') ? (
-        <p role="alert" className="oma-brand-inline-error">
-          {error}
-        </p>
-      ) : null}
+        {versionDetail && latest && (latest.status === 'DRAFT' || latest.status === 'IN_REVIEW') ? (
+          <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={versionDetail} />
+        ) : null}
 
-      {strategy.status === 'ACTIVE' ? (
-        <BrandPlxSection
-          title={t('strategy.overview.actionsTitle')}
-          testId="strategy-overview-actions"
-        >
-          <div className="oma-form-actions">
-            <CurrentStrategyControls
-              canSet={Boolean(strategy.has_approved_version)}
-              isCurrent={Boolean(strategy.is_current)}
-              inferred={Boolean(strategy.current_inferred)}
-              onSet={() => void setCurrent(strategyId)}
-            />
-            <Button type="default" danger onClick={() => void archive()}>
-              {t('strategy.overview.archive')}
-            </Button>
-          </div>
-        </BrandPlxSection>
-      ) : null}
-    </BrandWorkspaceShell>
+        {strategy.has_approved_version ? (
+          <BrandPlxSection
+            title={t('strategy.tab.execution')}
+            testId="strategy-overview-execution-link"
+          >
+            <p className="oma-muted">{t('strategy.executionTab.lead')}</p>
+            <OmaLinkButton
+              type="primary"
+              data-testid="strategy-start-execution"
+              href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
+            >
+              {readiness?.journey.current === 'execute' || !readiness
+                ? t('strategy.executionTab.start')
+                : t('strategy.executionTab.open')}
+            </OmaLinkButton>
+          </BrandPlxSection>
+        ) : null}
+
+        {latest && latest.status === 'DRAFT' && !latest.missing_source ? (
+          <StrategyKpiPanel
+            brandId={brandId}
+            strategyId={strategyId}
+            versionId={latest.id}
+            editable
+          />
+        ) : null}
+
+        <StrategyPageAi
+          brandId={brandId}
+          strategyId={strategyId}
+          version={latest}
+          focus="overview"
+          onApplied={() => void load()}
+        />
+
+        {message ? <p role="status">{message}</p> : null}
+        <ConflictBanner show={Boolean(error && error === t('strategy.conflict'))} />
+        {error && error !== t('strategy.conflict') ? (
+          <p role="alert" className="oma-brand-inline-error">
+            {error}
+          </p>
+        ) : null}
+
+        {strategy.status === 'ACTIVE' ? (
+          <BrandPlxSection
+            title={t('strategy.overview.actionsTitle')}
+            testId="strategy-overview-actions"
+          >
+            <div className="oma-form-actions">
+              <CurrentStrategyControls
+                canSet={Boolean(strategy.has_approved_version)}
+                isCurrent={Boolean(strategy.is_current)}
+                inferred={Boolean(strategy.current_inferred)}
+                onSet={() => void setCurrent(strategyId)}
+              />
+              <Button type="default" danger onClick={() => void archive()}>
+                {t('strategy.overview.archive')}
+              </Button>
+            </div>
+          </BrandPlxSection>
+        ) : null}
+      </div>
+    </StrategyWorkspaceShell>
   );
 }

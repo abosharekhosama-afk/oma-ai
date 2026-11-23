@@ -11,6 +11,11 @@ import {
   strategyProposalToItems,
   type StrategyAiProposalItem,
 } from '../../lib/strategy-ai-ui';
+import {
+  aiFocusForApi,
+  proposalSectionsForFocus,
+  type StrategyAiFocus,
+} from '../../lib/strategy-ai-focus';
 import { useT } from '../../lib/use-locale';
 import { AiHonestyBanner } from './honesty-banners';
 
@@ -22,6 +27,7 @@ type Props = {
   linkedProfileVersionId: string | null;
   organicEnabled: boolean;
   paidEnabled: boolean;
+  focus?: StrategyAiFocus;
   onApplied?: () => void;
 };
 
@@ -47,6 +53,7 @@ export function StrategyAiAssistant({
   linkedProfileVersionId,
   organicEnabled,
   paidEnabled,
+  focus = 'overview',
   onApplied,
 }: Props) {
   const t = useT();
@@ -71,10 +78,22 @@ export function StrategyAiAssistant({
       .catch(() => setAiAvailability('NOT_CONFIGURED'));
   }, []);
 
-  const grouped = useMemo(
-    () => (proposal ? groupProposalItems(proposal.items) : new Map()),
-    [proposal],
-  );
+  const grouped = useMemo(() => {
+    if (!proposal) return new Map<string, StrategyAiProposalItem[]>();
+    const all = groupProposalItems(proposal.items);
+    const allowed = proposalSectionsForFocus(focus);
+    if (!allowed) return all;
+    const filtered = new Map<string, StrategyAiProposalItem[]>();
+    for (const [section, items] of all.entries()) {
+      if (allowed.has(section)) filtered.set(section, items);
+    }
+    return filtered;
+  }, [focus, proposal]);
+
+  const panelTitleKey = `strategy.ai.panelTitle.${focus}`;
+  const panelHintKey = `strategy.ai.panelHint.${focus}`;
+  const panelTitle = t(panelTitleKey);
+  const panelHint = t(panelHintKey);
 
   const propose = useCallback(async () => {
     setBusy(true);
@@ -83,7 +102,10 @@ export function StrategyAiAssistant({
     try {
       const res = await api<ProposeResponse>(
         `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/ai/propose`,
-        { method: 'POST', body: '{}' },
+        {
+          method: 'POST',
+          body: JSON.stringify({ focus: aiFocusForApi(focus) }),
+        },
       );
       const items = strategyProposalToItems(res.data?.proposal);
       if (!items.length) {
@@ -105,7 +127,7 @@ export function StrategyAiAssistant({
     } finally {
       setBusy(false);
     }
-  }, [brandId, strategyId, versionId, t]);
+  }, [brandId, focus, strategyId, versionId, t]);
 
   async function accept() {
     if (!proposal) return;
@@ -147,12 +169,15 @@ export function StrategyAiAssistant({
 
   return (
     <section
-      className="oma-panel oma-stack oma-strategy-ai-panel oma-strategy-ai-panel--compact"
+      className="oma-strategy-ai-panel"
       data-testid="strategy-ai-assistant"
+      data-focus={focus}
     >
       <header className="oma-strategy-ai-panel__head">
-        <h3>{t('strategy.ai.panelTitle')}</h3>
-        <p className="oma-muted">{t('strategy.ai.panelHint')}</p>
+        <h3>{panelTitle !== panelTitleKey ? panelTitle : t('strategy.ai.panelTitle')}</h3>
+        <p className="oma-muted">
+          {panelHint !== panelHintKey ? panelHint : t('strategy.ai.panelHint')}
+        </p>
       </header>
 
       {aiAvailability !== 'AVAILABLE' ? <AiHonestyBanner availability={aiAvailability} /> : null}
@@ -197,7 +222,11 @@ export function StrategyAiAssistant({
           disabled={busy || aiAvailability !== 'AVAILABLE' || strategyAiMode !== 'live'}
           onClick={() => void propose()}
         >
-          {busy ? t('strategy.ai.proposing') : t('strategy.ai.propose')}
+          {busy
+            ? t('strategy.ai.proposing')
+            : t(`strategy.ai.propose.${focus}`) !== `strategy.ai.propose.${focus}`
+              ? t(`strategy.ai.propose.${focus}`)
+              : t('strategy.ai.propose')}
         </Button>
       )}
 
@@ -212,29 +241,12 @@ export function StrategyAiAssistant({
         >
           <p>{message.startsWith('strategy.') ? t(message) : message}</p>
           {message === 'strategy.ai.accepted' ? (
-            <div className="oma-banner oma-banner-info" data-testid="strategy-ai-next-steps">
-              <p>{t('strategy.ai.nextStepsAfterAccept')}</p>
-              <div className="oma-chip-row">
-                <Link
-                  href={`/app/brands/${brandId}/strategies/${strategyId}/edit`}
-                  className="oma-text-link"
-                >
-                  {t('strategy.nav.foundation')}
-                </Link>
-                <Link
-                  href={`/app/brands/${brandId}/strategies/${strategyId}/organic`}
-                  className="oma-text-link"
-                >
-                  {t('strategy.nav.organic')}
-                </Link>
-                <Link
-                  href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
-                  className="oma-text-link"
-                >
-                  {t('strategy.nav.review')}
-                </Link>
-              </div>
-            </div>
+            <p className="oma-muted" data-testid="strategy-ai-accepted-note">
+              {t('strategy.ai.acceptedOnPage').replace(
+                '{page}',
+                panelTitle !== panelTitleKey ? panelTitle : t('strategy.ai.panelTitle'),
+              )}
+            </p>
           ) : null}
         </div>
       ) : null}

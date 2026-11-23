@@ -859,6 +859,7 @@ export class StrategyController {
     @Param('brandId') brandId: string,
     @Param('strategyId') strategyId: string,
     @Param('versionId') versionId: string,
+    @Body() body: { focus?: 'foundation' | 'organic' | 'paid' | 'full' },
   ) {
     this.requireTenant(req);
     return strategyService.aiPropose(
@@ -870,6 +871,7 @@ export class StrategyController {
       {
         idempotencyKey: req.header('idempotency-key'),
         correlationId: req.oma!.correlationId,
+        focus: body?.focus,
       },
     );
   }

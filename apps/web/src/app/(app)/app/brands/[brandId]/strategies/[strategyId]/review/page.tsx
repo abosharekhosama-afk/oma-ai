@@ -14,7 +14,8 @@ import {
   isPermissionDenied,
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
-import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
+import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
 import {
   BrandPlxPageHead,
   BrandPlxSection,
@@ -128,169 +129,171 @@ export default function StrategyReviewPage() {
   );
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <StrategyWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav
         brandId={brandId}
         strategyId={strategyId}
         refreshKey={`${version.status}:${version.row_version}`}
       />
-      <BrandPlxPageHead
-        title={t('strategy.review.title')}
-        actions={<StrategyVersionStatusChip status={version.status} />}
-      />
-      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <p className="oma-muted" data-testid="strategy-ai-assistant-link">
-          <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
-            {t('strategy.ai.openAssistant')}
-          </Link>
-        </p>
-      ) : null}
-      <StrategyLinkProfilePanel
-        brandId={brandId}
-        strategyId={strategyId}
-        versionId={version.id}
-        rowVersion={version.row_version}
-        linkedProfileVersionId={version.linked_approved_profile_version_id}
-        missingSource={version.missing_source}
-        versionEditable={version.status === 'DRAFT' || version.status === 'IN_REVIEW'}
-        onLinked={() => void load()}
-      />
-      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={version} />
-      ) : null}
-      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <label
-          className="oma-plx-listening-card oma-plx-brand-catalog-card oma-strategy-ack"
-          id="strategy-unknowns"
-        >
-          <CheckboxField
-            checked={unknowns}
-            onChange={(e) => setUnknowns(e.target.checked)}
-            data-testid="strategy-unknowns"
-          />{' '}
-          {t('strategy.review.unknowns')}
-        </label>
-      ) : null}
-      <BrandPlxSection title={t('strategy.overview.actionsTitle')} testId="strategy-review-actions">
-        {gateAction && blockers ? (
-          <StrategySubmitBlockers
-            brandId={brandId}
-            strategyId={strategyId}
-            action={gateAction}
-            items={blockers}
-            unknownsChecked={unknowns}
-          />
+      <div className="oma-strategy-page-stack">
+        <BrandPlxPageHead
+          title={t('strategy.review.title')}
+          actions={<StrategyVersionStatusChip status={version.status} />}
+        />
+        <StrategyPageAi
+          brandId={brandId}
+          strategyId={strategyId}
+          version={version}
+          focus="review"
+          onApplied={() => void load()}
+        />
+        <StrategyLinkProfilePanel
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+          rowVersion={version.row_version}
+          linkedProfileVersionId={version.linked_approved_profile_version_id}
+          missingSource={version.missing_source}
+          versionEditable={version.status === 'DRAFT' || version.status === 'IN_REVIEW'}
+          onLinked={() => void load()}
+        />
+        {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
+          <StrategyDraftPreview brandId={brandId} strategyId={strategyId} version={version} />
         ) : null}
-        <div className="oma-form-actions">
-          {version.status === 'DRAFT' ? (
-            <SubmitEligibility
-              missingProfile={Boolean(version.missing_source)}
-              disabled={openBlockers.length > 0}
-              label={t('strategy.review.submit')}
-              onClick={() =>
-                void post(`${base}/submit`, {
-                  row_version: version.row_version,
-                  unknowns_acknowledged: unknowns,
-                })
-              }
+        {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
+          <label className="oma-strategy-ack" id="strategy-unknowns">
+            <CheckboxField
+              checked={unknowns}
+              onChange={(e) => setUnknowns(e.target.checked)}
+              data-testid="strategy-unknowns"
+            />{' '}
+            {t('strategy.review.unknowns')}
+          </label>
+        ) : null}
+        <BrandPlxSection
+          title={t('strategy.overview.actionsTitle')}
+          testId="strategy-review-actions"
+        >
+          {gateAction && blockers ? (
+            <StrategySubmitBlockers
+              brandId={brandId}
+              strategyId={strategyId}
+              action={gateAction}
+              items={blockers}
+              unknownsChecked={unknowns}
             />
           ) : null}
-          {version.status === 'IN_REVIEW' ? (
-            <>
-              <Button
-                type="primary"
-                data-testid="strategy-approve"
+          <div className="oma-form-actions">
+            {version.status === 'DRAFT' ? (
+              <SubmitEligibility
+                missingProfile={Boolean(version.missing_source)}
                 disabled={openBlockers.length > 0}
+                label={t('strategy.review.submit')}
                 onClick={() =>
-                  void post(`${base}/approve`, {
+                  void post(`${base}/submit`, {
                     row_version: version.row_version,
                     unknowns_acknowledged: unknowns,
-                    comment: t('strategy.review.autoComment.approved'),
                   })
                 }
+              />
+            ) : null}
+            {version.status === 'IN_REVIEW' ? (
+              <>
+                <Button
+                  type="primary"
+                  data-testid="strategy-approve"
+                  disabled={openBlockers.length > 0}
+                  onClick={() =>
+                    void post(`${base}/approve`, {
+                      row_version: version.row_version,
+                      unknowns_acknowledged: unknowns,
+                      comment: t('strategy.review.autoComment.approved'),
+                    })
+                  }
+                >
+                  {t('strategy.review.approve')}
+                </Button>
+                <Button
+                  type="default"
+                  onClick={() =>
+                    void post(`${base}/request-changes`, {
+                      row_version: version.row_version,
+                      comment: t('strategy.review.autoComment.changes'),
+                    })
+                  }
+                >
+                  {t('strategy.review.requestChanges')}
+                </Button>
+                <Button
+                  type="default"
+                  onClick={() =>
+                    void post(`${base}/reject`, {
+                      row_version: version.row_version,
+                      comment: t('strategy.review.autoComment.rejected'),
+                    })
+                  }
+                >
+                  {t('strategy.review.reject')}
+                </Button>
+              </>
+            ) : null}
+            {version.status === 'APPROVED' ? (
+              <OmaLinkButton
+                type="primary"
+                data-testid="strategy-start-execution"
+                href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
               >
-                {t('strategy.review.approve')}
-              </Button>
+                {readiness?.journey.current === 'execute' || !readiness
+                  ? t('strategy.executionTab.start')
+                  : t('strategy.executionTab.open')}
+              </OmaLinkButton>
+            ) : null}
+            {['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(version.status) ? (
               <Button
-                type="default"
-                onClick={() =>
-                  void post(`${base}/request-changes`, {
-                    row_version: version.row_version,
-                    comment: t('strategy.review.autoComment.changes'),
-                  })
-                }
+                type={version.status === 'APPROVED' ? 'default' : 'primary'}
+                data-testid="strategy-revise"
+                onClick={() => void post(`${base}/revise`, {})}
               >
-                {t('strategy.review.requestChanges')}
+                {t('strategy.versions.revise')}
               </Button>
-              <Button
-                type="default"
-                onClick={() =>
-                  void post(`${base}/reject`, {
-                    row_version: version.row_version,
-                    comment: t('strategy.review.autoComment.rejected'),
-                  })
-                }
-              >
-                {t('strategy.review.reject')}
-              </Button>
-            </>
-          ) : null}
-          {version.status === 'APPROVED' ? (
-            <OmaLinkButton
-              type="primary"
-              data-testid="strategy-start-execution"
-              href={`/app/brands/${brandId}/strategies/${strategyId}/execution`}
-            >
-              {readiness?.journey.current === 'execute' || !readiness
-                ? t('strategy.executionTab.start')
-                : t('strategy.executionTab.open')}
-            </OmaLinkButton>
-          ) : null}
-          {['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(version.status) ? (
-            <Button
-              type={version.status === 'APPROVED' ? 'default' : 'primary'}
-              data-testid="strategy-revise"
-              onClick={() => void post(`${base}/revise`, {})}
-            >
-              {t('strategy.versions.revise')}
+            ) : null}
+          </div>
+        </BrandPlxSection>
+        {error ? (
+          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+            {error}
+          </p>
+        ) : null}
+        <BrandPlxSection
+          title={t('strategy.review.commentsTitle')}
+          testId="strategy-review-comment-form"
+        >
+          <form onSubmit={onComment} className="oma-strategy-comment-form">
+            <label className="oma-sr-only" htmlFor="strategy-comment-input">
+              {t('strategy.review.comment')}
+            </label>
+            <TextArea
+              id="strategy-comment-input"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder={t('strategy.review.commentPlaceholder')}
+              data-testid="strategy-comment"
+              rows={3}
+            />
+            <Button type="default" htmlType="submit" disabled={!comment.trim()}>
+              {t('strategy.review.comment')}
             </Button>
-          ) : null}
-        </div>
-      </BrandPlxSection>
-      {error ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
-          {error}
-        </p>
-      ) : null}
-      <BrandPlxSection
-        title={t('strategy.review.commentsTitle')}
-        testId="strategy-review-comment-form"
-      >
-        <form onSubmit={onComment} className="oma-strategy-comment-form">
-          <label className="oma-sr-only" htmlFor="strategy-comment-input">
-            {t('strategy.review.comment')}
-          </label>
-          <TextArea
-            id="strategy-comment-input"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder={t('strategy.review.commentPlaceholder')}
-            data-testid="strategy-comment"
-            rows={3}
-          />
-          <Button type="default" htmlType="submit" disabled={!comment.trim()}>
-            {t('strategy.review.comment')}
-          </Button>
-        </form>
-        <ul className="oma-plx-brand-data-grid">
-          {version.comments.map((c) => (
-            <li key={c.id} className="oma-plx-listening-card oma-plx-brand-insight-card">
-              {c.body}
-            </li>
-          ))}
-        </ul>
-      </BrandPlxSection>
-      {message ? <p role="status">{message}</p> : null}
-    </BrandWorkspaceShell>
+          </form>
+          <ul className="oma-plx-brand-data-grid">
+            {version.comments.map((c) => (
+              <li key={c.id} className="oma-plx-listening-card oma-plx-brand-insight-card">
+                {c.body}
+              </li>
+            ))}
+          </ul>
+        </BrandPlxSection>
+        {message ? <p role="status">{message}</p> : null}
+      </div>
+    </StrategyWorkspaceShell>
   );
 }

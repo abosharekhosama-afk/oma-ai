@@ -11,7 +11,7 @@ import {
   isPermissionDenied,
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
-import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
@@ -81,13 +81,7 @@ export default function StrategyExecutionPage() {
   }
 
   return (
-    <BrandWorkspaceShell
-      brandId={brandId}
-      brandName={brand.name}
-      brandLogoUrl={brand.logo_url}
-      websiteUrl={brand.website?.normalized_url}
-      latestScanId={brand.latest_scan?.id}
-    >
+    <StrategyWorkspaceShell brandId={brandId} brandName={brand.name} brandLogoUrl={brand.logo_url}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       {approved ? (
         <div data-testid="strategy-execution-tab">
@@ -137,6 +131,6 @@ export default function StrategyExecutionPage() {
           </Link>
         </div>
       )}
-    </BrandWorkspaceShell>
+    </StrategyWorkspaceShell>
   );
 }

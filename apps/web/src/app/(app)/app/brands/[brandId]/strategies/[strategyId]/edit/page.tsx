@@ -3,7 +3,6 @@ import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
 import { Button, TextArea } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
@@ -14,7 +13,8 @@ import {
   isPermissionDenied,
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
-import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
+import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
 import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
@@ -105,115 +105,104 @@ export default function StrategyFoundationPage() {
   const editable = version.status === 'DRAFT';
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <StrategyWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav
         brandId={brandId}
         strategyId={strategyId}
         refreshKey={`${version.status}:${version.row_version}`}
       />
-      <BrandPlxPageHead title={t('strategy.foundation.title')} />
-      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <p className="oma-muted" data-testid="strategy-ai-assistant-link">
-          <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
-            {t('strategy.ai.openAssistant')}
-          </Link>
-        </p>
-      ) : null}
-      <StrategyLinkProfilePanel
-        brandId={brandId}
-        strategyId={strategyId}
-        versionId={version.id}
-        rowVersion={version.row_version}
-        linkedProfileVersionId={version.linked_approved_profile_version_id}
-        missingSource={version.missing_source}
-        versionEditable={editable}
-        onLinked={() => void load()}
-      />
-      {editable ? (
-        <StrategyTrackEnablement
+      <div className="oma-strategy-page-stack">
+        <BrandPlxPageHead title={t('strategy.foundation.title')} />
+        <StrategyPageAi
           brandId={brandId}
           strategyId={strategyId}
           version={version}
-          editable={editable}
-          onUpdated={(next) => setVersion(next)}
+          focus="foundation"
+          onApplied={() => void load()}
         />
-      ) : null}
-      {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
-      <div className="oma-doc-canvas oma-editor-shell" data-testid="strategy-document-canvas">
-        <nav className="oma-doc-outline" aria-label={t('strategy.foundation.title')}>
-          <a href="#strategy-goals">{t('strategy.foundation.goals')}</a>
-          <a href="#strategy-positioning">{t('strategy.foundation.positioning')}</a>
-          <a href={`/app/brands/${brandId}/strategies/${strategyId}/organic`}>
-            {t('strategy.nav.organic')}
-          </a>
-          <a href={`/app/brands/${brandId}/strategies/${strategyId}/paid`}>
-            {t('strategy.nav.paid')}
-          </a>
-          <a href={`/app/brands/${brandId}/strategies/${strategyId}/evidence`}>
-            {t('strategy.nav.evidence')}
-          </a>
-        </nav>
-        <form
-          className="oma-panel oma-sectioned-form oma-doc-main"
-          onSubmit={onSave}
-          data-testid="strategy-foundation-form"
-        >
-          <section className="oma-form-section oma-doc-section" id="strategy-goals">
-            <h2>{t('strategy.foundation.goals')}</h2>
-            <p className="oma-help">{t('strategy.foundation.goalsHint')}</p>
-            <label className="oma-field-span">
-              <TextArea
-                value={goals}
-                onChange={(e) => setGoals(e.target.value)}
-                disabled={!editable}
-                data-testid="strategy-goals"
-                rows={3}
-              />
-            </label>
-          </section>
-          <section className="oma-form-section oma-doc-section" id="strategy-positioning">
-            <h2>{t('strategy.foundation.positioning')}</h2>
-            <p className="oma-help">{t('strategy.foundation.positioningHint')}</p>
-            <label className="oma-field-span">
-              <TextArea
-                value={positioning}
-                onChange={(e) => setPositioning(e.target.value)}
-                disabled={!editable}
-                data-testid="strategy-positioning"
-                placeholder={t('strategy.foundation.positioningPlaceholder')}
-                aria-invalid={
-                  positioning.trim() && !isMeaningfulPositioning(positioning) ? true : undefined
-                }
-                rows={3}
-              />
-            </label>
-            {editable && positioning.trim() && !isMeaningfulPositioning(positioning) ? (
-              <p
-                className="oma-field-hint"
-                data-state="warning"
-                data-testid="positioning-too-short"
-              >
-                {t('strategy.foundation.positioningTooShort')}
+        <StrategyLinkProfilePanel
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+          rowVersion={version.row_version}
+          linkedProfileVersionId={version.linked_approved_profile_version_id}
+          missingSource={version.missing_source}
+          versionEditable={editable}
+          onLinked={() => void load()}
+        />
+        {editable ? (
+          <StrategyTrackEnablement
+            brandId={brandId}
+            strategyId={strategyId}
+            version={version}
+            editable={editable}
+            onUpdated={(next) => setVersion(next)}
+          />
+        ) : null}
+        {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
+        <div data-testid="strategy-document-canvas">
+          <form
+            className="oma-sectioned-form"
+            onSubmit={onSave}
+            data-testid="strategy-foundation-form"
+          >
+            <section className="oma-form-section oma-doc-section" id="strategy-goals">
+              <h2>{t('strategy.foundation.goals')}</h2>
+              <p className="oma-help">{t('strategy.foundation.goalsHint')}</p>
+              <label className="oma-field-span">
+                <TextArea
+                  value={goals}
+                  onChange={(e) => setGoals(e.target.value)}
+                  disabled={!editable}
+                  data-testid="strategy-goals"
+                  rows={3}
+                />
+              </label>
+            </section>
+            <section className="oma-form-section oma-doc-section" id="strategy-positioning">
+              <h2>{t('strategy.foundation.positioning')}</h2>
+              <p className="oma-help">{t('strategy.foundation.positioningHint')}</p>
+              <label className="oma-field-span">
+                <TextArea
+                  value={positioning}
+                  onChange={(e) => setPositioning(e.target.value)}
+                  disabled={!editable}
+                  data-testid="strategy-positioning"
+                  placeholder={t('strategy.foundation.positioningPlaceholder')}
+                  aria-invalid={
+                    positioning.trim() && !isMeaningfulPositioning(positioning) ? true : undefined
+                  }
+                  rows={3}
+                />
+              </label>
+              {editable && positioning.trim() && !isMeaningfulPositioning(positioning) ? (
+                <p
+                  className="oma-field-hint"
+                  data-state="warning"
+                  data-testid="positioning-too-short"
+                >
+                  {t('strategy.foundation.positioningTooShort')}
+                </p>
+              ) : null}
+            </section>
+            {message ? (
+              <p className="oma-save-status" data-state="saved" role="status">
+                {message}
               </p>
             ) : null}
-          </section>
-          {message ? (
-            <p className="oma-save-status" data-state="saved" role="status">
-              {message}
-            </p>
-          ) : null}
-          {error ? (
-            <p className="oma-save-status" data-state="error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          {editable ? (
-            <Button type="primary" htmlType="submit">
-              {t('strategy.foundation.save')}
-            </Button>
-          ) : null}
-        </form>
+            {error ? (
+              <p className="oma-save-status" data-state="error" role="alert">
+                {error}
+              </p>
+            ) : null}
+            {editable ? (
+              <Button type="primary" htmlType="submit">
+                {t('strategy.foundation.save')}
+              </Button>
+            ) : null}
+          </form>
+        </div>
       </div>
-    </BrandWorkspaceShell>
+    </StrategyWorkspaceShell>
   );
 }

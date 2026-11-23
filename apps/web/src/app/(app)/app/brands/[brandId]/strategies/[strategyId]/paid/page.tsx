@@ -1,7 +1,6 @@
 'use client';
 import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
@@ -12,7 +11,8 @@ import {
   isPermissionDenied,
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
-import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
+import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
+import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
 import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PaidPlanningBanner } from '../../../../../../../../components/strategy/honesty-banners';
@@ -58,28 +58,30 @@ export default function StrategyPaidPage() {
   if (!brand || !version) return <DetailShimmer />;
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <StrategyWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
-      <BrandPlxPageHead title={t('strategy.paid.title')} />
-      {version.status === 'DRAFT' || version.status === 'IN_REVIEW' ? (
-        <p className="oma-muted" data-testid="strategy-ai-assistant-link">
-          <Link href={`/app/brands/${brandId}/strategies/${strategyId}#strategy-ai-assistant`}>
-            {t('strategy.ai.openAssistant')}
-          </Link>
-        </p>
-      ) : null}
-      <PaidPlanningBanner />
-      {error ? (
-        <p className="oma-save-status" data-state="error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      <StrategyPlanEditor
-        brandId={brandId}
-        strategyId={strategyId}
-        versionId={version.id}
-        track="paid"
-      />
-    </BrandWorkspaceShell>
+      <div className="oma-strategy-page-stack">
+        <BrandPlxPageHead title={t('strategy.paid.title')} />
+        <StrategyPageAi
+          brandId={brandId}
+          strategyId={strategyId}
+          version={version}
+          focus="paid"
+          onApplied={() => void load()}
+        />
+        <PaidPlanningBanner />
+        {error ? (
+          <p className="oma-save-status" data-state="error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <StrategyPlanEditor
+          brandId={brandId}
+          strategyId={strategyId}
+          versionId={version.id}
+          track="paid"
+        />
+      </div>
+    </StrategyWorkspaceShell>
   );
 }
