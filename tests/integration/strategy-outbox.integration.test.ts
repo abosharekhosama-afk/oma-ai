@@ -49,9 +49,17 @@ describe('strategy outbox', () => {
 
     const events = await getPrisma().outboxEvent.findMany({
       where: { tenantId: seed.tenantId, eventType: 'strategy.current_changed' },
+      orderBy: { createdAt: 'desc' },
     });
-    expect(events.length).toBeGreaterThanOrEqual(1);
-    const payload = JSON.parse(events[events.length - 1]!.payloadJson) as {
+    const forBrand = events.filter((e) => {
+      try {
+        return (JSON.parse(e.payloadJson) as { brandId?: string }).brandId === brandId;
+      } catch {
+        return false;
+      }
+    });
+    expect(forBrand.length).toBeGreaterThanOrEqual(1);
+    const payload = JSON.parse(forBrand[0]!.payloadJson) as {
       strategyId: string | null;
       brandId: string;
     };

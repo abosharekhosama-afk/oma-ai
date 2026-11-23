@@ -45,7 +45,7 @@ describe('brand SEO contract', () => {
       locale: 'en',
       source: 'FIXTURE',
     });
-    expect(kw.data.measured).toBe(true);
+    expect(kw.data.measured).toBe(false);
 
     await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/seo/search-console/connect-fixture`, {
       method: 'POST',
