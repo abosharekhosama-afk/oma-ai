@@ -490,7 +490,7 @@ export default function ScanDetailPage() {
             {actionError}
           </p>
         ) : null}
-        <div className="oma-form-actions oma-scan-actions">
+        <div className="oma-form-actions oma-scan-actions oma-action-bar">
           {inProgress && scan.stalled ? (
             <Button type="primary" disabled={busy} onClick={() => void handleResume()}>
               {t('brand.scan.resume')}

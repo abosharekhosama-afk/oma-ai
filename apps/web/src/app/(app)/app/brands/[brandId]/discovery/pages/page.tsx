@@ -159,11 +159,11 @@ export default function DiscoveryPagesPage() {
       ) : (
         <>
           <form
-            className="oma-filter-bar"
+            className="oma-filter-bar oma-filter-bar--discovery"
             onSubmit={(e) => e.preventDefault()}
             aria-label={t('brand.discovery.filtersTitle')}
           >
-            <label className="oma-field">
+            <label className="oma-field oma-filter-bar__search">
               <span>{t('brand.discovery.searchLabel')}</span>
               <SearchInput
                 value={query}
@@ -171,45 +171,49 @@ export default function DiscoveryPagesPage() {
                 placeholder={t('brand.discovery.searchPlaceholder')}
               />
             </label>
-            <label className="oma-field">
-              <span>{t('brand.discovery.filterClassification')}</span>
-              <SelectField
-                value={classification}
-                onChange={(e) => setClassification(e.target.value)}
-              >
-                <option value="">{t('brand.discovery.filterAll')}</option>
-                {PAGE_CLASSIFICATIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {statusLabel(t, value)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label className="oma-field">
-              <span>{t('brand.discovery.filterFetchStatus')}</span>
-              <SelectField value={fetchStatus} onChange={(e) => setFetchStatus(e.target.value)}>
-                <option value="">{t('brand.discovery.filterAll')}</option>
-                {PAGE_FETCH_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {statusLabel(t, value)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label className="oma-checkbox-label">
-              <CheckboxField
-                checked={evidenceOnly}
-                onChange={(e) => setEvidenceOnly(e.target.checked)}
-              />{' '}
-              {t('brand.discovery.evidenceAvailable')}
-            </label>
-            <label className="oma-checkbox-label">
-              <CheckboxField
-                checked={hideSeedProbes}
-                onChange={(e) => setHideSeedProbes(e.target.checked)}
-              />{' '}
-              {t('brand.discovery.hideSeedProbes')}
-            </label>
+            <div className="oma-filter-bar__row">
+              <label className="oma-field oma-filter-bar__grow">
+                <span>{t('brand.discovery.filterClassification')}</span>
+                <SelectField
+                  value={classification}
+                  onChange={(e) => setClassification(e.target.value)}
+                >
+                  <option value="">{t('brand.discovery.filterAll')}</option>
+                  {PAGE_CLASSIFICATIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {statusLabel(t, value)}
+                    </option>
+                  ))}
+                </SelectField>
+              </label>
+              <label className="oma-field oma-filter-bar__grow">
+                <span>{t('brand.discovery.filterFetchStatus')}</span>
+                <SelectField value={fetchStatus} onChange={(e) => setFetchStatus(e.target.value)}>
+                  <option value="">{t('brand.discovery.filterAll')}</option>
+                  {PAGE_FETCH_STATUSES.map((value) => (
+                    <option key={value} value={value}>
+                      {statusLabel(t, value)}
+                    </option>
+                  ))}
+                </SelectField>
+              </label>
+            </div>
+            <div className="oma-filter-bar__checks">
+              <label className="oma-checkbox-label oma-checkbox-label--inline">
+                <CheckboxField
+                  checked={evidenceOnly}
+                  onChange={(e) => setEvidenceOnly(e.target.checked)}
+                />{' '}
+                {t('brand.discovery.evidenceAvailable')}
+              </label>
+              <label className="oma-checkbox-label oma-checkbox-label--inline">
+                <CheckboxField
+                  checked={hideSeedProbes}
+                  onChange={(e) => setHideSeedProbes(e.target.checked)}
+                />{' '}
+                {t('brand.discovery.hideSeedProbes')}
+              </label>
+            </div>
             {filterHint ? (
               <div className="oma-filter-chips">
                 {query ? <span className="oma-filter-chip">{query}</span> : null}

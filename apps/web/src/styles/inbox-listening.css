@@ -5516,6 +5516,24 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     gap: 4px;
   }
 
+  .oma-plx-brand-main .oma-detail-dl dd .oma-inline-cta {
+    display: inline;
+    width: auto;
+  }
+
+  .oma-plx-brand .oma-plx-brand-ai-strip {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .oma-plx-brand .oma-plx-brand-ai-strip__actions {
+    flex: 0 0 auto;
+  }
+
+  .oma-plx-brand .oma-plx-brand-ai-strip__actions .ant-btn {
+    width: auto;
+  }
+
   .oma-plx-brand-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;

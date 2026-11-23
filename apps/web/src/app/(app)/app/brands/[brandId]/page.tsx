@@ -239,11 +239,12 @@ export default function BrandDetailPage() {
                   {brand.current_approved_strategy_id ? (
                     <Link
                       href={`/app/brands/${brandId}/strategies/${brand.current_approved_strategy_id}`}
+                      className="oma-inline-cta"
                     >
                       {t('brand.detail.openStrategyCta')}
                     </Link>
                   ) : (brand.active_strategy_count ?? 0) > 0 ? (
-                    <Link href={`/app/brands/${brandId}/strategies`}>
+                    <Link href={`/app/brands/${brandId}/strategies`} className="oma-inline-cta">
                       {t('brand.detail.continueStrategyCta')}
                     </Link>
                   ) : brand.current_approved_profile_version_id ? (

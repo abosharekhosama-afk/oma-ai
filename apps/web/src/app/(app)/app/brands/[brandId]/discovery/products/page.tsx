@@ -364,27 +364,29 @@ export default function DiscoveryProductsPage() {
                 allowClear
               />
             </label>
-            <label className="oma-discovery-toolbar__field">
-              <span className="oma-sr-only">{t('brand.discovery.filterKind')}</span>
-              <SelectField
-                value={filter.kind}
-                aria-label={t('brand.discovery.filterKind')}
-                onChange={(e) =>
-                  setFilter((f) => ({ ...f, kind: e.target.value as ProductFilter['kind'] }))
-                }
-              >
-                <option value="">{t('brand.discovery.filterAllKinds')}</option>
-                <option value="PRODUCT">{t('brand.discovery.statsProducts')}</option>
-                <option value="SERVICE">{t('brand.discovery.statsServices')}</option>
-              </SelectField>
-            </label>
-            <div className="oma-discovery-toolbar__check">
-              <CheckboxField
-                checked={filter.withMediaOnly}
-                onChange={(e) => setFilter((f) => ({ ...f, withMediaOnly: e.target.checked }))}
-              >
-                {t('brand.catalog.filterWithMedia')}
-              </CheckboxField>
+            <div className="oma-discovery-toolbar__filters">
+              <label className="oma-discovery-toolbar__field">
+                <span className="oma-sr-only">{t('brand.discovery.filterKind')}</span>
+                <SelectField
+                  value={filter.kind}
+                  aria-label={t('brand.discovery.filterKind')}
+                  onChange={(e) =>
+                    setFilter((f) => ({ ...f, kind: e.target.value as ProductFilter['kind'] }))
+                  }
+                >
+                  <option value="">{t('brand.discovery.filterAllKinds')}</option>
+                  <option value="PRODUCT">{t('brand.discovery.statsProducts')}</option>
+                  <option value="SERVICE">{t('brand.discovery.statsServices')}</option>
+                </SelectField>
+              </label>
+              <div className="oma-discovery-toolbar__check">
+                <CheckboxField
+                  checked={filter.withMediaOnly}
+                  onChange={(e) => setFilter((f) => ({ ...f, withMediaOnly: e.target.checked }))}
+                >
+                  {t('brand.catalog.filterWithMedia')}
+                </CheckboxField>
+              </div>
             </div>
             <p className="oma-muted oma-discovery-toolbar__count" role="status" aria-live="polite">
               {t('brand.discovery.resultCount')

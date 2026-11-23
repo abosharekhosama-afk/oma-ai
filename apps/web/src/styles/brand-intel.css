@@ -394,14 +394,87 @@
   min-width: 0;
 }
 
+.oma-discovery-toolbar__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .oma-discovery-toolbar__field {
-  flex: 0 0 170px;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.oma-discovery-toolbar__check {
+  flex: 0 1 auto;
+  white-space: nowrap;
 }
 
 .oma-discovery-toolbar__count {
   margin: 0;
   margin-inline-start: auto;
   font-size: 12px;
+}
+
+.oma-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.oma-action-bar > .ant-btn,
+.oma-action-bar > a.ant-btn,
+.oma-action-bar > button {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+}
+
+.oma-filter-bar--discovery .oma-filter-bar__search {
+  flex: 1 1 100%;
+}
+
+.oma-filter-bar--discovery .oma-filter-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1 1 100%;
+}
+
+.oma-filter-bar--discovery .oma-filter-bar__grow {
+  flex: 1 1 140px;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.oma-filter-bar--discovery .oma-filter-bar__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  flex: 1 1 100%;
+}
+
+.oma-checkbox-label--inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.oma-inline-cta {
+  font-weight: 600;
+  color: var(--oma-primary, #2563eb);
+  text-decoration: none;
+}
+
+.oma-inline-cta:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* Catalog merge (collapsible) */
@@ -1348,15 +1421,86 @@ video.oma-media-carousel__media {
 
   .oma-discovery-toolbar {
     padding: 10px;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .oma-discovery-toolbar__search,
+  .oma-discovery-toolbar__search {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .oma-discovery-toolbar__filters {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .oma-discovery-toolbar__field {
-    flex: 1 1 100%;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .oma-discovery-toolbar__check {
+    flex: 0 0 auto;
+    font-size: 12px;
   }
 
   .oma-discovery-toolbar__count {
     margin-inline-start: 0;
+    width: 100%;
+  }
+
+  .oma-plx-brand .oma-form-actions {
+    position: static;
+    gap: 8px;
+  }
+
+  .oma-plx-brand .oma-form-actions > button,
+  .oma-plx-brand .oma-form-actions > .ant-btn,
+  .oma-plx-brand .oma-form-actions > a.ant-btn {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .oma-plx-brand .oma-plx-brand-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .oma-plx-brand .oma-plx-brand-stat-card {
+    padding: 10px 12px;
+  }
+
+  .oma-plx-brand .oma-plx-brand-stat-card__value {
+    font-size: 17px;
+  }
+
+  .oma-plx-brand .oma-filter-bar--discovery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .oma-plx-brand .oma-scan-next {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .oma-plx-brand .oma-scan-next > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .oma-plx-brand .oma-scan-next .oma-plx-brand-hub-card__foot {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+
+  .oma-plx-brand .oma-plx-listening-card.oma-plx-brand-catalog-card {
+    padding: 12px 14px;
   }
 
   .oma-discovery-mosaic {
@@ -1375,11 +1519,6 @@ video.oma-media-carousel__media {
 
   .oma-hub-facts {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .oma-scan-next {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 
@@ -2020,24 +2159,39 @@ video.oma-media-carousel__media {
 }
 
 @media (max-width: 720px) {
-  .oma-brand-pipeline-v2__track {
-    flex-direction: column;
+  .oma-plx-brand .oma-brand-pipeline-v2 {
+    padding: 12px 14px;
   }
 
-  .oma-brand-pipeline-v2__step {
-    min-width: 100%;
-    padding-right: 0;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #f3f4f6;
+  .oma-plx-brand .oma-brand-pipeline-v2__track {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0;
+    padding-bottom: 4px;
   }
 
-  .oma-brand-pipeline-v2__step:not(:last-child)::after {
-    display: none;
+  .oma-plx-brand .oma-brand-pipeline-v2__step {
+    min-width: 148px;
+    max-width: 75vw;
+    flex: 0 0 auto;
+    padding-right: 12px;
+    padding-bottom: 8px;
+    border-bottom: none;
   }
 
-  .oma-brand-pipeline-v2__goal {
+  .oma-plx-brand .oma-brand-pipeline-v2__step:not(:last-child)::after {
+    display: block;
+  }
+
+  .oma-plx-brand .oma-brand-pipeline-v2__goal {
     max-width: none;
     text-align: start;
+    width: 100%;
+  }
+
+  .oma-plx-brand .oma-brand-pipeline-v2__head {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
