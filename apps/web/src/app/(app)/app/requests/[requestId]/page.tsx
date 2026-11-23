@@ -402,7 +402,7 @@ export default function RequestDetailPage() {
             ) : null}
           </div>
           {row ? (
-            <div className="oma-req-detail__top-actions oma-plx-req-detail__top-actions">
+            <div className="oma-req-detail__top-actions oma-plx-req-detail__top-actions oma-action-bar">
               <Button
                 type="default"
                 data-testid="demo-request-close"

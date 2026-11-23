@@ -13,6 +13,7 @@ describe('mobile native-scale layout', () => {
     const globals = read('apps/web/src/app/globals.css');
     expect(globals).toContain("@import '../styles/mobile-density.css';");
     expect(globals).toContain("@import '../styles/mobile-ui-compact.css';");
+    expect(globals).toContain("@import '../styles/mobile-surfaces-clean.css';");
     expect(globals).toContain('Mobile shell fill');
     expect(globals).toContain('var(--oma-mobile-vh, 100dvh)');
   });
