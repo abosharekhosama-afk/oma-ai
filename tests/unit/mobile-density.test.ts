@@ -12,6 +12,7 @@ describe('mobile native-scale layout', () => {
   it('loads the mobile density layer without CSS zoom', () => {
     const globals = read('apps/web/src/app/globals.css');
     expect(globals).toContain("@import '../styles/mobile-density.css';");
+    expect(globals).toContain("@import '../styles/mobile-ui-compact.css';");
     expect(globals).toContain('Mobile shell fill');
     expect(globals).toContain('var(--oma-mobile-vh, 100dvh)');
   });
@@ -28,6 +29,13 @@ describe('mobile native-scale layout', () => {
     expect(css).toContain('--oma-mobile-vh: 100dvh');
     expect(css).not.toContain('transform: scale');
     expect(css).toContain('font-size: 16px !important');
+  });
+
+  it('defines compact mobile control tokens without zoom', () => {
+    const compact = read('apps/web/src/styles/mobile-ui-compact.css');
+    expect(compact).toContain('--oma-control-height: 30px');
+    expect(compact).toContain('--text-body: 13px');
+    expect(compact).toContain('--shell-header-height: 46px');
   });
 
   it('caps mobile drawers with readable widths', () => {

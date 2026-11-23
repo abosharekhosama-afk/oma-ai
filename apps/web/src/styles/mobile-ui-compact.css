@@ -1,0 +1,131 @@
+/*
+ * Native-scale mobile density — Planable-aligned compact chrome (no document zoom).
+ * Scoped to the app shell; inputs stay 16px computed for iOS focus-zoom bypass.
+ */
+@media (max-width: 767px) {
+  :root {
+    --text-body: 13px;
+    --leading-body: 18px;
+    --text-control: 13px;
+    --leading-control: 18px;
+    --text-title-sm: 15px;
+    --leading-title-sm: 20px;
+    --text-title: 16px;
+    --leading-title: 22px;
+    --text-display: 18px;
+    --leading-display: 24px;
+    --text-meta: 11px;
+    --leading-meta: 14px;
+    --text-label: 11px;
+    --leading-label: 14px;
+
+    --oma-control-height: 30px;
+    --oma-control-height-compact: 28px;
+    --oma-control-pad-x: 10px;
+    --oma-search-height-rail: 28px;
+    --shell-header-height: 46px;
+    --shell-chrome-inset: 8px;
+
+    --icon-sm: 14px;
+    --icon-md: 18px;
+    --icon-lg: 20px;
+
+    --space-3: 10px;
+    --space-4: 12px;
+    --oma-tap: 36px;
+  }
+
+  html body,
+  html body .oma-shell {
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+  }
+
+  html body .oma-shell .oma-top {
+    min-height: var(--shell-header-height);
+    padding: var(--shell-chrome-inset) 10px;
+  }
+
+  html body .oma-shell .oma-container {
+    padding: 8px 10px 16px;
+  }
+
+  html body .oma-shell .ant-btn:not(.ant-btn-lg) {
+    height: var(--oma-control-height);
+    min-height: var(--oma-control-height);
+    padding-inline: var(--oma-control-pad-x);
+    font-size: var(--text-control);
+    line-height: 1.2;
+    border-radius: var(--oma-radius-control);
+  }
+
+  html body .oma-shell .ant-btn-sm {
+    height: var(--oma-control-height-compact);
+    min-height: var(--oma-control-height-compact);
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+
+  html body .oma-shell .ant-input,
+  html body .oma-shell .ant-input-affix-wrapper,
+  html body .oma-shell .ant-select-selector {
+    min-height: var(--oma-control-height) !important;
+    padding-block: 2px !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-shell .oma-nav-link {
+    min-height: var(--oma-tap);
+    padding: 6px 8px;
+    font-size: var(--text-body);
+  }
+
+  html body .oma-shell .oma-nav-link-icon,
+  html body .oma-drawer .oma-nav-link-icon {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+  }
+
+  html body .oma-mobile-nav-trigger,
+  html body .oma-mobile-nav-fab {
+    width: var(--oma-tap);
+    height: var(--oma-tap);
+    min-width: var(--oma-tap);
+    min-height: var(--oma-tap);
+  }
+
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link {
+    min-height: var(--oma-tap);
+    font-size: var(--text-body);
+  }
+
+  html body .oma-ws-tab,
+  html body .oma-ws-tabs .oma-ws-tab {
+    font-size: 12.5px !important;
+    padding: 7px 10px !important;
+  }
+
+  html body .oma-badge,
+  html body .oma-filter-chip {
+    font-size: 11px;
+    padding: 2px 7px;
+  }
+
+  html body .oma-plx-listening-card {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  html body .oma-panel {
+    border-radius: 10px;
+  }
+
+  html body .oma-banner {
+    padding: 10px 12px;
+    font-size: var(--text-body);
+  }
+
+  html body .oma-banner strong {
+    font-size: var(--text-title-sm);
+  }
+}
