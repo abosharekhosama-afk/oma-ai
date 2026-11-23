@@ -1,0 +1,134 @@
+/*
+ * Mobile polish from make-interfaces-feel-better (MIT, jakubkrehel/make-interfaces-feel-better).
+ * Surfaces/typography/motion only — no document zoom. Loaded last among mobile layers.
+ */
+@media (max-width: 767px) {
+  html body .oma-shell {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Concentric radius: panel 12px, 10px padding → inner ~8px controls */
+  html body .oma-plx-listening-panel,
+  html body .oma-plx-listening-card,
+  html body .oma-req-detail__card,
+  html body .oma-deliv-detail__card {
+    border-radius: 12px;
+    box-shadow:
+      0 1px 2px rgb(15 23 42 / 0.04),
+      0 0 0 1px rgb(15 23 42 / 0.03);
+    border-color: #eceef1;
+    transition:
+      border-color 0.15s cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  html body .oma-plx-request-card {
+    box-shadow:
+      0 1px 2px rgb(15 23 42 / 0.05),
+      0 0 0 1px rgb(15 23 42 / 0.04);
+    transition:
+      border-color 0.15s cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1),
+      transform 0.12s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  html body a.oma-plx-request-card:active {
+    transform: scale(0.98);
+  }
+
+  html body .oma-plx-listening-panel .ant-input,
+  html body .oma-plx-listening-panel .ant-input-affix-wrapper,
+  html body .oma-plx-listening-panel .ant-select-selector {
+    border-radius: 8px;
+  }
+
+  /* Typography */
+  html body .oma-req-detail__title,
+  html body .oma-deliv-detail__title,
+  html body .oma-plx-listening-card__name-row strong {
+    text-wrap: balance;
+  }
+
+  html body .oma-req-detail__desc,
+  html body .oma-plx-listening-card__foot {
+    text-wrap: pretty;
+  }
+
+  html body .oma-req-detail__meta,
+  html body .oma-plx-req-detail__ref,
+  html body .oma-req-detail__card-head .oma-req-detail__meta,
+  html body .oma-deliv-detail__unresolved,
+  html body .oma-ltr[data-testid],
+  html body .oma-req-detail__meta {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Press feedback — interruptible transform only */
+  html body .oma-shell .ant-btn:not(.ant-btn-circle):not(:disabled) {
+    transition:
+      transform 0.12s cubic-bezier(0.2, 0, 0, 1),
+      background-color 0.15s cubic-bezier(0.2, 0, 0, 1),
+      border-color 0.15s cubic-bezier(0.2, 0, 0, 1),
+      color 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  html body .oma-shell .ant-btn:not(.ant-btn-circle):not(:disabled):active {
+    transform: scale(0.96);
+  }
+
+  /* Touch hit areas for icon-only header / filter controls */
+  html body .oma-top-actions--workspace .oma-req-create-icon,
+  html body .oma-top-actions--workspace .oma-req-filter-icon,
+  html body .oma-top-actions--workspace .oma-sched-icon-btn,
+  html body .oma-top-actions--workspace .oma-header-icon-btn {
+    position: relative;
+    min-width: var(--oma-tap, 40px);
+    min-height: var(--oma-tap, 40px);
+  }
+
+  html body .oma-deliv-detail__top-actions .oma-deliv-detail__act--icon::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 10px;
+  }
+
+  html body .oma-deliv-detail__top-actions .oma-deliv-detail__act--icon {
+    position: relative;
+  }
+
+  /* Icons: inherit text color */
+  html body .oma-shell .oma-lucide,
+  html body .oma-shell .anticon {
+    color: currentColor;
+  }
+
+  html body .oma-req-detail__back .oma-dir-icon,
+  html body .oma-deliv-detail__back .oma-dir-icon {
+    transform: translateX(0);
+    transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  html[lang='ar'] body .oma-req-detail__back:hover .oma-dir-icon,
+  html[lang='ar'] body .oma-deliv-detail__back:hover .oma-dir-icon {
+    transform: translateX(2px);
+  }
+
+  html:not([lang='ar']) body .oma-req-detail__back:hover .oma-dir-icon,
+  html:not([lang='ar']) body .oma-deliv-detail__back:hover .oma-dir-icon {
+    transform: translateX(-2px);
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  html body a.oma-plx-request-card:active,
+  html body .oma-shell .ant-btn:not(.ant-btn-circle):not(:disabled):active {
+    transform: none;
+  }
+
+  html body .oma-req-detail__back .oma-dir-icon,
+  html body .oma-deliv-detail__back .oma-dir-icon {
+    transition: none;
+  }
+}
