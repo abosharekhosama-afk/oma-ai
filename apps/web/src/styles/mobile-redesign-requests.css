@@ -1,0 +1,239 @@
+/*
+ * Requests workspace — mobile redesign overrides (wins over stage4 767px table mode).
+ */
+@media (max-width: 767px) {
+  /* Does not depend on html[data-oma-mobile-redesign]; ws attr is set on first shell paint */
+  html body .oma-shell[data-mobile-redesign-ws='requests'] {
+    /* Shell: icons only (filter + create) */
+    .oma-top-actions--workspace .oma-requests-header-title {
+      display: none !important;
+    }
+
+    .oma-top-actions--workspace .oma-req-filter-icon,
+    .oma-top-actions--workspace .oma-req-create-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 36px !important;
+      min-width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+      border: 1px solid var(--mrd-border, rgb(15 23 42 / 0.08)) !important;
+      border-radius: 10px !important;
+      background: var(--mrd-surface, #fff) !important;
+      box-shadow: none !important;
+    }
+
+    .oma-top-actions--workspace .oma-req-filter-icon svg,
+    .oma-top-actions--workspace .oma-req-create-icon svg {
+      width: 18px !important;
+      height: 18px !important;
+    }
+
+    /* Page: drop duplicate title block — tabs live in compact strip */
+    .oma-req-page .oma-req-header {
+      padding: 0 0 6px !important;
+      margin: 0 !important;
+    }
+
+    .oma-req-page .oma-req-header__title,
+    .oma-req-page .oma-req-header__subtitle {
+      display: none !important;
+    }
+
+    .oma-req-page .oma-m-req-tabs {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      align-items: stretch !important;
+      gap: 0 !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border-bottom: 1px solid var(--mrd-border, rgb(15 23 42 / 0.08)) !important;
+      overflow-x: auto !important;
+      overscroll-behavior-x: contain !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none !important;
+    }
+
+    .oma-req-page .oma-m-req-tabs::-webkit-scrollbar {
+      display: none !important;
+    }
+
+    .oma-req-page .oma-m-req-tabs .oma-ws-tab {
+      flex: 0 0 auto !important;
+      min-height: 32px !important;
+      padding: 6px 9px !important;
+      margin: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      color: var(--mrd-muted, #64748b) !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
+    .oma-req-page .oma-m-req-tabs .oma-ws-tab.is-active,
+    .oma-req-page .oma-m-req-tabs .oma-ws-tab[data-active='true'] {
+      color: var(--mrd-ink, #0f172a) !important;
+      box-shadow: inset 0 -2px 0 0 #2563eb !important;
+    }
+
+    .oma-req-page .oma-req-workspace {
+      background: transparent !important;
+      min-height: 0 !important;
+    }
+
+    .oma-req-page .oma-req-main {
+      padding: 6px 0 12px !important;
+    }
+
+    .oma-req-page .oma-req-main > .oma-muted[data-testid='demo-request-result-count'] {
+      margin: 0 0 6px !important;
+      font-size: 11px !important;
+      line-height: 1.2 !important;
+      color: var(--mrd-muted, #64748b) !important;
+    }
+
+    /* Cards list — not the 980px table */
+    .oma-req-page .oma-req-desktop,
+    .oma-req-page .oma-req-table-wrap {
+      display: none !important;
+    }
+
+    .oma-req-page .oma-req-mobile {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      list-style: none !important;
+    }
+
+    .oma-req-page .oma-req-mobile > li {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .oma-req-page .oma-m-req-card.oma-req-mobile-card {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+      padding: 10px 12px !important;
+      margin: 0 !important;
+      border: 1px solid var(--mrd-border, rgb(15 23 42 / 0.08)) !important;
+      border-radius: 10px !important;
+      background: var(--mrd-surface, #fff) !important;
+      box-shadow: none !important;
+      text-decoration: none !important;
+      color: inherit !important;
+    }
+
+    .oma-req-page .oma-m-req-card:active {
+      background: var(--mrd-surface-2, #f8fafc) !important;
+    }
+
+    .oma-req-page .oma-m-req-card__head {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 8px !important;
+      min-width: 0 !important;
+    }
+
+    .oma-req-page .oma-m-req-card__head .oma-req-avatar {
+      flex: 0 0 28px !important;
+      width: 28px !important;
+      height: 28px !important;
+      font-size: 10px !important;
+      border-radius: 8px !important;
+    }
+
+    .oma-req-page .oma-m-req-card__title {
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      line-height: 1.25 !important;
+      color: var(--mrd-ink, #0f172a) !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 2 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+    }
+
+    .oma-req-page .oma-m-req-card__chips {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      gap: 6px !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
+    }
+
+    .oma-req-page .oma-m-req-card__chips::-webkit-scrollbar {
+      display: none !important;
+    }
+
+    .oma-req-page .oma-m-req-card__type {
+      flex: 0 0 auto !important;
+      font-size: 10px !important;
+      font-weight: 500 !important;
+      color: var(--mrd-muted, #64748b) !important;
+      white-space: nowrap !important;
+    }
+
+    .oma-req-page .oma-m-req-card__facts {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      gap: 4px 10px !important;
+      margin: 0 !important;
+      font-size: 11px !important;
+      line-height: 1.3 !important;
+    }
+
+    .oma-req-page .oma-m-req-card__fact {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 1px !important;
+      min-width: 0 !important;
+    }
+
+    .oma-req-page .oma-m-req-card__fact dt {
+      margin: 0 !important;
+      font-size: 10px !important;
+      font-weight: 500 !important;
+      color: var(--mrd-muted, #64748b) !important;
+    }
+
+    .oma-req-page .oma-m-req-card__fact dd {
+      margin: 0 !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      color: var(--mrd-ink, #0f172a) !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+
+    .oma-req-page .oma-m-req-card__next {
+      margin: 0 !important;
+      padding-top: 6px !important;
+      border-top: 1px solid var(--mrd-border, rgb(15 23 42 / 0.06)) !important;
+      font-size: 11px !important;
+      line-height: 1.35 !important;
+      color: var(--mrd-muted, #64748b) !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 2 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+    }
+
+    html body main.oma-container:has(.oma-req-page),
+    html body .oma-container:has(.oma-req-page) {
+      padding-inline: 8px !important;
+    }
+  }
+}

@@ -415,7 +415,7 @@ export default function RequestsPage() {
           </div>
           <p className="oma-req-header__subtitle">{t('demo.requests.subtitle')}</p>
           <div
-            className="oma-ws-tabs oma-req-tabs"
+            className="oma-ws-tabs oma-req-tabs oma-m-req-tabs"
             role="tablist"
             data-testid="demo-request-groups"
           >
@@ -440,7 +440,6 @@ export default function RequestsPage() {
       {headerSlot
         ? createPortal(
             <>
-              <span className="oma-requests-header-title">{t('demo.requests.title')}</span>
               <button
                 type="button"
                 className="oma-req-filter-icon"
@@ -462,7 +461,7 @@ export default function RequestsPage() {
                 title={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}
               >
-                <ShellIcon name="plus" size={19} />
+                <ShellIcon name="plus" size={18} />
               </button>
             </>,
             headerSlot,
@@ -622,29 +621,52 @@ export default function RequestsPage() {
                   {filtered.map((r) => {
                     const brief = briefByRequest.get(r.id) ?? null;
                     const next = requestNextAction(r, brief);
+                    const brandLabel =
+                      (r as { brandName?: string }).brandName || brandName(r.brandId);
+                    const campaignLabel =
+                      (r as { campaignName?: string | null }).campaignName ||
+                      campaignName(r.campaignId);
+                    const title = requestTitleForDisplay(r, brief, locale, brandLabel);
+                    const ar = locale.toLowerCase().startsWith('ar');
                     return (
                       <li key={r.id}>
                         <Link
                           href={`/app/requests/${r.id}`}
-                          className="oma-req-mobile-card"
+                          className="oma-req-mobile-card oma-m-req-card"
                           data-testid={`demo-request-mobile-${r.id}`}
                         >
-                          <strong>
-                            {requestTitleForDisplay(
-                              r,
-                              brief,
-                              locale,
-                              (r as { brandName?: string }).brandName || brandName(r.brandId),
-                            )}
-                          </strong>
-                          <div className="oma-chip-row">
+                          <div className="oma-m-req-card__head">
+                            <span className="oma-req-avatar" aria-hidden>
+                              {initials(r.requester)}
+                            </span>
+                            <span className="oma-m-req-card__title">{title}</span>
+                          </div>
+                          <div className="oma-m-req-card__chips">
                             <StatusChip status={r.status} />
                             <StatusChip status={r.priority} />
+                            <span className="oma-m-req-card__type">
+                              {enumStatusLabel(t, r.type)}
+                            </span>
                           </div>
-                          <span className="oma-muted">
-                            {r.assignee ?? t('demo.requests.unassigned')} · {r.dueAt}
-                          </span>
-                          <span>{pickCopy(next, locale)}</span>
+                          <dl className="oma-m-req-card__facts">
+                            <div className="oma-m-req-card__fact">
+                              <dt>{ar ? 'العلامة' : 'Brand'}</dt>
+                              <dd>{brandLabel}</dd>
+                            </div>
+                            <div className="oma-m-req-card__fact">
+                              <dt>{ar ? 'الحملة' : 'Campaign'}</dt>
+                              <dd>{campaignLabel || '—'}</dd>
+                            </div>
+                            <div className="oma-m-req-card__fact">
+                              <dt>{t('demo.requests.col.assignee')}</dt>
+                              <dd>{r.assignee ?? t('demo.requests.unassigned')}</dd>
+                            </div>
+                            <div className="oma-m-req-card__fact">
+                              <dt>{t('demo.requests.col.due')}</dt>
+                              <dd>{r.dueAt || '—'}</dd>
+                            </div>
+                          </dl>
+                          <p className="oma-m-req-card__next">{pickCopy(next, locale)}</p>
                         </Link>
                       </li>
                     );
