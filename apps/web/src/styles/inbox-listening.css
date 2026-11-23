@@ -5441,11 +5441,6 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 }
 
 @media (max-width: 767px) {
-  .oma-plx-brand-hub-grid,
-  .oma-plx-brand-hub-grid--compact {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .oma-plx-brand-main .oma-detail-dl,
   .oma-workboard-primary .oma-panel {
     min-width: 0;

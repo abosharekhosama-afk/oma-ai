@@ -555,12 +555,19 @@
 
 @media (max-width: 767px) {
   .oma-shell .oma-top {
-    min-height: 48px;
-    padding: 6px 8px;
+    min-height: 44px;
+    padding: 6px 10px;
+    gap: 8px;
   }
 
   .oma-shell .oma-container {
-    padding: 6px 8px 18px;
+    padding: 8px 10px 20px;
+  }
+
+  .oma-shell .oma-context-trail,
+  .oma-shell .oma-breadcrumb {
+    font-size: 12px;
+    line-height: 18px;
   }
 }
 
