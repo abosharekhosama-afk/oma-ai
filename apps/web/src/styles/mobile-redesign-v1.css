@@ -1,0 +1,385 @@
+/*
+ * OMA Mobile Redesign v1 — primary workspaces only (home, content, requests, tasks, deliverables).
+ * Active when html[data-oma-mobile-redesign="v1"]. Wins over stage4/legacy mobile layers via attribute.
+ * No document zoom; Planable-aligned compact chrome.
+ */
+@media (max-width: 767px) {
+  html[data-oma-mobile-redesign='v1'] {
+    --mrd-space-1: 4px;
+    --mrd-space-2: 8px;
+    --mrd-space-3: 12px;
+    --mrd-space-4: 16px;
+    --mrd-radius-sm: 8px;
+    --mrd-radius-md: 12px;
+    --mrd-radius-pill: 999px;
+    --mrd-tap: 44px;
+    --mrd-control-h: 32px;
+    --mrd-icon: 16px;
+    --mrd-title: 17px;
+    --mrd-title-lh: 1.25;
+    --mrd-body: 13px;
+    --mrd-body-lh: 1.45;
+    --mrd-caption: 12px;
+    --mrd-ink: #0f172a;
+    --mrd-muted: #64748b;
+    --mrd-border: rgb(15 23 42 / 0.08);
+    --mrd-surface: #ffffff;
+    --mrd-surface-2: #f8fafc;
+    --mrd-segment-bg: #f1f5f9;
+    --mrd-segment-active: #ffffff;
+    --mrd-shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 0 0 1px var(--mrd-border);
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell {
+    --oma-mobile-gap: var(--mrd-space-2);
+    --oma-mobile-gutter: var(--mrd-space-2);
+    --oma-mobile-section: var(--mrd-space-3);
+    --oma-control-height: var(--mrd-control-h);
+    --text-body: var(--mrd-body);
+    --text-caption: var(--mrd-caption);
+    color: var(--mrd-ink);
+    font-size: var(--mrd-body);
+    line-height: var(--mrd-body-lh);
+  }
+
+  /* ---- Shell chrome ---- */
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-top {
+    min-height: var(--mrd-tap) !important;
+    padding: var(--mrd-space-2) var(--mrd-space-2) !important;
+    gap: var(--mrd-space-2) !important;
+    border-bottom: 1px solid var(--mrd-border) !important;
+    background: var(--mrd-surface) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-mobile-page-title {
+    font-size: var(--mrd-title) !important;
+    font-weight: 600 !important;
+    line-height: var(--mrd-title-lh) !important;
+    max-width: 42vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-top-context,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-breadcrumb {
+    font-size: var(--mrd-caption) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-mobile-nav-toggle,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-mobile-nav-fab {
+    width: var(--mrd-tap) !important;
+    height: var(--mrd-tap) !important;
+    min-width: var(--mrd-tap) !important;
+    padding: 0 !important;
+    border-radius: var(--mrd-radius-sm) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell #main.oma-container {
+    padding: var(--mrd-space-2) var(--mrd-space-2)
+      calc(var(--mrd-space-4) + env(safe-area-inset-bottom, 0px)) !important;
+    max-width: 100% !important;
+  }
+
+  /* ---- Icons ---- */
+  html[data-oma-mobile-redesign='v1'] body .oma-shell svg.oma-lucide,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-shell-icon svg {
+    width: var(--mrd-icon) !important;
+    height: var(--mrd-icon) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .anticon {
+    font-size: var(--mrd-icon) !important;
+  }
+
+  /* ---- Buttons ---- */
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .ant-btn:not(.ant-btn-circle) {
+    min-height: var(--mrd-control-h) !important;
+    height: auto !important;
+    padding: 0 var(--mrd-space-3) !important;
+    font-size: var(--mrd-caption) !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
+    border-radius: var(--mrd-radius-sm) !important;
+    gap: 6px !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-action-bar,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell
+    .oma-form-actions:not(.oma-form-actions--stack),
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-top-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: var(--mrd-space-2) !important;
+    justify-content: flex-start !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-action-bar > *,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell
+    .oma-form-actions:not(.oma-form-actions--stack)
+    > *,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-top-actions .ant-btn {
+    width: auto !important;
+    flex: 0 1 auto !important;
+    max-width: 100%;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-header-create-icon__label {
+    display: none;
+  }
+
+  /* ---- Segments / tabs ---- */
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-plx-listening-segment {
+    display: inline-flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 2px !important;
+    padding: 2px !important;
+    border-radius: 10px !important;
+    background: var(--mrd-segment-bg) !important;
+    border: 1px solid var(--mrd-border) !important;
+    max-width: 100%;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-plx-listening-segment button {
+    min-height: 30px !important;
+    padding: 0 10px !important;
+    font-size: var(--mrd-caption) !important;
+    font-weight: 500 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--mrd-muted) !important;
+    box-shadow: none !important;
+    width: auto !important;
+    flex: 0 1 auto !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-plx-listening-segment button.is-active {
+    background: var(--mrd-segment-active) !important;
+    color: var(--mrd-ink) !important;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.06) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .ant-tabs-nav {
+    margin-bottom: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .ant-tabs-tab {
+    padding: 6px 10px !important;
+    font-size: var(--mrd-caption) !important;
+  }
+
+  /* ---- Cards / panels (neutralize stage4 padding) ---- */
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-plx-listening-panel,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-req-detail__card,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-deliv-detail__card,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-task-detail__card {
+    padding: var(--mrd-space-3) !important;
+    margin-bottom: var(--mrd-space-2) !important;
+    border-radius: var(--mrd-radius-md) !important;
+    border: 1px solid var(--mrd-border) !important;
+    box-shadow: var(--mrd-shadow-card) !important;
+    background: var(--mrd-surface) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-req-detail__top,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-deliv-detail__top,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-task-detail__head {
+    padding: var(--mrd-space-3) var(--mrd-space-2) !important;
+    min-height: auto !important;
+    gap: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-req-detail__title,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .oma-deliv-detail__title,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell h1.oma-req-detail__title {
+    font-size: var(--mrd-title) !important;
+    line-height: var(--mrd-title-lh) !important;
+    font-weight: 600 !important;
+  }
+
+  /* ---- Workspace: Home ---- */
+  html[data-oma-mobile-redesign='v1'] body .oma-shell[data-mobile-redesign-ws='home'] .oma-home {
+    gap: var(--mrd-space-3) !important;
+    font-size: var(--mrd-body) !important;
+    max-inline-size: 100% !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='home']
+    .oma-home-greeting {
+    font-size: var(--mrd-title) !important;
+    line-height: var(--mrd-title-lh) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='home']
+    .oma-home-sub {
+    font-size: var(--mrd-caption) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='home']
+    .oma-home-card,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='home']
+    .oma-home-section {
+    border-radius: var(--mrd-radius-md) !important;
+    padding: var(--mrd-space-3) !important;
+    border: 1px solid var(--mrd-border) !important;
+    box-shadow: var(--mrd-shadow-card) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='home']
+    .oma-home-btn {
+    min-height: var(--mrd-control-h) !important;
+    padding-inline: var(--mrd-space-3) !important;
+    font-size: var(--mrd-caption) !important;
+    border-radius: var(--mrd-radius-sm) !important;
+  }
+
+  /* ---- Workspace: Content ---- */
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='content']
+    .oma-content-plan,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='content']
+    .oma-plx-content-list {
+    padding: 0 !important;
+    gap: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='content']
+    .oma-pv-grid,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='content']
+    [data-testid='demo-content-grid'] {
+    gap: var(--mrd-space-2) !important;
+    padding: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='content']
+    .oma-plx-deliv-view-row {
+    padding: 0 0 var(--mrd-space-2) !important;
+  }
+
+  /* ---- Workspace: Requests ---- */
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='requests']
+    .oma-req-page {
+    gap: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='requests']
+    .oma-req-header {
+    padding: var(--mrd-space-2) !important;
+    gap: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='requests']
+    .oma-req-header__title {
+    font-size: var(--mrd-title) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='requests']
+    .oma-plx-req-card,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='requests']
+    .oma-req-row-card {
+    padding: var(--mrd-space-3) !important;
+    border-radius: var(--mrd-radius-md) !important;
+    margin-bottom: var(--mrd-space-2) !important;
+  }
+
+  /* ---- Workspace: Tasks ---- */
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='tasks']
+    .oma-plx-tasks-workspace,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='tasks']
+    .oma-tasks-page {
+    gap: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='tasks']
+    .oma-plx-tasks-panel {
+    padding: var(--mrd-space-2) !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='tasks']
+    .oma-kb-column,
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='tasks']
+    [class*='kanban'] {
+    min-width: 0 !important;
+  }
+
+  /* ---- Workspace: Deliverables ---- */
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='deliverables']
+    .oma-plx-deliverables {
+    gap: var(--mrd-space-2) !important;
+    padding: 0 !important;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='deliverables']
+    .oma-plx-deliv-table-wrap {
+    margin-inline: calc(var(--mrd-space-2) * -1);
+    padding-inline: var(--mrd-space-2);
+    overflow-x: auto;
+  }
+
+  html[data-oma-mobile-redesign='v1']
+    body
+    .oma-shell[data-mobile-redesign-ws='deliverables']
+    .oma-plx-deliv-table {
+    font-size: var(--mrd-caption) !important;
+    min-width: 0 !important;
+  }
+
+  /* Inputs: prevent iOS zoom */
+  html[data-oma-mobile-redesign='v1'] body .oma-shell input,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell textarea,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell select,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .ant-input,
+  html[data-oma-mobile-redesign='v1'] body .oma-shell .ant-select-selector {
+    font-size: 16px !important;
+  }
+}

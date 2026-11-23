@@ -41,6 +41,10 @@ const SettingsPanel = dynamic(
 );
 import { PlxLogo } from '../ui/plx-icons';
 import { FloatingTooltips } from '../ui/floating-tooltips';
+import {
+  applyMobileRedesignFlag,
+  resolveMobileRedesignWorkspace,
+} from '../../lib/mobile-redesign-v1';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
@@ -320,6 +324,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     pathname.startsWith('/app/subscription/');
   // Mobile (<768): page title shown next to the nav toggle for key ops screens.
   const isHome = pathname === '/app';
+  const mobileRedesignWorkspace = resolveMobileRedesignWorkspace(pathname);
   const mobilePageTitle = isHome
     ? t('nav.home')
     : isApprovalsWorkspace
@@ -437,6 +442,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    applyMobileRedesignFlag();
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = () => applyMobileRedesignFlag();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
   const toggleCollapsed = useCallback(() => {
     setRailAnimated(true);
     setCollapsed((prev) => {
@@ -457,6 +470,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         data-rail={collapsed ? 'collapsed' : 'expanded'}
         data-shell-hydrated={hydrated ? 'true' : 'false'}
         data-rail-anim={railAnimated ? 'true' : 'false'}
+        data-mobile-redesign-ws={mobileRedesignWorkspace ?? undefined}
       >
         <aside
           className="oma-rail"
