@@ -1,5 +1,5 @@
 'use client';
-import { Button } from '@oma/ui/controls';
+import { Button, Modal } from '@oma/ui/controls';
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
@@ -15,7 +15,70 @@ type EvidenceSidePanelProps = {
   evidenceIds?: string[];
   onClose: () => void;
   onNavigate?: (id: string) => void;
+  /** Centered dialog for profile reading; drawer remains default elsewhere. */
+  presentation?: 'drawer' | 'modal';
 };
+
+function EvidencePanelBody({
+  loading,
+  error,
+  evidence,
+  prevId,
+  nextId,
+  onNavigate,
+  onClose,
+  t,
+  showFootClose = false,
+}: {
+  loading: boolean;
+  error: string | null;
+  evidence: EvidenceItem | null;
+  prevId: string | null;
+  nextId: string | null;
+  onNavigate?: (id: string) => void;
+  onClose: () => void;
+  t: (key: string) => string;
+  showFootClose?: boolean;
+}) {
+  return (
+    <>
+      {loading ? <p className="oma-muted">{t('common.loading')}</p> : null}
+      {error ? (
+        <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          {error}
+        </p>
+      ) : null}
+      {evidence ? <EvidenceClarity evidence={evidence} /> : null}
+      {(prevId || nextId || showFootClose) && (
+        <div className="oma-evidence-panel__foot">
+          {(prevId || nextId) && onNavigate ? (
+            <div className="oma-header-actions">
+              <Button
+                type="default"
+                disabled={!prevId}
+                onClick={() => prevId && onNavigate(prevId)}
+              >
+                {t('brand.evidence.prev')}
+              </Button>
+              <Button
+                type="default"
+                disabled={!nextId}
+                onClick={() => nextId && onNavigate(nextId)}
+              >
+                {t('brand.evidence.next')}
+              </Button>
+            </div>
+          ) : null}
+          {showFootClose ? (
+            <Button type="default" onClick={onClose}>
+              {t('brand.evidence.close')}
+            </Button>
+          ) : null}
+        </div>
+      )}
+    </>
+  );
+}
 
 export function EvidenceSidePanel({
   brandId,
@@ -23,6 +86,7 @@ export function EvidenceSidePanel({
   evidenceIds = [],
   onClose,
   onNavigate,
+  presentation = 'drawer',
 }: EvidenceSidePanelProps) {
   const t = useT();
   const [evidence, setEvidence] = useState<EvidenceItem | null>(null);
@@ -65,31 +129,46 @@ export function EvidenceSidePanel({
     return () => window.removeEventListener('keydown', onKey);
   }, [evidenceId, nextId, onNavigate, prevId]);
 
+  const isModal = presentation === 'modal';
+  const body = (
+    <EvidencePanelBody
+      loading={loading}
+      error={error}
+      evidence={evidence}
+      prevId={prevId}
+      nextId={nextId}
+      onNavigate={onNavigate}
+      onClose={onClose}
+      t={t}
+      showFootClose={isModal}
+    />
+  );
+
+  if (presentation === 'modal') {
+    return (
+      <Modal
+        open={Boolean(evidenceId)}
+        onCancel={onClose}
+        title={t('brand.evidence.title')}
+        footer={null}
+        width={720}
+        destroyOnHidden
+        className="oma-evidence-modal"
+      >
+        {body}
+      </Modal>
+    );
+  }
+
   return (
-    <Drawer open={Boolean(evidenceId)} onClose={onClose} label={t('brand.evidence.title')}>
+    <Drawer open={Boolean(evidenceId)} onClose={onClose} label={t('brand.evidence.title')} wide>
       <header className="oma-drawer-header">
         <h2 id="evidence-panel-title">{t('brand.evidence.title')}</h2>
         <Button type="default" onClick={onClose}>
           {t('brand.evidence.close')}
         </Button>
       </header>
-      {loading ? <p className="oma-muted">{t('common.loading')}</p> : null}
-      {error ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
-          {error}
-        </p>
-      ) : null}
-      {evidence ? <EvidenceClarity evidence={evidence} /> : null}
-      {(prevId || nextId) && onNavigate ? (
-        <div className="oma-header-actions" style={{ marginTop: '1rem' }}>
-          <Button type="default" disabled={!prevId} onClick={() => prevId && onNavigate(prevId)}>
-            {t('brand.evidence.prev')}
-          </Button>
-          <Button type="default" disabled={!nextId} onClick={() => nextId && onNavigate(nextId)}>
-            {t('brand.evidence.next')}
-          </Button>
-        </div>
-      ) : null}
+      {body}
     </Drawer>
   );
 }

@@ -20,19 +20,12 @@ import type {
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
-import { BrandBackLink } from '../../../../../../../components/brand/brand-section-nav';
 import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
-import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
 import { ProfileSections } from '../../../../../../../components/brand/profile-sections';
 import { ReviewCollaboration } from '../../../../../../../components/brand/review-collaboration';
 import { InsightDecisionControls } from '../../../../../../../components/brand/insight-decision-controls';
 import { ApprovalSummary } from '../../../../../../../components/brand/approval-summary';
-import { ScanOutcomePanel } from '../../../../../../../components/brand/scan-outcome-panel';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
-import {
-  ProfileStrategyHandoffBanner,
-  ScanCatalogHonestyBanner,
-} from '../../../../../../../components/brand/brand-context-banners';
 import { CatalogInsightsBulkBar } from '../../../../../../../components/brand/catalog-insights-bulk-bar';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
@@ -45,7 +38,6 @@ export default function ProfileEditorPage() {
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
   const [scanStatus, setScanStatus] = useState<string | null>(null);
-  const [linkedScan, setLinkedScan] = useState<ScanDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -67,9 +59,8 @@ export default function ProfileEditorPage() {
         `/api/v1/brands/${brandId}/scans/${res.data.scan_attempt_id}`,
       );
       setScanStatus(scanRes.data.status);
-      setLinkedScan(scanRes.data);
     } else {
-      setLinkedScan(null);
+      setScanStatus(null);
     }
     return res.data;
   }, [brandId, versionId]);
@@ -251,6 +242,8 @@ export default function ProfileEditorPage() {
     <BrandWorkspaceShell
       brandId={brandId}
       brandName={brand.name}
+      hideIntro
+      unifiedPanelChrome
       aside={
         <ReviewCollaboration
           status={profile.status}
@@ -281,9 +274,11 @@ export default function ProfileEditorPage() {
         />
       }
     >
-      <BrandBackLink href={`/app/brands/${brandId}/profiles`} label={t('brand.nav.profiles')} />
       <BrandPlxPageHead
-        title={t('brand.profile.title')}
+        title={brand.name}
+        description={t('brand.profile.title')}
+        backHref={`/app/brands/${brandId}/profiles`}
+        backLabel={t('brand.nav.profiles')}
         actions={
           <div className="oma-chip-row">
             <span className="oma-badge">{profile.status}</span>
@@ -293,25 +288,6 @@ export default function ProfileEditorPage() {
           </div>
         }
       />
-
-      <div className="oma-plx-brand-status-rail oma-plx-brand-status-rail--compact">
-        {linkedScan ? <ScanOutcomePanel scan={linkedScan} compact /> : null}
-        {linkedScan ? (
-          <details className="oma-plx-brand-status-details">
-            <summary>{t('brand.scan.partialTitle')}</summary>
-            <ScanCatalogHonestyBanner scan={linkedScan} />
-          </details>
-        ) : null}
-        <AiUnavailableBanner
-          aiAvailability={profile.ai_availability}
-          analysisStatus={profile.analysis_status}
-          analysisErrorCode={linkedScan?.analysis_error_code}
-          platformAvailability={platformAiAvailability}
-          canRequestAnalysis={canQueueAnalysis && Boolean(profile.scan_attempt_id)}
-          onRequestAnalysis={profile.scan_attempt_id ? () => void handleAnalyze() : undefined}
-          requestBusy={busy}
-        />
-      </div>
 
       {editable && profile.scan_attempt_id ? (
         <div
@@ -332,28 +308,6 @@ export default function ProfileEditorPage() {
         editable={editable}
         onAccepted={() => void loadProfile()}
       />
-
-      {profile.status === 'APPROVED' || profile.status === 'SUPERSEDED' ? (
-        <div className="oma-banner oma-banner-info" role="status" data-testid="immutable-banner">
-          <strong>{t('brand.profile.immutableTitle')}</strong>
-          <p>{t('brand.profile.immutableBody')}</p>
-        </div>
-      ) : null}
-
-      {profile.status === 'APPROVED' && brand.current_approved_profile_version_id === versionId ? (
-        <ProfileStrategyHandoffBanner
-          brandId={brandId}
-          profileVersionId={versionId}
-          strategyId={brand.current_approved_strategy_id}
-        />
-      ) : null}
-
-      {scanStatus === 'PARTIAL' ? (
-        <div className="oma-banner oma-banner-warning" role="alert">
-          <strong>{t('brand.scan.partialTitle')}</strong>
-          <p>{t('brand.scan.partialBody')}</p>
-        </div>
-      ) : null}
 
       {actionError ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>
@@ -438,6 +392,7 @@ export default function ProfileEditorPage() {
       <EvidenceSidePanel
         brandId={brandId}
         evidenceId={evidenceId}
+        presentation="modal"
         onClose={() => setEvidenceId(null)}
       />
     </BrandWorkspaceShell>

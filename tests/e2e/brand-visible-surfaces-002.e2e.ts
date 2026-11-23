@@ -55,7 +55,7 @@ test.describe('Feature 002 visible surface gaps', () => {
 
     const profileLink = page.getByRole('link', { name: /view profile|approved/i }).first();
     await profileLink.click();
-    await expect(page.getByTestId('immutable-banner')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('brand-intelligence-canvas')).toBeVisible({ timeout: 20_000 });
     await page.getByRole('link', { name: 'Compare versions' }).click();
     await expect(page.getByTestId('compare-against')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Version comparison' })).toBeVisible();

@@ -171,7 +171,7 @@ function provenanceBadgeClass(infoState: string): string {
 
 function insightMetaChips(t: (key: string) => string, insight: InsightItem) {
   return (
-  <>
+    <>
       <span
         className={provenanceBadgeClass(insight.info_state)}
         data-testid={`insight-provenance-${insight.info_state}`}
@@ -179,7 +179,9 @@ function insightMetaChips(t: (key: string) => string, insight: InsightItem) {
         {t(`brand.infoState.${insight.info_state}`)}
       </span>
       {insight.discovery_tier === 'REQUIRED_FOR_APPROVAL' ? (
-        <span className="oma-badge oma-badge-muted">{t(`brand.tier.${insight.discovery_tier}`)}</span>
+        <span className="oma-badge oma-badge-muted">
+          {t(`brand.tier.${insight.discovery_tier}`)}
+        </span>
       ) : null}
     </>
   );
@@ -207,7 +209,9 @@ function InsightFieldRow({
     >
       <div className="oma-insight-field-row__label">
         <span>{fieldLabel(t, insight.field_key)}</span>
-        {!compact ? <span className="oma-insight-field-row__chips">{insightMetaChips(t, insight)}</span> : null}
+        {!compact ? (
+          <span className="oma-insight-field-row__chips">{insightMetaChips(t, insight)}</span>
+        ) : null}
       </div>
       {empty ? (
         <p className="oma-muted oma-insight-field-row__empty" role="status">
@@ -248,10 +252,7 @@ function EvidenceBundleCard({
   const sourceUrl = bundleSourceUrl(bundle.insights);
   const primary = bundle.insights[0];
   return (
-    <li
-      className="oma-insight-bundle oma-plx-listening-card"
-      data-testid="insight-evidence-bundle"
-    >
+    <li className="oma-insight-bundle oma-plx-listening-card" data-testid="insight-evidence-bundle">
       <header className="oma-insight-bundle__head">
         <div className="oma-insight-bundle__titles">
           <h4 className="oma-insight-bundle__title" dir="auto">
@@ -268,9 +269,6 @@ function EvidenceBundleCard({
             </a>
           ) : null}
         </div>
-        {primary ? (
-          <span className="oma-insight-bundle__meta">{insightMetaChips(t, primary)}</span>
-        ) : null}
       </header>
       <dl className="oma-insight-bundle__fields">
         {bundle.insights.map((insight) => {
@@ -413,18 +411,8 @@ export function ProfileSections({
           {t('brand.profile.completenessHint')}
         </p>
       </div>
-      <div className="oma-doc-canvas oma-editor-shell oma-plx-brand-editor oma-doc-canvas--profile">
-        <nav
-          className="oma-doc-outline oma-doc-outline--segments"
-          aria-label={t('brand.profile.outline')}
-        >
-          {sectionKeys.map((key) => (
-            <a key={key} href={`#section-${key}`}>
-              {sectionTitle(t, key)}
-            </a>
-          ))}
-        </nav>
-        <div className="oma-profile-sections oma-doc-main">
+      <div className="oma-doc-canvas oma-editor-shell oma-plx-brand-editor oma-doc-canvas--profile oma-doc-canvas--profile-single">
+        <div className="oma-profile-sections oma-doc-main oma-doc-main--full">
           {sectionKeys.map((key) => (
             <section
               key={key}

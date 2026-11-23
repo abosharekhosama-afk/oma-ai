@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { groupInsightsByEvidence, bundleTitle } from '../../apps/web/src/lib/profile-insight-groups';
+import {
+  groupInsightsByEvidence,
+  bundleTitle,
+} from '../../apps/web/src/lib/profile-insight-groups';
 import type { InsightItem } from '../../apps/web/src/lib/brand-types';
 
 function row(partial: Partial<InsightItem> & Pick<InsightItem, 'id' | 'field_key'>): InsightItem {
@@ -20,7 +23,12 @@ describe('groupInsightsByEvidence', () => {
   it('bundles per-page brand fields by shared evidence id', () => {
     const insights = [
       row({ id: '1', field_key: 'brand.name', text_value: 'Widget A', evidence_id: 'e1' }),
-      row({ id: '2', field_key: 'brand.source_url', text_value: 'https://a.test/p1', evidence_id: 'e1' }),
+      row({
+        id: '2',
+        field_key: 'brand.source_url',
+        text_value: 'https://a.test/p1',
+        evidence_id: 'e1',
+      }),
       row({ id: '3', field_key: 'brand.name', text_value: 'Widget B', evidence_id: 'e2' }),
       row({ id: '4', field_key: 'brand.logo', text_value: '{}', evidence_id: 'e2' }),
     ];

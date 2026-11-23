@@ -6,7 +6,10 @@ import { ConnectorModeChip } from './connector-mode-banner';
 import { StatusChip, statusLabel } from '../ui/status-chip';
 import { useLocale, useT } from '../../lib/use-locale';
 
-function durationMinutes(start: string | null | undefined, end: string | null | undefined): number | null {
+function durationMinutes(
+  start: string | null | undefined,
+  end: string | null | undefined,
+): number | null {
   if (!start) return null;
   const a = new Date(start).getTime();
   const b = end ? new Date(end).getTime() : Date.now();
@@ -33,9 +36,7 @@ export function ScanRunMetaCard({ scan, testId = 'scan-run-meta' }: Props) {
       <div className="oma-scan-run-meta__head">
         <div>
           <h3 className="oma-scan-run-meta__title">{t('brand.discovery.scanRunTitle')}</h3>
-          <p className="oma-muted oma-scan-run-meta__sub">
-            {t('brand.discovery.scanRunSubtitle')}
-          </p>
+          <p className="oma-muted oma-scan-run-meta__sub">{t('brand.discovery.scanRunSubtitle')}</p>
         </div>
         <div className="oma-scan-run-meta__chips">
           <StatusChip status={scan.status} label={statusLabel(t, scan.status)} />
@@ -49,11 +50,7 @@ export function ScanRunMetaCard({ scan, testId = 'scan-run-meta' }: Props) {
         </div>
         <div>
           <dt>{t('brand.scan.finishedAt')}</dt>
-          <dd>
-            {finished
-              ? formatBrandDateTime(finished, locale)
-              : t('brand.scan.stillRunning')}
-          </dd>
+          <dd>{finished ? formatBrandDateTime(finished, locale) : t('brand.scan.stillRunning')}</dd>
         </div>
         <div>
           <dt>{t('brand.discovery.scanDuration')}</dt>

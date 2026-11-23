@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ArrowLeftOutlined } from '../ui/lucide-icons';
 
 type BrandPlxSectionProps = {
   title: string;
@@ -16,17 +17,29 @@ export function BrandPlxPageHead({
   description,
   actions,
   titleTestId,
+  backHref,
+  backLabel,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
   titleTestId?: string;
+  backHref?: string;
+  backLabel?: string;
 }) {
   return (
     <header className="oma-plx-brand-page-head">
-      <div>
-        <h2 data-testid={titleTestId}>{title}</h2>
-        {description ? <p className="oma-muted">{description}</p> : null}
+      <div className="oma-plx-brand-page-head__lead">
+        {backHref && backLabel ? (
+          <Link href={backHref} className="oma-plx-brand-page-head__back oma-brand-nav-back--tab">
+            <ArrowLeftOutlined width={14} height={14} aria-hidden />
+            <span className="oma-brand-nav-back__label">{backLabel}</span>
+          </Link>
+        ) : null}
+        <div className="oma-plx-brand-page-head__titles">
+          <h2 data-testid={titleTestId}>{title}</h2>
+          {description ? <p className="oma-muted">{description}</p> : null}
+        </div>
       </div>
       {actions ? <div className="oma-plx-brand-page-head__actions">{actions}</div> : null}
     </header>
