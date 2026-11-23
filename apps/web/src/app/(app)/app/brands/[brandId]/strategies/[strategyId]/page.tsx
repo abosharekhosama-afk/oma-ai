@@ -194,7 +194,7 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         <StrategyPageAi
           brandId={brandId}
           strategyId={strategyId}
-          version={latest}
+          version={versionDetail}
           focus="overview"
           onApplied={() => void load()}
         />
