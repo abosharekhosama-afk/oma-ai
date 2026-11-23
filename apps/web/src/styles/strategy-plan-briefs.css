@@ -487,7 +487,7 @@
   .oma-form-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
-  .oma-form-actions {
+  .oma-form-actions--stack {
     position: sticky;
     inset-block-end: 0;
     z-index: 5;
@@ -497,8 +497,8 @@
     flex-wrap: wrap;
     gap: 8px;
   }
-  .oma-form-actions > button,
-  .oma-form-actions > a {
+  .oma-form-actions--stack > button,
+  .oma-form-actions--stack > a {
     flex: 1 1 100%;
   }
   .oma-brief-deliverable {
