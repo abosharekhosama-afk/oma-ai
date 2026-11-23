@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { PLAN_CATALOG, PLAN_CODES, type PlanCode } from '@oma/domain/browser';
 import { PlxLogo } from '../ui/plx-icons';
@@ -20,13 +19,6 @@ import {
   XGlyph,
 } from './platform-icons';
 import './landing.css';
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['500', '600', '700', '800'],
-  variable: '--font-oma-pl',
-  display: 'swap',
-});
 
 const VIEW_IDS = ['calendar', 'feed', 'grid', 'list'] as const;
 type ViewId = (typeof VIEW_IDS)[number];
@@ -233,7 +225,7 @@ export function LandingPage() {
 
   return (
     <div
-      className={`oma-pl-root ${jakarta.variable}`}
+      className="oma-pl-root"
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
       lang={locale}
       data-testid="landing-page"
