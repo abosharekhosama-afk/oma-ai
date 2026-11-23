@@ -1,0 +1,226 @@
+/*
+ * Per-surface mobile layout — clean density, adaptive actions (not full-width blocks).
+ * Loaded after mobile-compact-final; wins over inbox-listening + stage4 request rules.
+ */
+@media (max-width: 767px) {
+  /* Shared: inline action rows */
+  html body .oma-action-bar,
+  html body .oma-form-actions:not(.oma-form-actions--stack) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  html body .oma-action-bar > .ant-btn,
+  html body .oma-action-bar > button,
+  html body .oma-form-actions:not(.oma-form-actions--stack) > .ant-btn,
+  html body .oma-form-actions:not(.oma-form-actions--stack) > button,
+  html body .oma-form-actions:not(.oma-form-actions--stack) > a {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: 100%;
+  }
+
+  html body .oma-form-actions--stack {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-block: 6px;
+  }
+
+  html body .oma-form-actions--stack > button,
+  html body .oma-form-actions--stack > a,
+  html body .oma-form-actions--stack > .ant-btn {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: 100%;
+  }
+
+  /* ---- Request detail ---- */
+  html body .oma-plx-req-detail.oma-req-detail {
+    padding: 0 8px 14px !important;
+    background: transparent !important;
+  }
+
+  html body .oma-plx-req-detail .oma-plx-workspace-surface {
+    gap: 8px;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__top.oma-plx-listening-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    padding: 8px 10px !important;
+    margin-bottom: 0 !important;
+    min-height: auto !important;
+    border-radius: 10px;
+    border-bottom: none !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__top-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    width: 100%;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__back {
+    font-size: 12px !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-plx-req-detail__top-actions,
+  html body .oma-plx-req-detail .oma-req-detail__top-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: auto !important;
+    max-width: 100%;
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+
+  html body .oma-plx-req-detail .oma-plx-req-detail__top-actions .ant-btn,
+  html body .oma-plx-req-detail .oma-plx-req-detail__top-actions button,
+  html body .oma-plx-req-detail .oma-req-detail__top-actions .ant-btn,
+  html body .oma-plx-req-detail .oma-req-detail__top-actions button {
+    width: auto !important;
+    flex: 0 1 auto !important;
+    max-width: 100%;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__workspace {
+    padding: 0 0 12px !important;
+    gap: 8px !important;
+    max-width: none !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__main {
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title-block.oma-plx-listening-panel {
+    padding: 10px 12px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title {
+    margin: 0 0 6px !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title .ant-input,
+  html body .oma-plx-req-detail .oma-req-detail__title input {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    min-height: 32px !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__desc {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-plx-req-card.oma-plx-listening-panel,
+  html body .oma-plx-req-detail .oma-req-detail__card {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    margin-bottom: 0 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card-head,
+  html body .oma-plx-req-detail .oma-req-detail__card-head.oma-plx-listening-panel__head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card-head-text {
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card-head .ant-btn {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    margin-inline-start: auto;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__meta {
+    font-size: 11px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__fields {
+    gap: 8px 10px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__fields label {
+    gap: 4px !important;
+    font-size: 11px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-callout {
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-block: 6px;
+  }
+
+  html body .oma-plx-req-detail .oma-brief-field__label {
+    font-size: 11px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-brief-layout {
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__side-card.oma-plx-listening-panel {
+    padding: 10px 12px !important;
+    position: static !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__side-row {
+    gap: 8px !important;
+    padding-block: 6px !important;
+    font-size: 12px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__side-card h3 {
+    font-size: 13px !important;
+    margin: 0 0 8px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__links {
+    gap: 6px !important;
+    margin-top: 8px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__link {
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-comment,
+  html body .oma-plx-req-detail .oma-plan-post__comment-box {
+    padding: 8px !important;
+    border-radius: 8px;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__pad {
+    padding: 10px 12px !important;
+  }
+
+  /* Requests list shell */
+  html body .oma-plx-listening.oma-plx-requests {
+    padding: 4px 8px 12px !important;
+  }
+}

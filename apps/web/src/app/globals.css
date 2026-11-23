@@ -31,6 +31,7 @@
 @import '../styles/inbox-listening.css';
 @import '../styles/brand-intel.css';
 @import '../styles/mobile-compact-final.css';
+@import '../styles/mobile-surfaces-clean.css';
 
 * {
   box-sizing: border-box;
