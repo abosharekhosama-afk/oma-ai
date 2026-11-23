@@ -71,6 +71,19 @@ pnpm exec vitest run tests/unit/css-cleanup.test.ts
 pnpm format
 ```
 
+## Phase 2 (comprehensive pass)
+
+| Action                                                                                           | Impact                        |
+| ------------------------------------------------------------------------------------------------ | ----------------------------- |
+| Removed **534-line** duplicate `stage4` preamble (second copy at L3061)                          | −534 lines                    |
+| Deleted unused `.oma-stage4-toolbar`, `.oma-req-groups`, `.oma-brief-toc`                        | −52 lines, zero TSX refs      |
+| Removed `globals.css` **Final requests mobile cascade** (forced header title + subtitle)         | −61 lines `!important` fights |
+| **stage4 @media 767px:** dropped 980px table trap → **card list** on phone                       | UX + cascade                  |
+| **globals + mobile-precise-nov03:** deliverables/requests use **mobile lists**, not 920px tables | UX + cascade                  |
+| Tooling: `pnpm css:audit:dead`, `css:audit:imposing` → `docs/CSS_*_REPORT*`                      | ongoing                       |
+
+**Total stage4 shrink (phase 1+2):** 8153 → **~5480** lines (−32%).
+
 ## 6. Follow-ups (not in this PR)
 
 - Tokenize kanban lane accent colors

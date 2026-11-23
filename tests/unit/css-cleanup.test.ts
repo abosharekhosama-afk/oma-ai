@@ -28,7 +28,7 @@ describe('css cleanup (stage2/4/5)', () => {
   it('removed byte-identical duplicate block from stage4.css', () => {
     const css = read('apps/web/src/styles/stage4.css');
     const lineCount = css.split('\n').length;
-    expect(lineCount).toBeLessThan(7000);
+    expect(lineCount).toBeLessThan(5600);
     const dupSections = md5Sections(css);
     expect(dupSections.length).toBe(0);
   });
@@ -37,6 +37,12 @@ describe('css cleanup (stage2/4/5)', () => {
     const tokens = read('packages/ui/src/tokens.css');
     expect(tokens).toContain('--oma-workspace-bg:');
     expect(tokens).toContain('--oma-kb-board-bg:');
+  });
+
+  it('stage4 does not force requests desktop table on phone', () => {
+    const css = read('apps/web/src/styles/stage4.css');
+    expect(css).not.toContain('min-width: 980px !important');
+    expect(css).not.toMatch(/oma-req-page \.oma-req-mobile[\s\S]{0,60}display:\s*none !important/);
   });
 
   it('stage4 requests tab uses tokens after cleanup', () => {

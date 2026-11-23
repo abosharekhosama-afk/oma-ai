@@ -18,6 +18,8 @@
     "format": "prettier --check .",
     "ux:search": "python3 .agents/skills/ui-ux-pro-max/scripts/search.py",
     "css:audit:scan": "node scripts/css-audit/scan-selectors.mjs",
+    "css:audit:dead": "node scripts/css-audit/find-dead-classes.mjs --write-report",
+    "css:audit:imposing": "node scripts/css-audit/find-imposing-rules.mjs",
     "format:fix": "prettier --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",

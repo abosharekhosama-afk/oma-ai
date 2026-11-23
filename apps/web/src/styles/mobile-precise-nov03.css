@@ -102,51 +102,22 @@
     white-space: nowrap !important;
   }
 
-  /* ---- 3. Same desktop table on phone (horizontal scroll) ---- */
+  /* ---- 3. Ops lists: mobile card layouts (stage4 @media ≤900px); no 920px table trap ---- */
   html body .oma-deliv-page .oma-deliv-desktop,
   html body .oma-deliv-desktop {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    display: none !important;
   }
   html body .oma-deliv-page .oma-deliv-mobile,
   html body .oma-deliv-mobile {
-    display: none !important;
-  }
-  html body .oma-deliv-page .oma-deliv-table-wrap,
-  html body .oma-deliv-table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-  html body .oma-deliv-page .oma-deliv-table,
-  html body .oma-deliv-table {
-    width: max-content !important;
-    min-width: 920px !important;
+    display: grid !important;
   }
 
-  /* Requests: keep table (reinforce existing) */
   html body .oma-req-page .oma-req-desktop {
-    display: block !important;
+    display: none !important;
   }
   html body .oma-req-page .oma-req-mobile {
-    display: none !important;
-  }
-  html body .oma-req-page .oma-req-table-wrap {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  /* Tasks list table scroll */
-  html body .oma-task-table,
-  html body [data-testid='demo-task-table'] .oma-req-table {
-    min-width: 720px !important;
-  }
-  html body [data-testid='demo-task-table'] {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   /* Schedule table */
