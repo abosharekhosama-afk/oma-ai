@@ -14,7 +14,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
-import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
+import { StrategyAiAssistantLink } from '../../../../../../../../components/strategy/strategy-ai-assistant-link';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
@@ -95,13 +95,7 @@ export default function StrategyOrganicPage() {
     <StrategyWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <div className="oma-strategy-page-stack">
-        <StrategyPageAi
-          brandId={brandId}
-          strategyId={strategyId}
-          version={version}
-          focus="organic"
-          onApplied={() => void load()}
-        />
+        <StrategyAiAssistantLink brandId={brandId} strategyId={strategyId} />
         <form className="oma-sectioned-form" onSubmit={onSave} data-testid="strategy-organic-form">
           <section className="oma-form-section">
             {/* DEC-029 4.1: pillars, channels, formats and cadence moved to the v2 plan below. */}

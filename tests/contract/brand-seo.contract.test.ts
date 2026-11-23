@@ -12,7 +12,9 @@ describe('brand SEO contract', () => {
     app = seed.app;
   });
 
-  afterAll(async () => app.close());
+  afterAll(async () => {
+    if (app) await app.close();
+  });
 
   it('returns stable JSON shapes for health, research, and analytics', async () => {
     const { body: brand } = await createBrand(seed);

@@ -14,7 +14,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
-import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
+import { StrategyAiAssistantLink } from '../../../../../../../../components/strategy/strategy-ai-assistant-link';
 import {
   BrandPlxPageHead,
   BrandPlxSection,
@@ -139,13 +139,7 @@ export default function StrategyReviewPage() {
           title={t('strategy.review.title')}
           actions={<StrategyVersionStatusChip status={version.status} />}
         />
-        <StrategyPageAi
-          brandId={brandId}
-          strategyId={strategyId}
-          version={version}
-          focus="review"
-          onApplied={() => void load()}
-        />
+        <StrategyAiAssistantLink brandId={brandId} strategyId={strategyId} />
         <StrategyLinkProfilePanel
           brandId={brandId}
           strategyId={strategyId}
