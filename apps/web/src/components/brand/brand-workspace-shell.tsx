@@ -87,9 +87,7 @@ export function BrandWorkspaceShell({
       ? withJourneyState(buildBrandStrategySubnav(brandId, t), journey)
       : null;
   const evidenceSubnavForMode =
-    navMode === 'evidence-only'
-      ? withJourneyState(buildBrandEvidenceSubnav(brandId, latestScanId, t), journey)
-      : null;
+    navMode === 'evidence-only' ? buildBrandEvidenceSubnav(brandId, latestScanId, t) : null;
   return (
     <div
       className={`oma-plx-listening oma-plx-brand oma-brand-shell${unifiedPanelChrome ? ' oma-plx-brand--unified-panel' : ''}`}

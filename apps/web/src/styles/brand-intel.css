@@ -61,10 +61,31 @@
 }
 
 /* Journey progress folded into sub-nav tabs */
-.oma-brand-nav-link--secondary {
+.oma-brand-nav-link--secondary,
+.oma-brand-nav-link--tab {
   display: inline-flex !important;
   align-items: center;
   gap: 6px;
+}
+
+.oma-brand-section-nav--logical {
+  direction: inherit;
+  justify-content: flex-start;
+}
+
+.oma-brand-section-nav--logical .oma-brand-nav-back--tab {
+  margin-inline-end: 4px;
+  border-inline-end: 1px solid #eceef1;
+  padding-inline-end: 10px;
+}
+
+.oma-brand-nav-link.is-journey-current {
+  font-weight: 600;
+  color: #111827 !important;
+}
+
+.oma-brand-section-nav .oma-brand-nav-state {
+  display: none;
 }
 
 .oma-brand-nav-state {
@@ -1188,7 +1209,15 @@ video.oma-media-carousel__media {
 .oma-discovery-hub {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
+}
+
+.oma-discovery-hub .oma-plx-brand-stat-grid {
+  margin-bottom: 4px;
+}
+
+.oma-discovery-preview-grid {
+  gap: 16px;
 }
 
 .oma-plx-brand-inline-link {
@@ -1357,7 +1386,9 @@ video.oma-media-carousel__media {
 .oma-discovery-page-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px 18px;
+  min-width: 0;
 }
 
 .oma-discovery-page-card__head {
@@ -1368,7 +1399,8 @@ video.oma-media-carousel__media {
 
 .oma-discovery-page-card__title {
   margin: 0;
-  font-size: var(--oma-text-md, 1rem);
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -1396,13 +1428,46 @@ video.oma-media-carousel__media {
 .oma-discovery-page-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  margin-top: 4px;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .oma-discovery-pages-grid {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+
+.oma-seo-page--rich {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oma-seo-page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+@media (min-width: 900px) {
+  .oma-seo-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.oma-seo-findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .oma-plx-brand-status-rail--compact {

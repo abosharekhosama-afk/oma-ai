@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@oma/ui/controls';
 import Link from 'next/link';
 import type { DiscoveredPage } from '../../lib/brand-types';
 import { StatusChip, statusLabel } from '../ui/status-chip';
@@ -91,14 +92,14 @@ export function DiscoveryPageCard({
 
       <div className="oma-discovery-page-card__actions">
         {evidenceId && onViewEvidence ? (
-          <button
-            type="button"
-            className="oma-text-link"
+          <Button
+            type="default"
+            size="small"
             data-testid={`view-evidence-${page.id}`}
             onClick={onViewEvidence}
           >
             {t('brand.evidence.view')}
-          </button>
+          </Button>
         ) : (
           <span className="oma-muted">{t('brand.evidence.none')}</span>
         )}

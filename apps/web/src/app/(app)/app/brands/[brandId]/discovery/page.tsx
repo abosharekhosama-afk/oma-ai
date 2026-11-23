@@ -21,7 +21,6 @@ import {
   BrandPlxStatGrid,
 } from '../../../../../../components/brand/brand-plx-section';
 import { DiscoveryTabs } from '../../../../../../components/brand/discovery-tabs';
-import { ConnectorModeChip } from '../../../../../../components/brand/connector-mode-banner';
 import { MediaPlaceholder } from '../../../../../../components/brand/product-media-carousel';
 import { OmaLinkButton } from '../../../../../../components/ui/oma-link-button';
 import { StatusChip, statusLabel } from '../../../../../../components/ui/status-chip';
@@ -116,7 +115,6 @@ export default function DiscoveryHubPage() {
         <BrandPlxPageHead
           title={t('brand.discovery.hubTitle')}
           description={t('brand.discovery.hubBody')}
-          actions={scan ? <ConnectorModeChip mode={scan.connector_mode} /> : null}
         />
 
         {!brand.latest_scan ? (

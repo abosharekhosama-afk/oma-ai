@@ -206,7 +206,13 @@ export default function BrandDetailPage() {
                   {scan ? (
                     <>
                       <Link href={`/app/brands/${brandId}/scans/${scan.id}`}>{scan.status}</Link>{' '}
-                      <ConnectorModeChip mode={scan.connector_mode} />
+                      <ConnectorModeChip
+                        mode={scan.connector_mode}
+                        scanHint={{
+                          pages_fetched: scanDetail?.pages_fetched,
+                          status: scan.status,
+                        }}
+                      />
                     </>
                   ) : (
                     t('brand.detail.noScan')

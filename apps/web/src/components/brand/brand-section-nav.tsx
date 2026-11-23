@@ -25,7 +25,7 @@ export function BrandSectionNav({
   const label = backLabel ?? t('brand.nav.back');
   return (
     <nav
-      className="oma-ws-tabs oma-brand-section-nav"
+      className="oma-ws-tabs oma-brand-section-nav oma-brand-section-nav--logical"
       data-testid={testId}
       aria-label={ariaLabel}
       role="tablist"

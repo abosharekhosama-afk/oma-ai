@@ -250,6 +250,12 @@ export function buildBrandEvidenceSubnav(
       match: (p) => p.includes('/scans'),
     },
     {
+      id: 'evidence-hub',
+      href: `${base}/evidence`,
+      label: t('brand.nav.evidenceHub'),
+      match: (p) => p.endsWith('/evidence'),
+    },
+    {
       id: 'discovery',
       href: `${base}/discovery`,
       label: t('brand.nav.discovery'),
@@ -260,12 +266,6 @@ export function buildBrandEvidenceSubnav(
       href: `${base}/seo`,
       label: t('brand.nav.seo'),
       match: (p) => p.includes('/seo'),
-    },
-    {
-      id: 'evidence-hub',
-      href: `${base}/evidence`,
-      label: t('brand.nav.evidenceHub'),
-      match: (p) => p.endsWith('/evidence'),
     },
   ];
 }

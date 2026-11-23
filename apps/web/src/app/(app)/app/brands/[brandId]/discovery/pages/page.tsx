@@ -14,10 +14,6 @@ import type {
   Paginated,
   ScanDetail,
 } from '../../../../../../../lib/brand-types';
-import {
-  ConnectorModeChip,
-  type ConnectorMode,
-} from '../../../../../../../components/brand/connector-mode-banner';
 import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { BrandPlxPageHead } from '../../../../../../../components/brand/brand-plx-section';
@@ -51,7 +47,6 @@ export default function DiscoveryPagesPage() {
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [pages, setPages] = useState<DiscoveredPage[]>([]);
   const [scanId, setScanId] = useState<string | null>(null);
-  const [connectorMode, setConnectorMode] = useState<ConnectorMode | null>(null);
   const [summary, setSummary] = useState<ScanDetail['discovery_summary'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +84,6 @@ export default function DiscoveryPagesPage() {
             `/api/v1/brands/${brandId}/scans/${latest}/evidence?limit=100`,
           ),
         ]);
-        setConnectorMode(scanRes.data.connector_mode);
         setSummary(scanRes.data.discovery_summary ?? null);
         setPages(pagesRes.data);
         const map: Record<string, string> = {};
@@ -153,7 +147,6 @@ export default function DiscoveryPagesPage() {
       <BrandPlxPageHead
         title={t('brand.discovery.pagesTitle')}
         description={t('brand.evidence.discoveryHint')}
-        actions={scanId ? <ConnectorModeChip mode={connectorMode} /> : null}
       />
 
       {!scanId ? (
@@ -268,6 +261,7 @@ export default function DiscoveryPagesPage() {
         brandId={brandId}
         evidenceId={evidenceId}
         evidenceIds={Object.values(evidenceByPage)}
+        presentation="modal"
         onClose={() => setEvidenceId(null)}
         onNavigate={(id) => setEvidenceId(id)}
       />
