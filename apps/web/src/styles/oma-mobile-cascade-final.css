@@ -2953,3 +2953,274 @@ html body .oma-choice-select__menu--floating .oma-choice-select__option {
   font-size: 10px !important;
   padding: 6px 8px !important;
 }
+
+/* ── Team + Activity: compact type and spacing (requests table grammar: 9px) ── */
+html body .oma-plx-listening.oma-plx-team,
+html body .oma-plx-listening.oma-plx-activity {
+  max-width: none !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-workspace-surface,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-workspace-surface {
+  padding: 0 4px 8px !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-listening__intro,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__intro {
+  margin: 2px 0 6px !important;
+  padding: 0 2px !important;
+  gap: 6px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-listening__title,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__title {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv__subtitle,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv__subtitle,
+html body .oma-plx-listening.oma-plx-team .oma-plx-listening__next-check,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__next-check {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-panel.oma-plx-listening-panel,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-panel.oma-plx-listening-panel {
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-panel__head,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-panel__head {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups.oma-plx-team-tabs,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups.oma-plx-activity-tabs {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--oma-workspace-border-strong, #e5e7eb) !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  text-align: center !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  padding: 5px 6px !important;
+  margin-bottom: -1px !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn.is-active,
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn[data-active='true'],
+html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn.is-active,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn[data-active='true'] {
+  color: var(--oma-workspace-ink, #111827) !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary, #1677ff)) !important;
+  box-shadow: none !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-panel__body,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-panel__body,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-panel__body {
+  padding: 6px 4px 8px !important;
+  margin: 0 !important;
+}
+
+/* Team member cards */
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-grid {
+  gap: 8px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card {
+  gap: 6px !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__head {
+  gap: 8px !important;
+  grid-template-columns: 32px minmax(0, 1fr) auto !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__avatar {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  font-size: 10px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__name-row strong {
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__you,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__email,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__membership,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__status,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__online,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__perm-btn,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__remove {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field select,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field .oma-choice-select__trigger {
+  min-height: 28px !important;
+  font-size: 9px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__foot {
+  gap: 6px !important;
+  padding-top: 4px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-empty,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-empty {
+  padding: 12px 8px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-empty h3,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-empty h3,
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-empty p,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-empty p {
+  font-size: 9px !important;
+  line-height: 1.3 !important;
+  margin: 0 0 4px !important;
+}
+
+/* Team permissions matrix */
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table,
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table th,
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table td,
+html body .oma-plx-listening.oma-plx-team .oma-ws-user-name,
+html body .oma-plx-listening.oma-plx-team .oma-ws-user-cell .oma-muted {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  padding: 4px 5px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-ws-avatar--sm {
+  width: 22px !important;
+  height: 22px !important;
+  font-size: 9px !important;
+}
+
+/* Team notifications tab */
+html body .oma-plx-listening.oma-plx-team .oma-plx-team-notif,
+html body .oma-plx-listening.oma-plx-team .oma-notif-settings__copy strong,
+html body .oma-plx-listening.oma-plx-team .oma-notif-settings__copy span,
+html body .oma-plx-listening.oma-plx-team .oma-notif-settings__heading,
+html body .oma-plx-listening.oma-plx-team .oma-ws-subhead,
+html body .oma-plx-listening.oma-plx-team .oma-ws-empty-desc {
+  font-size: 9px !important;
+  line-height: 1.3 !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-notif-settings__section {
+  padding: 8px 10px !important;
+  gap: 6px !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-notif-settings__row {
+  min-height: 0 !important;
+  padding: 6px 0 !important;
+}
+
+/* Activity feed */
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-feed {
+  gap: 6px !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-listening-card.oma-plx-activity-card {
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  gap: 4px !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__thumb,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__avatar {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 7px !important;
+  font-size: 9px !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__time,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__verb,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__line,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__target,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__muted,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__quote,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__pill {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__body {
+  margin-top: 4px !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__quote {
+  margin-top: 4px !important;
+  padding: 4px 6px !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__pill {
+  padding: 2px 6px !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-load-more {
+  margin-top: 8px !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-load-more .ant-btn {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+}
