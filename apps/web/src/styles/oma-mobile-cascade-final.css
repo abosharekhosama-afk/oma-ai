@@ -581,9 +581,9 @@ html body .oma-plx-content-header-btn--primary {
     touch-action: pan-x pan-y !important;
     scrollbar-width: thin !important;
     margin-inline: 0 !important;
-    padding-inline: 0 4px 6px !important;
+    padding-inline: 0 4px !important;
+    padding-bottom: 6px !important;
     box-sizing: border-box !important;
-    contain: inline-size !important;
   }
 
   /* Beat planable-org repeat(7, minmax(0, 1fr)) — fixed day width + scroll */
