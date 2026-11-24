@@ -633,6 +633,19 @@
   --oma-font-sans:
     var(--font-oma-pl), 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, sans-serif;
   --font-sans: var(--oma-font-sans);
+
+  /* Responsive density — laptop defaults (mobile overrides below) */
+  --oma-deliv-grid-min: 200px;
+  --oma-deliv-grid-gap: 12px;
+  --oma-deliv-card-radius: 12px;
+  --oma-deliv-card-body-pad: 12px;
+  --oma-deliv-thumb: 40px;
+  --oma-check-size: 16px;
+  --oma-radio-size: 18px;
+  --oma-switch-w: 44px;
+  --oma-switch-h: 24px;
+  --oma-switch-knob: 20px;
+  --oma-icon-action-size: 32px;
 }
 
 /* Mobile: one step down from desktop (same family, proportional type scale) */
@@ -654,5 +667,16 @@
     --leading-display: 24px;
     --oma-control-height: 30px;
     --oma-control-height-compact: 28px;
+    --oma-deliv-grid-min: 104px;
+    --oma-deliv-grid-gap: 6px;
+    --oma-deliv-card-radius: 8px;
+    --oma-deliv-card-body-pad: 6px;
+    --oma-deliv-thumb: 28px;
+    --oma-check-size: 14px;
+    --oma-radio-size: 14px;
+    --oma-switch-w: 36px;
+    --oma-switch-h: 20px;
+    --oma-switch-knob: 16px;
+    --oma-icon-action-size: 30px;
   }
 }

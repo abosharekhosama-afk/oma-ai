@@ -11,6 +11,7 @@ import '../styles/oma-fonts.css';
 import '../styles/ui-polish.css';
 import '../styles/oma-mobile-cascade-final.css';
 import '../styles/oma-typography-unified.css';
+import '../styles/oma-responsive-density.css';
 
 const siteUrl = resolvePublicSiteUrl();
 

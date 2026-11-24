@@ -3228,10 +3228,8 @@ html body .oma-plx-deliverables {
   max-width: none !important;
   width: 100% !important;
   margin: 0 !important;
-  padding: 0 4px 8px !important;
   background: var(--oma-surface, #fff) !important;
   min-height: 0 !important;
-  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
 }
 
 html body .oma-plx-deliverables .oma-plx-workspace-surface {
@@ -3329,29 +3327,6 @@ html body .oma-plx-deliverables .oma-plx-deliv-panel__body {
   margin: 0 !important;
 }
 
-/* Grid: dense small cards */
-html body .oma-plx-deliverables .oma-plx-deliv-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)) !important;
-  gap: 6px !important;
-}
-
-html body .oma-plx-deliverables .oma-plx-deliv-card {
-  border-radius: 8px !important;
-}
-
-html body .oma-plx-deliverables .oma-plx-deliv-card__media {
-  aspect-ratio: 1 / 1 !important;
-  max-height: 88px !important;
-}
-
-html body .oma-plx-deliverables .oma-plx-deliv-card__body {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 3px !important;
-  padding: 5px 6px 6px !important;
-}
-
 html body .oma-plx-deliverables .oma-plx-deliv-card__title {
   font-weight: 600 !important;
   -webkit-line-clamp: 2 !important;
@@ -3403,18 +3378,6 @@ html body .oma-plx-deliverables .oma-plx-deliv-table__sub {
   vertical-align: middle !important;
 }
 
-html body .oma-plx-deliverables .oma-plx-deliv-thumb {
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
-  border-radius: 6px !important;
-}
-
-html body .oma-plx-deliverables .oma-plx-deliv-thumb--empty {
-  width: 28px !important;
-  height: 28px !important;
-}
-
 html body .oma-plx-deliverables .oma-plx-deliv-table th {
   font-weight: 600 !important;
   white-space: nowrap !important;
@@ -3426,6 +3389,40 @@ html body .oma-plx-deliverables .oma-plx-deliv-table th:first-child {
 }
 
 @media (max-width: 767px) {
+  html body .oma-plx-deliverables {
+    padding: 0 4px 8px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--oma-deliv-grid-min, 104px), 1fr)) !important;
+    gap: var(--oma-deliv-grid-gap, 6px) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card {
+    border-radius: var(--oma-deliv-card-radius, 8px) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card__media {
+    aspect-ratio: 1 / 1 !important;
+    max-height: 88px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card__body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 5px 6px 6px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-thumb,
+  html body .oma-plx-deliverables .oma-plx-deliv-thumb--empty {
+    width: var(--oma-deliv-thumb, 28px) !important;
+    height: var(--oma-deliv-thumb, 28px) !important;
+    min-width: var(--oma-deliv-thumb, 28px) !important;
+    border-radius: 6px !important;
+  }
+
   html body .oma-plx-deliverables .oma-plx-listening__title {
     font-size: 12px !important;
     line-height: 1.25 !important;
