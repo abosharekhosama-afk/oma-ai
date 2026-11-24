@@ -213,21 +213,7 @@
 
   /* Workspace header icons: oma-icon-action + oma-mobile-cascade-final.css */
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-request-approvals,
-  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-pv-icon-btn,
-  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-ext-indicator {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    padding: 0 8px !important;
-    border: 1px solid #dbe2ea !important;
-    border-radius: 8px !important;
-    background: #fff !important;
-    color: #374151 !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-  }
+  /* Calendar toolbar icons: oma-mobile-cascade-final.css */
 
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end svg {
     display: block !important;

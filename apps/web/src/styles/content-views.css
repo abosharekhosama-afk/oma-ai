@@ -332,15 +332,17 @@
 .oma-pv-icon-btn {
   display: inline-grid;
   place-items: center;
-  inline-size: 30px;
-  block-size: 30px;
-  border: 1px solid var(--pv-border);
-  border-radius: 6px;
-  background: var(--oma-surface);
+  inline-size: var(--oma-icon-action-size, 32px);
+  block-size: var(--oma-icon-action-size, 32px);
+  border: 0;
+  border-radius: var(--oma-icon-action-radius, 8px);
+  background: transparent;
+  color: var(--oma-workspace-muted, #6b7280);
   cursor: pointer;
+  padding: 0;
   transition:
     color 150ms,
-    border-color 150ms;
+    background-color 150ms;
 }
 
 /* display settings */

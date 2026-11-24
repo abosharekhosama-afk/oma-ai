@@ -261,18 +261,7 @@
     gap: 4px !important;
   }
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-nav__btn {
-    width: 30px !important;
-    min-width: 30px !important;
-    height: 30px !important;
-    padding: 0 !important;
-    border: 1px solid var(--oma-home-border) !important;
-    border-radius: 7px !important;
-    background: var(--oma-surface) !important;
-    display: inline-grid !important;
-    place-items: center !important;
-    font-size: 16px !important;
-  }
+  /* Cal nav icons: oma-mobile-cascade-final.css */
 
   html body [data-testid='demo-content-calendar'] .oma-cal-month-label {
     font-size: 13px !important;
@@ -290,24 +279,7 @@
     background: var(--oma-surface) !important;
   }
 
-  /* Toolbar end buttons: Request approvals, Display settings, Holiday calendars, Saved/Drafts toggle */
-  html body .oma-cal-request-approvals,
-  html body [data-testid='demo-content-calendar'] .oma-pv-ds > button,
-  html body .oma-cal-ext-indicator,
-  html body .oma-cal-saved-toggle {
-    width: auto !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    padding: 0 8px !important;
-    border-radius: 7px !important;
-    border: 1px solid var(--oma-home-border) !important;
-    background: var(--oma-surface) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
-    cursor: pointer !important;
-  }
+  /* Calendar toolbar icon controls: oma-mobile-cascade-final.css */
 
   html body .oma-cal-saved-toggle__label,
   html body .oma-cal-request-approvals__label,

@@ -433,14 +433,11 @@ html body [data-testid='demo-content-agenda'] {
 }
 
 @media (max-width: 767px) {
+  /* Phone calendar scroll + column width: oma-mobile-cascade-final.css */
   html body [data-testid='demo-content-calendar'] .oma-cal-grid,
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
   html body .oma-cal-grid {
     display: grid !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    overflow-x: hidden !important;
   }
   html body .oma-cal-grid[data-span='month'] {
     grid-auto-rows: minmax(68px, 1fr) !important;

@@ -190,4 +190,149 @@ html body .oma-plx-content-header-btn--primary {
     position: static !important;
     box-shadow: none !important;
   }
+
+  /* ── Content: calendar toolbar + card action icons (no button chrome) ──── */
+  html body .oma-cal-toolbar .oma-pv-icon-btn,
+  html body .oma-cal-toolbar .oma-cal-nav__btn,
+  html body .oma-cal-toolbar .oma-cal-nav__btn.ant-btn,
+  html body .oma-cal-toolbar .oma-pv-ds > button,
+  html body .oma-card-actions-btn,
+  html body .oma-card-actions-btn--cal,
+  html body .oma-card-actions-btn--list,
+  html body .oma-card-actions-btn--grid,
+  html body .oma-card-actions-btn--saved,
+  html body .oma-fp__icon-btn,
+  html body .oma-compose-view {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--oma-workspace-muted, #6b7280) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    min-height: var(--oma-icon-action-size, 32px) !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    padding: 0 !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-request-approvals,
+  html body .oma-cal-toolbar .oma-cal-ext-indicator,
+  html body .oma-cal-toolbar .oma-cal-saved-toggle {
+    width: auto !important;
+    max-width: none !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    padding: 0 6px !important;
+    gap: 4px !important;
+    font-size: 11px !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-request-approvals[data-active='true'],
+  html body .oma-cal-toolbar .oma-cal-saved-toggle[data-active='true'],
+  html body .oma-card-actions-btn[data-open='true'],
+  html body .oma-cal-toolbar .oma-cal-request-approvals:hover,
+  html body .oma-card-actions-btn:hover {
+    color: var(--oma-primary, #1677ff) !important;
+    background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  }
+
+  html body .oma-cal-toolbar {
+    gap: 6px !important;
+    padding: 6px 0 8px !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+  }
+
+  html body .oma-cal-toolbar__start,
+  html body .oma-cal-toolbar__end {
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+  }
+
+  /* Calendar: horizontal scroll — wider day columns, not squeezed into viewport */
+  html body [data-testid='demo-content-calendar'] .oma-cal-main {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    margin-inline: -4px !important;
+    padding-inline: 4px 8px !important;
+  }
+
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid {
+    width: max-content !important;
+    min-width: 100% !important;
+    max-width: none !important;
+    overflow: visible !important;
+    grid-template-columns: repeat(7, minmax(96px, 1fr)) !important;
+  }
+
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid[data-hide-weekends='true'],
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] {
+    grid-template-columns: repeat(5, minmax(96px, 1fr)) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-dow-row {
+    grid-template-columns: repeat(7, minmax(96px, 1fr)) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] .oma-cal-dow-row {
+    grid-template-columns: repeat(5, minmax(96px, 1fr)) !important;
+  }
+
+  html body .oma-cal-cell {
+    min-width: 96px !important;
+  }
+
+  /* Feed: keep cards inside viewport */
+  html body .oma-plx-content-feed,
+  html body .oma-content-feed.oma-plx-content-feed {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 8px 8px 20px !important;
+    box-sizing: border-box !important;
+    overflow-x: clip !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-pv-feed-stories {
+    padding-inline: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-content-feed .oma-pp,
+  html body .oma-plx-content-feed .oma-fp,
+  html body .oma-feed-card,
+  html body .oma-feed-card__column {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-content.oma-content-plan {
+    min-width: 0 !important;
+    overflow-x: clip !important;
+  }
+
+  /* Compose: scrollable overlay (not a fixed centered trap) */
+  html body .oma-compose-overlay {
+    align-items: flex-start !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: max(12px, env(safe-area-inset-top, 12px)) 8px calc(env(safe-area-inset-bottom, 0px) + 24px) !important;
+  }
+
+  html body .oma-plx-compose-card.oma-compose-card,
+  html body .oma-compose-card {
+    width: min(100%, calc(100vw - 16px)) !important;
+    max-height: none !important;
+    margin: 0 auto 16px !important;
+    overflow: visible !important;
+  }
 }

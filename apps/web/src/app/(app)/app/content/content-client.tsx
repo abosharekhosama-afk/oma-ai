@@ -4274,24 +4274,24 @@ export default function ContentPage() {
                       </Button>
                     </div>
                     <div className="oma-cal-nav">
-                      <Button
-                        type="text"
+                      <OmaIconAction
+                        type="button"
                         className="oma-cal-nav__btn"
                         aria-label={t('demo.content.prev')}
                         data-testid="demo-content-cal-prev"
                         onClick={() => stepCal(-1)}
                       >
                         ‹
-                      </Button>
-                      <Button
-                        type="text"
+                      </OmaIconAction>
+                      <OmaIconAction
+                        type="button"
                         className="oma-cal-nav__btn"
                         aria-label={t('demo.content.next')}
                         data-testid="demo-content-cal-next"
                         onClick={() => stepCal(1)}
                       >
                         ›
-                      </Button>
+                      </OmaIconAction>
                       <strong className="oma-cal-month-label">
                         {monthLabel(cursor.year, cursor.monthIndex, locale)}
                       </strong>
