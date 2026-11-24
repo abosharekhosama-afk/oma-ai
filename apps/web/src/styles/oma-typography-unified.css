@@ -7,6 +7,15 @@ html body {
   font-family: var(--font-sans) !important;
   font-size: var(--text-body) !important;
   line-height: var(--leading-body) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html[lang='ar'] body,
+html[lang='ar'] body .oma-shell,
+html[dir='rtl'] body .oma-shell {
+  font-family: var(--font-arabic), var(--font-sans) !important;
 }
 
 html body .oma-shell,

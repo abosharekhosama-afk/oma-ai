@@ -3640,7 +3640,8 @@ html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card {
   background: var(--oma-surface, #fff) !important;
 }
 
-/* Workspace + account settings: floating card (not full-screen), compact type */
+/* Workspace + account settings: floating card — compact on phone only */
+@media (max-width: 767px) {
 html body .oma-ws-overlay {
   padding: 16px !important;
   align-items: center !important;
@@ -3758,6 +3759,8 @@ html body .oma-ws-overlay .oma-ws-panel-close {
     max-height: min(88vh, 620px) !important;
     grid-template-columns: minmax(0, 100px) minmax(0, 1fr) !important;
   }
+}
+
 }
 
 /* Brand intelligence hub — phone density only (laptop: oma-brand-responsive.css) */

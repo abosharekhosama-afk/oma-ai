@@ -1,0 +1,100 @@
+/*
+ * Loading shimmers aligned with mobile brand/deliverables/strategy density.
+ * Loaded after shimmer.css / states.css (via layout).
+ */
+
+@media (max-width: 767px) {
+  html body .oma-shim-brands .plx-page__bar {
+    padding: 8px 10px 6px !important;
+  }
+
+  html body .oma-shim-brands .plx-page__body {
+    padding: 8px 10px 12px !important;
+  }
+
+  html body .oma-shim-brands .plx-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-shim-brand-card {
+    min-block-size: 0 !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--oma-border) !important;
+    background: var(--oma-surface) !important;
+  }
+
+  html body .oma-shim-deliverables .oma-shim-body {
+    padding: 8px 10px 12px !important;
+    gap: 8px !important;
+    background: var(--oma-canvas) !important;
+  }
+
+  html body .oma-shim-deliverables .oma-shim-toolbar {
+    padding: 4px 10px !important;
+  }
+
+  html body .oma-shim-dgrid {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)) !important;
+    gap: 6px !important;
+    padding: 4px !important;
+    background: var(--oma-canvas) !important;
+  }
+
+  html body .oma-shim-dgrid__card {
+    border-radius: 8px !important;
+  }
+
+  html body .oma-shim-dgrid__media {
+    aspect-ratio: 1 / 1 !important;
+    max-block-size: 88px !important;
+  }
+
+  html body .oma-shim-dgrid__copy {
+    padding: 6px 8px 8px !important;
+    gap: 4px !important;
+  }
+
+  html body .oma-shim-table {
+    border-radius: 8px !important;
+    background: var(--oma-canvas) !important;
+  }
+
+  html body .oma-shim-table__row {
+    min-block-size: 48px !important;
+    padding: 8px 10px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-shim-table__row--head {
+    min-block-size: 36px !important;
+  }
+
+  /* Brand hub + strategy DetailShimmer (oma-shimmer.tsx) */
+  html body .oma-plx-brand .oma-shimmer--detail,
+  html body .oma-strategy-page-stack .oma-shimmer--detail,
+  html body .oma-plx-brand-panel .oma-shimmer--detail {
+    padding: 8px 10px 12px !important;
+    gap: 10px !important;
+    background: var(--oma-canvas) !important;
+    border-radius: 0 !important;
+  }
+
+  html body .oma-plx-brand .oma-shimmer-detail,
+  html body .oma-strategy-page-stack .oma-shimmer-detail {
+    gap: 12px !important;
+    margin-top: 4px !important;
+  }
+
+  html body .oma-plx-brand .oma-shimmer-detail .oma-skeleton.oma-shimmer-bar,
+  html body .oma-strategy-page-stack .oma-shimmer-detail .oma-skeleton.oma-shimmer-bar {
+    max-width: 100% !important;
+  }
+
+  html body .oma-plx-brand .oma-shimmer > .oma-skeleton:first-child,
+  html body .oma-strategy-page-stack .oma-shimmer > .oma-skeleton:first-child {
+    max-width: 72% !important;
+  }
+}

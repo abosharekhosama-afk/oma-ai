@@ -10,9 +10,7 @@ html body .oma-shell main.oma-container {
 }
 
 html body .oma-plx-workspace-surface,
-html body .oma-plx-listening:not([data-testid='listening-page']):not(
-    [data-testid='listening-alerts-page']
-  ):not([data-testid='listening-competitors-page']),
+html body .oma-plx-listening,
 html body .oma-plx-deliverables,
 html body .oma-plx-team,
 html body .oma-plx-activity.oma-activity-page,
@@ -22,11 +20,43 @@ html body .oma-plx-inbox {
   background: transparent !important;
 }
 
+html body .oma-plx-listening[data-testid='listening-page'],
+html body .oma-plx-listening[data-testid='listening-alerts-page'],
+html body .oma-plx-listening[data-testid='listening-competitors-page'],
+html body .oma-plx-inbox {
+  background: transparent !important;
+}
+
 html body .oma-plx-listening-panel,
-html body .oma-plx-deliv-panel__body,
 html body .oma-plx-requests-panel__body,
 html body .oma-plx-brand-panel.oma-plx-listening-panel {
   background: var(--oma-surface, #fff) !important;
+}
+
+/* Deliverables: gray canvas behind grid/list; cards stay white */
+html body .oma-plx-deliverables .oma-plx-deliv-panel__body {
+  background: var(--oma-canvas, #f5f6f7) !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-grid,
+html body .oma-plx-deliverables .oma-plx-deliv-table-wrap {
+  background: var(--oma-canvas, #f5f6f7) !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card {
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table {
+  background: var(--oma-canvas, #f5f6f7) !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table tbody tr {
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table thead th {
+  background: var(--oma-canvas, #f5f6f7) !important;
 }
 
 /* ── Team + Activity: laptop / tablet comfort ───────────────────────────── */
@@ -216,58 +246,181 @@ html body .oma-plx-brand-panel.oma-plx-listening-panel {
   }
 }
 
-/* Workspace settings overlay — nav spacing (mobile + laptop) */
+/* Workspace settings overlay — proportional card + nav rhythm */
 @media (max-width: 767px) {
+  html body .oma-ws-overlay {
+    padding: 6px 8px 10px !important;
+    align-items: flex-end !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel {
+    display: grid !important;
+    grid-template-columns: minmax(0, 108px) minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: min(76vh, 540px) !important;
+    margin: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-main {
+    padding: 12px 14px 16px !important;
+    min-height: 160px !important;
+  }
+
   html body .oma-ws-overlay .oma-ws-panel-nav {
-    padding: 12px 10px !important;
-    gap: var(--space-1) !important;
+    padding: 10px 8px !important;
+    gap: 2px !important;
   }
 
   html body .oma-ws-overlay .oma-ws-panel-nav-group {
-    margin: 10px 6px 6px !important;
+    margin: 8px 4px 4px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.04em !important;
   }
 
   html body .oma-ws-overlay .oma-ws-panel-nav-item,
   html body .oma-ws-overlay .oma-ws-panel-nav-item span {
-    min-height: 36px !important;
-    padding: 8px 10px !important;
-    gap: 8px !important;
-    margin-bottom: 4px !important;
+    min-height: 34px !important;
+    padding: 6px 8px !important;
+    gap: 6px !important;
+    margin-bottom: 3px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
   }
 
   html body .oma-ws-overlay .oma-ws-panel-nav-item svg {
-    width: 14px !important;
-    height: 14px !important;
+    width: 13px !important;
+    height: 13px !important;
   }
 }
 
 @media (min-width: 768px) {
+  html body .oma-ws-overlay {
+    padding: 24px !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel {
+    display: grid !important;
+    grid-template-columns: minmax(0, 168px) minmax(0, 1fr) !important;
+    width: min(760px, calc(100vw - 48px)) !important;
+    max-width: min(760px, calc(100vw - 48px)) !important;
+    max-height: min(86vh, 720px) !important;
+  }
+
   html body .oma-ws-overlay .oma-ws-panel-nav {
-    padding: 16px 12px !important;
-    gap: var(--space-2) !important;
+    padding: 18px 14px !important;
+    gap: var(--space-1) !important;
+    background: #f9fafb !important;
   }
 
   html body .oma-ws-overlay .oma-ws-panel-nav-group {
     margin: 14px 8px 8px !important;
     font-size: var(--text-label) !important;
+    font-weight: var(--weight-semibold, 600) !important;
   }
 
   html body .oma-ws-overlay .oma-ws-panel-nav-item,
   html body .oma-ws-overlay .oma-ws-panel-nav-item span {
-    min-height: 38px !important;
+    min-height: 40px !important;
     padding: 10px 12px !important;
     gap: 10px !important;
     margin-bottom: 6px !important;
-    font-size: var(--text-body) !important;
-    line-height: var(--leading-body) !important;
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+    border-radius: 8px !important;
   }
 
   html body .oma-ws-overlay .oma-ws-panel-nav-item svg {
-    width: 16px !important;
-    height: 16px !important;
+    width: 17px !important;
+    height: 17px !important;
   }
 
   html body .oma-ws-overlay .oma-ws-panel-main {
-    padding: var(--space-5) var(--space-6) var(--space-6) !important;
+    padding: var(--space-6) var(--space-6) var(--space-6) !important;
+    min-height: 360px !important;
+  }
+}
+
+/* Requests table — title column shares row baseline with other cells (laptop+) */
+@media (min-width: 768px) {
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td {
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    max-width: none !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th:first-child {
+    min-width: 200px !important;
+    width: 28% !important;
+    max-width: 360px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    vertical-align: top !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-req-avatar {
+    display: grid !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell {
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 10px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell--plain {
+    display: block !important;
+    grid-template-columns: unset !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child .oma-text-link {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+    font-weight: var(--weight-semibold, 600) !important;
+    display: block !important;
+    white-space: normal !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child .oma-muted {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+    margin-top: 4px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden !important;
+  }
+}
+
+/* Deliverables list — unify column type to title scale (laptop+) */
+@media (min-width: 768px) {
+  html body .oma-plx-deliverables .oma-plx-deliv-table td,
+  html body .oma-plx-deliverables .oma-plx-deliv-table th {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+    padding: 10px 12px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-table__title {
+    font-size: var(--text-body) !important;
+    font-weight: var(--weight-semibold, 600) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-table__sub {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-grid {
+    gap: var(--space-3) !important;
+    padding: var(--space-2) !important;
   }
 }

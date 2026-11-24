@@ -14,6 +14,7 @@ import '../styles/oma-typography-unified.css';
 import '../styles/oma-responsive-density.css';
 import '../styles/oma-brand-responsive.css';
 import '../styles/oma-workspace-surfaces.css';
+import '../styles/oma-shimmer-mobile.css';
 
 const siteUrl = resolvePublicSiteUrl();
 
