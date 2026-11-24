@@ -1152,11 +1152,10 @@
 .oma-cal-note--inline[data-popover-open='true'] .oma-cal-note__toolbar {
   display: flex !important;
 }
-.oma-cal-note__swatches--portal {
+.oma-cal-note__swatches--portal,
+.oma-cal-note__menu[data-oma-note-pop='true'] {
   position: fixed !important;
-  z-index: 5000 !important;
-  bottom: auto !important;
-  inset-inline-start: auto !important;
+  z-index: 12500 !important;
 }
 
 /* Planable Content Preview Modal: Channel Rail (Feed-style circular badges), Status Column, and Per-Network Analytics */

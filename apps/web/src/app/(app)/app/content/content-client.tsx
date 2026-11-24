@@ -1403,8 +1403,9 @@ function CardFloatingMenu({
         top: realPos.top,
         left: realPos.left,
         zIndex: 12000,
-        maxHeight: 'min(70vh, calc(100vh - 16px))',
-        overflowY: 'auto',
+        width: 'min(200px, calc(100vw - 16px))',
+        maxHeight: 'calc(100vh - 16px)',
+        overflowY: 'visible',
       }}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
@@ -3431,15 +3432,23 @@ export default function ContentPage() {
   function placeCardMenu(itemId: string, target: HTMLElement, keepVariant = false) {
     if (!keepVariant) setMenuVariant('full');
     const rect = target.getBoundingClientRect();
-    const menuW = 220;
-    const menuH = 280;
+    const pad = 8;
+    const menuW = Math.min(200, Math.max(168, window.innerWidth - pad * 2));
+    const menuH = Math.min(320, window.innerHeight - pad * 2);
     const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
-    let left = rtl ? rect.left - menuW - 8 : rect.right + 8;
+    let left = rtl ? rect.left - menuW - pad : rect.right + pad;
+    if (left + menuW > window.innerWidth - pad) {
+      left = rect.left - menuW - pad;
+    }
+    if (left < pad) left = pad;
+    left = Math.max(pad, Math.min(left, window.innerWidth - menuW - pad));
     let top = rect.top;
-    if (left + menuW + 8 > window.innerWidth) left = Math.max(8, rect.left - menuW - 8);
-    if (left < 8) left = Math.min(window.innerWidth - menuW - 8, rect.right + 8);
-    if (left < 8) left = 8;
-    if (top + menuH + 8 > window.innerHeight) top = Math.max(8, window.innerHeight - menuH - 8);
+    if (top + menuH > window.innerHeight - pad) {
+      top = Math.max(pad, rect.bottom - menuH);
+    }
+    if (top + menuH > window.innerHeight - pad) {
+      top = Math.max(pad, window.innerHeight - menuH - pad);
+    }
     setCardMenuId(itemId);
     setMenuPos({ top, left });
   }
@@ -4542,7 +4551,7 @@ export default function ContentPage() {
                               >
                                 <button
                                   type="button"
-                                  className="oma-cal-mini-btn oma-cal-cell-actions__btn"
+                                  className="oma-cal-cell-actions__btn"
                                   data-testid={`demo-cal-post-${cell.key}`}
                                   aria-label={t('content.post')}
                                   onClick={(e) => {
@@ -4552,11 +4561,14 @@ export default function ContentPage() {
                                     setCreateOpen(true);
                                   }}
                                 >
-                                  <EditOutlined aria-hidden width={14} height={14} />
+                                  <EditOutlined aria-hidden width={12} height={12} />
+                                  <span className="oma-cal-cell-actions__label">
+                                    {t('content.post')}
+                                  </span>
                                 </button>
                                 <button
                                   type="button"
-                                  className="oma-cal-mini-btn oma-cal-cell-actions__btn"
+                                  className="oma-cal-cell-actions__btn"
                                   data-testid={`demo-cal-note-${cell.key}`}
                                   aria-label={t('content.note')}
                                   onClick={(e) => {
@@ -4589,7 +4601,10 @@ export default function ContentPage() {
                                     }
                                   }}
                                 >
-                                  <FileTextOutlined aria-hidden width={14} height={14} />
+                                  <FileTextOutlined aria-hidden width={12} height={12} />
+                                  <span className="oma-cal-cell-actions__label">
+                                    {t('content.note')}
+                                  </span>
                                 </button>
                               </div>
 
@@ -4710,18 +4725,22 @@ export default function ContentPage() {
                                         e.stopPropagation();
                                         placeCardMenu(item.id, e.currentTarget);
                                       }}
-                                      className="oma-cal-item"
+                                      className="oma-cal-item oma-cal-item--has-menu"
                                     >
-                                      {renderCalendarCard(item)}
+                                      <span className="oma-cal-item__inner">
+                                        {renderCalendarCard(item)}
+                                        {!approvalMode ? (
+                                          <CardActionsButton
+                                            itemId={item.id}
+                                            open={cardMenuId === item.id}
+                                            label={t('content.post_actions')}
+                                            className="oma-card-actions-btn--cal oma-card-actions-btn--in-card"
+                                            onOpen={placeCardMenu}
+                                            onClose={closeCardMenu}
+                                          />
+                                        ) : null}
+                                      </span>
                                     </SurfaceButton>
-                                    <CardActionsButton
-                                      itemId={item.id}
-                                      open={cardMenuId === item.id}
-                                      label={t('content.post_actions')}
-                                      className="oma-card-actions-btn--cal"
-                                      onOpen={placeCardMenu}
-                                      onClose={closeCardMenu}
-                                    />
                                   </div>
                                 ))}
                                 {extra > 0 ? (
