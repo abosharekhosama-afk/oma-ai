@@ -3459,3 +3459,122 @@ html body .oma-plx-deliverables .oma-plx-deliv-table th:first-child {
     gap: 5px !important;
   }
 }
+
+/* ── Workspace canvas: table-white (not gray shell) ─────────────────────── */
+html body main.oma-container,
+html body .oma-plx-workspace-surface,
+html body .oma-plx-listening,
+html body .oma-plx-deliverables,
+html body .oma-plx-team,
+html body .oma-plx-activity.oma-activity-page,
+html body .oma-campaign-portfolio,
+html body .oma-campaigns-page {
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-listening-panel,
+html body .oma-plx-deliv-panel__body,
+html body .oma-plx-requests-panel__body {
+  background: var(--oma-surface, #fff) !important;
+}
+
+/* ── Social Listening: typography only (layout unchanged) ─────────────── */
+html body .oma-plx-listening[data-testid='listening-page'],
+html body .oma-plx-listening[data-testid='listening-alerts-page'],
+html body .oma-plx-listening.oma-plx-listening-alerts,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__title,
+html body .oma-plx-listening[data-testid='listening-alerts-page'] .oma-plx-listening__title,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] .oma-plx-listening__title {
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__next-check,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__source,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__range,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-filter__row,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-link,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-context,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__head,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__trend,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-card,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-card,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-card__body,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-card__author,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-pill,
+html body .oma-plx-listening[data-testid='listening-alerts-page'] .oma-plx-listening-panel,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] .oma-plx-listening-panel {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__value {
+  font-size: 20px !important;
+  line-height: 1.15 !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__icon {
+  font-size: 11px !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__source select,
+html body .oma-plx-listening[data-testid='listening-page'] input,
+html body .oma-plx-listening[data-testid='listening-page'] textarea,
+html body .oma-plx-listening[data-testid='listening-page'] button,
+html body .oma-plx-listening[data-testid='listening-alerts-page'] button,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] button {
+  font-size: 10px !important;
+}
+
+/* ── Social Inbox: typography only ────────────────────────────────────── */
+html body .oma-plx-inbox {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-list__title {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-list__search,
+html body .oma-plx-inbox .oma-plx-inbox-list__connect-hint,
+html body .oma-plx-inbox .oma-plx-inbox-list__sync-meta,
+html body .oma-plx-inbox .oma-plx-inbox-row__primary,
+html body .oma-plx-inbox .oma-plx-inbox-thread-menu__drop button,
+html body .oma-plx-inbox .oma-plx-inbox-thread__assignee,
+html body .oma-plx-inbox .oma-plx-inbox-post__caption,
+html body .oma-plx-inbox .oma-plx-inbox-comment-card__text,
+html body .oma-plx-inbox .oma-plx-inbox-composer__pill-input,
+html body .oma-plx-inbox .oma-plx-inbox-composer__input,
+html body .oma-plx-inbox .oma-plx-inbox-status-dd__item-label,
+html body .oma-plx-inbox .oma-plx-inbox-bubble,
+html body .oma-plx-inbox .oma-plx-inbox-chat__date {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-row__preview,
+html body .oma-plx-inbox .oma-plx-inbox-row__time,
+html body .oma-plx-inbox .oma-plx-inbox-thread-menu__sub-panel button,
+html body .oma-plx-inbox .oma-plx-inbox-comment-card__meta,
+html body .oma-plx-inbox .oma-plx-inbox-post__channel,
+html body .oma-plx-inbox .oma-plx-inbox-row__info-badge,
+html body .oma-plx-inbox .oma-plx-inbox-row__priority {
+  font-size: 9px !important;
+  line-height: 1.3 !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-thread__head h3,
+html body .oma-plx-inbox .oma-plx-inbox-comments-head {
+  font-size: 11px !important;
+}
