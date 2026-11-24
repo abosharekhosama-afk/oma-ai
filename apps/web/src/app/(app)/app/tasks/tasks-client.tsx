@@ -15,6 +15,7 @@ import {
   TextArea,
 } from '@oma/ui/controls';
 import { Dialog } from '../../../../components/ui/dialog';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { AssigneePicker } from '../../../../components/ui/assignee-picker';
 import { EntityLink } from '../../../../components/ui/entity-link';
 import { StatusChip, statusLabel } from '../../../../components/ui/status-chip';
@@ -54,6 +55,7 @@ import {
   LayoutGridOutlined,
   TableGridOutlined,
   CloseOutlined,
+  CopyOutlined,
   SearchOutlined,
   DownOutlined,
   UpOutlined,
@@ -794,11 +796,32 @@ export default function TasksPage() {
       >
         {selected ? (
           <div className="oma-task-detail" data-testid="demo-task-drawer">
-            <header className="oma-task-detail__head">
-              <div className="oma-task-detail__head-main">
+            <header className="oma-task-detail__head oma-task-detail__head--compact">
+              <div className="oma-task-detail__head-top">
                 <p className="oma-task-detail__id" title={selected.id}>
                   {[t('entity.type.task'), selected.brandName].filter(Boolean).join(' · ')}
                 </p>
+                <div className="oma-task-detail__head-actions oma-task-detail__head-actions--icons">
+                  <OmaIconAction
+                    type="button"
+                    className="oma-icon-action--bare"
+                    data-testid="demo-task-copy-link"
+                    aria-label={t('demo.tasks.copyLink')}
+                    onClick={() => void copyLink()}
+                  >
+                    <CopyOutlined className="oma-lucide oma-lucide--soft" width={18} height={18} />
+                  </OmaIconAction>
+                  <OmaIconAction
+                    type="button"
+                    className="oma-icon-action--bare"
+                    aria-label={t('common.cancel')}
+                    onClick={closeTask}
+                  >
+                    <CloseOutlined className="oma-lucide oma-lucide--soft" width={18} height={18} />
+                  </OmaIconAction>
+                </div>
+              </div>
+              <div className="oma-task-detail__head-main">
                 <Input
                   className="oma-task-detail__title-input"
                   defaultValue={pickCopy(selected.title, locale)}
@@ -815,19 +838,6 @@ export default function TasksPage() {
                   <StatusChip status={selected.status} />
                   <StatusChip status={selected.priority} />
                 </div>
-              </div>
-              <div className="oma-task-detail__head-actions oma-action-bar">
-                <Button data-testid="demo-task-copy-link" onClick={() => void copyLink()}>
-                  {t('demo.tasks.copyLink')}
-                </Button>
-                <button
-                  type="button"
-                  className="oma-req-filter-panel__close"
-                  aria-label={t('common.cancel')}
-                  onClick={closeTask}
-                >
-                  <CloseOutlined />
-                </button>
               </div>
             </header>
 
@@ -1051,10 +1061,31 @@ export default function TasksPage() {
         onClose={() => !creating && setCreateOpen(false)}
         title={t('demo.tasks.create')}
         size="lg"
-        className="oma-compose-dialog"
+        className="oma-compose-dialog oma-plx-compose-dialog oma-plx-compose-dialog--tasks"
+        footer={
+          <div className="oma-plx-compose-dialog__foot">
+            <Button
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
+              disabled={creating}
+              onClick={() => setCreateOpen(false)}
+            >
+              {t('demo.create.cancel')}
+            </Button>
+            <Button
+              type="primary"
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
+              loading={creating}
+              data-testid="demo-create-task-submit"
+              onClick={() => void submitCreate()}
+            >
+              {t('demo.create.confirm')}
+            </Button>
+          </div>
+        }
       >
-        <div className="oma-compose" data-testid="demo-create-task-dialog">
-          <div className="oma-compose__grid">
+        <div className="oma-compose oma-plx-compose" data-testid="demo-create-task-dialog">
+          <section className="oma-plx-listening-panel oma-plx-compose-panel">
+          <div className="oma-compose__grid oma-plx-compose__grid">
             <label className="oma-compose__wide">
               {t('demo.create.title')}
               <Input
@@ -1153,19 +1184,7 @@ export default function TasksPage() {
               </SelectField>
             </label>
           </div>
-          <div className="oma-compose__footer">
-            <Button type="default" disabled={creating} onClick={() => setCreateOpen(false)}>
-              {t('demo.create.cancel')}
-            </Button>
-            <Button
-              type="primary"
-              data-testid="demo-create-task-submit"
-              disabled={creating}
-              onClick={() => void submitCreate()}
-            >
-              {creating ? t('demo.create.creating') : t('demo.create.confirm')}
-            </Button>
-          </div>
+          </section>
         </div>
       </Dialog>
     </div>
