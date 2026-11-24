@@ -90,8 +90,11 @@ describe('css cleanup (stage2/4/5)', () => {
   it('requests phone layer prefers compact table over card list', () => {
     const phone = read('apps/web/src/styles/mobile-requests-phone.css');
     const finalCss = read('apps/web/src/styles/oma-mobile-cascade-final.css');
+    const listening = read('apps/web/src/styles/inbox-listening.css');
     expect(finalCss).toMatch(/oma-req-desktop[\s\S]{0,80}display:\s*block !important/);
     expect(finalCss).toMatch(/oma-req-mobile[\s\S]{0,80}display:\s*none !important/);
+    expect(finalCss).toMatch(/oma-plx-requests-table[\s\S]{0,80}display:\s*block !important/);
+    expect(listening).toMatch(/oma-plx-requests-cards[\s\S]{0,80}display:\s*none !important/);
     expect(finalCss).toContain('border-bottom-color: var(--oma-workspace-primary-border');
     expect(phone).toContain('.oma-req-page .oma-req-desktop');
   });

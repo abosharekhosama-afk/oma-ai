@@ -101,6 +101,17 @@ html body .oma-plx-content-header-btn--primary {
   html body .oma-req-page .oma-req-main .oma-req-mobile {
     display: none !important;
   }
+
+  /* Live /app/requests route (oma-plx-requests) — table, not card feed */
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-requests-table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-request-feed.oma-plx-requests-cards {
+    display: none !important;
+  }
 }
 
 @media (max-width: 767px) {
@@ -170,6 +181,42 @@ html body .oma-plx-content-header-btn--primary {
   html body .oma-req-page .oma-req-table-wrap {
     margin: 0 0 6px !important;
     max-height: calc(100vh - 200px) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups.oma-plx-requests-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--oma-workspace-border-strong) !important;
+    background: transparent !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn {
+    flex: 0 0 auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--oma-workspace-muted) !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    padding: 7px 9px !important;
+    border-bottom: 2px solid transparent !important;
+    margin-bottom: -1px !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn.is-active,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn[data-active='true'] {
+    background: transparent !important;
+    color: var(--oma-workspace-ink) !important;
+    font-weight: 500 !important;
+    border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary)) !important;
     box-shadow: none !important;
   }
 
@@ -249,6 +296,59 @@ html body .oma-plx-content-header-btn--primary {
     gap: 4px !important;
   }
 
+  html body .oma-plx-content.oma-content-plan,
+  html body .oma-content-plan.oma-plx-content {
+    overflow-x: visible !important;
+  }
+
+  html body [data-testid='demo-content-calendar'].oma-cal-with-saved,
+  html body [data-testid='demo-content-calendar'] .oma-cal-with-saved {
+    overflow-x: visible !important;
+    min-width: 0 !important;
+  }
+
+  /* Calendar toolbar: one scroll row; keep saved / approvals / display settings visible */
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__start,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    max-width: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end {
+    margin-inline-start: 0 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle,
+  html body [data-testid='demo-content-calendar'] .oma-cal-request-approvals,
+  html body [data-testid='demo-content-calendar'] .oma-cal-ext-indicator,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end > * {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
   /* Calendar: horizontal scroll — wider day columns, not squeezed into viewport */
   html body [data-testid='demo-content-calendar'] .oma-cal-main {
     overflow-x: auto !important;
@@ -257,10 +357,12 @@ html body .oma-plx-content-header-btn--primary {
     scrollbar-width: thin !important;
     margin-inline: -4px !important;
     padding-inline: 4px 8px !important;
+    max-width: none !important;
   }
 
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
-  html body [data-testid='demo-content-calendar'] .oma-cal-grid {
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid,
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid.oma-cal-grid {
     width: max-content !important;
     min-width: 100% !important;
     max-width: none !important;
@@ -315,7 +417,7 @@ html body .oma-plx-content-header-btn--primary {
 
   html body .oma-plx-content.oma-content-plan {
     min-width: 0 !important;
-    overflow-x: clip !important;
+    overflow-x: visible !important;
   }
 
   /* Compose: scrollable overlay (not a fixed centered trap) */

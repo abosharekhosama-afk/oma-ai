@@ -5615,7 +5615,7 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   border-radius: 0;
 }
 
-/* Desktop table vs mobile cards — avoid legacy .oma-req-page forcing both visible */
+/* Requests: compact table on phone (card list kept for markup parity / a11y only). */
 .oma-plx-requests .oma-plx-requests-table {
   display: block;
   padding: 6px 14px 14px;
@@ -5632,15 +5632,11 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 
 @media (max-width: 900px) {
   html body .oma-plx-requests .oma-plx-requests-table {
-    display: none !important;
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
-  html body .oma-plx-requests .oma-plx-request-feed.oma-plx-requests-cards {
-    display: flex !important;
-  }
-}
-
-@media (min-width: 901px) {
   html body .oma-plx-requests .oma-plx-request-feed.oma-plx-requests-cards {
     display: none !important;
   }

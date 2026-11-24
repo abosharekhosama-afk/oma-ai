@@ -211,23 +211,26 @@
   html body .oma-content-plan .oma-cal-toolbar {
     display: flex !important;
     flex-direction: row !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    gap: 6px 8px !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
     padding: 8px 10px !important;
     min-height: 44px !important;
-    overflow: visible !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
     position: relative !important;
     z-index: 30 !important;
   }
 
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__start {
     display: inline-flex !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
     gap: 6px !important;
-    flex: 1 1 auto !important;
+    flex: 0 0 auto !important;
     min-width: 0 !important;
   }
 
