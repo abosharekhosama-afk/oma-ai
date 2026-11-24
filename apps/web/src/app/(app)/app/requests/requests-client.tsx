@@ -450,7 +450,7 @@ export default function RequestsPage() {
                 badge={filterCount}
                 onClick={() => setFilterSheet((v) => !v)}
               >
-                <ShellIcon name="filter" size={18} />
+                <ShellIcon name="filter" size={16} />
               </OmaIconAction>
               <OmaIconAction
                 type="button"
@@ -458,7 +458,7 @@ export default function RequestsPage() {
                 aria-label={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}
               >
-                <ShellIcon name="plus" size={19} />
+                <ShellIcon name="plus" size={16} />
               </OmaIconAction>
             </>,
             headerSlot,

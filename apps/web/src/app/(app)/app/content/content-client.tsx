@@ -103,6 +103,7 @@ import {
   RetweetOutlined,
 } from '../../../../components/ui/lucide-icons';
 
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { Dialog } from '../../../../components/ui/dialog';
 import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
@@ -4050,89 +4051,67 @@ export default function ContentPage() {
       {/* Portal: Filter / Media / Share / Compose into shell header */}
       {headerSlot &&
         createPortal(
-          <div className="oma-plx-content-header-actions oma-action-bar">
-            <button
+          <div className="oma-plx-content-header-actions oma-workspace-header-actions">
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn oma-top-action oma-top-action--view"
-              data-tooltip={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
-              title={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
               aria-label={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
+              data-testid="demo-content-view-toggle"
+              data-active={viewMenuOpen ? 'true' : 'false'}
               aria-haspopup="menu"
               aria-expanded={viewMenuOpen}
               onClick={(e) => {
                 e.stopPropagation();
                 setViewMenuOpen((v) => !v);
               }}
-              data-testid="demo-content-view-toggle"
             >
               {view === 'feed' ? (
-                <BarsOutlined />
+                <BarsOutlined aria-hidden />
               ) : view === 'list' ? (
-                <UnorderedListOutlined />
+                <UnorderedListOutlined aria-hidden />
               ) : view === 'grid' ? (
-                <AppstoreOutlined />
+                <AppstoreOutlined aria-hidden />
               ) : (
-                <CalendarOutlined />
+                <CalendarOutlined aria-hidden />
               )}
-              <span className="oma-plx-content-header-btn__label">{t(`demo.view.${view}`)}</span>
-            </button>
-            <button
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn"
-              data-active={filterSheet ? 'true' : 'false'}
-              data-tooltip={t('content.filter_sort')}
-              title={t('content.filter_sort')}
               aria-label={
                 filterCount > 0 ? `${t('content.filtered')} (${filterCount})` : t('content.filter')
               }
-              onClick={() => setFilterSheet((open) => !open)}
               data-testid="demo-content-open-filters"
+              data-active={filterSheet ? 'true' : 'false'}
+              badge={filterCount}
+              onClick={() => setFilterSheet((open) => !open)}
             >
-              <FilterOutlined />
-              <span className="oma-plx-content-header-btn__label">
-                {filterCount > 0 ? t('content.filtered') : t('content.filter')}
-              </span>
-              {filterCount > 0 ? (
-                <span className="oma-plx-content-header-count oma-ltr">{filterCount}</span>
-              ) : null}
-            </button>
-            <button
+              <FilterOutlined aria-hidden />
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn"
-              data-tooltip={t('content.media_library')}
-              title={t('content.media_library')}
               aria-label={t('demo.content.media')}
+              data-testid="demo-content-open-media"
               data-active={mediaLibraryOpen ? 'true' : 'false'}
               onClick={() => setMediaLibraryOpen((open) => !open)}
-              data-testid="demo-content-open-media"
             >
               <IconMedia />
-              <span className="oma-plx-content-header-btn__label">{t('content.media')}</span>
-            </button>
-            <button
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn"
-              data-tooltip={t('content.share_view')}
-              title={t('content.share_view')}
               aria-label={t('content.share')}
-              onClick={() => void shareContentWorkspace()}
               data-testid="demo-content-share"
+              onClick={() => void shareContentWorkspace()}
             >
               <IconShare />
-              <span className="oma-plx-content-header-btn__label">{t('content.share')}</span>
-            </button>
-            <button
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn oma-plx-content-header-btn--primary"
-              data-tooltip={t('content.compose')}
-              title={t('content.compose')}
+              className="oma-icon-action--compose"
               aria-label={t('content.compose')}
               data-testid="demo-create-content"
               onClick={() => setCreateOpen(true)}
             >
-              <EditOutlined />
-              <span className="oma-plx-content-header-btn__label">{t('content.compose')}</span>
-            </button>
+              <EditOutlined aria-hidden />
+            </OmaIconAction>
           </div>,
           headerSlot,
         )}

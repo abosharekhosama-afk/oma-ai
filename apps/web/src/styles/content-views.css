@@ -1127,55 +1127,18 @@
   gap: 6px;
   flex-wrap: nowrap;
 }
-.oma-plx-content-header-btn {
+/* Content header chrome: OmaIconAction + oma-icon-action.css */
+.oma-plx-content-header-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-  color: #374151;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
+  gap: 4px;
+  flex-wrap: nowrap;
 }
-.oma-plx-content-header-btn:hover {
-  background: #f9fafb;
-  color: #111827;
-}
-.oma-plx-content-header-btn[data-active='true'] {
-  border-color: #c7d7fe;
-  background: #eef4ff;
-  color: #1d4ed8;
-}
-.oma-plx-content-header-btn svg.oma-lucide {
-  width: 16px;
-  height: 16px;
-  color: #6b7280;
-  flex-shrink: 0;
-}
-.oma-plx-content-header-btn--primary {
-  border-color: #1677ff;
-  background: #1677ff;
-  color: #fff;
-  font-weight: 600;
-  padding-inline: 14px;
-}
-.oma-plx-content-header-btn--primary:hover {
-  background: #0958d9;
-  border-color: #0958d9;
-  color: #fff;
-}
-.oma-plx-content-header-btn--primary svg.oma-lucide {
-  color: #fff;
-}
+
 .oma-plx-content-header-count {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
   border-radius: 999px;
   background: #2563eb;
   color: #fff;

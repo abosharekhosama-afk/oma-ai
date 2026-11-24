@@ -1,0 +1,80 @@
+/*
+ * Phone density — margins, cards, workspace chrome (no document zoom).
+ * Loaded after mobile-surfaces-clean; before mobile-ops-authority.
+ */
+@media (max-width: 767px) {
+  :root {
+    --oma-icon-action-size: 32px;
+    --oma-icon-action-glyph: 16px;
+    --shell-chrome-inset: 6px;
+    --shell-header-height: 44px;
+    --space-page-x: 8px;
+    --space-page-y: 10px;
+  }
+
+  html body .oma-shell .oma-top {
+    padding: 6px 8px !important;
+    gap: 4px !important;
+  }
+
+  html body .oma-shell .oma-container,
+  html body .oma-shell-main.oma-container,
+  html body main.oma-container {
+    padding: var(--space-page-y) var(--space-page-x) 14px !important;
+  }
+
+  html body .oma-workspace-header-actions,
+  html body .oma-plx-content-header-actions,
+  html body .oma-top-actions {
+    gap: 2px !important;
+  }
+
+  html body .oma-plx-content-header-actions {
+    flex-wrap: nowrap !important;
+  }
+
+  html body .oma-req-page .oma-req-main,
+  html body .oma-deliv-page .oma-req-main,
+  html body .oma-tasks-page .oma-req-main {
+    padding-inline: 4px !important;
+  }
+
+  html body .oma-req-page .oma-req-header,
+  html body .oma-req-page .oma-req-table-wrap,
+  html body .oma-deliv-page .oma-deliv-table-wrap {
+    margin-bottom: 8px !important;
+  }
+
+  html body .oma-req-mobile-card,
+  html body .oma-deliv-mobile-card,
+  html body .oma-m-req-card {
+    padding: 8px 10px !important;
+    gap: 4px !important;
+    border-radius: 10px !important;
+  }
+
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab,
+  html body .oma-deliv-page .oma-ws-tab {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    min-height: 30px !important;
+  }
+
+  html body .oma-page-header,
+  html body .oma-page-header-stack {
+    gap: 4px !important;
+    margin-bottom: 8px !important;
+  }
+
+  html body .oma-page-header h1,
+  html body .oma-req-header__title h1 {
+    font-size: 16px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-muted,
+  html body .oma-help {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+}

@@ -5,8 +5,8 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: var(--oma-icon-action-size, 36px);
-  height: var(--oma-icon-action-size, 36px);
+  width: var(--oma-icon-action-size, 32px);
+  height: var(--oma-icon-action-size, 32px);
   margin: 0;
   padding: 0;
   border: 0;
@@ -41,10 +41,21 @@
 }
 
 .oma-icon-action svg,
-.oma-icon-action .oma-lucide {
-  width: 18px;
-  height: 18px;
+.oma-icon-action .oma-lucide,
+.oma-icon-action .oma-shell-icon svg {
+  width: var(--oma-icon-action-glyph, 16px);
+  height: var(--oma-icon-action-glyph, 16px);
   flex: 0 0 auto;
+}
+
+.oma-icon-action--compose {
+  color: var(--oma-primary, #1677ff);
+}
+
+.oma-icon-action--compose:hover,
+.oma-icon-action--compose:focus-visible {
+  color: var(--oma-primary, #1677ff);
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 12%, transparent);
 }
 
 .oma-icon-action__badge {
@@ -81,8 +92,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--oma-icon-action-size, 36px);
-  height: var(--oma-icon-action-size, 36px);
+  width: var(--oma-icon-action-size, 32px);
+  height: var(--oma-icon-action-size, 32px);
   padding: 0;
   border: 0;
   border-radius: var(--oma-icon-action-radius, 8px);
@@ -123,15 +134,6 @@
 }
 
 @media (max-width: 767px) {
-  .oma-icon-action,
-  .oma-req-filter-icon,
-  .oma-req-create-icon,
-  .oma-header-create-icon,
-  .oma-plx-tasks__create-icon {
-    width: 34px;
-    height: 34px;
-  }
-
   .oma-req-create-icon__label,
   .oma-header-create-icon__label,
   .oma-req-filter-btn__label,

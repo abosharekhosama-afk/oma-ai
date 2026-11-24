@@ -55,8 +55,17 @@ describe('css cleanup (stage2/4/5)', () => {
   it('loads mobile ops authority last among mobile layers', () => {
     const globals = read('apps/web/src/app/globals.css');
     const ops = globals.indexOf('mobile-ops-authority.css');
+    const tight = globals.indexOf('mobile-phone-tight.css');
     const ux = globals.indexOf('mobile-ux-pro-max-reset.css');
-    expect(ops).toBeGreaterThan(ux);
+    expect(ops).toBeGreaterThan(tight);
+    expect(tight).toBeGreaterThan(ux);
+  });
+
+  it('uses compact phone icon glyph tokens', () => {
+    const css = read('apps/web/src/styles/oma-icon-action.css');
+    expect(css).toContain('--oma-icon-action-glyph');
+    const tight = read('apps/web/src/styles/mobile-phone-tight.css');
+    expect(tight).toContain('--oma-icon-action-size: 32px');
   });
 
   it('removed byte-identical duplicate block from stage4 (legacy monolith)', () => {

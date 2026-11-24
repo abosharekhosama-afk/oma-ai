@@ -585,15 +585,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               />
             ) : isActivityWorkspace ? (
               <div className="oma-top-actions">
-                <button
+                <OmaIconAction
                   type="button"
-                  className="oma-activity-refresh"
                   aria-label={t('activity.refresh')}
                   data-testid="activity-refresh"
                   onClick={() => window.dispatchEvent(new Event('oma:activity-refresh'))}
                 >
-                  <ReloadOutlined width={18} height={18} />
-                </button>
+                  <ReloadOutlined width={16} height={16} aria-hidden />
+                </OmaIconAction>
               </div>
             ) : hideShellCreate ? null : isHome ? (
               <div className="oma-top-actions oma-top-actions--home">
