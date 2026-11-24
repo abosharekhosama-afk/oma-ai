@@ -518,23 +518,21 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           className="oma-shell-column"
           data-mobile-page-title={mobilePageTitle ? 'true' : 'false'}
         >
-          <Button
-            type="text"
+          <OmaIconAction
             aria-label={t('shell.openNav')}
             onClick={() => setMobileOpen(true)}
             className="oma-mobile-nav-fab"
             data-testid="mobile-nav-trigger"
           >
             <ShellIcon name="menu" />
-          </Button>
+          </OmaIconAction>
           <header
             className="oma-top"
             data-content-workspace={isContentWorkspace ? 'true' : 'false'}
           >
             <div className="oma-top-start">
               {/* Mobile (<768px): hamburger opens the off-canvas nav drawer. Hidden on desktop. */}
-              <Button
-                type="text"
+              <OmaIconAction
                 aria-label={t('shell.openNav')}
                 aria-expanded={mobileOpen}
                 aria-controls="oma-mobile-nav"
@@ -543,7 +541,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 data-testid="mobile-nav-toggle"
               >
                 <ShellIcon name="menu" />
-              </Button>
+              </OmaIconAction>
               {mobilePageTitle ? (
                 <span
                   className="oma-mobile-page-title"

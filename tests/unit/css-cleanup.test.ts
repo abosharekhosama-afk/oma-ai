@@ -85,7 +85,13 @@ describe('css cleanup (stage2/4/5)', () => {
   it('stage4 does not force requests desktop table on phone', () => {
     const css = read('apps/web/src/styles/stage4.css');
     expect(css).not.toContain('min-width: 980px !important');
-    expect(css).not.toMatch(/oma-req-page \.oma-req-mobile[\s\S]{0,60}display:\s*none !important/);
+  });
+
+  it('requests phone layer prefers compact table over card list', () => {
+    const css = read('apps/web/src/styles/mobile-requests-phone.css');
+    expect(css).toMatch(/oma-req-desktop[\s\S]{0,80}display:\s*block !important/);
+    expect(css).toMatch(/oma-req-mobile[\s\S]{0,80}display:\s*none !important/);
+    expect(css).toContain('border-bottom-color: var(--oma-workspace-primary-border');
   });
 
   it('uses fluid compact content rows on phone', () => {

@@ -2734,10 +2734,16 @@ button.oma-breadcrumb-workspace:hover {
     align-items: center !important;
     justify-content: center !important;
     flex-shrink: 0 !important;
-    width: 36px !important;
-    height: 36px !important;
     margin-inline-end: var(--space-1) !important;
     padding: 0 !important;
+  }
+
+  .oma-mobile-nav-toggle.oma-icon-action {
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 }
 

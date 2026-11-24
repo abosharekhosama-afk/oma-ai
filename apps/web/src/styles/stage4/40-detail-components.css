@@ -2090,16 +2090,7 @@ button.oma-breadcrumb-workspace:hover {
     font-size: 11px !important;
   }
 
-  /* Mobile: card list (≤900px base); do not re-force 980px desktop table on phone. */
-  html body .oma-req-page .oma-req-desktop {
-    display: none !important;
-  }
-
-  html body .oma-req-page .oma-req-mobile {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: var(--space-2) !important;
-  }
+  /* Requests phone table + tabs: mobile-requests-phone.css (loaded after ops-authority). */
 
   html body .oma-top-actions--workspace {
     gap: 4px !important;
@@ -2141,32 +2132,7 @@ button.oma-breadcrumb-workspace:hover {
   white-space: nowrap;
 }
 
-.oma-req-create-icon {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 34px !important;
-  height: 34px !important;
-  min-width: 34px !important;
-  padding: 0 !important;
-  border: 1px solid var(--oma-border, var(--oma-workspace-border-strong)) !important;
-  border-radius: 8px !important;
-  background: var(--oma-surface, var(--oma-surface)) !important;
-  color: var(--oma-primary, var(--oma-workspace-primary-border)) !important;
-  cursor: pointer !important;
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease !important;
-}
-
-.oma-req-create-icon:hover,
-.oma-req-create-icon:focus-visible {
-  border-color: var(--oma-primary, var(--oma-workspace-primary-border)) !important;
-  background: var(--oma-primary-soft, #eff6ff) !important;
-  color: var(--oma-primary, var(--oma-workspace-primary-border)) !important;
-  outline: none !important;
-}
+/* .oma-req-create-icon — oma-icon-action.css */
 
 @media (max-width: 767px) {
   html body .oma-top-context:has(.oma-requests-top-title:not(:empty)) {

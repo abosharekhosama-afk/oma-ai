@@ -1,0 +1,154 @@
+/*
+ * Requests on phone — table (not cards), compact density, Planable underline tabs.
+ * Loaded after mobile-ops-authority; overrides stage4 mobile card swap.
+ */
+@media (max-width: 900px) {
+  html body .oma-req-page .oma-req-desktop {
+    display: block !important;
+  }
+
+  html body .oma-req-page .oma-req-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html body main.oma-container:has(.oma-req-page),
+  html body .oma-container:has(.oma-req-page) {
+    padding: 6px 6px 12px !important;
+  }
+
+  html body .oma-req-page {
+    gap: 4px !important;
+  }
+
+  html body .oma-req-page .oma-req-header {
+    padding: 4px 2px 0 !important;
+    margin: 0 0 4px !important;
+  }
+
+  html body .oma-req-page .oma-req-workspace {
+    margin: 0 !important;
+  }
+
+  html body .oma-req-page .oma-req-main {
+    padding: 4px 0 12px !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs,
+  html body .oma-req-page .oma-ws-tabs,
+  html body .oma-req-page .oma-req-tabs.oma-ws-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    width: 100% !important;
+    margin: 0 0 6px !important;
+    padding: 0 !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--oma-workspace-border-strong) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs::-webkit-scrollbar,
+  html body .oma-req-page .oma-ws-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab,
+  html body .oma-req-page .oma-req-tabs .oma-req-tab,
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab,
+  html body .oma-req-page .oma-ws-tabs .oma-req-tab {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 7px 9px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--oma-workspace-muted) !important;
+    border-bottom: 2px solid transparent !important;
+    margin-bottom: -1px !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab:hover,
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab:hover {
+    background: transparent !important;
+    color: var(--oma-workspace-ink) !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab.is-active,
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab[data-active='true'],
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab[aria-selected='true'],
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab.is-active,
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab[data-active='true'],
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab[aria-selected='true'] {
+    background: transparent !important;
+    color: var(--oma-workspace-ink) !important;
+    font-weight: 500 !important;
+    border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary)) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-table-wrap,
+  html body .oma-req-page .oma-req-main .oma-req-table-wrap {
+    margin: 0 0 6px !important;
+    border-radius: 10px !important;
+    max-height: calc(100vh - 200px) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-table,
+  html body .oma-req-page .oma-req-main .oma-req-table {
+    font-size: 11px !important;
+  }
+
+  html body .oma-req-page .oma-req-table th,
+  html body .oma-req-page .oma-req-table td {
+    padding: 7px 8px !important;
+    min-width: 72px !important;
+  }
+
+  html body .oma-req-page .oma-req-table th:first-child,
+  html body .oma-req-page .oma-req-table td:first-child {
+    min-width: 140px !important;
+    max-width: 200px !important;
+    position: static !important;
+    inset-inline-start: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-header__title h1 {
+    font-size: 16px !important;
+  }
+
+  html body .oma-req-page .oma-req-header__count,
+  html body .oma-req-page .oma-req-main > .oma-muted[data-testid='demo-request-result-count'] {
+    font-size: 10px !important;
+  }
+
+  html body .oma-top .oma-mobile-nav-toggle.oma-icon-action,
+  html body .oma-mobile-nav-fab.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    min-height: var(--oma-icon-action-size, 32px) !important;
+    padding: 0 !important;
+    color: var(--oma-workspace-ink, var(--oma-home-ink)) !important;
+  }
+}
