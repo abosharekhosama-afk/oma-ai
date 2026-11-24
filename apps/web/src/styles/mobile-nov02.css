@@ -275,20 +275,7 @@
     white-space: nowrap !important;
   }
 
-  /* Ensure Display Settings & Holiday Calendars popovers stay inside the mobile screen */
-  html body .oma-pv-ds__pop,
-  html body .oma-ext-cal-pop {
-    position: fixed !important;
-    top: 104px !important;
-    inset-inline-start: 12px !important;
-    inset-inline-end: 12px !important;
-    width: auto !important;
-    max-width: calc(100vw - 24px) !important;
-    max-height: calc(100dvh - 124px) !important;
-    overflow-y: auto !important;
-    z-index: 1250 !important;
-    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.24) !important;
-  }
+  /* Display / holiday popovers on phone: oma-mobile-cascade-final.css */
 
   /* ---- Sidebar nav drawer: overlay, scroll body, pinned footer, safe-area ---- */
   html body .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
@@ -399,15 +386,7 @@
     margin-inline-end: 6px !important;
   }
 
-  /* ---- Calendar cells & grid on mobile ---- */
-  html body [data-testid='demo-content-calendar'] .oma-cal-grid,
-  html body .oma-cal-month {
-    min-width: 0 !important;
-  }
-  html body .oma-cal-cell {
-    min-height: 76px !important;
-    padding: 4px !important;
-  }
+  /* Calendar grid scroll + density: oma-mobile-cascade-final.css */
 
   /* ---- No horizontal page scroll ---- */
   html body,

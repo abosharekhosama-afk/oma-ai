@@ -505,6 +505,8 @@ function PlanableComposeCard({
   const [aiBusy, setAiBusy] = useState(false);
   const [aiProposal, setAiProposal] = useState<ContentAiProposal | null>(null);
   const [aiRefusal, setAiRefusal] = useState<string | null>(null);
+  const [saveMenu, setSaveMenu] = useState(false);
+  const saveMenuRef = useRef<HTMLDivElement | null>(null);
   const reportAiError = (err: unknown) => {
     const reason = aiRefusalReason(err, isAr ? 'ar' : 'en');
     setAiRefusal(reason);
@@ -535,6 +537,17 @@ function PlanableComposeCard({
     if (proposal.banner) toast.push(proposal.banner, 'default');
     return proposal;
   };
+  useEffect(() => {
+    if (!saveMenu) return;
+    const onDoc = (e: MouseEvent) => {
+      if (saveMenuRef.current && !saveMenuRef.current.contains(e.target as Node)) {
+        setSaveMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [saveMenu]);
+
   if (!open) return null;
   const now = dayjs();
   const preferred = [1, 2, 3, 4].map((d) =>
@@ -1145,29 +1158,52 @@ function PlanableComposeCard({
             >
               <EyeOutlined />
             </button>
-            {onEnqueue ? (
+            <div className="oma-compose-save-menu" ref={saveMenuRef}>
               <button
                 type="button"
-                className="oma-compose-queue"
+                className="oma-compose-save"
                 disabled={creating}
-                data-testid="compose-add-to-queue"
-                onClick={onEnqueue}
+                data-testid="demo-create-content-submit"
+                aria-haspopup="menu"
+                aria-expanded={saveMenu}
+                onClick={() => setSaveMenu((v) => !v)}
               >
-                {t('content.bestTime.enqueue')}
+                <span>{creating ? t('demo.content.saving') : t('content.save_draft')}</span>
+                <span className="oma-compose-save__caret" aria-hidden>
+                  <DownOutlined style={{ fontSize: 10 }} />
+                </span>
               </button>
-            ) : null}
-            <button
-              type="button"
-              className="oma-compose-save"
-              disabled={creating}
-              data-testid="demo-create-content-submit"
-              onClick={onSubmit}
-            >
-              <span>{creating ? t('demo.content.saving') : t('content.save_draft')}</span>
-              <span className="oma-compose-save__caret">
-                <DownOutlined style={{ fontSize: 10 }} />
-              </span>
-            </button>
+              {saveMenu ? (
+                <div className="oma-compose-save-flyout" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={creating}
+                    data-testid="demo-create-content-save-draft"
+                    onClick={() => {
+                      setSaveMenu(false);
+                      onSubmit();
+                    }}
+                  >
+                    {t('content.save_draft')}
+                  </button>
+                  {onEnqueue ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      disabled={creating}
+                      data-testid="compose-add-to-queue"
+                      onClick={() => {
+                        setSaveMenu(false);
+                        onEnqueue();
+                      }}
+                    >
+                      {t('content.bestTime.enqueue')}
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

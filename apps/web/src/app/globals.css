@@ -2438,6 +2438,19 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
   html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] .oma-cal-dow-row {
     grid-template-columns: repeat(5, minmax(96px, 1fr)) !important;
   }
+  html body [data-testid='demo-content-cal-grid'][data-span='month'] {
+    grid-auto-rows: minmax(76px, auto) !important;
+    align-content: start !important;
+  }
+  html body [data-testid='demo-content-cal-grid'][data-span='month'] > .oma-cal-cell {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 76px !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell__scroll {
+    max-height: min(120px, 32vw) !important;
+    overflow-y: auto !important;
+  }
 }
 .oma-cal-month-label {
   min-width: 0 !important;

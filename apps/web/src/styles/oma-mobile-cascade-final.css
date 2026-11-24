@@ -265,15 +265,82 @@ html body .oma-plx-content-header-btn--primary {
   }
 
   html body .oma-cal-toolbar .oma-cal-request-approvals,
-  html body .oma-cal-toolbar .oma-cal-ext-indicator,
   html body .oma-cal-toolbar .oma-cal-saved-toggle {
-    width: auto !important;
-    max-width: none !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    max-width: var(--oma-icon-action-size, 32px) !important;
     min-width: var(--oma-icon-action-size, 32px) !important;
     height: var(--oma-icon-action-size, 32px) !important;
-    padding: 0 6px !important;
-    gap: 4px !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 0 !important;
+    justify-content: center !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-indicator {
+    width: auto !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    max-width: 44px !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    padding: 0 2px !important;
+    gap: 2px !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    position: relative !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-label {
+    display: none !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-indicator .oma-cal-ext-count {
+    position: absolute !important;
+    top: 2px !important;
+    inset-inline-end: 2px !important;
+    min-width: 12px !important;
+    height: 12px !important;
+    padding: 0 2px !important;
+    font-size: 8px !important;
+    line-height: 12px !important;
+    border-radius: 999px !important;
+    background: var(--oma-workspace-ink, #111827) !important;
+    color: #fff !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-wrap {
+    position: relative !important;
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body .oma-pv-ds__pop,
+  html body .oma-ext-cal-pop {
+    position: fixed !important;
+    inset-inline-start: 12px !important;
+    inset-inline-end: auto !important;
+    width: min(280px, calc(100vw - 24px)) !important;
+    max-width: min(280px, calc(100vw - 24px)) !important;
+    top: max(96px, env(safe-area-inset-top, 0px) + 88px) !important;
+    margin-top: 0 !important;
+    max-height: min(300px, 52dvh) !important;
+    overflow-y: auto !important;
+    padding: 10px 10px 12px !important;
     font-size: 11px !important;
+    z-index: 1250 !important;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2) !important;
+  }
+
+  html body .oma-ext-cal-pop__head strong {
+    font-size: 12px !important;
+  }
+
+  html body .oma-ext-cal-tile {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    min-height: 0 !important;
   }
 
   html body .oma-cal-toolbar .oma-cal-request-approvals[data-active='true'],
@@ -363,31 +430,74 @@ html body .oma-plx-content-header-btn--primary {
     max-width: none !important;
   }
 
+  html body .oma-plx-ml-split__main:has([data-testid='demo-content-calendar']),
+  html body .oma-plx-ml-split__main:has([data-testid='demo-content-cal-grid']) {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    min-width: 0 !important;
+  }
+
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
   html body [data-testid='demo-content-calendar'] .oma-cal-grid,
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid.oma-cal-grid {
-    width: max-content !important;
-    min-width: 100% !important;
+    width: max(100%, 616px) !important;
+    min-width: max(100%, 616px) !important;
     max-width: none !important;
     overflow: visible !important;
-    grid-template-columns: repeat(7, minmax(96px, 1fr)) !important;
+    grid-template-columns: repeat(7, 88px) !important;
+    grid-auto-rows: minmax(76px, auto) !important;
+    align-content: start !important;
+    box-sizing: border-box !important;
   }
 
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid[data-hide-weekends='true'],
   html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] {
-    grid-template-columns: repeat(5, minmax(96px, 1fr)) !important;
+    width: max(100%, 440px) !important;
+    min-width: max(100%, 440px) !important;
+    grid-template-columns: repeat(5, 88px) !important;
   }
 
   html body [data-testid='demo-content-calendar'] .oma-cal-dow-row {
-    grid-template-columns: repeat(7, minmax(96px, 1fr)) !important;
+    grid-template-columns: repeat(7, 88px) !important;
+    width: max(100%, 616px) !important;
+    min-width: max(100%, 616px) !important;
   }
 
   html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] .oma-cal-dow-row {
-    grid-template-columns: repeat(5, minmax(96px, 1fr)) !important;
+    grid-template-columns: repeat(5, 88px) !important;
+    width: max(100%, 440px) !important;
+    min-width: max(100%, 440px) !important;
   }
 
-  html body .oma-cal-cell {
-    min-width: 96px !important;
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell {
+    min-width: 88px !important;
+    max-width: 88px !important;
+    width: 88px !important;
+    min-height: 76px !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 4px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell__scroll {
+    max-height: min(112px, 30vw) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell .oma-post-card--calendar,
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell .oma-post-card.oma-post-card--calendar {
+    min-height: 0 !important;
+    max-height: 96px !important;
+    padding: 4px 6px !important;
+    font-size: 10px !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-daynum {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
   }
 
   /* Feed: keep cards inside viewport */
@@ -439,6 +549,49 @@ html body .oma-plx-content-header-btn--primary {
     max-height: none !important;
     margin: 0 auto 16px !important;
     overflow: visible !important;
+  }
+
+  html body .oma-plx-compose-card .oma-compose-pills--inline,
+  html body .oma-compose-card .oma-compose-pills--inline {
+    padding: 12px 14px 0 !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-compose-save-menu {
+    position: relative !important;
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body .oma-compose-save-flyout {
+    position: absolute !important;
+    inset-inline-end: 0 !important;
+    bottom: calc(100% + 6px) !important;
+    z-index: 1300 !important;
+    min-width: 168px !important;
+    padding: 4px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--oma-home-border, #e5e7eb) !important;
+    background: var(--oma-surface, #fff) !important;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16) !important;
+  }
+
+  html body .oma-compose-save-flyout button {
+    display: flex !important;
+    width: 100% !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    text-align: start !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--oma-workspace-ink, #111827) !important;
+    cursor: pointer !important;
+  }
+
+  html body .oma-compose-save-flyout button:hover {
+    background: var(--oma-home-hover, #f3f4f6) !important;
   }
 
   /* My approvals — compact columns/cards + header icons + channel sheet in viewport */
