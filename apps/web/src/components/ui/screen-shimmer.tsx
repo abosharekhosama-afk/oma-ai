@@ -626,7 +626,7 @@ export function DeliverablesShimmer({
 /* -------------------------------------------------------------------------------------------- */
 
 export function ApprovalsShimmer({ embedded = false }: { embedded?: boolean }) {
-  const cols = [4, 4, 4];
+  const cols = [3, 3, 3];
   return (
     <ShimmerRoot
       screen="approvals"
@@ -637,32 +637,32 @@ export function ApprovalsShimmer({ embedded = false }: { embedded?: boolean }) {
           <section key={colIdx} className="oma-plx-approvals__column-wrap">
             <header className="oma-plx-approvals__column-head">
               <span className="oma-plx-approvals__column-title">
-                <Bone w={14} h={14} r={999} />
-                <Bone w={colIdx === 0 ? 110 : 88} h={13} r={5} />
+                <Bone w={12} h={12} r={999} />
+                <Bone w={colIdx === 0 ? 84 : 68} h={10} r={4} />
               </span>
-              <Bone w={22} h={18} r={6} />
+              <Bone w={18} h={14} r={5} />
             </header>
             <div className="oma-plx-approvals__column">
-              {colIdx === 0 ? <Bone w="100%" h={36} r={8} /> : null}
+              {colIdx === 0 ? <Bone w="100%" h={28} r={6} /> : null}
               <div className="oma-plx-approvals__cards">
                 {range(cards).map((i) => (
-                  <article key={i} className="oma-plx-approvals-card" style={{ paddingBottom: 10 }}>
+                  <article key={i} className="oma-plx-approvals-card" style={{ paddingBottom: 6 }}>
                     <div className="oma-plx-approvals-card__head">
-                      <Bone w={16} h={16} r={4} />
-                      <Bone w={68} h={11} r={4} />
+                      <Bone w={14} h={14} r={4} />
+                      <Bone w={52} h={9} r={4} />
                       <span className="oma-shim-spacer" />
-                      <Bone w={46} h={10} r={4} />
+                      <Bone w={36} h={8} r={4} />
                     </div>
-                    <div style={{ padding: '0 8px' }}>
-                      <Bone w="100%" h={124} r={6} />
+                    <div style={{ padding: '0 5px' }}>
+                      <Bone w="100%" h={88} r={5} />
                     </div>
-                    <div style={{ padding: '8px 10px 4px', display: 'grid', gap: 5 }}>
-                      <Bone w="92%" h={11} r={4} />
-                      <Bone w="66%" h={11} r={4} />
+                    <div style={{ padding: '5px 7px 3px', display: 'grid', gap: 4 }}>
+                      <Bone w="90%" h={9} r={4} />
+                      <Bone w="58%" h={9} r={4} />
                     </div>
                     <div className="oma-plx-approvals-card__foot">
-                      <Bone w={56} h={11} r={999} />
-                      <Bone w={26} h={11} r={4} />
+                      <Bone w={48} h={9} r={999} />
+                      <Bone w={22} h={9} r={4} />
                     </div>
                   </article>
                 ))}

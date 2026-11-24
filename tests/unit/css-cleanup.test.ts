@@ -110,8 +110,10 @@ describe('css cleanup (stage2/4/5)', () => {
   it('approvals board uses flexible mobile columns', () => {
     const css = read('apps/web/src/styles/approvals-planable.css');
     expect(css).toMatch(/oma-plx-approvals__columns[\s\S]{0,200}display:\s*flex/);
+    expect(css).toMatch(/oma-plx-approvals__column-wrap[\s\S]{0,80}72vw/);
     expect(css).toContain('.oma-shim-approvals');
     expect(css).toContain('oma-plx-approvals-channels--portal');
+    expect(css).toContain('oma-plx-approvals-ch-dd__trigger.oma-icon-action');
   });
 
   it('content mobile cascade enables calendar horizontal scroll', () => {

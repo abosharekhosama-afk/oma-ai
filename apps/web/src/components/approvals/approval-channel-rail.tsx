@@ -29,6 +29,7 @@ export function ApprovalChannelRail({
   const [open, setOpen] = useState(false);
   const [panelPos, setPanelPos] = useState<{ top: number; insetInlineStart: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
   const allOn = enabled.size === 0 || enabled.size === channels.length;
   const someOn = enabled.size > 0 && enabled.size < channels.length;
@@ -41,18 +42,31 @@ export function ApprovalChannelRail({
     }
     const r = wrapRef.current.getBoundingClientRect();
     const rtl = document.documentElement.getAttribute('dir') === 'rtl';
-    const insetInlineStart = rtl
-      ? Math.max(12, window.innerWidth - r.right)
-      : Math.max(12, Math.min(r.left, window.innerWidth - 280));
-    setPanelPos({ top: r.bottom + 8, insetInlineStart });
+    const panelWidth = Math.min(236, window.innerWidth - 16);
+    const margin = 8;
+    const maxTop = window.innerHeight - Math.min(340, window.innerHeight - 128);
+    let insetInlineStart: number;
+    if (rtl) {
+      const anchorEnd = window.innerWidth - r.right;
+      insetInlineStart = Math.max(
+        margin,
+        Math.min(anchorEnd, window.innerWidth - panelWidth - margin),
+      );
+    } else {
+      insetInlineStart = Math.max(margin, Math.min(r.left, window.innerWidth - panelWidth - margin));
+    }
+    const top = Math.min(r.bottom + 8, maxTop);
+    setPanelPos({ top, insetInlineStart });
   }, [open, channels.length]);
 
   useEffect(() => {
     if (!open) return;
     const onDocDown = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) {
-        setOpen(false);
+      const target = e.target as Node;
+      if (wrapRef.current?.contains(target) || panelRef.current?.contains(target)) {
+        return;
       }
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
@@ -78,6 +92,7 @@ export function ApprovalChannelRail({
   const channelPanel =
     open && typeof document !== 'undefined' ? (
       <div
+        ref={panelRef}
         className="oma-plx-approvals-channels oma-plx-approvals-channels--portal"
         role="dialog"
         aria-label={t('approvals.channels')}

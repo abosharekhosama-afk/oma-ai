@@ -181,27 +181,7 @@
 
   /* Content header: OmaIconAction — oma-mobile-cascade-final.css */
 
-  /* Approvals top actions inside header on mobile */
-  html body .oma-plx-approvals__top-actions {
-    gap: 6px !important;
-    flex-wrap: nowrap !important;
-  }
-  html body .oma-plx-approvals-ch-dd__trigger {
-    height: 32px !important;
-    padding: 0 8px !important;
-    font-size: 12px !important;
-  }
-  html body .oma-plx-approvals__approve-all-btn {
-    padding: 4px 6px !important;
-    font-size: 12px !important;
-    white-space: nowrap !important;
-  }
-  html body .oma-plx-approvals__review-cta {
-    height: 32px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-    white-space: nowrap !important;
-  }
+  /* Approvals header actions — borderless icons: oma-mobile-cascade-final.css */
 
   /* ========================================================================
      2. CONTENT CALENDAR TOOLBAR (.oma-cal-toolbar) — No clipped popovers,

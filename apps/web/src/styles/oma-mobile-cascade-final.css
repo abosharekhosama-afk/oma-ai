@@ -19,6 +19,9 @@ html body .oma-header-create-icon,
 html body .oma-sched-icon-btn,
 html body .oma-activity-refresh,
 html body .oma-plx-tasks__create-icon,
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action,
+html body .oma-plx-approvals__approve-all-btn.oma-icon-action,
+html body .oma-plx-approvals__review-cta.oma-icon-action,
 html body .oma-mobile-nav-toggle.oma-icon-action,
 html body .oma-mobile-nav-fab.oma-icon-action {
   display: inline-flex !important;
@@ -438,18 +441,76 @@ html body .oma-plx-content-header-btn--primary {
     overflow: visible !important;
   }
 
-  /* My approvals — header icons + channel sheet in viewport */
+  /* My approvals — compact columns/cards + header icons + channel sheet in viewport */
   html body #oma-content-top-actions .oma-plx-approvals__top-actions {
     gap: 2px !important;
     flex-wrap: nowrap !important;
     justify-content: flex-end !important;
     min-width: 0 !important;
-    max-width: min(52vw, 200px) !important;
+    max-width: min(58vw, 220px) !important;
   }
 
-  html body .oma-plx-approvals-channels--portal {
-    width: min(280px, calc(100vw - 24px)) !important;
-    max-width: calc(100vw - 24px) !important;
+  html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    font-size: 0 !important;
+  }
+
+  html body .oma-plx-approvals__approve-all-btn.oma-icon-action,
+  html body .oma-plx-approvals__review-cta.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    font-size: 0 !important;
+  }
+
+  html body .oma-plx-approvals__review-cta.oma-icon-action--compose {
+    color: var(--oma-primary, #1677ff) !important;
+    background: transparent !important;
+  }
+
+  html body .oma-plx-approvals__column-wrap,
+  html body .oma-shim-approvals .oma-plx-approvals__column-wrap {
+    flex: 0 0 min(72vw, 228px) !important;
+    width: min(72vw, 228px) !important;
+    max-width: min(72vw, 228px) !important;
+  }
+
+  html body .oma-plx-approvals-card__brand {
+    font-size: 10px !important;
+    max-width: 44% !important;
+  }
+
+  html body .oma-plx-approvals-card__media {
+    max-height: 92px !important;
+    aspect-ratio: 5 / 4 !important;
+  }
+
+  html body .oma-plx-approvals-channels,
+  html body .oma-plx-approvals-channels.oma-plx-approvals-channels--portal {
+    width: min(236px, calc(100vw - 16px)) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 8px !important;
+    font-size: 11px !important;
+    max-height: min(340px, calc(100dvh - 128px)) !important;
+    overflow: auto !important;
     box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-approvals-channels__row,
+  html body .oma-plx-approvals-channels__row-label {
+    font-size: 11px !important;
+  }
+
+  html body .oma-plx-approvals-channels__head {
+    font-size: 10px !important;
   }
 }
