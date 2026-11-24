@@ -1488,10 +1488,13 @@ function CardActionsButton({
   onOpen: (itemId: string, anchor: HTMLElement) => void;
   onClose: () => void;
 }) {
+  const btnClass = className
+    ? `oma-card-actions-btn ${className}`
+    : 'oma-card-actions-btn';
   return (
-    <button
+    <OmaIconAction
       type="button"
-      className={className ? `oma-card-actions-btn ${className}` : 'oma-card-actions-btn'}
+      className={btnClass}
       data-testid={`demo-content-actions-${itemId}`}
       data-open={open ? 'true' : 'false'}
       aria-label={label}
@@ -1505,8 +1508,8 @@ function CardActionsButton({
         else onOpen(itemId, e.currentTarget);
       }}
     >
-      <MoreOutlined />
-    </button>
+      <MoreOutlined aria-hidden />
+    </OmaIconAction>
   );
 }
 
@@ -4460,6 +4463,10 @@ export default function ContentPage() {
                 </div>
 
                 <div
+                  className="oma-cal-hscroll"
+                  data-testid="demo-content-cal-scroll"
+                >
+                <div
                   className="oma-cal-grid"
                   role="grid"
                   aria-label={t('demo.view.calendar')}
@@ -4788,6 +4795,7 @@ export default function ContentPage() {
                       )}
                     </div>
                   ))}
+                </div>
                 </div>
               </div>
 

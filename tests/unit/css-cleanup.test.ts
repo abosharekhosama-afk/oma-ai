@@ -119,7 +119,8 @@ describe('css cleanup (stage2/4/5)', () => {
   it('content mobile cascade enables calendar horizontal scroll', () => {
     const css = read('apps/web/src/styles/oma-mobile-cascade-final.css');
     expect(css).toContain('.oma-cal-main');
-    expect(css).toMatch(/--oma-cal-day-col:\s*calc\(\(100vw - 20px\) \/ 4\)/);
+    expect(css).toMatch(/--oma-cal-day-col:\s*calc\(\(100vw - 20px\) \/ 3\)/);
+    expect(css).toContain('.oma-cal-hscroll');
     expect(css).toContain('.oma-compose-overlay');
     expect(css).toContain('.oma-card-actions-btn');
   });

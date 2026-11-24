@@ -247,7 +247,9 @@ html body .oma-plx-content-header-btn--primary {
   html body .oma-cal-toolbar .oma-cal-nav__btn.ant-btn,
   html body .oma-cal-toolbar .oma-pv-ds > button,
   html body .oma-card-actions-btn,
+  html body .oma-card-actions-btn.oma-icon-action,
   html body .oma-card-actions-btn--cal,
+  html body .oma-card-actions-btn--cal.oma-icon-action,
   html body .oma-card-actions-btn--list,
   html body .oma-card-actions-btn--grid,
   html body .oma-card-actions-btn--saved,
@@ -467,29 +469,44 @@ html body .oma-plx-content-header-btn--primary {
     opacity: 1 !important;
   }
 
-  /* Calendar: horizontal scroll — wider day columns, not squeezed into viewport */
+  /* Calendar: 3 visible day columns; rest via horizontal scroll on oma-cal-hscroll */
   html body [data-testid='demo-content-calendar'] {
-    --oma-cal-day-col: calc((100vw - 20px) / 4);
+    --oma-cal-day-col: calc((100vw - 20px) / 3);
+  }
+
+  html body .oma-shell-main:has([data-testid='demo-content-calendar']),
+  html body .oma-page:has([data-testid='demo-content-calendar']),
+  html body .oma-workspace:has([data-testid='demo-content-calendar']),
+  html body .oma-plx-ml-split__main:has([data-testid='demo-content-calendar']),
+  html body .oma-content-plan.oma-plx-content:has([data-testid='demo-content-calendar']) {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    min-width: 0 !important;
   }
 
   html body [data-testid='demo-content-calendar'] .oma-cal-main {
     display: block !important;
-    overflow-x: scroll !important;
+    overflow: visible !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  html body [data-testid='demo-content-cal-scroll'].oma-cal-hscroll,
+  html body [data-testid='demo-content-calendar'] .oma-cal-hscroll {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
     overflow-y: visible !important;
     -webkit-overflow-scrolling: touch !important;
     overscroll-behavior-x: contain !important;
     touch-action: pan-x pan-y !important;
     scrollbar-width: thin !important;
     margin-inline: 0 !important;
-    padding-inline: 0 4px !important;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-
-  html body .oma-plx-ml-split__main:has([data-testid='demo-content-calendar']) {
-    overflow-x: visible !important;
-    overflow-y: visible !important;
-    min-width: 0 !important;
+    padding-inline: 0 4px 6px !important;
+    box-sizing: border-box !important;
   }
 
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
@@ -523,6 +540,7 @@ html body .oma-plx-content-header-btn--primary {
   }
 
   html body [data-testid='demo-content-calendar'] .oma-cal-cell {
+    position: relative !important;
     min-width: 0 !important;
     max-width: none !important;
     width: auto !important;
@@ -531,6 +549,92 @@ html body .oma-plx-content-header-btn--primary {
     max-height: none !important;
     padding: 4px !important;
     box-sizing: border-box !important;
+  }
+
+  /* Post / note: always-visible floating icon stack (no hover-only bar) */
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions {
+    display: flex !important;
+    position: absolute !important;
+    top: 16px !important;
+    inset-inline-end: 2px !important;
+    inset-inline-start: auto !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 2px !important;
+    width: auto !important;
+    margin: 0 !important;
+    z-index: 6 !important;
+    pointer-events: auto !important;
+    order: unset !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: color-mix(in srgb, var(--oma-surface, #fff) 92%, transparent) !important;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.14) !important;
+    color: var(--oma-workspace-muted, #6b7280) !important;
+    font-size: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn span {
+    display: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn .anticon {
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn:hover {
+    color: var(--oma-primary, #1677ff) !important;
+    background: color-mix(in srgb, var(--oma-surface, #fff) 96%, transparent) !important;
+    border: 0 !important;
+  }
+
+  /* Request-approval selection checkbox on calendar cards */
+  html body [data-testid='demo-content-calendar'] .oma-cal-select {
+    position: absolute !important;
+    top: 3px !important;
+    inset-inline-start: 3px !important;
+    inset-inline-end: auto !important;
+    z-index: 7 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    background: color-mix(in srgb, var(--oma-surface, #fff) 94%, transparent) !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+    border: 1px solid var(--oma-home-border, #e5e7eb) !important;
+    cursor: pointer !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-select:has(input:checked) {
+    border-color: var(--oma-primary, #1677ff) !important;
+    background: color-mix(in srgb, var(--oma-primary, #1677ff) 10%, var(--oma-surface, #fff)) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-select input[type='checkbox'] {
+    width: 14px !important;
+    height: 14px !important;
+    margin: 0 !important;
+    accent-color: var(--oma-primary, #1677ff) !important;
+    cursor: pointer !important;
   }
 
   html body [data-testid='demo-content-calendar'] .oma-cal-cell__scroll {
@@ -655,6 +759,20 @@ html body .oma-plx-content-header-btn--primary {
     max-width: min(58vw, 220px) !important;
   }
 
+  html body #oma-content-top-actions .oma-plx-approvals__action-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn:not(.oma-icon-action),
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta:not(.oma-icon-action) {
+    display: none !important;
+  }
+
   html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
     border: 0 !important;
     background: transparent !important;
@@ -713,10 +831,22 @@ html body .oma-plx-content-header-btn--primary {
   }
 
   html body .oma-plx-approvals-card__media {
-    flex: 1 1 auto !important;
-    max-height: none !important;
+    flex: 0 0 104px !important;
+    height: 104px !important;
+    min-height: 104px !important;
+    max-height: 104px !important;
     aspect-ratio: auto !important;
-    min-height: 72px !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-plx-approvals-card__media img,
+  html body .oma-plx-approvals-card__media video {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
   }
 
   html body .oma-plx-approvals-channels,
