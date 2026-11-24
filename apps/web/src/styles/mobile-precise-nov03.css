@@ -178,35 +178,7 @@
     text-align: end !important;
   }
 
-  /* ---- 4. Create / invite icon-only ---- */
-  html body .oma-req-create-icon,
-  html body .oma-header-create-icon {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    padding: 0 !important;
-    border: 1px solid #dbe2ea !important;
-    border-radius: 8px !important;
-    background: #fff !important;
-    color: #2563eb !important;
-    cursor: pointer !important;
-  }
-  html body .oma-header-create-icon__label,
-  html body .oma-header-create-icon > span:not(:has(svg)) {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-  }
-  /* Hide text labels on primary create buttons that still include text */
-  html body .oma-top-actions .ant-btn-primary > span:not(:has(svg)):not(.anticon),
-  html body .oma-workspace-header-actions .ant-btn-primary > span:not(:has(svg)):not(.anticon) {
-    /* keep structure; prefer dedicated icon buttons above */
-  }
+  /* ---- 4. Header icons: oma-icon-action.css ---- */
 
   /* ---- 5. Team permissions: no sticky first column ---- */
   html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,

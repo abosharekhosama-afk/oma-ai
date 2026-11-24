@@ -2004,29 +2004,7 @@ button.oma-breadcrumb-workspace:hover {
   flex: 0 0 auto;
 }
 
-.oma-req-filter-icon {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 34px !important;
-  height: 34px !important;
-  padding: 0 !important;
-  border: 1px solid var(--oma-border, var(--oma-workspace-border-strong)) !important;
-  border-radius: 8px !important;
-  background: var(--oma-surface, var(--oma-surface)) !important;
-  color: var(--oma-muted, #64748b) !important;
-}
-
-.oma-req-filter-icon:hover,
-.oma-req-filter-icon[data-active='true'] {
-  color: var(--oma-primary, var(--oma-workspace-primary-border)) !important;
-  border-color: color-mix(
-    in srgb,
-    var(--oma-primary, var(--oma-workspace-primary-border)) 35%,
-    var(--oma-border, var(--oma-workspace-border-strong))
-  ) !important;
-  background: var(--oma-primary-soft, #eff6ff) !important;
-}
+/* Filter/create chrome: oma-icon-action.css */
 
 @media (max-width: 767px) {
   /* Match the compact desktop shell instead of switching to a separate card layout. */
@@ -2291,47 +2269,7 @@ button.oma-breadcrumb-workspace:hover {
   }
 }
 
-/* Phone headers: filter controls become icon-only on Tasks and Deliverables. */
-@media (max-width: 767px) {
-  html body button[data-testid='demo-deliv-open-filters'],
-  html body button[data-testid='demo-task-open-filters'] {
-    position: relative !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 0 !important;
-    width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  html body button[data-testid='demo-deliv-open-filters'] > .oma-req-filter-btn__label,
-  html body button[data-testid='demo-task-open-filters'] > .oma-req-filter-btn__label {
-    display: none !important;
-  }
-
-  html body button[data-testid='demo-deliv-open-filters'] > svg,
-  html body button[data-testid='demo-task-open-filters'] > svg {
-    width: 18px !important;
-    height: 18px !important;
-    flex: 0 0 18px !important;
-  }
-
-  html body button[data-testid='demo-deliv-open-filters'] > .oma-req-filter-btn__count,
-  html body button[data-testid='demo-task-open-filters'] > .oma-req-filter-btn__count {
-    position: absolute !important;
-    inset-block-start: -5px !important;
-    inset-inline-end: -5px !important;
-    min-width: 16px !important;
-    height: 16px !important;
-    padding: 0 3px !important;
-    font-size: 9px !important;
-    line-height: 1 !important;
-  }
-}
+/* Phone filter/create icons: oma-icon-action.css + plx-header-filter */
 
 /* Choice-select menu portalled to <body>: positioned against the viewport so it always
    renders above cards, sticky bars, and overflow-clipped containers. */

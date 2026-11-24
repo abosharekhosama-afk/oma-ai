@@ -19,16 +19,14 @@ describe('mobile deliverables width and task/output filter actions', () => {
   });
 
   it('makes only task and deliverables filter labels icon-only below the phone breakpoint', () => {
-    const css = readStage4Styles();
-    const mobileRules = css.slice(css.lastIndexOf('Phone headers: filter controls'));
+    const iconCss = read('apps/web/src/styles/oma-icon-action.css');
+    const plx = read('apps/web/src/components/ui/plx-header-filter.tsx');
     const deliverables = read('apps/web/src/app/(app)/app/deliverables/deliverables-client.tsx');
     const tasks = read('apps/web/src/app/(app)/app/tasks/tasks-client.tsx');
 
-    expect(mobileRules).toContain('@media (max-width: 767px)');
-    expect(mobileRules).toContain("data-testid='demo-deliv-open-filters'");
-    expect(mobileRules).toContain("data-testid='demo-task-open-filters'");
-    expect(mobileRules).toContain('> .oma-req-filter-btn__label');
-    expect(mobileRules).toContain('display: none !important');
+    expect(iconCss).toContain('.oma-icon-action');
+    expect(plx).toContain('OmaIconAction');
+    expect(plx).not.toContain('oma-req-filter-btn__label');
     expect(deliverables).toContain("locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'");
     expect(tasks).toContain("locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'");
     expect(deliverables).toContain('filterTestId="demo-deliv-open-filters"');

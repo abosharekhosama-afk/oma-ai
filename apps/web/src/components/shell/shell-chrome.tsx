@@ -42,6 +42,7 @@ const SettingsPanel = dynamic(
 import { PlxLogo } from '../ui/plx-icons';
 import { FloatingTooltips } from '../ui/floating-tooltips';
 import { applyMobileOpsFlag } from '../../lib/mobile-ops-flag';
+import { OmaIconAction } from '../ui/oma-icon-action';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
@@ -596,17 +597,13 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </div>
             ) : hideShellCreate ? null : isHome ? (
               <div className="oma-top-actions oma-top-actions--home">
-                <OmaLinkButton
+                <OmaIconAction
                   href="/app/content?create=1"
-                  type="primary"
-                  className="oma-header-create-icon"
                   data-testid="shell-create"
                   aria-label={t('home.v2.createPost')}
-                  title={t('home.v2.createPost')}
                 >
                   <ShellIcon name="plus" size={16} />
-                  <span className="oma-header-create-icon__label">{t('home.v2.createPost')}</span>
-                </OmaLinkButton>
+                </OmaIconAction>
               </div>
             ) : isBrandsList ? (
               <div className="oma-top-actions">
@@ -621,17 +618,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </div>
             ) : pathname === '/app/team' ? (
               <div className="oma-top-actions">
-                <Button
-                  type="primary"
-                  className="oma-header-create-icon"
+                <OmaIconAction
+                  type="button"
                   data-testid="shell-invite-members"
                   aria-label={t('team.invite_members')}
-                  title={t('team.invite_members')}
                   onClick={openTeamInvite}
                 >
                   <ShellIcon name="plus" size={16} />
-                  <span className="oma-header-create-icon__label">{t('team.invite_members')}</span>
-                </Button>
+                </OmaIconAction>
               </div>
             ) : isBrandDetail && brandIdFromPath && !pathname.endsWith('/settings') ? (
               <div className="oma-top-actions">

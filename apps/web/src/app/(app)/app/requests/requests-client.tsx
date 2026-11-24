@@ -16,6 +16,7 @@ import {
   TextArea,
 } from '@oma/ui/controls';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
@@ -441,29 +442,24 @@ export default function RequestsPage() {
         ? createPortal(
             <>
               <span className="oma-requests-header-title">{t('demo.requests.title')}</span>
-              <button
+              <OmaIconAction
                 type="button"
-                className="oma-req-filter-icon"
                 data-testid="demo-request-open-filters"
                 data-active={filterSheet ? 'true' : 'false'}
                 aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+                badge={filterCount}
                 onClick={() => setFilterSheet((v) => !v)}
               >
                 <ShellIcon name="filter" size={18} />
-                {filterCount > 0 ? (
-                  <span className="oma-req-filter-icon__count">{filterCount}</span>
-                ) : null}
-              </button>
-              <button
+              </OmaIconAction>
+              <OmaIconAction
                 type="button"
-                className="oma-req-create-icon"
                 data-testid="demo-create-request"
                 aria-label={t('demo.requests.new')}
-                title={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}
               >
                 <ShellIcon name="plus" size={19} />
-              </button>
+              </OmaIconAction>
             </>,
             headerSlot,
           )

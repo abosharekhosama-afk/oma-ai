@@ -14,8 +14,10 @@ Canonical owners for ops/product surfaces. **Later layers must not override** ea
 ## Cascade order (simplified)
 
 ```
-tokens → shell → stage2 → stage3* → stage4* → stage5 → … → mobile-* → mobile-ops-authority (last)
+tokens → shell → stage2 → stage3* → stage4* → stage5 → … → oma-icon-action → mobile-* → mobile-ops-authority (last)
 ```
+
+**Header icon actions** (filter, create, refresh): component `OmaIconAction` + `oma-icon-action.css` only — do not restyle with `ant-btn-primary` or per-route `!important` blocks.
 
 ## PurgeCSS policy
 

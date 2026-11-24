@@ -38,6 +38,14 @@ describe('css cleanup (stage2/4/5)', () => {
     expect(index).toContain("@import './stage3/10-content-chrome.css'");
   });
 
+  it('loads canonical icon action stylesheet', () => {
+    const globals = read('apps/web/src/app/globals.css');
+    expect(globals).toContain('oma-icon-action.css');
+    const css = read('apps/web/src/styles/oma-icon-action.css');
+    expect(css).toContain('.oma-icon-action');
+    expect(css).not.toContain('type="primary"');
+  });
+
   it('globals no longer re-forces mobile-precise deliverable cascade', () => {
     const globals = read('apps/web/src/app/globals.css');
     expect(globals).not.toContain('MOBILE_PRECISE_NOV03 cascade reinforce');

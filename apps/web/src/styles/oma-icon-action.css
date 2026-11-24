@@ -1,0 +1,141 @@
+/* Borderless workspace icon actions (filter, create, refresh) — no ant-btn chrome */
+
+.oma-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--oma-icon-action-size, 36px);
+  height: var(--oma-icon-action-size, 36px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--oma-icon-action-radius, 8px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--oma-workspace-muted, #6b7280);
+  cursor: pointer;
+  position: relative;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.oma-icon-action:hover,
+.oma-icon-action:focus-visible,
+.oma-icon-action[data-active='true'] {
+  color: var(--oma-primary, #1677ff);
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent);
+  outline: none;
+}
+
+.oma-icon-action:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--oma-primary, #1677ff) 35%, transparent);
+}
+
+.oma-icon-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.oma-icon-action svg,
+.oma-icon-action .oma-lucide {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.oma-icon-action__badge {
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--oma-workspace-ink, #111827);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.oma-workspace-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+
+/* Legacy class aliases → single grammar (remove duplicated button skins) */
+.oma-req-filter-icon,
+.oma-req-create-icon,
+.oma-header-create-icon,
+.oma-plx-tasks__create-icon,
+.oma-sched-icon-btn,
+.oma-activity-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--oma-icon-action-size, 36px);
+  height: var(--oma-icon-action-size, 36px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--oma-icon-action-radius, 8px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--oma-workspace-muted, #6b7280);
+  cursor: pointer;
+  position: relative;
+}
+
+.oma-req-filter-icon:hover,
+.oma-req-create-icon:hover,
+.oma-header-create-icon:hover,
+.oma-plx-tasks__create-icon:hover,
+.oma-sched-icon-btn:hover,
+.oma-activity-refresh:hover,
+.oma-req-filter-icon[data-active='true'],
+.oma-plx-listening-filter__trigger[data-active='true'] {
+  color: var(--oma-primary, #1677ff);
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent);
+}
+
+.oma-req-filter-icon__count {
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--oma-workspace-ink, #111827);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .oma-icon-action,
+  .oma-req-filter-icon,
+  .oma-req-create-icon,
+  .oma-header-create-icon,
+  .oma-plx-tasks__create-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .oma-req-create-icon__label,
+  .oma-header-create-icon__label,
+  .oma-req-filter-btn__label,
+  .oma-plx-tasks__create-icon > span:not(.oma-icon-action__badge) {
+    display: none !important;
+  }
+}
