@@ -3607,92 +3607,159 @@ html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card {
   background: var(--oma-surface, #fff) !important;
 }
 
-/* Workspace settings panel: keep laptop two-column on phone, smaller type */
+/* Workspace + account settings: floating card (not full-screen), compact type */
+html body .oma-ws-overlay {
+  padding: 16px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel {
+  display: grid !important;
+  grid-template-columns: minmax(0, 118px) minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  width: min(640px, calc(100vw - 24px)) !important;
+  max-width: min(640px, calc(100vw - 24px)) !important;
+  height: auto !important;
+  max-height: min(86vh, 680px) !important;
+  margin: auto !important;
+  border-radius: 12px !important;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.2) !important;
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-nav {
+  display: block !important;
+  flex: unset !important;
+  flex-wrap: unset !important;
+  gap: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 6px !important;
+  border-bottom: 0 !important;
+  border-inline-end: 1px solid #e5e7eb !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-nav-group {
+  display: block !important;
+  margin: 6px 4px 3px !important;
+  font-size: 8px !important;
+  letter-spacing: 0.03em !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-nav-item,
+html body .oma-ws-overlay .oma-ws-panel-nav-item span {
+  flex: unset !important;
+  width: 100% !important;
+  min-height: 26px !important;
+  padding: 0 5px !important;
+  gap: 4px !important;
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+  border-radius: 6px !important;
+  white-space: normal !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-nav-item svg {
+  width: 11px !important;
+  height: 11px !important;
+  flex-shrink: 0 !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-main {
+  padding: 10px 12px 12px !important;
+  min-height: 220px !important;
+  overflow-y: auto !important;
+  font-size: 9px !important;
+}
+
+html body .oma-ws-overlay .oma-ws-section-title {
+  font-size: 11px !important;
+  margin: 0 0 8px !important;
+  padding-inline-end: 28px !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-ws-overlay .oma-ws-label,
+html body .oma-ws-overlay .oma-ws-empty-desc,
+html body .oma-ws-overlay .oma-ws-save-msg,
+html body .oma-ws-overlay .oma-ws-toggle-row,
+html body .oma-ws-overlay .oma-ws-danger-title,
+html body .oma-ws-overlay .oma-ws-chip,
+html body .oma-ws-overlay .oma-ws-subhead,
+html body .oma-ws-overlay .oma-ws-section,
+html body .oma-ws-overlay .oma-ws-panel p,
+html body .oma-ws-overlay .oma-ws-panel span,
+html body .oma-ws-overlay .oma-ws-panel strong,
+html body .oma-ws-overlay .oma-ws-panel label,
+html body .oma-ws-overlay .oma-notif-settings__heading,
+html body .oma-ws-overlay .oma-notif-settings__copy strong,
+html body .oma-ws-overlay .oma-notif-settings__copy span,
+html body .oma-ws-overlay .oma-ws-label-item {
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-ws-overlay .oma-ws-field {
+  margin-bottom: 6px !important;
+  gap: 3px !important;
+  max-width: 100% !important;
+}
+
+html body .oma-ws-overlay .oma-ws-field input,
+html body .oma-ws-overlay .oma-ws-field textarea,
+html body .oma-ws-overlay .oma-ws-field .ant-input,
+html body .oma-ws-overlay .oma-ws-field .ant-input-affix-wrapper,
+html body .oma-ws-overlay .oma-ws-field .ant-select,
+html body .oma-ws-overlay .oma-ws-field .ant-select-selector,
+html body .oma-ws-overlay .oma-ws-field .oma-choice-select__trigger,
+html body .oma-ws-overlay .oma-ws-field .oma-choice-select__value,
+html body .oma-ws-overlay .oma-ws-select {
+  font-size: 9px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 3px 7px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-ws-overlay .oma-ws-toggles {
+  margin: 6px 0 10px !important;
+  gap: 5px !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel .ant-btn,
+html body .oma-ws-overlay .oma-ws-panel button.ant-btn {
+  font-size: 9px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 0 7px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-close {
+  width: 26px !important;
+  height: 26px !important;
+  min-height: 26px !important;
+  font-size: 14px !important;
+  padding: 0 !important;
+  top: 8px !important;
+  inset-inline-end: 8px !important;
+}
+
 @media (max-width: 720px) {
+  html body .oma-ws-overlay {
+    padding: 10px !important;
+  }
+
   html body .oma-ws-overlay .oma-ws-panel {
-    display: grid !important;
-    grid-template-columns: minmax(0, 128px) minmax(0, 1fr) !important;
-    grid-template-rows: minmax(0, 1fr) !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-panel-nav {
-    display: block !important;
-    flex: unset !important;
-    flex-wrap: unset !important;
-    gap: 0 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    padding: 8px 6px !important;
-    border-bottom: 0 !important;
-    border-inline-end: 1px solid #e5e7eb !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-panel-nav-group {
-    display: block !important;
-    margin: 6px 4px 3px !important;
-    font-size: 8px !important;
-    letter-spacing: 0.03em !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-panel-nav-item {
-    flex: unset !important;
-    width: 100% !important;
-    min-height: 30px !important;
-    padding: 0 6px !important;
-    gap: 5px !important;
-    font-size: 9px !important;
-    line-height: 1.25 !important;
-    border-radius: 6px !important;
-    white-space: normal !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-panel-nav-item svg {
-    width: 12px !important;
-    height: 12px !important;
-    flex-shrink: 0 !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-panel-main {
-    padding: 10px 10px 14px !important;
-    min-height: 0 !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-section-title {
-    font-size: 12px !important;
-    margin: 0 0 10px !important;
-    padding-inline-end: 32px !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-label,
-  html body .oma-ws-overlay .oma-ws-empty-desc,
-  html body .oma-ws-overlay .oma-ws-save-msg,
-  html body .oma-ws-overlay .oma-ws-field input,
-  html body .oma-ws-overlay .oma-ws-field select,
-  html body .oma-ws-overlay .oma-ws-field .oma-choice-select__trigger {
-    font-size: 9px !important;
-    line-height: 1.3 !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-panel .ant-btn,
-  html body .oma-ws-overlay .oma-ws-panel button.oma-ws-panel-close {
-    font-size: 9px !important;
-    min-height: 28px !important;
-    height: 28px !important;
-    padding: 0 8px !important;
-    line-height: 1.2 !important;
-  }
-
-  html body .oma-ws-overlay .oma-ws-panel-close {
-    width: 28px !important;
-    font-size: 16px !important;
-    padding: 0 !important;
+    width: min(520px, calc(100vw - 20px)) !important;
+    max-width: min(520px, calc(100vw - 20px)) !important;
+    max-height: min(88vh, 620px) !important;
+    grid-template-columns: minmax(0, 100px) minmax(0, 1fr) !important;
   }
 }
 
@@ -3779,4 +3846,122 @@ html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .ant-tag {
   html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* ── OMA product shell: global compact typography ───────────────────────── */
+html body .oma-shell main.oma-container {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-shell main.oma-container :where(
+    h1,
+    .oma-plx-listening__title,
+    .oma-home-greeting
+  ) {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-shell main.oma-container :where(h2, .oma-home-card__title) {
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-shell main.oma-container :where(h3, h4, .oma-ws-subhead) {
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-shell main.oma-container :where(
+    p,
+    span,
+    label,
+    li,
+    td,
+    th,
+    a,
+    time,
+    small,
+    .oma-muted,
+    .oma-help,
+    .oma-plx-deliv__subtitle,
+    .oma-plx-listening__next-check,
+    .oma-form-section,
+    .oma-doc-section,
+    .oma-strategy-page-stack,
+    .oma-card
+  ) {
+  font-size: inherit !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-shell main.oma-container :where(
+    input,
+    textarea,
+    select,
+    .ant-input,
+    .ant-input-affix-wrapper,
+    .ant-select-selection-item,
+    .ant-select-selection-placeholder,
+    .oma-choice-select__trigger,
+    .oma-choice-select__value
+  ) {
+  font-size: inherit !important;
+  line-height: 1.35 !important;
+  min-height: 28px !important;
+}
+
+html body .oma-shell main.oma-container .ant-btn:not(.oma-icon-action):not(.oma-rail-utility-trigger) {
+  font-size: 9px !important;
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-shell-popover .oma-notifications-panel,
+html body .oma-notifications-panel,
+html body .oma-notifications-panel--planable,
+html body .oma-user-menu-panel,
+html body .oma-path-ws-menu,
+html body .oma-breadcrumb-ws-menu {
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-notifications-panel :where(h2, h3, strong) {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-notifications-panel :where(p, span, time, button, a, li) {
+  font-size: inherit !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-notifications-panel .ant-btn {
+  font-size: 9px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 0 7px !important;
+}
+
+/* Social listening (all listening routes) — tighten default plx scale */
+html body .oma-shell main.oma-container .oma-plx-listening[data-testid^='listening'],
+html body .oma-shell main.oma-container .oma-plx-listening.oma-plx-listening-alerts {
+  font-size: 10px !important;
+}
+
+html body .oma-shell main.oma-container .oma-plx-brand,
+html body .oma-shell main.oma-container .oma-plx-home,
+html body .oma-shell main.oma-container .oma-strategy-page-stack,
+html body .oma-shell main.oma-container [class*='oma-analytics'] {
+  font-size: 10px !important;
 }
