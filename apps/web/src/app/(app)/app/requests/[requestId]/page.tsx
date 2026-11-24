@@ -382,22 +382,15 @@ export default function RequestDetailPage() {
       data-testid="demo-request-detail"
     >
       <div className="oma-plx-workspace-surface">
-        <header className="oma-plx-req-detail__top oma-req-detail__top oma-plx-listening-panel">
-          <div className="oma-req-detail__top-left">
-            <Link
-              href="/app/requests"
-              className="oma-req-detail__back"
-              data-testid="demo-request-back"
-            >
-              <ArrowLeftOutlined className="oma-dir-icon" />
-              <span>{t('demo.requests.back')}</span>
-            </Link>
-            {row ? (
-              <div className="oma-req-detail__top-meta oma-plx-req-detail__chips">
-                <span className="oma-plx-req-detail__ref oma-ltr">{requestId.slice(0, 8)}</span>
-              </div>
-            ) : null}
-          </div>
+        <header className="oma-plx-req-detail__top oma-req-detail__top oma-req-detail__top--row oma-plx-listening-panel">
+          <Link
+            href="/app/requests"
+            className="oma-req-detail__back oma-req-detail__back--compact"
+            data-testid="demo-request-back"
+          >
+            <ArrowLeftOutlined className="oma-dir-icon" width={14} height={14} aria-hidden />
+            <span>{t('demo.requests.back')}</span>
+          </Link>
           {row ? (
             <div className="oma-req-detail__top-actions oma-plx-req-detail__top-actions oma-action-bar">
               <Button
@@ -419,7 +412,9 @@ export default function RequestDetailPage() {
                 {converting ? t('demo.create.creating') : t('demo.requests.convert')}
               </Button>
             </div>
-          ) : null}
+          ) : (
+            <span className="oma-req-detail__top-spacer" aria-hidden />
+          )}
         </header>
 
         {loading ? <DetailShimmer /> : null}

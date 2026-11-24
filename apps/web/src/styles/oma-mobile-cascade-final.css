@@ -28,6 +28,42 @@ html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-ac
   filter: none !important;
 }
 
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action,
+html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
+  width: var(--oma-icon-action-size, 32px) !important;
+  height: var(--oma-icon-action-size, 32px) !important;
+  min-width: var(--oma-icon-action-size, 32px) !important;
+  min-height: var(--oma-icon-action-size, 32px) !important;
+  max-width: var(--oma-icon-action-size, 32px) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: var(--oma-icon-action-radius, 8px) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: inherit !important;
+  font-weight: 400 !important;
+  gap: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action:hover,
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action:active,
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action:focus-visible {
+  border: 0 !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  box-shadow: none !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action .oma-lucide,
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
 html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action--compose {
   color: var(--oma-primary, #1677ff) !important;
 }
@@ -1158,8 +1194,29 @@ html body .oma-plx-content-header-btn--primary {
     margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
-    border-bottom: 1px solid var(--oma-home-border, #eceef1) !important;
     background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups.oma-plx-requests-tabs {
+    border-radius: 6px 6px 0 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:first-child {
+    border-start-start-radius: 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:last-child {
+    border-start-end-radius: 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell--plain .oma-req-avatar,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell--plain > .oma-req-avatar {
+    display: none !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell--plain {
+    gap: 0 !important;
   }
 
   html body .oma-plx-listening.oma-plx-requests .oma-plx-requests-panel__body {
@@ -1197,7 +1254,7 @@ html body .oma-plx-content-header-btn--primary {
   /* ── Request detail: full width, compact fields grid, unified actions ─ */
   html body main.oma-container:has(.oma-plx-req-detail),
   html body .oma-container:has(.oma-plx-req-detail) {
-    padding: 4px 6px 14px !important;
+    padding: 0 0 12px !important;
   }
 
   html body .oma-plx-listening.oma-plx-req-detail {
@@ -1212,14 +1269,43 @@ html body .oma-plx-content-header-btn--primary {
     width: 100% !important;
   }
 
-  html body .oma-plx-req-detail__top.oma-plx-listening-panel {
+  html body .oma-plx-req-detail__top.oma-plx-listening-panel,
+  html body .oma-plx-req-detail__top.oma-req-detail__top--row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
     border: 0 !important;
     border-radius: 0 !important;
-    margin: 0 0 6px !important;
-    padding: 6px 4px !important;
+    margin: 0 0 4px !important;
+    padding: 6px 8px !important;
     box-shadow: none !important;
-    border-bottom: 1px solid var(--oma-home-border, #eceef1) !important;
+    border-bottom: 0 !important;
     background: var(--oma-surface, #fff) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__back--compact {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    color: var(--oma-workspace-ink, #111827) !important;
+    text-decoration: none !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__back--compact .oma-dir-icon {
+    flex: 0 0 auto !important;
+    width: 14px !important;
+    height: 14px !important;
   }
 
   html body .oma-plx-req-detail .oma-req-detail__top-left {
@@ -1234,27 +1320,29 @@ html body .oma-plx-content-header-btn--primary {
   html body .oma-plx-req-detail__top-actions {
     display: inline-flex !important;
     flex-direction: row !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
-    gap: 6px !important;
-    width: 100% !important;
+    gap: 5px !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
     justify-content: flex-end !important;
   }
 
   html body .oma-plx-req-detail__top-actions .oma-req-detail__action-btn,
   html body .oma-plx-req-detail__top-actions .oma-req-detail__action-btn.ant-btn {
-    height: 32px !important;
-    min-height: 32px !important;
-    max-height: 32px !important;
-    padding: 0 10px !important;
-    font-size: 11px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
     line-height: 1.2 !important;
-    border-radius: 8px !important;
+    border-radius: 7px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     box-sizing: border-box !important;
+    white-space: nowrap !important;
   }
 
   html body .oma-plx-req-detail .oma-req-detail__title-block.oma-plx-listening-panel {
@@ -1279,13 +1367,44 @@ html body .oma-plx-content-header-btn--primary {
     margin: 4px 0 0 !important;
   }
 
+  html body .oma-plx-req-detail .oma-plx-workspace-surface {
+    padding: 0 0 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
   html body .oma-plx-req-detail .oma-plx-req-card.oma-plx-listening-panel,
   html body .oma-plx-req-detail .oma-req-detail__card.oma-plx-listening-panel {
-    margin: 0 0 8px !important;
+    margin: 0 0 6px !important;
     padding: 8px 10px !important;
-    border-radius: 8px !important;
+    border-radius: 0 !important;
+    border-inline: 0 !important;
     width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card--brief .oma-req-detail__card-head {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card--brief .oma-req-detail__card-head-text {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card--brief .oma-req-detail__card-head .oma-req-detail__action-btn {
+    flex: 0 0 auto !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    padding: 0 7px !important;
+    font-size: 9px !important;
   }
 
   html body .oma-plx-req-detail .oma-req-detail__card-head,
@@ -1323,9 +1442,13 @@ html body .oma-plx-content-header-btn--primary {
     min-height: 32px !important;
   }
 
-  html body .oma-plx-req-detail__workspace {
-    gap: 8px !important;
+  html body .oma-plx-req-detail__workspace,
+  html body .oma-plx-req-detail .oma-req-detail__workspace {
+    gap: 6px !important;
     width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   html body .oma-plx-req-detail .oma-req-detail__side-card.oma-plx-listening-panel {
@@ -1388,14 +1511,15 @@ html body .oma-plx-content-header-btn--primary {
   html body .oma-plx-req-detail .oma-req-detail__action-btn,
   html body .oma-plx-req-detail .oma-req-detail__action-btn.ant-btn,
   html body .oma-plx-req-detail .oma-req-detail__card-head .ant-btn {
-    height: 30px !important;
-    min-height: 30px !important;
-    max-height: 30px !important;
-    padding: 0 9px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 0 8px !important;
     font-size: 10px !important;
     font-weight: 600 !important;
     line-height: 1.2 !important;
     border-radius: 7px !important;
+    box-shadow: none !important;
   }
 
   html body .oma-plx-req-detail,
@@ -1449,11 +1573,19 @@ html body .oma-plx-content-header-btn--primary {
 }
 
 @media (min-width: 1024px) {
+  html body .oma-plx-approvals__board,
+  html body .oma-shim-approvals .oma-plx-approvals__board {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
   html body .oma-plx-approvals__column-wrap,
   html body .oma-shim-approvals .oma-plx-approvals__column-wrap {
     flex: initial !important;
     width: 100% !important;
-    max-width: none !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
   }
 
   html body .oma-plx-approvals__columns,
@@ -1461,5 +1593,25 @@ html body .oma-plx-content-header-btn--primary {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     width: 100% !important;
     max-width: 100% !important;
+  }
+
+  html body .oma-plx-approvals__column,
+  html body .oma-shim-approvals .oma-plx-approvals__column {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-approvals-card,
+  html body .oma-shim-approvals .oma-plx-approvals-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-approvals__cards {
+    min-width: 0 !important;
+    width: 100% !important;
   }
 }

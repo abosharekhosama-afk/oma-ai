@@ -809,10 +809,7 @@ export default function RequestsPage() {
                               data-testid={`demo-request-row-${r.id}`}
                             >
                               <td>
-                                <div className="oma-req-title-cell">
-                                  <span className="oma-req-avatar" aria-hidden>
-                                    {initials(r.requester)}
-                                  </span>
+                                <div className="oma-req-title-cell oma-req-title-cell--plain">
                                   <div>
                                     <Link href={`/app/requests/${r.id}`} className="oma-text-link">
                                       {pickCopy(r.title, locale)}

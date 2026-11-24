@@ -209,8 +209,7 @@ export function ApprovalsClient() {
         onClick={() => setApproveAllConfirmOpen(true)}
         data-testid="approvals-approve-all"
       >
-        <CheckOutlined aria-hidden width={16} height={16} />
-        <span className="oma-plx-approvals__action-label">{t('approvals.approve_all')}</span>
+        <CheckOutlined className="oma-lucide" aria-hidden width={16} height={16} />
       </OmaIconAction>
       <OmaIconAction
         type="button"
@@ -225,12 +224,7 @@ export function ApprovalsClient() {
         onClick={() => openReviewForSection('awaiting')}
         data-testid="approvals-review-posts"
       >
-        <UnorderedListOutlined aria-hidden width={16} height={16} />
-        <span className="oma-plx-approvals__action-label">
-          {t('approvals.review_n_posts')
-            ? t('approvals.review_n_posts').replace('{n}', String(pendingTotal))
-            : `${t('approvals.review_posts')} ${pendingTotal}`}
-        </span>
+        <UnorderedListOutlined className="oma-lucide" aria-hidden width={16} height={16} />
       </OmaIconAction>
       <ApprovalChannelRail
         channels={channels}

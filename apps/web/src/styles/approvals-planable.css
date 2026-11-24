@@ -71,7 +71,7 @@
   position: relative;
 }
 
-.oma-plx-approvals-ch-dd__trigger {
+.oma-plx-approvals-ch-dd__trigger:not(.oma-icon-action) {
   height: 34px;
   display: inline-flex;
   align-items: center;
@@ -89,7 +89,7 @@
     border-color 150ms ease;
 }
 
-.oma-plx-approvals-ch-dd__trigger:hover {
+.oma-plx-approvals-ch-dd__trigger:not(.oma-icon-action):hover {
   background: var(--oma-home-hover);
   border-color: var(--oma-home-border-hover);
 }
@@ -97,17 +97,28 @@
 .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
   gap: 0;
   padding: 0;
+  margin: 0;
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
-  font-size: 0;
+  font-size: inherit;
   font-weight: 400;
   filter: none !important;
+  width: var(--oma-icon-action-size, 32px);
+  height: var(--oma-icon-action-size, 32px);
+  min-width: var(--oma-icon-action-size, 32px);
+  min-height: var(--oma-icon-action-size, 32px);
+  border-radius: var(--oma-icon-action-radius, 8px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.oma-plx-approvals-ch-dd__trigger.oma-icon-action:hover {
+.oma-plx-approvals-ch-dd__trigger.oma-icon-action:hover,
+.oma-plx-approvals-ch-dd__trigger.oma-icon-action:focus-visible {
   background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent);
   border-color: transparent;
+  box-shadow: none;
 }
 
 .oma-plx-approvals__approve-all-btn.oma-icon-action,
@@ -353,6 +364,10 @@
 /* Planable Post Card */
 .oma-plx-approvals-card {
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: var(--oma-surface);
   border: 1px solid var(--oma-home-border);
   border-radius: 10px;
