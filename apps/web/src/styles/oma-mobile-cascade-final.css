@@ -3224,3 +3224,238 @@ html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-load-more .ant-b
   font-size: 9px !important;
   font-weight: 600 !important;
 }
+
+/* ── Deliverables: mobile-tight + list = table (requests grammar) ───────── */
+html body .oma-plx-deliverables {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 4px 8px !important;
+  background: var(--oma-surface, #fff) !important;
+  min-height: 0 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-workspace-surface {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening__intro,
+html body .oma-plx-deliverables .oma-plx-deliv__intro {
+  margin: 2px 0 6px !important;
+  padding: 0 2px !important;
+  gap: 6px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening__title {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv__subtitle,
+html body .oma-plx-deliverables .oma-plx-listening__next-check {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-view-row {
+  margin: 0 0 6px !important;
+  padding: 0 2px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening-segment button {
+  font-size: 9px !important;
+  padding: 4px 8px !important;
+  min-height: 26px !important;
+  gap: 4px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening-segment button svg.oma-lucide {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-panel.oma-plx-listening-panel {
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-panel__head {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-groups {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--oma-workspace-border-strong, #e5e7eb) !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-groups__btn {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  padding: 5px 8px !important;
+  margin-bottom: -1px !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-groups__btn.is-active,
+html body .oma-plx-deliverables .oma-plx-deliv-groups__btn[data-active='true'] {
+  color: var(--oma-workspace-ink, #111827) !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary, #1677ff)) !important;
+  box-shadow: none !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-panel__body {
+  padding: 6px 0 8px !important;
+  margin: 0 !important;
+}
+
+/* Grid: dense small cards */
+html body .oma-plx-deliverables .oma-plx-deliv-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)) !important;
+  gap: 6px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card {
+  border-radius: 8px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__media {
+  aspect-ratio: 1 / 1 !important;
+  max-height: 88px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  padding: 5px 6px 6px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__title {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__meta {
+  font-size: 8px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__chips {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 2px !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card .ant-tag,
+html body .oma-plx-deliverables .oma-plx-deliv-table .ant-tag {
+  font-size: 8px !important;
+  line-height: 1.15 !important;
+  padding: 0 4px !important;
+  margin: 0 !important;
+  min-height: 16px !important;
+  border-radius: 4px !important;
+}
+
+/* List view: always table (including phone) */
+html body .oma-plx-deliverables .oma-plx-deliv-mobile {
+  display: none !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-desktop,
+html body .oma-plx-deliverables .oma-plx-deliv-table-wrap {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  max-height: none !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table,
+html body .oma-plx-deliverables .oma-plx-deliv-table th,
+html body .oma-plx-deliverables .oma-plx-deliv-table td,
+html body .oma-plx-deliverables .oma-plx-deliv-table__title,
+html body .oma-plx-deliverables .oma-plx-deliv-table__sub {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  padding: 4px 5px !important;
+  vertical-align: middle !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-thumb {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  border-radius: 6px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-thumb--empty {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table th {
+  font-size: 8px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table td:first-child,
+html body .oma-plx-deliverables .oma-plx-deliv-table th:first-child {
+  padding-inline-start: 2px !important;
+}
+
+@media (max-width: 900px) {
+  html body .oma-plx-deliverables {
+    padding-inline: 4px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-grid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important;
+    gap: 5px !important;
+  }
+}
