@@ -10,6 +10,7 @@ import './globals.css';
 import '../styles/oma-fonts.css';
 import '../styles/ui-polish.css';
 import '../styles/oma-mobile-cascade-final.css';
+import '../styles/oma-typography-unified.css';
 
 const siteUrl = resolvePublicSiteUrl();
 

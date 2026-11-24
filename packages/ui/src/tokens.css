@@ -27,9 +27,10 @@
   --status-danger: #c43d4b;
   --status-neutral: rgba(0, 0, 0, 0.45);
 
-  /* Typography — LIVE English stack. html 10px is Planable rem contract; OMA pages still use rem at 16px so we do not copy the 10px root (would crush P2–P6 rem layout). Body is 14px explicit. */
+  /* Typography — Plus Jakarta (hosted in web @font-face); desktop 14px body, mobile scale in oma-fonts.css */
   --oma-font-sans:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
   --oma-font-arabic:
     var(--font-noto-arabic), 'Noto Sans Arabic', system-ui, 'Segoe UI', Tahoma, sans-serif;
   --font-sans: var(--oma-font-sans);

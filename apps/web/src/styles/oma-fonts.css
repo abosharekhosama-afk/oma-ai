@@ -627,3 +627,32 @@
   line-gap-override: 0%;
   size-adjust: 104.98%;
 }
+
+/* Re-bind design tokens after @font-face — single sans stack app-wide */
+:root {
+  --oma-font-sans:
+    var(--font-oma-pl), 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, sans-serif;
+  --font-sans: var(--oma-font-sans);
+}
+
+/* Mobile: one step down from desktop (same family, proportional type scale) */
+@media (max-width: 767px) {
+  :root {
+    --text-body: 12px;
+    --leading-body: 18px;
+    --text-control: 12px;
+    --leading-control: 18px;
+    --text-title: 16px;
+    --leading-title: 22px;
+    --text-title-sm: 14px;
+    --leading-title-sm: 20px;
+    --text-label: 11px;
+    --leading-label: 14px;
+    --text-meta: 11px;
+    --leading-meta: 14px;
+    --text-display: 18px;
+    --leading-display: 24px;
+    --oma-control-height: 30px;
+    --oma-control-height-compact: 28px;
+  }
+}

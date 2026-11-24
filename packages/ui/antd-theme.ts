@@ -23,7 +23,8 @@ export const omaAntdTheme = {
     fontSizeSM: 12,
     lineHeight: 1.5714285714,
     fontWeightStrong: 500,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    fontFamily:
+      "'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif",
     motionDurationMid: '0.15s',
     motionDurationSlow: '0.3s',
     motionEaseInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
@@ -64,4 +65,4 @@ export const omaAntdTheme = {
 } as const;
 
 export const omaArabicFontFamily =
-  'var(--font-noto-arabic), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  "var(--font-noto-arabic), 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
