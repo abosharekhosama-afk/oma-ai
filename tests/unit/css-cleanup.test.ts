@@ -94,6 +94,7 @@ describe('css cleanup (stage2/4/5)', () => {
     expect(finalCss).toMatch(/oma-req-desktop[\s\S]{0,80}display:\s*block !important/);
     expect(finalCss).toMatch(/oma-req-mobile[\s\S]{0,80}display:\s*none !important/);
     expect(finalCss).toMatch(/oma-plx-requests-table[\s\S]{0,80}display:\s*block !important/);
+    expect(finalCss).toContain('oma-plx-requests-panel--flat');
     expect(listening).toMatch(/oma-plx-requests-cards[\s\S]{0,80}display:\s*none !important/);
     expect(finalCss).toContain('border-bottom-color: var(--oma-workspace-primary-border');
     expect(phone).toContain('.oma-req-page .oma-req-desktop');

@@ -748,7 +748,7 @@ export default function RequestsPage() {
         ) : null}
 
         {!loading && !unavailable && !error ? (
-          <section className="oma-plx-listening-panel oma-plx-requests-panel">
+          <section className="oma-plx-listening-panel oma-plx-requests-panel oma-plx-requests-panel--flat">
             <header className="oma-plx-deliv-panel__head">
               <div
                 className="oma-plx-deliv-groups oma-plx-requests-tabs"

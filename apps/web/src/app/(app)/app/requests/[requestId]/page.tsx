@@ -405,6 +405,7 @@ export default function RequestDetailPage() {
             <div className="oma-req-detail__top-actions oma-plx-req-detail__top-actions oma-action-bar">
               <Button
                 type="default"
+                className="oma-req-detail__action-btn"
                 data-testid="demo-request-close"
                 disabled={!canCloseRequest(row.status)}
                 onClick={() => setConfirmClose(true)}
@@ -413,6 +414,7 @@ export default function RequestDetailPage() {
               </Button>
               <Button
                 type="primary"
+                className="oma-req-detail__action-btn"
                 data-testid="demo-request-convert"
                 disabled={!ready || converting || !canConvertRequest(row.status)}
                 onClick={() => void convert()}
