@@ -66,6 +66,27 @@
 
 /* ── Workspace settings: AI usage + approvals compact on phone ─────────────── */
 @media (max-width: 767px) {
+  html body .oma-ws-overlay [data-testid='settings-ai-usage'] table.oma-table,
+  html body .oma-ws-overlay [data-testid='settings-ai-usage'] .oma-table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+  }
+
+  html body .oma-ws-overlay [data-testid='settings-ai-usage'] .oma-muted {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-section-title {
+    font-size: var(--text-title-sm) !important;
+    line-height: var(--leading-title-sm) !important;
+    margin: 0 0 10px !important;
+  }
+
   html body .oma-ws-overlay .oma-ws-panel-main {
     padding: 8px 10px 12px !important;
   }

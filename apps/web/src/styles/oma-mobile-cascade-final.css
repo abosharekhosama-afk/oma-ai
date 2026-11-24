@@ -3757,87 +3757,96 @@ html body .oma-ws-overlay .oma-ws-panel-close {
   }
 }
 
-/* Brand intelligence hub — mobile density */
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] {
-  gap: 6px !important;
-  margin: 0 0 8px !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-html body .oma-plx-brand-main .oma-plx-brand-page-head {
-  margin: 0 0 6px !important;
-  padding: 4px 0 !important;
-  gap: 6px !important;
-}
-
-html body .oma-plx-brand-main .oma-plx-brand-page-head__titles h2,
-html body .oma-plx-brand-main .oma-plx-brand-page-head__titles .oma-muted {
-  font-size: 11px !important;
-  line-height: 1.25 !important;
-  margin: 0 !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card {
-  min-height: 0 !important;
-  padding: 8px !important;
-  gap: 4px !important;
-  border-radius: 8px !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card__title,
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] strong.oma-plx-brand-hub-card__title {
-  font-size: 10px !important;
-  line-height: 1.25 !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card__meta {
-  font-size: 9px !important;
-  line-height: 1.25 !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card__foot {
-  font-size: 9px !important;
-  margin-top: 2px !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts {
-  gap: 4px !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts dt {
-  font-size: 8px !important;
-  margin: 0 0 1px !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts dd {
-  font-size: 9px !important;
-  font-weight: 600 !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .ant-btn,
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] a.ant-btn {
-  height: 28px !important;
-  min-height: 28px !important;
-  padding: 0 8px !important;
-  font-size: 9px !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-}
-
-html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .ant-tag {
-  font-size: 8px !important;
-  line-height: 1.15 !important;
-  padding: 0 4px !important;
-  margin: 0 !important;
-}
-
+/* Brand intelligence hub — phone density only (laptop: oma-brand-responsive.css) */
 @media (max-width: 767px) {
-  html body .oma-plx-listening.oma-plx-brand .oma-plx-brand-main {
-    padding: 0 4px 8px !important;
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] {
+    gap: 6px !important;
+    margin: 0 0 8px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] {
+  html body .oma-plx-brand-main .oma-plx-brand-page-head {
+    margin: 0 0 6px !important;
+    padding: 4px 0 !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-brand-main .oma-plx-brand-page-head__titles h2,
+  html body .oma-plx-brand-main .oma-plx-brand-page-head__titles .oma-muted {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card {
+    min-height: 0 !important;
+    padding: 8px !important;
+    gap: 4px !important;
+    border-radius: 8px !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__title,
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] strong.oma-plx-brand-hub-card__title {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__meta {
+    font-size: var(--text-label) !important;
+    line-height: var(--leading-label) !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__foot {
+    font-size: var(--text-meta) !important;
+    margin-top: 2px !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts {
+    gap: 4px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts dt {
+    font-size: var(--text-label) !important;
+    margin: 0 0 1px !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts dd {
+    font-size: var(--text-meta) !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .ant-btn,
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] a.ant-btn {
+    height: var(--oma-control-height-compact) !important;
+    min-height: var(--oma-control-height-compact) !important;
+    padding: 0 8px !important;
+    font-size: var(--text-meta) !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .ant-tag {
+    font-size: var(--text-label) !important;
+    line-height: var(--leading-label) !important;
+    padding: 0 4px !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] {
     grid-template-columns: 1fr !important;
   }
 }
