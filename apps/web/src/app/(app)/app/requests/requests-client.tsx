@@ -45,7 +45,7 @@ import {
   type RequestRow,
 } from '../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../lib/use-locale';
-import { canConvertRequest, statusLabel } from '../../../../lib/request-workflow-ui';
+import { canConvertRequest, priorityLabel, statusLabel } from '../../../../lib/request-workflow-ui';
 import {
   CloseOutlined,
   SearchOutlined,
@@ -215,6 +215,7 @@ function missingRequestLabels(row: RequestRow, locale: string) {
 export default function RequestsPage() {
   const t = useT();
   const locale = useLocale();
+  const isAr = locale.toLowerCase().startsWith('ar');
   const router = useRouter();
   const toast = useToast();
   const [rows, setRows] = useState<RequestRow[]>([]);
@@ -576,10 +577,7 @@ export default function RequestsPage() {
                               />
                             </td>
                             <td>
-                              <div className="oma-req-title-cell">
-                                <span className="oma-req-avatar" aria-hidden>
-                                  {initials(r.assignee ?? t('demo.requests.unassigned'))}
-                                </span>
+                              <div className="oma-req-title-cell oma-req-title-cell--plain">
                                 <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
                               </div>
                             </td>
@@ -787,7 +785,7 @@ export default function RequestsPage() {
                             checked={(filters.priority || 'all') === s}
                             onChange={() => setFilters((f) => ({ ...f, priority: s }))}
                           />
-                          <span>{s === 'all' ? t('demo.filter.all') : enumStatusLabel(t, s)}</span>
+                          <span>{s === 'all' ? t('demo.filter.all') : priorityLabel(s, isAr)}</span>
                         </label>
                       ))}
                     </div>
@@ -1083,7 +1081,7 @@ export default function RequestsPage() {
               testId="demo-create-request-type"
               onChange={(type) => patchForm({ type })}
               options={['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
-                (s) => ({ value: s, label: s }),
+                (s) => ({ value: s, label: enumStatusLabel(t, s) }),
               )}
             />
           </label>
@@ -1159,7 +1157,10 @@ export default function RequestsPage() {
               value={form.priority}
               testId="demo-create-request-priority"
               onChange={(priority) => patchForm({ priority })}
-              options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
+              options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({
+                value: s,
+                label: priorityLabel(s, isAr),
+              }))}
             />
           </label>
           <label>

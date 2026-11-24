@@ -2272,3 +2272,53 @@ html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td:first-chil
   overflow: visible !important;
   text-overflow: clip !important;
 }
+
+html body .oma-plx-listening.oma-plx-requests .oma-req-table td,
+html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
+html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-text-link,
+html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-req-table__sub,
+html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-muted,
+html body .oma-plx-listening.oma-plx-requests .oma-req-table .ant-tag,
+html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td,
+html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+html body .oma-plx-listening.oma-plx-requests .oma-req-table td .oma-req-avatar,
+html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-req-title-cell--plain .oma-req-avatar {
+  display: none !important;
+}
+
+html body .oma-plx-req-detail .oma-req-detail__side-card h3,
+html body .oma-plx-req-detail .oma-req-detail__side-label {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-req-detail .oma-req-detail__side-row strong {
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  line-height: 1.25 !important;
+  font-family: inherit !important;
+}
+
+html body .oma-plx-req-detail .oma-channel-dropdown__trigger,
+html body .oma-plx-req-detail .oma-channel-dropdown__summary,
+html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__trigger,
+html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__summary {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+@media (min-width: 1024px) {
+  html body .oma-plx-req-detail__side .oma-req-detail__comments {
+    margin-bottom: 10px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title-block--flat {
+    margin-bottom: 14px !important;
+  }
+}

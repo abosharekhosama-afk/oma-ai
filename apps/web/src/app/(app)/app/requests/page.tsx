@@ -36,6 +36,7 @@ import {
   type RequestRow,
 } from '../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { priorityLabel, statusLabel } from '../../../../lib/request-workflow-ui';
 import { RequestsShimmer } from '../../../../components/ui/screen-shimmer';
 import {
   SearchOutlined,
@@ -130,6 +131,7 @@ function requestRowMeta(
 export default function RequestsPage() {
   const t = useT();
   const locale = useLocale();
+  const isAr = locale.toLowerCase().startsWith('ar');
   const router = useRouter();
   const searchParams = useSearchParams();
   const strategyVersionFromUrl = searchParams.get('strategy_version');
@@ -439,7 +441,7 @@ export default function RequestsPage() {
                       checked={(filters.status || 'all') === s}
                       onChange={() => setFilters((f) => ({ ...f, status: s }))}
                     />
-                    <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                    <span>{s === 'all' ? t('demo.filter.all') : statusLabel(s, isAr)}</span>
                   </label>
                 ))}
               </div>
@@ -471,7 +473,7 @@ export default function RequestsPage() {
                       checked={(filters.priority || 'all') === s}
                       onChange={() => setFilters((f) => ({ ...f, priority: s }))}
                     />
-                    <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                    <span>{s === 'all' ? t('demo.filter.all') : priorityLabel(s, isAr)}</span>
                   </label>
                 ))}
               </div>
@@ -504,7 +506,7 @@ export default function RequestsPage() {
                         checked={(filters.type || 'all') === s}
                         onChange={() => setFilters((f) => ({ ...f, type: s }))}
                       />
-                      <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                      <span>{s === 'all' ? t('demo.filter.all') : enumStatusLabel(t, s)}</span>
                     </label>
                   ),
                 )}
@@ -814,7 +816,7 @@ export default function RequestsPage() {
                                     <Link href={`/app/requests/${r.id}`} className="oma-text-link">
                                       {pickCopy(r.title, locale)}
                                     </Link>
-                                    <div className="oma-muted" style={{ fontSize: 12 }}>
+                                    <div className="oma-muted oma-req-table__sub">
                                       {requestRowMeta(r, locale, t)}
                                     </div>
                                   </div>
@@ -827,7 +829,7 @@ export default function RequestsPage() {
                               <td>{r.requester}</td>
                               <td>
                                 {brandName(r.brandId)}
-                                <div className="oma-muted" style={{ fontSize: 12 }}>
+                                <div className="oma-muted oma-req-table__sub">
                                   {campaignName(r.campaignId)}
                                 </div>
                               </td>
@@ -842,10 +844,7 @@ export default function RequestsPage() {
                                 />
                               </td>
                               <td>
-                                <div className="oma-req-title-cell">
-                                  <span className="oma-req-avatar" aria-hidden>
-                                    {initials(r.assignee ?? t('demo.requests.unassigned'))}
-                                  </span>
+                                <div className="oma-req-title-cell oma-req-title-cell--plain">
                                   <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
                                 </div>
                               </td>
@@ -973,7 +972,7 @@ export default function RequestsPage() {
                     'CAMPAIGN_SUPPORT',
                     'REVISION',
                     'OTHER',
-                  ].map((s) => ({ value: s, label: s.replaceAll('_', ' ') }))}
+                  ].map((s) => ({ value: s, label: enumStatusLabel(t, s) }))}
                 />
               </label>
               <label>
@@ -982,7 +981,10 @@ export default function RequestsPage() {
                   value={form.priority}
                   testId="demo-create-request-priority"
                   onChange={(priority) => patchForm({ priority })}
-                  options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
+                  options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({
+                    value: s,
+                    label: priorityLabel(s, isAr),
+                  }))}
                 />
               </label>
               <label>

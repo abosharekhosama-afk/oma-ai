@@ -492,7 +492,7 @@ export default function RequestDetailPage() {
                     >
                       {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
                         <option key={s} value={s}>
-                          {s}
+                          {priorityLabel(s, isAr)}
                         </option>
                       ))}
                     </SelectField>
