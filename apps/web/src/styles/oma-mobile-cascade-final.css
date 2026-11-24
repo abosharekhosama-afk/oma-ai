@@ -335,4 +335,19 @@ html body .oma-plx-content-header-btn--primary {
     margin: 0 auto 16px !important;
     overflow: visible !important;
   }
+
+  /* My approvals — header icons + channel sheet in viewport */
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions {
+    gap: 2px !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    min-width: 0 !important;
+    max-width: min(52vw, 200px) !important;
+  }
+
+  html body .oma-plx-approvals-channels--portal {
+    width: min(280px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    box-sizing: border-box !important;
+  }
 }

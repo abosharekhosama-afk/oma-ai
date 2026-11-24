@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { DownOutlined, EyeOutlined, FilterOutlined } from '../ui/lucide-icons';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { FilterOutlined } from '../ui/lucide-icons';
 import { NetworkIcon } from '../content/network-icon';
 import { useT } from '../../lib/use-locale';
+import { OmaIconAction } from '../ui/oma-icon-action';
 
 export type ApprovalChannelRow = {
   id: string;
@@ -25,11 +27,25 @@ export function ApprovalChannelRail({
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [panelPos, setPanelPos] = useState<{ top: number; insetInlineStart: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
   const allOn = enabled.size === 0 || enabled.size === channels.length;
   const someOn = enabled.size > 0 && enabled.size < channels.length;
   const activeCount = allOn ? channels.length : enabled.size;
+
+  useLayoutEffect(() => {
+    if (!open || !wrapRef.current) {
+      setPanelPos(null);
+      return;
+    }
+    const r = wrapRef.current.getBoundingClientRect();
+    const rtl = document.documentElement.getAttribute('dir') === 'rtl';
+    const insetInlineStart = rtl
+      ? Math.max(12, window.innerWidth - r.right)
+      : Math.max(12, Math.min(r.left, window.innerWidth - 280));
+    setPanelPos({ top: r.bottom + 8, insetInlineStart });
+  }, [open, channels.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -59,34 +75,22 @@ export function ApprovalChannelRail({
     return [...map.entries()];
   }, [channels]);
 
-  return (
-    <div className="oma-plx-approvals-ch-dd" ref={wrapRef} data-testid="approvals-channel-rail">
-      <button
-        type="button"
-        className="oma-plx-approvals-ch-dd__trigger"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        data-testid="approvals-channel-trigger"
+  const channelPanel =
+    open && typeof document !== 'undefined' ? (
+      <div
+        className="oma-plx-approvals-channels oma-plx-approvals-channels--portal"
+        role="dialog"
+        aria-label={t('approvals.channels')}
+        data-testid="approvals-channel-popover"
+        style={
+          panelPos
+            ? {
+                top: panelPos.top,
+                insetInlineStart: panelPos.insetInlineStart,
+              }
+            : undefined
+        }
       >
-        <EyeOutlined className="oma-plx-approvals-ch-dd__eye" aria-hidden />
-        <FilterOutlined className="oma-plx-approvals-ch-dd__filter" aria-hidden />
-        <span>{t('approvals.channels')}</span>
-        {!allOn ? (
-          <span className="oma-plx-approvals-ch-dd__badge">
-            {activeCount}/{channels.length}
-          </span>
-        ) : null}
-        <DownOutlined className="oma-plx-approvals-ch-dd__chev" aria-hidden />
-      </button>
-
-      {open ? (
-        <div
-          className="oma-plx-approvals-channels"
-          role="dialog"
-          aria-label={t('approvals.channels')}
-          data-testid="approvals-channel-popover"
-        >
           <header className="oma-plx-approvals-channels__head">
             <strong>{t('approvals.channels')}</strong>
             <div className="oma-plx-approvals-channels__head-right">
@@ -131,8 +135,32 @@ export function ApprovalChannelRail({
               }),
             )}
           </ul>
-        </div>
-      ) : null}
+      </div>
+    ) : null;
+
+  return (
+    <div className="oma-plx-approvals-ch-dd" ref={wrapRef} data-testid="approvals-channel-rail">
+      <OmaIconAction
+        type="button"
+        className="oma-plx-approvals-ch-dd__trigger"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={
+          !allOn
+            ? `${t('approvals.channels')} (${activeCount}/${channels.length})`
+            : t('approvals.channels')
+        }
+        data-active={open ? 'true' : 'false'}
+        badge={!allOn ? activeCount : undefined}
+        onClick={() => setOpen((v) => !v)}
+        data-testid="approvals-channel-trigger"
+      >
+        <FilterOutlined aria-hidden />
+      </OmaIconAction>
+
+      {channelPanel && typeof document !== 'undefined'
+        ? createPortal(channelPanel, document.body)
+        : null}
     </div>
   );
 }

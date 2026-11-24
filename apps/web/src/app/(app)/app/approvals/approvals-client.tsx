@@ -9,7 +9,9 @@ import {
   CommentOutlined,
   LinkOutlined,
   PlayCircleOutlined,
+  UnorderedListOutlined,
 } from '../../../../components/ui/lucide-icons';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import {
   ApprovalChannelRail,
   type ApprovalChannelRow,
@@ -205,26 +207,37 @@ export function ApprovalsClient() {
         onToggle={toggleChannel}
         onToggleAll={(on) => setChannelFilter(on ? new Set() : new Set(channels.map((c) => c.id)))}
       />
-      <button
+      <OmaIconAction
         type="button"
         className="oma-plx-approvals__approve-all-btn"
         disabled={!buckets.awaiting.length || approvingAll}
+        aria-label={t('approvals.approve_all')}
         onClick={() => setApproveAllConfirmOpen(true)}
         data-testid="approvals-approve-all"
       >
-        {t('approvals.approve_all')}
-      </button>
-      <button
+        <CheckOutlined aria-hidden />
+        <span className="oma-plx-approvals__action-label">{t('approvals.approve_all')}</span>
+      </OmaIconAction>
+      <OmaIconAction
         type="button"
-        className="oma-plx-approvals__review-cta"
+        className="oma-plx-approvals__review-cta oma-icon-action--compose"
         disabled={pendingTotal === 0}
+        aria-label={
+          t('approvals.review_n_posts')
+            ? t('approvals.review_n_posts').replace('{n}', String(pendingTotal))
+            : `${t('approvals.review_posts')} ${pendingTotal}`
+        }
+        badge={pendingTotal > 0 ? pendingTotal : undefined}
         onClick={() => openReviewForSection('awaiting')}
         data-testid="approvals-review-posts"
       >
-        {t('approvals.review_n_posts')
-          ? t('approvals.review_n_posts').replace('{n}', String(pendingTotal))
-          : `${t('approvals.review_posts')} ${pendingTotal}`}
-      </button>
+        <UnorderedListOutlined aria-hidden />
+        <span className="oma-plx-approvals__action-label">
+          {t('approvals.review_n_posts')
+            ? t('approvals.review_n_posts').replace('{n}', String(pendingTotal))
+            : `${t('approvals.review_posts')} ${pendingTotal}`}
+        </span>
+      </OmaIconAction>
     </div>
   );
 
