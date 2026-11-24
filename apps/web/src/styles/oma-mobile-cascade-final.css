@@ -2325,12 +2325,14 @@ html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__summary {
 
 /* ── Project filter/sort popover (PlxHeaderFilter + deliv panel) ─────────── */
 html body .oma-plx-filter-popover,
-html body .oma-plx-deliv-filter-panel {
+html body .oma-plx-deliv-filter-panel,
+html body .oma-req-filter-panel {
   font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
 }
 
 html body .oma-plx-filter-popover__head,
-html body .oma-plx-deliv-filter-panel__head {
+html body .oma-plx-deliv-filter-panel__head,
+html body .oma-req-filter-panel__head {
   min-height: 40px !important;
   padding: 0 10px !important;
   font-size: 11px !important;
@@ -2350,7 +2352,10 @@ html body .oma-plx-filter-popover .oma-filter-accordion__body,
 html body .oma-plx-filter-popover .oma-filter-check,
 html body .oma-plx-deliv-filter-panel .oma-filter-accordion__row,
 html body .oma-plx-deliv-filter-panel .oma-filter-accordion__body,
-html body .oma-plx-deliv-filter-panel .oma-filter-check {
+html body .oma-plx-deliv-filter-panel .oma-filter-check,
+html body .oma-req-filter-panel .oma-filter-accordion__row,
+html body .oma-req-filter-panel .oma-filter-accordion__body,
+html body .oma-req-filter-panel .oma-filter-check {
   font-size: 10px !important;
   line-height: 1.25 !important;
   font-family: inherit !important;
@@ -2368,7 +2373,9 @@ html body .oma-plx-deliv-filter-panel__foot {
 }
 
 html body .oma-plx-deliv-filter-panel__close.oma-icon-action,
-html body button.oma-plx-deliv-filter-panel__close {
+html body button.oma-plx-deliv-filter-panel__close,
+html body .oma-req-filter-panel__close.oma-icon-action,
+html body button.oma-req-filter-panel__close {
   width: auto !important;
   min-width: 0 !important;
   height: auto !important;
@@ -2383,7 +2390,11 @@ html body button.oma-plx-deliv-filter-panel__close {
 }
 
 html body .oma-plx-deliv-filter-panel__close.oma-icon-action:hover,
-html body .oma-plx-deliv-filter-panel__close.oma-icon-action:focus-visible {
+html body .oma-plx-deliv-filter-panel__close.oma-icon-action:focus-visible,
+html body .oma-req-filter-panel__close.oma-icon-action:hover,
+html body .oma-req-filter-panel__close.oma-icon-action:focus-visible,
+html body button.oma-req-filter-panel__close:hover,
+html body button.oma-req-filter-panel__close:focus-visible {
   color: var(--oma-primary, #1677ff) !important;
   background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
 }
