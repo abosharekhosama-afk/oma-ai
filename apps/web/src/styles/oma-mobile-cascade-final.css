@@ -600,38 +600,123 @@ html body .oma-plx-content-header-btn--primary {
     order: unset !important;
   }
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn,
-  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn.oma-icon-action {
+  html body [data-testid='demo-content-calendar'] .oma-cal-mini-btn,
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn.oma-cal-mini-btn {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: var(--oma-icon-action-size, 24px) !important;
-    height: var(--oma-icon-action-size, 24px) !important;
-    min-width: var(--oma-icon-action-size, 24px) !important;
-    min-height: var(--oma-icon-action-size, 24px) !important;
-    max-width: var(--oma-icon-action-size, 24px) !important;
-    max-height: var(--oma-icon-action-size, 24px) !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
     padding: 0 !important;
     gap: 0 !important;
+    border: 1px solid var(--oma-home-border, #e5e7eb) !important;
+    border-radius: 7px !important;
+    background: var(--oma-surface, #fff) !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+    color: var(--oma-workspace-muted, #6b7280) !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-mini-btn .oma-lucide {
+    width: 14px !important;
+    height: 14px !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-mini-btn:hover {
+    color: var(--oma-primary, #1677ff) !important;
+    border-color: color-mix(in srgb, var(--oma-primary, #1677ff) 35%, var(--oma-home-border, #e5e7eb)) !important;
+    background: color-mix(in srgb, var(--oma-primary, #1677ff) 6%, var(--oma-surface, #fff)) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-item-wrap {
+    padding-inline-end: 28px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-card-actions-btn--cal {
+    top: auto !important;
+    bottom: 2px !important;
+    inset-inline-end: 2px !important;
+    z-index: 5 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-pv-chip--campaign,
+  html body [data-testid='demo-content-calendar'] .oma-pv-chip {
+    max-width: 72px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+  }
+
+  html body .oma-plan-post .oma-compose-pills--icon-only {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-plan-post .oma-compose-pills--icon-only .oma-compose-pill-wrap {
+    flex: 0 0 auto !important;
+  }
+
+  html body .oma-plan-post .oma-compose-pill--icon.oma-icon-action {
+    flex: 0 0 auto !important;
     border: 0 !important;
-    border-radius: var(--oma-icon-action-radius, 6px) !important;
     background: transparent !important;
     box-shadow: none !important;
-    color: var(--oma-workspace-muted, #6b7280) !important;
-    white-space: nowrap !important;
   }
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn .anticon {
-    font-size: var(--oma-icon-action-glyph, 14px) !important;
-    line-height: 1 !important;
+  html body .oma-plan-post__top-end {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
   }
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn:hover,
-  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn.oma-icon-action:hover {
-    color: var(--oma-primary, #1677ff) !important;
-    background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  html body .oma-plan-post__top-end .oma-plan-post__icon-btn.oma-icon-action {
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
     border: 0 !important;
+    background: transparent !important;
     box-shadow: none !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    min-height: var(--oma-icon-action-size, 32px) !important;
+  }
+
+  html body .oma-plan-post__top-end .oma-plan-post__icon-btn .oma-lucide {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  html body .oma-plan-post__top-end .oma-plan-post__tool-btn,
+  html body .oma-plan-post__top-end .oma-plan-post__share {
+    display: none !important;
+  }
+
+  html body .oma-plan-post__top .oma-plan-post__secondary {
+    display: inline-flex !important;
+  }
+
+  html body .oma-plan-post__more-mobile {
+    display: none !important;
   }
 
   /* Request-approval selection checkbox on calendar cards */
@@ -829,9 +914,19 @@ html body .oma-plx-content-header-btn--primary {
     white-space: nowrap !important;
   }
 
-  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn:not(.oma-icon-action),
-  html body #oma-content-top-actions .oma-plx-approvals__review-cta:not(.oma-icon-action) {
-    display: none !important;
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions--icons {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions--icons > * {
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
   }
 
   html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
@@ -867,13 +962,24 @@ html body .oma-plx-content-header-btn--primary {
   html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action .anticon,
   html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action svg,
   html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action svg,
-  html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action svg {
+  html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action svg,
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions .oma-lucide {
     font-size: var(--oma-icon-action-glyph, 16px) !important;
     width: var(--oma-icon-action-glyph, 16px) !important;
     height: var(--oma-icon-action-glyph, 16px) !important;
-    display: inline-block !important;
+    min-width: var(--oma-icon-action-glyph, 16px) !important;
+    min-height: var(--oma-icon-action-glyph, 16px) !important;
+    display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action:disabled,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action:disabled {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 0.45 !important;
   }
 
   html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action:hover,

@@ -4540,9 +4540,9 @@ export default function ContentPage() {
                                 role="group"
                                 aria-label={`${t('content.post')} / ${t('content.note')}`}
                               >
-                                <OmaIconAction
+                                <button
                                   type="button"
-                                  className="oma-cal-cell-actions__btn"
+                                  className="oma-cal-mini-btn oma-cal-cell-actions__btn"
                                   data-testid={`demo-cal-post-${cell.key}`}
                                   aria-label={t('content.post')}
                                   onClick={(e) => {
@@ -4552,11 +4552,11 @@ export default function ContentPage() {
                                     setCreateOpen(true);
                                   }}
                                 >
-                                  <EditOutlined aria-hidden />
-                                </OmaIconAction>
-                                <OmaIconAction
+                                  <EditOutlined aria-hidden width={14} height={14} />
+                                </button>
+                                <button
                                   type="button"
-                                  className="oma-cal-cell-actions__btn"
+                                  className="oma-cal-mini-btn oma-cal-cell-actions__btn"
                                   data-testid={`demo-cal-note-${cell.key}`}
                                   aria-label={t('content.note')}
                                   onClick={(e) => {
@@ -4589,8 +4589,8 @@ export default function ContentPage() {
                                     }
                                   }}
                                 >
-                                  <FileTextOutlined aria-hidden />
-                                </OmaIconAction>
+                                  <FileTextOutlined aria-hidden width={14} height={14} />
+                                </button>
                               </div>
 
                               {(calDisplay.showNotes && note) || noteOpen ? (
@@ -5366,6 +5366,7 @@ export default function ContentPage() {
               <header className="oma-plan-post__top">
                 <div className="oma-plan-post__top-start">
                   <ComposeMetaPills
+                    variant="icon"
                     locale={locale}
                     templates={brandTemplates}
                     campaigns={modalCampaigns}
@@ -5428,35 +5429,31 @@ export default function ContentPage() {
                       testId="content-modal-approvals"
                     />
                   ) : null}
-                  <button
-                    type="button"
-                    className="oma-plan-post__tool-btn oma-plan-post__share"
-                    onClick={() => void shareContentWorkspace()}
-                  >
-                    {t('content.share')}
-                  </button>
-                  <button
+                  <OmaIconAction
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={t('content.feedback')}
+                    aria-label={t('content.share')}
+                    data-testid="content-modal-share"
+                    onClick={() => void shareContentWorkspace()}
+                  >
+                    <ShareAltOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
+                    type="button"
+                    className="oma-plan-post__icon-btn"
                     aria-label={t('content.feedback')}
                     data-active={detailSidePanel === 'feedback' ? 'true' : 'false'}
                     data-testid="content-modal-feedback"
+                    badge={prodComments.length > 0 ? prodComments.length : undefined}
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'feedback' ? 'none' : 'feedback'))
                     }
                   >
-                    <MessageOutlined />
-                    {prodComments.length ? (
-                      <span className="oma-plan-post__icon-count oma-ltr">
-                        {prodComments.length}
-                      </span>
-                    ) : null}
-                  </button>
-                  <button
+                    <MessageOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={t('nav.analytics')}
                     aria-label={t('nav.analytics')}
                     data-active={detailSidePanel === 'analytics' ? 'true' : 'false'}
                     data-testid="content-modal-analytics"
@@ -5464,57 +5461,53 @@ export default function ContentPage() {
                       setDetailSidePanel((p) => (p === 'analytics' ? 'none' : 'analytics'))
                     }
                   >
-                    <BarChartOutlined />
-                  </button>
-                  <button
+                    <BarChartOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
-                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
-                    data-tooltip={t('nav.activity')}
+                    className="oma-plan-post__icon-btn"
                     aria-label={t('nav.activity')}
                     data-active={detailSidePanel === 'activity' ? 'true' : 'false'}
+                    data-testid="content-modal-activity"
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
                     }
                   >
-                    <HistoryOutlined />
-                  </button>
-                  <button
+                    <HistoryOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
-                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
-                    data-tooltip={clientVisibilityMenuLabel}
+                    className="oma-plan-post__icon-btn"
                     aria-label={clientVisibilityMenuLabel}
                     onClick={() => {
                       if (selectedId) void toggleHideFromClients(selectedId);
                     }}
                   >
-                    <EyeInvisibleOutlined />
-                  </button>
-                  <button
+                    <EyeInvisibleOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
-                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
-                    data-tooltip={t('wsPanel.delete')}
+                    className="oma-plan-post__icon-btn oma-plan-post__icon-btn--danger"
                     aria-label={t('wsPanel.delete')}
                     onClick={() => {
                       if (selectedId) setArchiveConfirmId(selectedId);
                     }}
                   >
-                    <DeleteOutlined />
-                  </button>
-                  <div className="oma-plan-post__more-wrap">
-                    <button
-                      ref={detailMoreBtnRef}
-                      type="button"
-                      className="oma-plan-post__icon-btn"
-                      aria-label={t('content.more_actions')}
-                      data-tooltip={t('content.more_actions')}
-                      aria-haspopup="menu"
-                      aria-expanded={detailMoreOpen}
-                      data-testid="content-modal-more"
-                      onClick={() => setDetailMoreOpen((v) => !v)}
-                    >
-                      <MoreOutlined />
-                    </button>
-                    <FloatingOverlay
+                    <DeleteOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
+                    ref={detailMoreBtnRef}
+                    type="button"
+                    className="oma-plan-post__icon-btn oma-plan-post__more-btn"
+                    aria-label={t('content.more_actions')}
+                    aria-haspopup="menu"
+                    data-active={detailMoreOpen ? 'true' : 'false'}
+                    data-testid="content-modal-more"
+                    onClick={() => setDetailMoreOpen((v) => !v)}
+                  >
+                    <MoreOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <FloatingOverlay
                       open={detailMoreOpen}
                       anchorRef={detailMoreBtnRef}
                       onClose={() => setDetailMoreOpen(false)}
@@ -5809,16 +5802,16 @@ export default function ContentPage() {
                           </button>
                         </li>
                       </ul>
-                    </FloatingOverlay>
-                  </div>
-                  <button
+                  </FloatingOverlay>
+                  <OmaIconAction
                     type="button"
                     className="oma-plan-post__icon-btn oma-plan-post__close"
                     onClick={requestCloseDrawer}
                     aria-label={t('brand.evidence.close')}
+                    data-testid="content-modal-close"
                   >
-                    <CloseOutlined />
-                  </button>
+                    <CloseOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
                 </div>
               </header>
 

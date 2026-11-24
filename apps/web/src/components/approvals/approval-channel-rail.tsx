@@ -170,7 +170,7 @@ export function ApprovalChannelRail({
         onClick={() => setOpen((v) => !v)}
         data-testid="approvals-channel-trigger"
       >
-        <FilterOutlined aria-hidden />
+        <FilterOutlined aria-hidden width={16} height={16} />
       </OmaIconAction>
 
       {channelPanel && typeof document !== 'undefined'
