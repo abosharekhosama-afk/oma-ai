@@ -629,3 +629,114 @@ html body .oma-plx-brand .oma-profile-section.oma-plx-listening-panel > h3 {
     font-size: var(--text-control) !important;
   }
 }
+
+/* ── Title bands & hub tiles: no card border (all viewports) ───────────────── */
+html body .oma-plx-brand .oma-plx-brand-main .oma-plx-brand-page-head,
+html body .oma-plx-brand .oma-plx-brand-main .oma-page-header {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 8px 0 10px !important;
+  min-width: 0;
+  max-width: 100%;
+}
+
+html body .oma-plx-brand .oma-plx-brand-hub-card.oma-plx-listening-card {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  min-height: 0;
+}
+
+html body .oma-plx-brand .oma-plx-brand-hub-card.oma-plx-listening-card:hover,
+html body .oma-plx-brand .oma-plx-brand-hub-card.oma-plx-listening-card:focus-visible {
+  border: none !important;
+  box-shadow: none !important;
+  background: color-mix(in srgb, var(--oma-primary-soft, #eff6ff) 65%, transparent) !important;
+}
+
+/* ── Overview: pipeline v2, coverage, scan history in bounds ─────────────── */
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-panel {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-detail-dl dd,
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-detail-dl dd a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html body .oma-plx-brand [data-testid='brand-pipeline-outcome'].oma-brand-pipeline-v2 {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
+
+html body .oma-plx-brand .oma-brand-pipeline-v2__head,
+html body .oma-plx-brand .oma-brand-pipeline-v2__goal {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html body .oma-plx-brand .oma-brand-pipeline-v2__track {
+  max-width: 100%;
+}
+
+html body .oma-plx-brand .oma-brand-pipeline-v2__step-title,
+html body .oma-plx-brand .oma-brand-pipeline-v2__step-detail {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html body .oma-plx-brand .oma-panel .oma-coverage-disclosure.oma-plx-listening-panel {
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+html body .oma-plx-brand .oma-coverage-disclosure .oma-detail-dl,
+html body .oma-plx-brand .oma-coverage-disclosure .oma-coverage-pages {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html body .oma-plx-brand .oma-coverage-pages li,
+html body .oma-plx-brand .oma-coverage-pages li .oma-ltr {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-plx-brand-data-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  html body .oma-plx-brand .oma-brand-detail-workboard .oma-plx-brand-data-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  }
+}
+
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-plx-brand-catalog-card,
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-plx-brand-catalog-card strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-work-row-meta {
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 6px;
+}
