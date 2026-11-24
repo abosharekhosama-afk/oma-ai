@@ -2408,9 +2408,15 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
 }
 @media (max-width: 767px) {
   html body [data-testid='demo-content-calendar'] .oma-cal-main {
-    overflow-x: auto !important;
+    overflow: visible !important;
+  }
+
+  html body [data-testid='demo-content-cal-scroll'].oma-cal-hscroll,
+  html body [data-testid='demo-content-calendar'] .oma-cal-hscroll {
+    overflow-x: scroll !important;
     overflow-y: visible !important;
     -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
   }
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar {
     flex-wrap: nowrap !important;
@@ -2425,10 +2431,11 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
   html body [data-testid='demo-content-calendar'] {
     --oma-cal-day-col: calc((100vw - 20px) / 3);
   }
+  html body [data-testid='demo-content-cal-scroll'] [data-testid='demo-content-cal-grid'].oma-cal-grid,
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
   html body [data-testid='demo-content-calendar'] .oma-cal-grid {
     width: calc(7 * var(--oma-cal-day-col)) !important;
-    min-width: 100% !important;
+    min-width: calc(7 * var(--oma-cal-day-col)) !important;
     max-width: none !important;
     grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
     overflow: visible !important;

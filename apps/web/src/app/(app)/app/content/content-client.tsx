@@ -4535,12 +4535,16 @@ export default function ContentPage() {
                                 {cell.date.getUTCDate()}
                               </span>
 
-                              {/* Post/Note hover actions at top */}
-                              <div className="oma-cal-cell-actions">
-                                <button
+                              <div
+                                className="oma-cal-cell-actions oma-cal-cell-actions--icon-row"
+                                role="group"
+                                aria-label={`${t('content.post')} / ${t('content.note')}`}
+                              >
+                                <OmaIconAction
                                   type="button"
                                   className="oma-cal-cell-actions__btn"
                                   data-testid={`demo-cal-post-${cell.key}`}
+                                  aria-label={t('content.post')}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedDay(cell.key);
@@ -4548,13 +4552,13 @@ export default function ContentPage() {
                                     setCreateOpen(true);
                                   }}
                                 >
-                                  <EditOutlined />
-                                  <span>{t('content.post')}</span>
-                                </button>
-                                <button
+                                  <EditOutlined aria-hidden />
+                                </OmaIconAction>
+                                <OmaIconAction
                                   type="button"
                                   className="oma-cal-cell-actions__btn"
                                   data-testid={`demo-cal-note-${cell.key}`}
+                                  aria-label={t('content.note')}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedDay(cell.key);
@@ -4585,9 +4589,8 @@ export default function ContentPage() {
                                     }
                                   }}
                                 >
-                                  <FileTextOutlined />
-                                  <span>{t('content.note')}</span>
-                                </button>
+                                  <FileTextOutlined aria-hidden />
+                                </OmaIconAction>
                               </div>
 
                               {(calDisplay.showNotes && note) || noteOpen ? (
