@@ -51,8 +51,8 @@ import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
-  AppstoreOutlined,
-  BarsOutlined,
+  LayoutGridOutlined,
+  TableGridOutlined,
   CloseOutlined,
   SearchOutlined,
   DownOutlined,
@@ -145,7 +145,7 @@ export default function TasksPage() {
       if (raw === 'board' || raw === 'list') {
         const urlView = new URLSearchParams(window.location.search).get('view');
         if (urlView !== 'board' && urlView !== 'list') {
-          setView(raw === 'list' && isMobileTasksViewport() ? 'board' : raw);
+          setView(raw);
         }
       }
     } catch {
@@ -172,16 +172,9 @@ export default function TasksPage() {
     }
     const urlView = searchParams.get('view');
     if (urlView === 'board' || urlView === 'list') {
-      setView(urlView === 'list' && isMobileTasksViewport() ? 'board' : urlView);
+      setView(urlView);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    if (!prefsLoaded) return;
-    if (isMobileTasksViewport() && view === 'list') {
-      setView('board');
-    }
-  }, [prefsLoaded, view]);
 
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
@@ -210,7 +203,7 @@ export default function TasksPage() {
   }, []);
 
   function changeView(next: ViewMode) {
-    const resolved = isMobileTasksViewport() && next === 'list' ? 'board' : next;
+    const resolved = next;
     setView(resolved);
     try {
       window.localStorage.setItem('oma.tasks.defaultView', resolved);
@@ -243,7 +236,7 @@ export default function TasksPage() {
         aria-label={t('demo.view.kanban')}
         onClick={() => changeView('board')}
       >
-        <AppstoreOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+        <LayoutGridOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
       </OmaIconAction>
       <OmaIconAction
         type="button"
@@ -254,7 +247,7 @@ export default function TasksPage() {
         aria-label={t('demo.view.list')}
         onClick={() => changeView('list')}
       >
-        <BarsOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+        <TableGridOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
       </OmaIconAction>
     </div>
   );
@@ -690,7 +683,7 @@ export default function TasksPage() {
           ) : null}
         </div>
 
-        {loading ? <TasksShimmer part="body" /> : null}
+        {loading ? <TasksShimmer part="body" view={view} /> : null}
         {unavailable ? (
           <p className="oma-muted" data-testid="demo-tasks-denied">
             {t('demo.unavailable')}

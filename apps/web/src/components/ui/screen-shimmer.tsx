@@ -327,7 +327,7 @@ function ContentListBones() {
 /* Tasks board                                                                                  */
 /* -------------------------------------------------------------------------------------------- */
 
-const KB_COLUMNS = [2, 1, 3, 2, 1];
+const TASK_BOARD_COLS = [2, 1, 3, 2, 1, 2];
 
 function readTasksView(): 'board' | 'list' {
   try {
@@ -361,27 +361,42 @@ export function TasksShimmer({
       {v === 'list' ? (
         <TableBones cols={[220, 90, 110, 90, 80]} rows={7} thumb />
       ) : (
-        <div className="oma-shim-kb" aria-hidden="true">
-          {KB_COLUMNS.map((cards, c) => (
-            <section key={c} className="oma-shim-kb__col">
-              <div className="oma-shim-kb__head">
-                <Bone w={8} h={8} r={999} />
-                <Bone w={76} h={12} />
-                <span className="oma-shim-spacer" />
-                <Bone w={22} h={18} r={999} />
+        <div className="oma-plx-approvals__columns oma-plx-tasks__columns oma-shim-tasks-board" aria-hidden="true">
+          {TASK_BOARD_COLS.map((cards, colIdx) => (
+            <section key={colIdx} className="oma-plx-approvals__column-wrap">
+              <header className="oma-plx-approvals__column-head">
+                <span className="oma-plx-approvals__column-title">
+                  <Bone w={14} h={14} r={999} />
+                  <Bone w={colIdx % 2 ? 68 : 84} h={10} r={4} />
+                </span>
+                <Bone w={18} h={14} r={5} />
+              </header>
+              <div className="oma-plx-approvals__column">
+                <ul className="oma-plx-approvals__cards">
+                  {range(cards).map((i) => (
+                    <li key={i}>
+                      <article className="oma-plx-approvals-card" style={{ paddingBottom: 6 }}>
+                        <div className="oma-plx-approvals-card__head">
+                          <Bone w={14} h={14} r={4} />
+                          <Bone w={52} h={9} r={4} />
+                          <span className="oma-shim-spacer" />
+                          <Bone w={36} h={8} r={4} />
+                        </div>
+                        <div style={{ padding: '0 5px' }}>
+                          <Bone w="100%" h={88} r={5} />
+                        </div>
+                        <div style={{ padding: '5px 7px 3px', display: 'grid', gap: 4 }}>
+                          <Bone w="90%" h={9} r={4} />
+                        </div>
+                        <div className="oma-plx-approvals-card__foot">
+                          <Bone w={48} h={9} r={999} />
+                          <Bone w={24} h={9} r={4} />
+                        </div>
+                      </article>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              {range(cards).map((k) => (
-                <article key={k} className="oma-shim-kb__card">
-                  {(c + k) % 3 !== 2 ? <Bone className="oma-shim-kb__media" r={8} /> : null}
-                  <Bone w="86%" h={13} />
-                  <Bone w="64%" h={10} />
-                  <Bone w="48%" h={10} />
-                  <div className="oma-shim-row oma-shim-row--between">
-                    <Bone w={64} h={18} r={999} />
-                    <Bone w={24} h={24} r={999} />
-                  </div>
-                </article>
-              ))}
             </section>
           ))}
         </div>

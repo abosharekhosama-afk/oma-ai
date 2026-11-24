@@ -17,6 +17,9 @@ import {
   CheckOutlined,
   TableGridOutlined,
   LayoutGridOutlined,
+  CircleCheckSoftOutlined,
+  ClockCircleOutlined,
+  PlayCircleOutlined,
 } from '../../../../components/ui/lucide-icons';
 import type { DemoGraph } from '@oma/demo';
 import { TrackPill } from '../../../../components/demo/track-pill';
@@ -694,29 +697,25 @@ export default function CampaignsPage() {
             >
               {(
                 [
-                  ['all', isAr ? 'الكل' : 'All', null],
-                  ['active', isAr ? 'نشطة' : 'Active', '↻'],
-                  ['planning', isAr ? 'قيد التخطيط' : 'Planning', '◷'],
-                  ['completed', isAr ? 'مكتملة' : 'Completed', '✓'],
+                  ['all', isAr ? 'الكل' : 'All', LayoutGridOutlined],
+                  ['active', isAr ? 'نشطة' : 'Active', PlayCircleOutlined],
+                  ['planning', isAr ? 'قيد التخطيط' : 'Planning', ClockCircleOutlined],
+                  ['completed', isAr ? 'مكتملة' : 'Completed', CircleCheckSoftOutlined],
                 ] as const
-              ).map(([key, label, icon]) => (
-                <button
+              ).map(([key, label, Icon]) => (
+                <OmaIconAction
                   key={key}
                   type="button"
                   role="tab"
-                  className="oma-campaign-tab-btn"
+                  className="oma-campaign-tab-btn oma-campaign-tab-btn--icon oma-icon-action--bare"
                   aria-selected={campaignTab === key}
                   data-active={campaignTab === key ? 'true' : 'false'}
                   data-testid={`demo-campaign-tab-${key}`}
+                  aria-label={label}
                   onClick={() => setCampaignTab(key)}
                 >
-                  {icon ? (
-                    <span className="oma-campaign-tab-btn__ico" aria-hidden>
-                      {icon}
-                    </span>
-                  ) : null}
-                  <span>{label}</span>
-                </button>
+                  <Icon className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+                </OmaIconAction>
               ))}
             </div>,
             tabsHost,
@@ -727,18 +726,24 @@ export default function CampaignsPage() {
           {chips.map((chip) => (
             <span key={chip.id} className="oma-filter-chip">
               {chip.label}
-              <Button
-                type="default"
+              <OmaIconAction
+                type="button"
+                className="oma-icon-action--bare oma-filter-chip__clear"
                 aria-label={`${t('demo.campaigns.clearFilters')}: ${chip.label}`}
                 onClick={() => setFilters((f) => clearCampaignChip(f, chip.id))}
               >
-                ×
-              </Button>
+                <CloseOutlined className="oma-lucide oma-lucide--soft" width={14} height={14} />
+              </OmaIconAction>
             </span>
           ))}
-          <Button type="default" onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}>
-            {t('demo.campaigns.clearFilters')}
-          </Button>
+          <OmaIconAction
+            type="button"
+            className="oma-icon-action--bare"
+            aria-label={t('demo.campaigns.clearFilters')}
+            onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
+          >
+            <CloseOutlined className="oma-lucide oma-lucide--soft" width={16} height={16} />
+          </OmaIconAction>
         </div>
       ) : null}
 

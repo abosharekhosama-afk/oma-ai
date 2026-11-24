@@ -2473,6 +2473,12 @@ html body .oma-campaign-layout-switch--icons {
 }
 
 /* ── Tasks board: exact approvals column + card chrome ───────────────── */
+html body .oma-plx-tasks,
+html body .oma-plx-tasks .oma-plx-workspace-surface,
+html body .oma-plx-deliverables.oma-plx-tasks {
+  background: var(--oma-surface, #fff) !important;
+}
+
 html body .oma-plx-tasks .oma-plx-tasks-panel,
 html body .oma-plx-tasks .oma-plx-tasks-panel .oma-plx-approvals__board {
   background: transparent !important;
@@ -2507,10 +2513,30 @@ html body .oma-plx-tasks .oma-plx-tasks__columns .oma-plx-approvals__column-wrap
 }
 
 html body .oma-plx-tasks .oma-plx-approvals__column {
-  min-height: calc(100vh - 150px) !important;
+  min-height: min(68vh, 560px) !important;
+  max-height: calc(100dvh - 148px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
   background: var(--oma-canvas, #f9fafb) !important;
   border-radius: 12px !important;
   padding: 10px !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals__cards {
+  min-width: 0 !important;
+}
+
+html body .oma-shim-tasks-board.oma-plx-tasks__columns {
+  display: flex !important;
+  gap: 18px !important;
+  overflow-x: auto !important;
+}
+
+html body .oma-shim-tasks-board .oma-plx-approvals__column {
+  max-height: calc(100dvh - 148px) !important;
+  overflow-y: auto !important;
 }
 
 html body .oma-plx-tasks .oma-plx-approvals-card.is-dragging {
@@ -2609,6 +2635,48 @@ html body .oma-campaigns-page .oma-req-filter-panel__foot--icons {
   justify-content: flex-end !important;
   gap: 0 !important;
   padding: 8px 10px !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-status-tabs--header {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  border: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-tab-btn--icon.oma-icon-action {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-tab-btn--icon.oma-icon-action[data-active='true'] {
+  color: var(--oma-primary, #1677ff) !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-layout-switch--icons,
+html body .oma-campaigns-page #oma-workspace-top-actions .oma-workspace-top-actions-inner--icon-strip {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  gap: 0 !important;
+}
+
+html body .oma-campaigns-page #oma-workspace-top-actions .oma-header-icon-btn,
+html body .oma-campaigns-page #oma-workspace-top-actions .ant-btn.oma-req-create-button {
+  display: none !important;
+}
+
+html body .oma-plx-listening.oma-plx-requests #oma-workspace-top-actions .oma-lucide {
+  stroke-width: 1.5 !important;
 }
 
 html body .oma-lucide--soft {

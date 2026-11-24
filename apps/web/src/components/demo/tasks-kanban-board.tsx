@@ -34,7 +34,18 @@ import {
 import { pickCopy } from '../../lib/demo/use-demo-api';
 import { useLocale, useT } from '../../lib/use-locale';
 import { MediaSurface, kindFromMime, kindFromUrl } from '../content/media-surface';
-import { ClockCircleOutlined, CommentOutlined, FlagOutlined, PlayCircleOutlined } from '../ui/lucide-icons';
+import {
+  CheckCircleOutlined,
+  CheckOutlined,
+  ClockCircleOutlined,
+  CommentOutlined,
+  EyeOutlined,
+  FlagOutlined,
+  InboxOutlined,
+  LockOutlined,
+  PlayCircleOutlined,
+} from '../ui/lucide-icons';
+import type { ReactNode } from 'react';
 
 type Props = {
   byBoard: Record<string, TaskRow[]>;
@@ -72,6 +83,19 @@ const COLUMN_ACCENT: Record<string, string> = {
   DONE: 'done',
   OVERDUE: 'overdue',
 };
+
+function ColumnSecIcon({ status }: { status: DemoTaskStatus }) {
+  const cls = 'oma-plx-approvals__sec-ico oma-lucide--soft';
+  const map: Record<string, ReactNode> = {
+    BACKLOG: <InboxOutlined className={cls} width={14} height={14} />,
+    READY: <ClockCircleOutlined className={cls} width={14} height={14} />,
+    IN_PROGRESS: <PlayCircleOutlined className={cls} width={14} height={14} />,
+    IN_REVIEW: <EyeOutlined className={cls} width={14} height={14} />,
+    BLOCKED: <LockOutlined className={cls} width={14} height={14} />,
+    DONE: <CheckCircleOutlined className={cls} width={14} height={14} />,
+  };
+  return map[status] ?? <CheckOutlined className={cls} width={14} height={14} />;
+}
 
 function isAr(locale: string) {
   return locale.toLowerCase().startsWith('ar');
@@ -274,6 +298,7 @@ function DroppableColumn({
     >
       <header className="oma-plx-approvals__column-head">
         <span className="oma-plx-approvals__column-title">
+          <ColumnSecIcon status={id} />
           <span>{title}</span>
         </span>
         <span
