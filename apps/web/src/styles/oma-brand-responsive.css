@@ -740,3 +740,152 @@ html body .oma-plx-brand .oma-brand-detail-workboard .oma-work-row-meta {
   min-width: 0;
   gap: 6px;
 }
+
+/* ── Shell padding: less gutter on panel body (nested content) ─────────────── */
+html body .oma-plx-brand .oma-plx-brand-panel__body {
+  padding: 8px 10px !important;
+}
+
+@media (min-width: 768px) {
+  html body .oma-plx-brand .oma-plx-brand-panel__body {
+    padding: 12px 14px !important;
+  }
+}
+
+/* ── Nested cards: panel → card → inner card ─────────────────────────────── */
+html body .oma-plx-brand .oma-plx-brand-main > .oma-panel {
+  padding: 10px 12px;
+}
+
+html body .oma-plx-brand .oma-plx-brand-main .oma-panel .oma-plx-listening-card,
+html body .oma-plx-brand .oma-plx-brand-main .oma-panel .oma-plx-brand-catalog-card,
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-panel .oma-plx-listening-card,
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-panel .oma-plx-brand-catalog-card {
+  padding: 8px 10px !important;
+  gap: 6px !important;
+}
+
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-panel {
+  padding: 10px 12px;
+}
+
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-panel-head {
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+html body .oma-plx-brand .oma-brand-detail-workboard .oma-plx-brand-data-grid {
+  gap: 8px;
+}
+
+html body .oma-plx-brand-settings--embedded .oma-plx-brand-settings__body,
+html body .oma-plx-brand .oma-plx-brand-settings__body {
+  padding: 8px 10px !important;
+  gap: 10px !important;
+}
+
+html body .oma-plx-brand-settings .oma-bs-card,
+html body .oma-plx-brand-settings__main .oma-bs-card {
+  padding: 10px 12px !important;
+}
+
+html body .oma-plx-brand-settings .oma-bs-section {
+  margin-bottom: 10px;
+}
+
+html body .oma-plx-brand-settings .oma-plx-listening-panel,
+html body .oma-plx-brand-settings .oma-bs-main > section {
+  padding: 10px 12px !important;
+}
+
+/* ── Briefs: input + action on one row ───────────────────────────────────── */
+html body .oma-plx-brand-main form.oma-panel.oma-plan-toolbar[data-testid='brief-create'] {
+  padding: 8px 10px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px !important;
+  align-items: center;
+}
+
+html body .oma-plx-brand-main [data-testid='brief-create'] .ant-input,
+html body .oma-plx-brand-main [data-testid='brief-create'] input,
+html body .oma-plx-brand-main [data-testid='brief-create'] .ant-input-affix-wrapper {
+  max-inline-size: none !important;
+  width: 100% !important;
+  min-width: 0;
+}
+
+html body .oma-plx-brand-main [data-testid='brief-create'] .ant-select {
+  width: 100% !important;
+  min-width: 0;
+}
+
+html body .oma-plx-brand-main [data-testid='brief-create'] > *:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html body .oma-plx-brand-main [data-testid='brief-create'] > *:nth-child(2) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+html body .oma-plx-brand-main [data-testid='brief-create'] > *:nth-child(3) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+html body .oma-plx-brand-main [data-testid='brief-create'] > *:nth-child(4) {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* ── Brand intro: strategy CTA beside brand name row ──────────────────────── */
+html body .oma-plx-brand .oma-plx-brand__intro.oma-plx-listening__intro {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 10px;
+  margin-bottom: 10px;
+}
+
+html body .oma-plx-brand .oma-plx-brand__identity {
+  flex: 1 1 10rem;
+  min-width: 0;
+  align-items: center;
+}
+
+html body .oma-plx-brand .oma-plx-brand__cta {
+  width: auto !important;
+  align-self: center !important;
+  flex: 0 0 auto;
+  max-width: min(100%, 11rem);
+}
+
+html body .oma-plx-brand .oma-plx-brand__cta .ant-btn,
+html body .oma-plx-brand .oma-plx-brand__cta a.ant-btn {
+  width: auto !important;
+  max-width: 100%;
+  white-space: nowrap;
+  padding-inline: 10px !important;
+  font-size: var(--text-meta) !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-plx-brand .oma-plx-brand__intro.oma-plx-listening__intro {
+    align-items: center !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand__identity-copy .oma-plx-listening__title {
+    margin-bottom: 0;
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand__chips,
+  html body .oma-plx-brand .oma-plx-deliv__subtitle {
+    flex-basis: 100%;
+    width: 100%;
+  }
+}
