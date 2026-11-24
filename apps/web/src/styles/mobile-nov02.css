@@ -39,6 +39,30 @@
   cursor: pointer;
 }
 
+@media (max-width: 767px) {
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle {
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    font-size: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle[data-active='true'] {
+    background: transparent !important;
+    border: 0 !important;
+    color: var(--oma-primary) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
 .oma-cal-saved-toggle svg.oma-lucide {
   width: 14px;
   height: 14px;

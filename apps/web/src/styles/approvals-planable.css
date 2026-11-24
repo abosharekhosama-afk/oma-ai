@@ -1033,7 +1033,7 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
     width: max-content;
     min-width: 100%;
     padding: 0 2px 6px;
@@ -1041,10 +1041,10 @@
 
   .oma-plx-approvals__column-wrap,
   .oma-shim-approvals .oma-plx-approvals__column-wrap {
-    flex: 0 0 min(72vw, 232px);
-    width: min(72vw, 232px);
-    min-width: min(72vw, 220px);
-    max-width: min(72vw, 232px);
+    flex: 0 0 min(70vw, 224px);
+    width: min(70vw, 224px);
+    min-width: min(70vw, 212px);
+    max-width: min(70vw, 224px);
   }
 
   .oma-plx-approvals__column,
@@ -1052,8 +1052,8 @@
     min-height: 120px;
     max-height: none;
     width: 100%;
-    padding: 6px;
-    gap: 6px;
+    padding: 5px;
+    gap: 5px;
     box-sizing: border-box;
   }
 
@@ -1077,14 +1077,17 @@
   }
 
   .oma-plx-approvals__cards {
-    gap: 6px;
+    gap: 5px;
   }
 
   .oma-plx-approvals-card,
   .oma-shim-approvals .oma-plx-approvals-card {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    min-height: 168px;
     box-sizing: border-box;
     border-radius: 8px;
   }
@@ -1120,11 +1123,26 @@
   }
 
   .oma-plx-approvals-card__media {
-    height: auto;
-    aspect-ratio: 5 / 4;
-    max-height: 96px;
+    flex: 1 1 auto;
+    display: block;
+    width: calc(100% - 10px);
     margin-inline: 5px;
+    min-height: 72px;
+    height: auto;
+    max-height: none;
+    aspect-ratio: auto;
     border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .oma-plx-approvals-card__media img,
+  .oma-plx-approvals-card__media video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 72px;
+    max-height: none;
+    object-fit: cover;
   }
 
   .oma-shim-approvals .oma-plx-approvals-card {

@@ -2422,21 +2422,28 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     flex: 0 0 auto !important;
     flex-wrap: nowrap !important;
   }
+  html body [data-testid='demo-content-calendar'] {
+    --oma-cal-day-col: calc((100vw - 20px) / 4);
+  }
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
   html body [data-testid='demo-content-calendar'] .oma-cal-grid {
-    width: max-content !important;
+    width: calc(7 * var(--oma-cal-day-col)) !important;
     min-width: 100% !important;
-    grid-template-columns: repeat(7, minmax(96px, 1fr)) !important;
+    max-width: none !important;
+    grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
     overflow: visible !important;
   }
   html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] {
-    grid-template-columns: repeat(5, minmax(96px, 1fr)) !important;
+    width: calc(5 * var(--oma-cal-day-col)) !important;
+    grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;
   }
   html body [data-testid='demo-content-calendar'] .oma-cal-dow-row {
-    grid-template-columns: repeat(7, minmax(96px, 1fr)) !important;
+    width: calc(7 * var(--oma-cal-day-col)) !important;
+    grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
   }
   html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] .oma-cal-dow-row {
-    grid-template-columns: repeat(5, minmax(96px, 1fr)) !important;
+    width: calc(5 * var(--oma-cal-day-col)) !important;
+    grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;
   }
   html body [data-testid='demo-content-cal-grid'][data-span='month'] {
     grid-auto-rows: minmax(76px, auto) !important;
