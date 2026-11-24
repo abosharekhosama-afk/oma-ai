@@ -490,10 +490,25 @@ function TableBones({
 }
 
 export function RequestsShimmer({ part = 'page' }: { part?: ShimmerPart }) {
+  const tabWidths = [52, 48, 56, 60, 44, 50];
   const body = (
-    <div className="oma-shim-body">
-      <Bone w={40} h={12} />
-      <TableBones cols={[300, 80, 110, 160, 70, 110, 90]} rows={6} avatar />
+    <div className="oma-shim-body oma-shim-requests-body">
+      <div className="oma-shim-requests-tabs" aria-hidden="true">
+        {tabWidths.map((w, i) => (
+          <Bone
+            key={i}
+            w="100%"
+            h={28}
+            r={i === 0 ? 6 : i === tabWidths.length - 1 ? 6 : 0}
+            className="oma-shim-requests-tab"
+          />
+        ))}
+      </div>
+      <TableBones
+        cols={[180, 52, 72, 100, 48, 72, 64, 56, 48, 72]}
+        rows={7}
+        avatar={false}
+      />
     </div>
   );
   if (part === 'body') {

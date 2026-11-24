@@ -58,6 +58,41 @@
   padding: 10px 20px 20px;
 }
 
+/* Requests list (flat tabs + compact table) */
+.oma-shim-requests-body {
+  gap: 0;
+  padding: 4px 10px 12px;
+}
+.oma-shim-requests-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  gap: 0;
+  margin: 0 0 6px;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+}
+.oma-shim-requests-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 0 !important;
+}
+.oma-shim-requests-tab:first-child {
+  border-start-start-radius: 6px !important;
+}
+.oma-shim-requests-tab:last-child {
+  border-start-end-radius: 6px !important;
+}
+.oma-shim-requests-body .oma-shim-table {
+  margin: 0;
+}
+.oma-shim-requests-body .oma-shim-table__row--head .oma-shim {
+  block-size: 9px;
+}
+.oma-shim-requests-body .oma-shim-table__row .oma-shim {
+  block-size: 10px;
+}
+
 /* ---------- Content: calendar ---------- */
 .oma-shim-content.oma-shim-screen {
   gap: 0;

@@ -1615,3 +1615,129 @@ html body .oma-plx-content-header-btn--primary {
     width: 100% !important;
   }
 }
+
+/*
+ * Typography unification (requests).
+ * Conflicts: inbox-listening `.oma-plx-compose` (12px uppercase labels),
+ * stage4 `.oma-req-create`, shell nav (13px) vs table (11px in this file).
+ */
+
+html body .oma-plx-compose-dialog .oma-plx-compose-panel.oma-plx-listening-panel {
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  box-shadow: none !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-compose-dialog .ant-modal-body {
+  padding: 10px 12px 12px !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-compose-dialog .ant-modal-header .ant-modal-title h2 {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose label,
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-compose__label,
+html body .oma-req-create label,
+html body .oma-req-create .oma-req-create__label {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  color: var(--oma-workspace-ink-soft, #5e6166) !important;
+  gap: 4px !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose input,
+html body .oma-plx-compose-dialog .oma-plx-compose textarea,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-select,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-select-selector,
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-select,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-picker,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-picker-input input,
+html body .oma-req-create input,
+html body .oma-req-create textarea,
+html body .oma-req-create .ant-picker,
+html body .oma-req-create .oma-select {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  font-weight: 400 !important;
+  min-height: 32px !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-compose__chip {
+  font-size: 10px !important;
+  padding: 4px 8px !important;
+  min-height: 26px !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-compose__note {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-compose-dialog .oma-channel-dropdown__trigger,
+html body .oma-plx-compose-dialog .oma-channel-dropdown__trigger.oma-card {
+  border: 1px solid var(--oma-home-border, #e5e7eb) !important;
+  border-radius: 7px !important;
+  background: var(--oma-surface, #fff) !important;
+  box-shadow: none !important;
+  min-height: 32px !important;
+  padding: 5px 8px !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+}
+
+html body .oma-plx-compose-dialog .oma-channel-dropdown__summary {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-plx-compose-dialog__foot .oma-plx-compose-dialog__btn,
+html body .oma-plx-compose-dialog__foot .oma-plx-compose-dialog__btn.ant-btn,
+html body .oma-req-create__footer .oma-plx-compose-dialog__btn.ant-btn {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link,
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link-label,
+  html body .oma-shell .oma-nav-link,
+  html body .oma-shell .oma-rail .oma-nav-link {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    font-weight: 500 !important;
+  }
+
+  html body .oma-drawer.oma-drawer--nav .oma-nav-section,
+  html body .oma-shell .oma-nav-section {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link-icon,
+  html body .oma-shell .oma-nav-link-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}

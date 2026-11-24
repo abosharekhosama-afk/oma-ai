@@ -1141,6 +1141,7 @@ export default function RequestsPage() {
               onChange={(channels) => patchForm({ channels })}
               locale={locale}
               multiple
+              variant="dropdown"
               testId="demo-create-request-channels"
             />
           </div>
@@ -1193,12 +1194,17 @@ export default function RequestsPage() {
           <p className="oma-muted" data-testid="demo-create-request-refs">
             {t('demo.optional')}: content / reference placeholders (Demo)
           </p>
-          <div className="oma-req-create__footer">
-            <Button disabled={creating} onClick={requestCloseCreate}>
+          <div className="oma-req-create__footer oma-plx-compose-dialog__foot">
+            <Button
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
+              disabled={creating}
+              onClick={requestCloseCreate}
+            >
               {t('demo.create.cancel')}
             </Button>
             <Button
               type="primary"
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
               loading={creating}
               data-testid="demo-create-request-submit"
               onClick={() => void submitCreate()}
