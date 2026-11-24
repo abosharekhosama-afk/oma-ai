@@ -1,0 +1,193 @@
+/*
+ * Final mobile shell + requests + icon grammar.
+ * Loaded after ui-polish.css in app/layout.tsx so it wins the cascade.
+ */
+
+/* ── Borderless header icons (content, requests, nav, workspace) ───────── */
+html body .oma-icon-action,
+html body .oma-top-actions .oma-icon-action,
+html body .oma-top-actions--content .oma-icon-action,
+html body .oma-top-actions--workspace .oma-icon-action,
+html body .oma-workspace-header-actions .oma-icon-action,
+html body .oma-plx-content-header-actions .oma-icon-action,
+html body .oma-plx-content-header-actions > .oma-icon-action,
+html body #oma-content-top-actions .oma-icon-action,
+html body #oma-workspace-top-actions .oma-icon-action,
+html body .oma-req-filter-icon,
+html body .oma-req-create-icon,
+html body .oma-header-create-icon,
+html body .oma-sched-icon-btn,
+html body .oma-activity-refresh,
+html body .oma-plx-tasks__create-icon,
+html body .oma-mobile-nav-toggle.oma-icon-action,
+html body .oma-mobile-nav-fab.oma-icon-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: var(--oma-icon-action-size, 32px) !important;
+  height: var(--oma-icon-action-size, 32px) !important;
+  min-width: var(--oma-icon-action-size, 32px) !important;
+  min-height: var(--oma-icon-action-size, 32px) !important;
+  max-width: var(--oma-icon-action-size, 32px) !important;
+  max-height: var(--oma-icon-action-size, 32px) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: var(--oma-icon-action-radius, 8px) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+  flex: 0 0 auto !important;
+}
+
+html body .oma-icon-action--compose,
+html body .oma-plx-content-header-btn--primary.oma-icon-action {
+  color: var(--oma-primary, #1677ff) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .oma-icon-action:hover,
+html body .oma-icon-action:focus-visible,
+html body .oma-icon-action[data-active='true'] {
+  color: var(--oma-primary, #1677ff) !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Legacy content header btn class (dead markup) — never paint as bordered tiles */
+html body .oma-plx-content-header-btn,
+html body .oma-plx-content-header-btn--primary {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  width: var(--oma-icon-action-size, 32px) !important;
+  min-width: var(--oma-icon-action-size, 32px) !important;
+  height: var(--oma-icon-action-size, 32px) !important;
+  padding: 0 !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-top .oma-mobile-nav-toggle,
+  html body .oma-top .oma-mobile-nav-toggle.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    min-height: var(--oma-icon-action-size, 32px) !important;
+    border-radius: var(--oma-icon-action-radius, 8px) !important;
+  }
+
+  html body .oma-top-actions--workspace,
+  html body .oma-plx-content-header-actions,
+  html body .oma-workspace-header-actions {
+    gap: 2px !important;
+  }
+}
+
+/* ── Requests: table on phone, compact tabs (underline active) ─────────── */
+@media (max-width: 900px) {
+  html body .oma-req-page .oma-req-desktop,
+  html body .oma-req-page .oma-req-main .oma-req-desktop {
+    display: block !important;
+  }
+
+  html body .oma-req-page .oma-req-mobile,
+  html body .oma-req-page .oma-req-main .oma-req-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html body main.oma-container:has(.oma-req-page),
+  html body .oma-container:has(.oma-req-page) {
+    padding: 6px 6px 12px !important;
+  }
+
+  html body .oma-req-page .oma-req-header {
+    padding: 4px 2px 0 !important;
+    margin: 0 0 4px !important;
+  }
+
+  html body .oma-req-page .oma-req-main {
+    padding: 4px 0 10px !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs,
+  html body .oma-req-page .oma-ws-tabs,
+  html body .oma-req-page .oma-req-tabs.oma-ws-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    margin: 0 0 6px !important;
+    padding: 0 !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--oma-workspace-border-strong) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab,
+  html body .oma-req-page .oma-req-tabs .oma-req-tab,
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 7px 9px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--oma-workspace-muted) !important;
+    border-bottom: 2px solid transparent !important;
+    margin-bottom: -1px !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab.is-active,
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab[data-active='true'],
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab[aria-selected='true'],
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab.is-active,
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab[data-active='true'],
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab[aria-selected='true'] {
+    color: var(--oma-workspace-ink) !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+    border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary)) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-table-wrap {
+    margin: 0 0 6px !important;
+    max-height: calc(100vh - 200px) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-table {
+    font-size: 11px !important;
+  }
+
+  html body .oma-req-page .oma-req-table th,
+  html body .oma-req-page .oma-req-table td {
+    padding: 7px 8px !important;
+    min-width: 72px !important;
+  }
+
+  html body .oma-req-page .oma-req-table th:first-child,
+  html body .oma-req-page .oma-req-table td:first-child {
+    min-width: 140px !important;
+    max-width: 200px !important;
+    position: static !important;
+    box-shadow: none !important;
+  }
+}

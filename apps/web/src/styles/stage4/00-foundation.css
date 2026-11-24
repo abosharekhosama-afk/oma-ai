@@ -454,12 +454,18 @@
 }
 
 @media (max-width: 900px) {
-  .oma-req-desktop,
+  .oma-req-page .oma-req-desktop {
+    display: block;
+  }
+
+  .oma-req-page .oma-req-mobile {
+    display: none;
+  }
+
   .oma-task-desktop {
     display: none;
   }
 
-  .oma-req-mobile,
   .oma-task-mobile {
     display: grid;
   }

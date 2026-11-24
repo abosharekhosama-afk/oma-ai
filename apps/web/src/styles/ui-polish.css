@@ -289,8 +289,7 @@ html
   body
   .oma-btn:not(.oma-btn--secondary):not(.oma-btn--ghost):not(.oma-btn--danger):not(.oma-btn--quiet),
 html body .oma-home-btn--primary,
-html body .oma-plx-tasks__create-icon,
-html body .oma-plx-content-header-btn--primary,
+html body .oma-plx-content-header-btn--primary:not(.oma-icon-action),
 html body .oma-error-state__btn--primary,
 html body .oma-plx-confirm-card__btn--primary,
 html body .oma-pa-btn--primary,
@@ -316,8 +315,7 @@ html
     .oma-btn--quiet
   ):hover:not(:disabled),
 html body .oma-home-btn--primary:hover,
-html body .oma-plx-tasks__create-icon:hover,
-html body .oma-plx-content-header-btn--primary:hover,
+html body .oma-plx-content-header-btn--primary:not(.oma-icon-action):hover,
 html body .oma-error-state__btn--primary:hover,
 html body .oma-plx-confirm-card__btn--primary:hover:not(:disabled),
 html body .oma-pa-btn--primary:hover:not(:disabled),
@@ -333,8 +331,7 @@ html body .plx-btn--primary:hover:not(:disabled) {
   border-color: var(--oma-action-hover-border) !important;
   color: var(--oma-action-fg) !important;
 }
-html body .oma-plx-content-header-btn--primary svg,
-html body .oma-plx-tasks__create-icon svg,
+html body .oma-plx-content-header-btn--primary:not(.oma-icon-action) svg,
 html body .oma-home-btn--primary svg,
 html body .oma-plx-approvals__review-cta svg {
   color: currentColor !important;

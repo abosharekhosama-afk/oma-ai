@@ -145,20 +145,13 @@
     overflow: hidden !important;
   }
 
+  /* Nav toggle: OmaIconAction + oma-mobile-cascade-final.css */
   html body .oma-top .oma-mobile-nav-toggle {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    flex: 0 0 36px !important;
-    width: 36px !important;
-    min-width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
+    flex: 0 0 auto !important;
     padding: 0 !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--oma-home-border) !important;
-    background: var(--oma-surface) !important;
-    color: var(--oma-home-ink) !important;
   }
 
   html body .oma-top-center {
@@ -186,53 +179,7 @@
     flex-wrap: nowrap !important;
   }
 
-  html body .oma-plx-content-header-btn {
-    width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 0 !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--oma-home-border) !important;
-    background: var(--oma-surface) !important;
-    color: var(--oma-home-ink-2) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    position: relative !important;
-    flex: 0 0 34px !important;
-  }
-
-  /* Hide text labels inside compact content header buttons on mobile, keep icon & count badge */
-  html body .oma-plx-content-header-btn > span:not(.oma-plx-content-header-count) {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    clip: rect(0 0 0 0) !important;
-    white-space: nowrap !important;
-  }
-
-  html body .oma-plx-content-header-btn .oma-plx-content-header-count {
-    position: absolute !important;
-    top: -4px !important;
-    inset-inline-end: -4px !important;
-    min-width: 16px !important;
-    height: 16px !important;
-    line-height: 16px !important;
-    font-size: 10px !important;
-    padding: 0 4px !important;
-  }
-
-  html body .oma-plx-content-header-btn--primary {
-    background: var(--oma-primary) !important;
-    border-color: var(--oma-primary) !important;
-    color: var(--oma-primary-ink) !important;
-  }
-
-  html body .oma-plx-content-header-btn--primary svg.oma-lucide {
-    color: var(--oma-primary-ink) !important;
-  }
+  /* Content header: OmaIconAction — oma-mobile-cascade-final.css */
 
   /* Approvals top actions inside header on mobile */
   html body .oma-plx-approvals__top-actions {

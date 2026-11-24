@@ -211,14 +211,7 @@
     opacity: 1 !important;
   }
 
-  html body .oma-top-actions--workspace .oma-sched-icon-btn,
-  html body .oma-top-actions--workspace .oma-header-icon-btn {
-    border: 1px solid #dbe2ea !important;
-    border-radius: 8px !important;
-    background: #fff !important;
-    color: #374151 !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-  }
+  /* Workspace header icons: oma-icon-action + oma-mobile-cascade-final.css */
 
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-request-approvals,
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-pv-icon-btn,

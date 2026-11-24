@@ -9,6 +9,7 @@ import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
 import '../styles/oma-fonts.css';
 import '../styles/ui-polish.css';
+import '../styles/oma-mobile-cascade-final.css';
 
 const siteUrl = resolvePublicSiteUrl();
 

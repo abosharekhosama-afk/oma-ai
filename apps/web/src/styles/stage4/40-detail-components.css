@@ -113,39 +113,7 @@
 }
 
 /* Requests tabs — match Team & clients (oma-ws-tabs) */
-.oma-req-page .oma-ws-tabs,
-.oma-req-page .oma-req-tabs.oma-ws-tabs {
-  display: flex !important;
-  gap: 4px !important;
-  flex-wrap: wrap !important;
-  margin: 8px 0 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-}
-.oma-req-page .oma-ws-tab {
-  appearance: none !important;
-  border: 0 !important;
-  background: transparent !important;
-  color: var(--oma-workspace-muted) !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  padding: 8px 12px !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
-  line-height: 1.2 !important;
-}
-.oma-req-page .oma-ws-tab:hover {
-  background: #f3f4f6 !important;
-  color: var(--oma-workspace-ink) !important;
-}
-.oma-req-page .oma-ws-tab.is-active,
-.oma-req-page .oma-ws-tab[data-active='true'],
-.oma-req-page .oma-ws-tab[aria-selected='true'] {
-  background: var(--oma-workspace-tab-active-bg) !important;
-  color: #1677ff !important;
-  font-weight: 600 !important;
-}
+/* Requests tabs: underline grammar — see OMA-PATCH-2026-10-24-tabs-team below */
 .oma-req-title-cell .oma-muted {
   word-break: normal !important;
   overflow-wrap: anywhere !important;
@@ -2063,14 +2031,7 @@ button.oma-breadcrumb-workspace:hover {
     display: none !important;
   }
 
-  html body .oma-req-page .oma-req-tabs .oma-ws-tab,
-  html body .oma-req-page .oma-ws-tabs .oma-ws-tab {
-    flex: 0 0 auto !important;
-    min-height: 34px !important;
-    padding: 8px 10px !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-  }
+  /* Requests tabs density: oma-mobile-cascade-final.css */
 
   html body .oma-req-page .oma-req-workspace {
     display: block !important;
@@ -2226,13 +2187,6 @@ button.oma-breadcrumb-workspace:hover {
     color: var(--oma-muted, #64748b) !important;
   }
 
-  html body .oma-top-actions--workspace .oma-req-create-icon {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    color: var(--oma-primary, var(--oma-workspace-primary-border)) !important;
-    background: var(--oma-surface, var(--oma-surface)) !important;
-  }
 }
 
 /* Phone filter/create icons: oma-icon-action.css + plx-header-filter */

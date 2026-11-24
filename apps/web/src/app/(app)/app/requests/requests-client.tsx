@@ -444,6 +444,7 @@ export default function RequestsPage() {
               <span className="oma-requests-header-title">{t('demo.requests.title')}</span>
               <OmaIconAction
                 type="button"
+                className="oma-req-filter-icon"
                 data-testid="demo-request-open-filters"
                 data-active={filterSheet ? 'true' : 'false'}
                 aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
@@ -454,6 +455,7 @@ export default function RequestsPage() {
               </OmaIconAction>
               <OmaIconAction
                 type="button"
+                className="oma-req-create-icon"
                 data-testid="demo-create-request"
                 aria-label={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}

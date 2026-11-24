@@ -88,10 +88,20 @@ describe('css cleanup (stage2/4/5)', () => {
   });
 
   it('requests phone layer prefers compact table over card list', () => {
-    const css = read('apps/web/src/styles/mobile-requests-phone.css');
-    expect(css).toMatch(/oma-req-desktop[\s\S]{0,80}display:\s*block !important/);
-    expect(css).toMatch(/oma-req-mobile[\s\S]{0,80}display:\s*none !important/);
-    expect(css).toContain('border-bottom-color: var(--oma-workspace-primary-border');
+    const phone = read('apps/web/src/styles/mobile-requests-phone.css');
+    const finalCss = read('apps/web/src/styles/oma-mobile-cascade-final.css');
+    expect(finalCss).toMatch(/oma-req-desktop[\s\S]{0,80}display:\s*block !important/);
+    expect(finalCss).toMatch(/oma-req-mobile[\s\S]{0,80}display:\s*none !important/);
+    expect(finalCss).toContain('border-bottom-color: var(--oma-workspace-primary-border');
+    expect(phone).toContain('.oma-req-page .oma-req-desktop');
+  });
+
+  it('layout imports cascade-final after ui-polish', () => {
+    const layout = read('apps/web/src/app/layout.tsx');
+    const uiIdx = layout.indexOf("ui-polish.css");
+    const finalIdx = layout.indexOf('oma-mobile-cascade-final.css');
+    expect(uiIdx).toBeGreaterThan(-1);
+    expect(finalIdx).toBeGreaterThan(uiIdx);
   });
 
   it('uses fluid compact content rows on phone', () => {
