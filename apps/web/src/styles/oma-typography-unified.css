@@ -202,14 +202,90 @@ html body .oma-ws-overlay .oma-ws-panel button.ant-btn {
   font-family: inherit !important;
 }
 
-/* Data tables: meta step (still dense, same scale as tokens) */
-html body .oma-shell main.oma-container table th,
-html body .oma-shell main.oma-container table td,
-html body .oma-shell .oma-plx-requests-table th,
-html body .oma-shell .oma-plx-requests-table td,
-html body .oma-shell .oma-req-page table th,
-html body .oma-shell .oma-req-page table td {
+/* ── Laptop+: requests · tasks · deliverables · campaigns (token tables/tabs) ─ */
+@media (min-width: 768px) {
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn,
+  html body .oma-plx-tasks .oma-plx-deliv-groups__btn,
+  html body .oma-plx-deliverables .oma-plx-deliv-groups__btn,
+  html body .oma-plx-deliverables .oma-plx-listening-segment button,
+  html body .oma-campaigns-page .oma-campaign-status-tabs .ant-btn,
+  html body .oma-campaigns-page .oma-ws-tabs .oma-ws-tab {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+    font-family: inherit !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv__subtitle,
+  html body .oma-plx-deliverables .oma-plx-listening__next-check,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv__subtitle,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-listening__next-check {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th,
+  html body .oma-plx-tasks .oma-plx-tasks-table th,
+  html body .oma-plx-deliverables .oma-plx-deliv-table th,
+  html body .oma-campaigns-page .oma-campaign-req-table th,
+  html body .oma-campaigns-page .oma-req-table th,
+  html body .oma-campaigns-page .oma-campaign-table-head {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+    font-family: inherit !important;
+    font-weight: var(--weight-semibold, 600) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-text-link,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-req-table__sub,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-muted,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .ant-tag,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td,
+  html body .oma-plx-tasks .oma-plx-tasks-table td,
+  html body .oma-plx-tasks .oma-plx-tasks-table .oma-plx-tasks-table__title-text,
+  html body .oma-plx-tasks .oma-plx-tasks-table .oma-plx-deliv-table__sub,
+  html body .oma-plx-deliverables .oma-plx-deliv-table td,
+  html body .oma-plx-deliverables .oma-plx-deliv-table__title,
+  html body .oma-plx-deliverables .oma-plx-deliv-table__sub,
+  html body .oma-plx-deliverables .oma-plx-deliv-card__title,
+  html body .oma-plx-deliverables .oma-plx-deliv-card__meta,
+  html body .oma-campaigns-page .oma-campaign-req-table td,
+  html body .oma-campaigns-page .oma-req-table td,
+  html body .oma-campaigns-page .oma-campaign-table-row {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+    font-family: inherit !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card .ant-tag,
+  html body .oma-plx-deliverables .oma-plx-deliv-table .ant-tag {
+    font-size: var(--text-label) !important;
+    line-height: var(--leading-label) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-listening-segment button {
+    min-height: var(--oma-control-height-compact, 30px) !important;
+    padding: 4px 10px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-groups__btn {
+    padding: 8px 12px !important;
+    line-height: var(--leading-body) !important;
+  }
+}
+
+/* Data tables: default meta on headers where no page override */
+html body .oma-shell main.oma-container table th {
   font-size: var(--text-meta) !important;
   line-height: var(--leading-meta) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-shell main.oma-container table td,
+html body .oma-shell .oma-plx-requests-table td,
+html body .oma-shell .oma-req-page table td {
+  font-size: var(--text-body) !important;
+  line-height: var(--leading-body) !important;
   font-family: inherit !important;
 }
