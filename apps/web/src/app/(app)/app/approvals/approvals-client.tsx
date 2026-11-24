@@ -203,7 +203,7 @@ export function ApprovalsClient() {
     <div className="oma-plx-approvals__top-actions oma-plx-approvals__top-actions--icons">
       <OmaIconAction
         type="button"
-        className="oma-plx-approvals__approve-all-btn"
+        className="oma-plx-approvals__approve-all-btn oma-icon-action--bare"
         disabled={!buckets.awaiting.length || approvingAll}
         aria-label={t('approvals.approve_all')}
         onClick={() => setApproveAllConfirmOpen(true)}
@@ -213,7 +213,7 @@ export function ApprovalsClient() {
       </OmaIconAction>
       <OmaIconAction
         type="button"
-        className="oma-plx-approvals__review-cta oma-icon-action--compose"
+        className="oma-plx-approvals__review-cta oma-icon-action--compose oma-icon-action--bare"
         disabled={pendingTotal === 0}
         aria-label={
           t('approvals.review_n_posts')

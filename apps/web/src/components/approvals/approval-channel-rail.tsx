@@ -157,7 +157,7 @@ export function ApprovalChannelRail({
     <div className="oma-plx-approvals-ch-dd" ref={wrapRef} data-testid="approvals-channel-rail">
       <OmaIconAction
         type="button"
-        className="oma-plx-approvals-ch-dd__trigger"
+        className="oma-plx-approvals-ch-dd__trigger oma-icon-action--bare"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={

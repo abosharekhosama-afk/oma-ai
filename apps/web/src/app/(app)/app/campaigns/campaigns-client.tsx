@@ -21,6 +21,7 @@ import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/e
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
@@ -624,62 +625,58 @@ export default function CampaignsPage() {
     <div className="oma-stack oma-campaigns-page" data-testid="demo-campaigns">
       {actionsHost
         ? createPortal(
-            <div className="oma-workspace-top-actions-inner">
+            <div className="oma-workspace-top-actions-inner oma-workspace-top-actions-inner--icon-strip">
               <div
-                className="oma-campaign-layout-switch"
+                className="oma-campaign-layout-switch oma-campaign-layout-switch--icons"
                 role="group"
                 aria-label={t('demo.campaigns.layouts')}
               >
-                <button
+                <OmaIconAction
                   type="button"
-                  className="oma-header-icon-btn"
+                  className="oma-icon-action--bare"
                   aria-pressed={layout === 'portfolio'}
-                  data-active={layout === 'portfolio' ? 'true' : undefined}
+                  data-active={layout === 'portfolio' ? 'true' : 'false'}
                   data-testid="demo-campaigns-view-portfolio"
                   onClick={() => setLayoutPref('portfolio')}
                   aria-label={isAr ? 'عرض البطاقات' : 'Card view'}
                 >
-                  <AppstoreOutlined />
-                </button>
-                <button
+                  <AppstoreOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+                </OmaIconAction>
+                <OmaIconAction
                   type="button"
-                  className="oma-header-icon-btn"
+                  className="oma-icon-action--bare"
                   aria-pressed={layout === 'list'}
-                  data-active={layout === 'list' ? 'true' : undefined}
+                  data-active={layout === 'list' ? 'true' : 'false'}
                   data-testid="demo-campaigns-view-table"
                   onClick={() => setLayoutPref('list')}
                   aria-label={isAr ? 'عرض القائمة' : 'List view'}
                 >
-                  <UnorderedListOutlined />
-                </button>
+                  <UnorderedListOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+                </OmaIconAction>
               </div>
-              <button
+              <OmaIconAction
                 type="button"
-                className="oma-header-icon-btn"
+                className="oma-icon-action--bare"
                 data-testid="demo-campaign-open-filters"
                 aria-label={t('demo.campaigns.openFilters')}
+                badge={filterCount > 0 ? filterCount : undefined}
                 onClick={() => setFilterSheet(true)}
               >
-                <FilterOutlined />
-                {filterCount > 0 ? (
-                  <span className="oma-header-icon-btn__badge">{filterCount}</span>
-                ) : null}
-              </button>
-              <Button
-                type="primary"
-                className="oma-req-create-button"
+                <FilterOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+              </OmaIconAction>
+              <OmaIconAction
+                type="button"
+                className="oma-icon-action--compose oma-icon-action--bare"
                 data-testid="demo-create-campaign"
+                aria-label={isAr ? 'حملة جديدة' : 'New campaign'}
                 onClick={() => {
                   setEditingId(null);
                   setCreateError(null);
                   setCreateOpen(true);
                 }}
               >
-                <span className="oma-req-create-button__icon" aria-hidden>
-                  <PlusOutlined />
-                </span>
-                <span>{isAr ? 'حملة جديدة' : 'New campaign'}</span>
-              </Button>
+                <PlusOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+              </OmaIconAction>
             </div>,
             actionsHost,
           )

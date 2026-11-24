@@ -2322,3 +2322,141 @@ html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__summary {
     margin-bottom: 14px !important;
   }
 }
+
+/* ── Project filter/sort popover (PlxHeaderFilter + deliv panel) ─────────── */
+html body .oma-plx-filter-popover,
+html body .oma-plx-deliv-filter-panel {
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-filter-popover__head,
+html body .oma-plx-deliv-filter-panel__head {
+  min-height: 40px !important;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-plx-filter-popover__head strong,
+html body .oma-plx-deliv-filter-panel__head strong {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+}
+
+html body .oma-plx-filter-popover .oma-filter-accordion__row,
+html body .oma-plx-filter-popover .oma-filter-accordion__body,
+html body .oma-plx-filter-popover .oma-filter-check,
+html body .oma-plx-deliv-filter-panel .oma-filter-accordion__row,
+html body .oma-plx-deliv-filter-panel .oma-filter-accordion__body,
+html body .oma-plx-deliv-filter-panel .oma-filter-check {
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+}
+
+html body .oma-plx-filter-popover .oma-filter-accordion__row {
+  padding: 6px 4px !important;
+  gap: 8px !important;
+}
+
+html body .oma-plx-filter-popover__foot,
+html body .oma-plx-deliv-filter-panel__foot {
+  font-size: 10px !important;
+}
+
+html body .oma-plx-deliv-filter-panel__close.oma-icon-action,
+html body button.oma-plx-deliv-filter-panel__close {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+html body .oma-plx-deliv-filter-panel__close.oma-icon-action:hover,
+html body .oma-plx-deliv-filter-panel__close.oma-icon-action:focus-visible {
+  color: var(--oma-primary, #1677ff) !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+}
+
+html body .oma-plx-deliv-filter-panel__close svg.oma-lucide,
+html body .oma-plx-deliv-filter-panel__close svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+/* ── Bare Lucide icons (no 32px tile, tight strip) ─────────────────────── */
+html body .oma-icon-action.oma-icon-action--bare,
+html body .oma-plx-approvals__top-actions--icons .oma-icon-action,
+html body #oma-workspace-top-actions .oma-icon-action--bare,
+html body #oma-content-top-actions .oma-icon-action--bare {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action--bare,
+html body .oma-plx-approvals__approve-all-btn.oma-icon-action--bare,
+html body .oma-plx-approvals__review-cta.oma-icon-action--bare {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .oma-icon-action.oma-icon-action--bare .oma-lucide,
+html body .oma-icon-action.oma-icon-action--bare svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+html body .oma-plx-approvals__top-actions--icons {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+html body .oma-workspace-top-actions-inner--icon-strip,
+html body #oma-workspace-top-actions .oma-workspace-top-actions-inner--icon-strip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+html body .oma-campaign-layout-switch--icons {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}

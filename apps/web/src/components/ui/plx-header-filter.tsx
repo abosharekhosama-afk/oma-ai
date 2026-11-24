@@ -120,6 +120,7 @@ export function PlxHeaderFilter({
             <OmaIconAction
               ref={triggerRef}
               type="button"
+              className="oma-icon-action--bare"
               aria-label={filterLabel}
               data-testid={filterTestId}
               data-active={open ? 'true' : 'false'}
@@ -128,18 +129,19 @@ export function PlxHeaderFilter({
               aria-haspopup="dialog"
               onClick={() => onOpenChange(!open)}
             >
-              <FilterOutlined aria-hidden />
+              <FilterOutlined className="oma-lucide" aria-hidden width={16} height={16} />
             </OmaIconAction>
           </div>
         )}
         {createTestId && onCreateClick && createLabel ? (
           <OmaIconAction
             type="button"
+            className="oma-icon-action--compose oma-icon-action--bare"
             data-testid={createTestId}
             aria-label={createLabel}
             onClick={onCreateClick}
           >
-            <PlusOutlined aria-hidden />
+            <PlusOutlined className="oma-lucide" aria-hidden width={16} height={16} />
           </OmaIconAction>
         ) : null}
       </div>
@@ -174,14 +176,14 @@ export function PlxHeaderFilter({
               >
                 <header className="oma-plx-filter-popover__head">
                   <strong>{panelTitle}</strong>
-                  <button
+                  <OmaIconAction
                     type="button"
-                    className="oma-plx-deliv-filter-panel__close"
+                    className="oma-plx-deliv-filter-panel__close oma-icon-action--bare"
                     aria-label="Close"
                     onClick={() => onOpenChange(false)}
                   >
-                    <CloseOutlined />
-                  </button>
+                    <CloseOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+                  </OmaIconAction>
                 </header>
                 <div className="oma-plx-filter-popover__body">{children}</div>
                 {footer ? <footer className="oma-plx-filter-popover__foot">{footer}</footer> : null}
