@@ -28,13 +28,13 @@ import type { DemoTaskStatus } from '@oma/demo';
 import {
   BOARD_COLUMNS,
   canTransitionTaskStatus,
-  taskIsDueSoon,
   taskIsOverdue,
   type TaskRow,
 } from '../../lib/demo/stage4-tasks';
 import { pickCopy } from '../../lib/demo/use-demo-api';
 import { useLocale, useT } from '../../lib/use-locale';
 import { MediaSurface, kindFromMime, kindFromUrl } from '../content/media-surface';
+import { CommentOutlined, PlayCircleOutlined } from '../ui/lucide-icons';
 
 type Props = {
   byBoard: Record<string, TaskRow[]>;
@@ -61,13 +61,6 @@ function findColumnForTask(
     if ((board[col.id] ?? []).some((t) => t.id === taskId)) return col.id;
   }
   return null;
-}
-
-function initials(value: string): string {
-  const parts = value.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
 }
 
 const COLUMN_ACCENT: Record<string, string> = {
@@ -116,28 +109,6 @@ function formatDueLabel(dueAt: string, locale: string): string {
   }
 }
 
-function DueDate({ task }: { task: TaskRow }) {
-  const t = useT();
-  const locale = useLocale();
-  if (!task.dueAt) return null;
-  const label = formatDueLabel(task.dueAt, locale);
-  const done = task.status === 'DONE';
-  const overdue = taskIsOverdue(task);
-  const soon = !overdue && !done && taskIsDueSoon(task);
-  const tone = done ? 'done' : overdue ? 'overdue' : soon ? 'soon' : 'plain';
-  return (
-    <span className={`oma-kb-card__due oma-kb-card__due--${tone}`} data-tone={tone}>
-      {tone === 'overdue' ? null : (
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-          <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M2 6.5h12M5 1.8v2.4M11 1.8v2.4" stroke="currentColor" strokeWidth="1.4" />
-        </svg>
-      )}
-      {tone === 'overdue' ? `${t('demo.tasks.card.overdue')} · ${label}` : label}
-    </span>
-  );
-}
-
 function campaignLabel(task: TaskRow, locale: string): string {
   const c = task.campaignName;
   if (!c) return '';
@@ -149,8 +120,7 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
   const locale = useLocale();
   const assignee = !task.assignee || task.assignee === 'Unassigned' ? null : String(task.assignee);
   const campaign = campaignLabel(task, locale);
-  const description = task.description ? briefDisplayText(task.description, locale) : '';
-  const context = [task.department, task.brandName]
+  const context = [task.brandName, campaign]
     .map((v) => (typeof v === 'string' ? v.trim() : ''))
     .filter((v) => v && v !== '—')
     .join(' · ');
@@ -160,102 +130,56 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
   const title = pickCopy(task.title, locale);
   const mediaUrl = task.previewAsset || '';
   const isVideo = (kindFromMime(task.previewAssetMime) ?? kindFromUrl(mediaUrl)) === 'video';
+  const dueMeta = task.dueAt ? formatDueLabel(task.dueAt, locale) : '';
+  const overdue = taskIsOverdue(task);
 
   return (
     <>
-      <div
-        className="oma-kb-card__media"
-        data-kind={isVideo ? 'video' : mediaUrl ? 'image' : 'empty'}
-      >
+      <header className="oma-plx-approvals-card__head">
+        <strong className="oma-plx-approvals-card__brand">
+          {context || t('demo.tasks.detail')}
+        </strong>
+        {dueMeta ? (
+          <span className="oma-plx-approvals-card__time" data-scheduled={overdue ? 'true' : 'false'}>
+            <span>{overdue ? t('demo.tasks.card.overdue') : dueMeta}</span>
+          </span>
+        ) : null}
+      </header>
+      <div className="oma-plx-approvals-card__media">
         {mediaUrl ? (
-          <MediaSurface src={mediaUrl} mime={task.previewAssetMime} alt={title} />
+          <>
+            <MediaSurface src={mediaUrl} mime={task.previewAssetMime} alt={title} />
+            {isVideo ? (
+              <span className="oma-plx-approvals-card__media-badge" aria-hidden>
+                <PlayCircleOutlined />
+              </span>
+            ) : null}
+          </>
         ) : (
-          <span className="oma-kb-card__media-placeholder" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="4" width="18" height="16" rx="3" />
-              <circle cx="8.5" cy="9" r="1.5" />
-              <path d="m5 17 5-5 3 3 2-2 4 4" />
-            </svg>
-          </span>
-        )}
-        {isVideo ? (
-          <span className="oma-kb-card__media-play" aria-hidden="true">
-            <svg viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 5.5v9l7-4.5-7-4.5Z" fill="currentColor" />
-            </svg>
-          </span>
-        ) : null}
-      </div>
-      {campaign ? (
-        <div className="oma-kb-card__labels">
-          <span className="oma-kb-card__tag" data-testid="demo-task-card-campaign">
-            {campaign}
-          </span>
-        </div>
-      ) : null}
-      <h4 className="oma-kb-card__title">{title}</h4>
-      {description ? <p className="oma-kb-card__desc">{description}</p> : null}
-      {context ? <p className="oma-kb-card__ctx">{context}</p> : null}
-      <div className="oma-kb-card__meta">
-        <PriorityFlag priority={String(task.priority || '')} />
-        <DueDate task={task} />
-        {comments > 0 ? (
-          <span
-            className="oma-kb-card__count"
-            title={t('demo.tasks.card.comments')}
-            aria-label={`${comments} ${t('demo.tasks.card.comments')}`}
-          >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path
-                d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {comments}
-          </span>
-        ) : null}
-        {checkTotal > 0 ? (
-          <span
-            className={`oma-kb-card__count${checkDone === checkTotal ? ' is-complete' : ''}`}
-            title={t('demo.tasks.card.checklist')}
-            aria-label={`${t('demo.tasks.card.checklist')} ${checkDone}/${checkTotal}`}
-          >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <rect
-                x="2.5"
-                y="2.5"
-                width="11"
-                height="11"
-                rx="2"
-                stroke="currentColor"
-                strokeWidth="1.4"
-              />
-              <path
-                d="M5.5 8l2 2 3.5-4"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className="oma-ltr">{`${checkDone}/${checkTotal}`}</span>
-          </span>
-        ) : null}
-        {assignee ? (
-          <span className="oma-kb-card__avatar oma-task-avatar" title={assignee}>
-            {initials(assignee)}
-          </span>
-        ) : (
-          <span
-            className="oma-kb-card__avatar oma-kb-card__avatar--empty oma-task-avatar"
-            title={t('demo.tasks.card.unassigned')}
-            aria-label={t('demo.tasks.card.unassigned')}
-          >
-            +
-          </span>
+          <div className="oma-plx-approvals-card__media-empty" aria-hidden />
         )}
       </div>
+      <p className="oma-plx-approvals-card__caption">{title}</p>
+      <footer className="oma-plx-approvals-card__foot">
+        <span className="oma-plx-approvals-card__status oma-plx-approvals-card__status--pending">
+          <span className="oma-plx-approvals-card__status-ring" />
+          <span>{assignee || t('demo.tasks.card.unassigned')}</span>
+        </span>
+        <span className="oma-plx-tasks-card__meta-end">
+          <PriorityFlag priority={String(task.priority || '')} />
+          {comments > 0 ? (
+            <span className="oma-plx-approvals-card__comments">
+              <CommentOutlined />
+              <span>{comments}</span>
+            </span>
+          ) : null}
+          {checkTotal > 0 ? (
+            <span className="oma-plx-approvals-card__comments" title={t('demo.tasks.card.checklist')}>
+              <span className="oma-ltr">{`${checkDone}/${checkTotal}`}</span>
+            </span>
+          ) : null}
+        </span>
+      </footer>
     </>
   );
 }
@@ -284,10 +208,11 @@ function SortableTaskCard({
   };
 
   return (
+    <li>
     <article
       ref={setNodeRef}
       style={style}
-      className={`oma-kb-card oma-kb-card--${String(task.status).toLowerCase()}${
+      className={`oma-plx-approvals-card oma-kb-card oma-kb-card--${String(task.status).toLowerCase()}${
         isDragging ? ' is-dragging' : ''
       }`}
       data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
@@ -346,6 +271,7 @@ function SortableTaskCard({
         {t('demo.tasks.open')}
       </button>
     </article>
+    </li>
   );
 }
 
@@ -375,22 +301,25 @@ function DroppableColumn({
 
   return (
     <section
-      ref={setNodeRef}
-      className={`oma-kb-col oma-kb-col--${accent}${isOver ? ' is-over' : ''}`}
+      className={`oma-plx-approvals__column-wrap oma-kb-col oma-kb-col--${accent}${isOver ? ' is-over' : ''}`}
       data-testid={`demo-kanban-${id}`}
       data-column={id}
       data-accent={accent}
     >
-      <header className="oma-kb-col__head">
-        <span className="oma-kb-col__dot" aria-hidden />
-        <h3 className="oma-kb-col__title">{title}</h3>
-        <span className="oma-kb-col__count" data-testid={`demo-kanban-count-${id}`}>
+      <header className="oma-plx-approvals__column-head">
+        <span className="oma-plx-approvals__column-title">
+          <span>{title}</span>
+        </span>
+        <span
+          className={`oma-plx-approvals__column-count oma-plx-approvals__column-count--task-${accent}`}
+          data-testid={`demo-kanban-count-${id}`}
+        >
           {count}
         </span>
         {onAdd ? (
           <button
             type="button"
-            className="oma-kb-col__add"
+            className="oma-plx-tasks-col__add oma-icon-action oma-icon-action--bare"
             onClick={onAdd}
             aria-label={t('demo.tasks.create') || 'Add task'}
             title={t('demo.tasks.create') || 'Add task'}
@@ -400,12 +329,14 @@ function DroppableColumn({
         ) : null}
       </header>
 
-      <div className="oma-kb-col__cards">
-        {children}
+      <div ref={setNodeRef} className="oma-plx-approvals__column">
+        <ul className="oma-plx-approvals__cards oma-kb-col__cards">
+          {children}
+        </ul>
         {empty ? (
-          <div className={`oma-kb-col__empty${isOver ? ' is-over' : ''}`} aria-hidden>
-            {t('demo.tasks.dropHere') || 'Drop tasks here'}
-          </div>
+          <p className="oma-plx-approvals__empty">
+            {isOver ? t('demo.tasks.dropHere') : t('demo.tasks.dropHere')}
+          </p>
         ) : null}
       </div>
     </section>
@@ -519,13 +450,13 @@ export function TasksKanbanBoard({
       }}
     >
       <div
-        className="oma-kb-board"
+        className="oma-plx-approvals__board oma-plx-tasks__board"
         data-testid="demo-tasks-board"
         data-dnd="true"
         data-reorder-persistence="local-only"
         dir="auto"
       >
-        <div className="oma-kb-board__grid">
+        <div className="oma-plx-approvals__columns oma-plx-tasks__columns oma-kb-board__grid">
           {BOARD_COLUMNS.map((col) => {
             const items = localBoard[col.id] ?? [];
             return (
@@ -560,7 +491,7 @@ export function TasksKanbanBoard({
       <DragOverlay dropAnimation={null}>
         {activeTask ? (
           <div
-            className={`oma-kb-card oma-kb-card--overlay oma-kb-card--${String(activeTask.status).toLowerCase()}`}
+            className={`oma-plx-approvals-card oma-kb-card oma-kb-card--overlay oma-kb-card--${String(activeTask.status).toLowerCase()}`}
             data-testid="demo-kanban-drag-overlay"
           >
             <KanbanCardBody task={activeTask} />

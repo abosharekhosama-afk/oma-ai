@@ -2471,3 +2471,88 @@ html body .oma-campaign-layout-switch--icons {
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* ── Tasks board: approvals column + card parity ──────────────────────── */
+html body .oma-plx-tasks .oma-plx-tasks-panel {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+html body .oma-plx-tasks .oma-plx-tasks__columns {
+  display: flex !important;
+  gap: 18px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  align-items: stretch !important;
+  padding-bottom: 8px !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+html body .oma-plx-tasks .oma-plx-tasks__columns .oma-plx-approvals__column-wrap {
+  flex: 0 0 min(268px, 72vw) !important;
+  width: min(268px, 72vw) !important;
+  max-width: min(268px, 72vw) !important;
+  min-width: 0 !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals__column-head {
+  font-size: 12px !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals__column-count {
+  font-size: 11px !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals-card__head,
+html body .oma-plx-tasks .oma-plx-approvals-card__caption,
+html body .oma-plx-tasks .oma-plx-approvals-card__foot {
+  font-size: 12px !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals-card__brand {
+  font-size: 12px !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals-card__time {
+  font-size: 11px !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals-card__media {
+  height: 126px !important;
+  margin: 0 8px !important;
+}
+
+html body .oma-plx-tasks .oma-kb-card__flag {
+  font-size: 10px !important;
+}
+
+html body .oma-plx-tasks-card__meta-end {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+html body .oma-plx-tasks-view-strip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  margin-inline-end: 2px !important;
+}
+
+html body .oma-workspace-header-actions .oma-plx-tasks-view-strip .oma-icon-action[data-active='true'] {
+  color: var(--oma-primary, #1677ff) !important;
+}
+
+html body .oma-plx-tasks-col__add {
+  margin-inline-start: auto !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  padding: 2px 4px !important;
+}

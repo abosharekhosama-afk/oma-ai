@@ -48,8 +48,10 @@ import {
 } from '../../../../lib/demo/stage4-tasks';
 import { clearBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
+  AppstoreOutlined,
   BarsOutlined,
   CloseOutlined,
   SearchOutlined,
@@ -207,7 +209,7 @@ export default function TasksPage() {
     };
   }, []);
 
-  async function changeView(next: ViewMode) {
+  function changeView(next: ViewMode) {
     const resolved = isMobileTasksViewport() && next === 'list' ? 'board' : next;
     setView(resolved);
     try {
@@ -215,7 +217,47 @@ export default function TasksPage() {
     } catch {
       /* non-blocking */
     }
+    const params = new URLSearchParams(searchParams.toString());
+    if (resolved === 'board') {
+      params.delete('view');
+    } else {
+      params.set('view', resolved);
+    }
+    const q = params.toString();
+    router.replace(q ? `/app/tasks?${q}` : '/app/tasks', { scroll: false });
   }
+
+  const viewSwitcher = (
+    <div
+      className="oma-plx-tasks-view-strip"
+      role="group"
+      aria-label={t('demo.view.kanban')}
+      data-testid="demo-tasks-view-switcher"
+    >
+      <OmaIconAction
+        type="button"
+        className="oma-icon-action--bare"
+        data-active={view === 'board' ? 'true' : 'false'}
+        data-testid="demo-tasks-view-board"
+        aria-pressed={view === 'board'}
+        aria-label={t('demo.view.kanban')}
+        onClick={() => changeView('board')}
+      >
+        <AppstoreOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+      </OmaIconAction>
+      <OmaIconAction
+        type="button"
+        className="oma-icon-action--bare"
+        data-active={view === 'list' ? 'true' : 'false'}
+        data-testid="demo-tasks-view-list"
+        aria-pressed={view === 'list'}
+        aria-label={t('demo.view.list')}
+        onClick={() => changeView('list')}
+      >
+        <BarsOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+      </OmaIconAction>
+    </div>
+  );
 
   const filtered = useMemo(() => filterTasks(rows, filters, locale), [rows, filters, locale]);
   const byBoard = useMemo(() => groupTasksByBoard(filtered), [filtered]);
@@ -466,6 +508,7 @@ export default function TasksPage() {
         filterCount={filterCount}
         panelTitle={filterPanelTitle}
         panelTestId="demo-task-filters"
+        headerLeading={viewSwitcher}
         createTestId="demo-create-task"
         createLabel={t('demo.tasks.create')}
         onCreateClick={() => setCreateOpen(true)}
@@ -646,37 +689,6 @@ export default function TasksPage() {
             </p>
           ) : null}
         </div>
-
-        {!loading && !unavailable && !error ? (
-          <div className="oma-plx-deliv-view-row">
-            <div
-              className="oma-plx-listening-segment"
-              role="group"
-              aria-label={t('demo.view.kanban')}
-            >
-              <button
-                type="button"
-                className={view === 'board' ? 'is-active' : ''}
-                data-testid="demo-tasks-view-board"
-                aria-pressed={view === 'board'}
-                onClick={() => void changeView('board')}
-              >
-                <UnorderedListOutlined aria-hidden />
-                <span>{t('demo.view.kanban')}</span>
-              </button>
-              <button
-                type="button"
-                className={view === 'list' ? 'is-active' : ''}
-                data-testid="demo-tasks-view-list"
-                aria-pressed={view === 'list'}
-                onClick={() => void changeView('list')}
-              >
-                <BarsOutlined aria-hidden />
-                <span>{t('demo.view.list')}</span>
-              </button>
-            </div>
-          </div>
-        ) : null}
 
         {loading ? <TasksShimmer part="body" /> : null}
         {unavailable ? (
