@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LayoutGridOutlined } from '../ui/lucide-icons';
+import { PanelsTopLeftSoftOutlined } from '../ui/lucide-icons';
 import { NetworkIcon } from '../content/network-icon';
 import { useT } from '../../lib/use-locale';
 import { OmaIconAction } from '../ui/oma-icon-action';
@@ -170,7 +170,7 @@ export function ApprovalChannelRail({
         onClick={() => setOpen((v) => !v)}
         data-testid="approvals-channel-trigger"
       >
-        <LayoutGridOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+        <PanelsTopLeftSoftOutlined className="oma-lucide" aria-hidden width={18} height={18} />
       </OmaIconAction>
 
       {channelPanel && typeof document !== 'undefined'

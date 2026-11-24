@@ -5,9 +5,11 @@ import { createPortal } from 'react-dom';
 import {
   CheckCircleOutlined,
   CheckOutlined,
+  CircleCheckSoftOutlined,
   ClockCircleOutlined,
   CommentOutlined,
   LinkOutlined,
+  ListTodoSoftOutlined,
   PlayCircleOutlined,
   UnorderedListOutlined,
 } from '../../../../components/ui/lucide-icons';
@@ -209,7 +211,7 @@ export function ApprovalsClient() {
         onClick={() => setApproveAllConfirmOpen(true)}
         data-testid="approvals-approve-all"
       >
-        <CheckOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+        <CircleCheckSoftOutlined className="oma-lucide" aria-hidden width={18} height={18} />
       </OmaIconAction>
       <OmaIconAction
         type="button"
@@ -224,7 +226,7 @@ export function ApprovalsClient() {
         onClick={() => openReviewForSection('awaiting')}
         data-testid="approvals-review-posts"
       >
-        <UnorderedListOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+        <ListTodoSoftOutlined className="oma-lucide" aria-hidden width={18} height={18} />
       </OmaIconAction>
       <ApprovalChannelRail
         channels={channels}

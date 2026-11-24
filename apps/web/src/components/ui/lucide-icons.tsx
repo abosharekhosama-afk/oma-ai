@@ -13,6 +13,7 @@ function Icon({
   children,
   ...rest
 }: IconProps & { children: ReactNode }) {
+  const soft = (className ?? '').includes('oma-lucide--soft');
   return (
     <svg
       className={['oma-lucide', className].filter(Boolean).join(' ')}
@@ -21,7 +22,7 @@ function Icon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={soft ? 1.5 : 2}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden={rest['aria-hidden'] ?? true}
@@ -494,6 +495,29 @@ export const LayoutGridOutlined = (p: IconProps) => (
     <rect x="14" y="3" width="7" height="7" rx="1" />
     <rect x="14" y="14" width="7" height="7" rx="1" />
     <rect x="3" y="14" width="7" height="7" rx="1" />
+  </Icon>
+);
+
+/** Rounded Lucide-style icons (stroke 1.5 via `oma-lucide--soft`). */
+export const CircleCheckSoftOutlined = (p: IconProps) => (
+  <Icon {...p} className={['oma-lucide--soft', p.className].filter(Boolean).join(' ')}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="m9 12 2 2 4-4" />
+  </Icon>
+);
+
+export const ListTodoSoftOutlined = (p: IconProps) => (
+  <Icon {...p} className={['oma-lucide--soft', p.className].filter(Boolean).join(' ')}>
+    <rect x="3" y="5" width="6" height="6" rx="1" />
+    <path d="m3 17 2 2 4-4" />
+    <path d="M13 6h8M13 12h8M13 18h8" />
+  </Icon>
+);
+
+export const PanelsTopLeftSoftOutlined = (p: IconProps) => (
+  <Icon {...p} className={['oma-lucide--soft', p.className].filter(Boolean).join(' ')}>
+    <rect width="18" height="18" x="3" y="3" rx="2" />
+    <path d="M3 9h18M9 21V9" />
   </Icon>
 );
 

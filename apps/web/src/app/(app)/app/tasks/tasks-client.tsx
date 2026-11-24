@@ -243,7 +243,7 @@ export default function TasksPage() {
         aria-label={t('demo.view.kanban')}
         onClick={() => changeView('board')}
       >
-        <AppstoreOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+        <AppstoreOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
       </OmaIconAction>
       <OmaIconAction
         type="button"
@@ -254,7 +254,7 @@ export default function TasksPage() {
         aria-label={t('demo.view.list')}
         onClick={() => changeView('list')}
       >
-        <BarsOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+        <BarsOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
       </OmaIconAction>
     </div>
   );
@@ -524,7 +524,7 @@ export default function TasksPage() {
           ) : null
         }
       >
-        <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
+        <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list oma-plx-tasks-filter-panel">
           <div className="oma-filter-accordion">
             <button
               type="button"
@@ -568,7 +568,7 @@ export default function TasksPage() {
             </button>
             {filterSection === 'status' ? (
               <div className="oma-filter-accordion__body">
-                <label className="oma-filter-check">
+                <label className="oma-filter-check oma-filter-check--radio">
                   <input
                     type="radio"
                     name="task-status"
@@ -579,14 +579,14 @@ export default function TasksPage() {
                   <span>{t('demo.filter.all')}</span>
                 </label>
                 {BOARD_COLUMNS.map((c) => (
-                  <label key={c.id} className="oma-filter-check">
+                  <label key={c.id} className="oma-filter-check oma-filter-check--radio">
                     <input
                       type="radio"
                       name="task-status"
                       checked={filters.status === c.id}
                       onChange={() => setFilters((f) => ({ ...f, status: c.id }))}
                     />
-                    <span>{c.id}</span>
+                    <span>{t(`demo.tasks.column.${c.id}`)}</span>
                   </label>
                 ))}
               </div>
@@ -609,7 +609,7 @@ export default function TasksPage() {
             </button>
             {filterSection === 'assignee' ? (
               <div className="oma-filter-accordion__body">
-                <label className="oma-filter-check">
+                <label className="oma-filter-check oma-filter-check--radio">
                   <input
                     type="radio"
                     name="task-assignee"
@@ -619,7 +619,7 @@ export default function TasksPage() {
                   />
                   <span>{t('demo.filter.all')}</span>
                 </label>
-                <label className="oma-filter-check">
+                <label className="oma-filter-check oma-filter-check--radio">
                   <input
                     type="radio"
                     name="task-assignee"
@@ -629,7 +629,7 @@ export default function TasksPage() {
                   <span>Unassigned</span>
                 </label>
                 {assignees.map((a) => (
-                  <label key={a} className="oma-filter-check">
+                  <label key={a} className="oma-filter-check oma-filter-check--radio">
                     <input
                       type="radio"
                       name="task-assignee"
@@ -660,7 +660,7 @@ export default function TasksPage() {
             {filterSection === 'priority' ? (
               <div className="oma-filter-accordion__body">
                 {(['all', 'URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const).map((pr) => (
-                  <label key={pr} className="oma-filter-check">
+                  <label key={pr} className="oma-filter-check oma-filter-check--radio">
                     <input
                       type="radio"
                       name="task-priority"

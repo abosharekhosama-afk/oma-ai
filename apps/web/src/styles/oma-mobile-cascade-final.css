@@ -2472,16 +2472,20 @@ html body .oma-campaign-layout-switch--icons {
   box-shadow: none !important;
 }
 
-/* ── Tasks board: approvals column + card parity ──────────────────────── */
-html body .oma-plx-tasks .oma-plx-tasks-panel {
+/* ── Tasks board: exact approvals column + card chrome ───────────────── */
+html body .oma-plx-tasks .oma-plx-tasks-panel,
+html body .oma-plx-tasks .oma-plx-tasks-panel .oma-plx-approvals__board {
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   padding: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
 }
 
 html body .oma-plx-tasks .oma-plx-tasks__columns {
   display: flex !important;
+  flex-wrap: nowrap !important;
   gap: 18px !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
@@ -2494,49 +2498,27 @@ html body .oma-plx-tasks .oma-plx-tasks__columns {
 }
 
 html body .oma-plx-tasks .oma-plx-tasks__columns .oma-plx-approvals__column-wrap {
-  flex: 0 0 min(268px, 72vw) !important;
-  width: min(268px, 72vw) !important;
-  max-width: min(268px, 72vw) !important;
+  flex: 0 0 min(70vw, 222px) !important;
+  width: min(70vw, 222px) !important;
+  max-width: min(70vw, 222px) !important;
   min-width: 0 !important;
+  min-height: auto !important;
+  max-height: none !important;
 }
 
-html body .oma-plx-tasks .oma-plx-approvals__column-head {
-  font-size: 12px !important;
-  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+html body .oma-plx-tasks .oma-plx-approvals__column {
+  min-height: calc(100vh - 150px) !important;
+  background: var(--oma-canvas, #f9fafb) !important;
+  border-radius: 12px !important;
+  padding: 10px !important;
 }
 
-html body .oma-plx-tasks .oma-plx-approvals__column-count {
-  font-size: 11px !important;
+html body .oma-plx-tasks .oma-plx-approvals-card.is-dragging {
+  opacity: 0.45 !important;
 }
 
-html body .oma-plx-tasks .oma-plx-approvals-card__head,
-html body .oma-plx-tasks .oma-plx-approvals-card__caption,
-html body .oma-plx-tasks .oma-plx-approvals-card__foot {
-  font-size: 12px !important;
-  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
-}
-
-html body .oma-plx-tasks .oma-plx-approvals-card__brand {
-  font-size: 12px !important;
-}
-
-html body .oma-plx-tasks .oma-plx-approvals-card__time {
-  font-size: 11px !important;
-}
-
-html body .oma-plx-tasks .oma-plx-approvals-card__media {
-  height: 126px !important;
-  margin: 0 8px !important;
-}
-
-html body .oma-plx-tasks .oma-kb-card__flag {
-  font-size: 10px !important;
-}
-
-html body .oma-plx-tasks-card__meta-end {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
+html body .oma-plx-tasks .oma-plx-approvals-card--overlay {
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14) !important;
 }
 
 html body .oma-plx-tasks-view-strip {
@@ -2555,4 +2537,80 @@ html body .oma-plx-tasks-col__add {
   font-size: 14px !important;
   line-height: 1 !important;
   padding: 2px 4px !important;
+}
+
+/* Tasks filter popover: 9px + circular radios */
+html body [data-testid='demo-task-filters'] .oma-filter-accordion__row,
+html body [data-testid='demo-task-filters'] .oma-plx-tasks-filter-panel .oma-filter-accordion__row,
+html body [data-testid='demo-task-filters'] .oma-filter-check,
+html body [data-testid='demo-task-filters'] .oma-filter-accordion__body .ant-input,
+html body [data-testid='demo-task-filters'] input {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body [data-testid='demo-task-filters'] .oma-filter-check {
+  min-height: 24px !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+html body [data-testid='demo-task-filters'] .oma-filter-check--radio input[type='radio'] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  margin: 0 !important;
+  border: 1.5px solid #d1d5db !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  accent-color: transparent !important;
+  cursor: pointer !important;
+}
+
+html body [data-testid='demo-task-filters'] .oma-filter-check--radio input[type='radio']:checked {
+  border-color: var(--oma-primary, #1677ff) !important;
+  background: radial-gradient(circle, var(--oma-primary, #1677ff) 42%, #fff 43%) !important;
+}
+
+html body .oma-campaigns-page .oma-req-filter-panel .oma-filter-check,
+html body .oma-campaigns-page .oma-req-filter-panel .oma-filter-accordion__row {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-campaigns-page .oma-req-filter-panel .oma-filter-check {
+  min-height: 24px !important;
+  gap: 6px !important;
+}
+
+html body .oma-campaigns-page .oma-filter-check--radio input[type='radio'] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  border: 1.5px solid #d1d5db !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  accent-color: transparent !important;
+}
+
+html body .oma-campaigns-page .oma-filter-check--radio input[type='radio']:checked {
+  border-color: var(--oma-primary, #1677ff) !important;
+  background: radial-gradient(circle, var(--oma-primary, #1677ff) 42%, #fff 43%) !important;
+}
+
+html body .oma-campaigns-page .oma-req-filter-panel__foot--icons {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0 !important;
+  padding: 8px 10px !important;
+}
+
+html body .oma-lucide--soft {
+  stroke-width: 1.5 !important;
 }
