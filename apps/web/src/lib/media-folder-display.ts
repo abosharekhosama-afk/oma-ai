@@ -1,4 +1,4 @@
-import { brandFolderSlug } from '@oma/domain';
+import { brandFolderSlug } from '@oma/domain/browser';
 
 const UUIDISH = /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i;
 const TENANT_SEG = /^tenants?$/i;
