@@ -38,6 +38,12 @@ describe('css cleanup (stage2/4/5)', () => {
     expect(index).toContain("@import './stage3/10-content-chrome.css'");
   });
 
+  it('globals no longer re-forces mobile-precise deliverable cascade', () => {
+    const globals = read('apps/web/src/app/globals.css');
+    expect(globals).not.toContain('MOBILE_PRECISE_NOV03 cascade reinforce');
+    expect(globals).not.toContain('.oma-deliv-page .oma-deliv-topbar');
+  });
+
   it('loads mobile ops authority last among mobile layers', () => {
     const globals = read('apps/web/src/app/globals.css');
     const ops = globals.indexOf('mobile-ops-authority.css');

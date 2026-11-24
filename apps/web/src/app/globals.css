@@ -18,6 +18,8 @@
 @import '../styles/approvals-planable.css';
 @import '../styles/analytics-planable.css';
 @import '../styles/brand-settings.css';
+/* Mobile cascade (last wins): oct27 → nov02 → precise → density → brand/surfaces →
+   compact → feel-better → ux-pro-max-reset → ops-authority (canonical ops lists). */
 @import '../styles/mobile-oct27.css';
 @import '../styles/mobile-nov02.css';
 @import '../styles/shimmer.css';
@@ -2109,38 +2111,7 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
   }
 }
 
-/* MOBILE_PRECISE_NOV03 cascade reinforce (after all rules) */
-@media (max-width: 767px) {
-  html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,
-  html body .oma-ws-table-scroll .oma-ws-table--perms td:first-child,
-  html body .oma-ws-table-scroll .oma-ws-table--perms thead th:first-child {
-    position: static !important;
-    inset-inline-start: auto !important;
-    left: auto !important;
-    right: auto !important;
-    z-index: auto !important;
-    box-shadow: none !important;
-  }
-  html body .oma-deliv-desktop {
-    display: none !important;
-  }
-  html body .oma-deliv-mobile {
-    display: grid !important;
-  }
-  html body .oma-deliv-groups,
-  html body [data-testid='demo-deliv-groups'] {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-  }
-  html body .oma-mobile-page-title {
-    display: inline-flex !important;
-  }
-  html body .oma-shell-column[data-mobile-page-title='true'] .oma-top-context {
-    display: none !important;
-  }
-}
-
-/* MOBILE_PRECISE_CREATE_LABELS */
+/* MOBILE_PRECISE_CREATE_LABELS — unique; list/card toggles live in mobile-precise + mobile-ops-authority */
 @media (max-width: 767px) {
   html body .oma-req-create-icon__label,
   html body .oma-header-create-icon__label {
@@ -2191,58 +2162,8 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
   }
 }
 
-.oma-deliv-page .oma-deliv-topbar,
-.oma-deliv-page .oma-req-topbar.oma-deliv-topbar {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  min-height: 0 !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'].oma-ws-tabs,
-.oma-deliv-page [data-testid='demo-deliv-groups'].oma-req-tabs {
-  display: flex !important;
-  align-items: stretch !important;
-  flex-wrap: nowrap !important;
-  gap: 4px !important;
-  margin: 0 0 16px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab {
-  height: auto !important;
-  min-height: 0 !important;
-  margin: 0 0 -1px !important;
-  padding: 10px 14px !important;
-  border: 0 !important;
-  border-bottom: 2px solid transparent !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #6b7280 !important;
-  font-size: 13.5px !important;
-  font-weight: 400 !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab:hover,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab:hover {
-  background: transparent !important;
-  color: #111827 !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab.is-active,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab.is-active,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab[data-active='true'],
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab[data-active='true'] {
-  background: transparent !important;
-  color: #111827 !important;
-  font-weight: 500 !important;
-  border-bottom-color: #2563eb !important;
-  box-shadow: none !important;
-}
+/* Deliverables tabs/chrome: stage4/40-detail-components.css (OMA-PATCH-deliv-tabs) */
+
 @media (max-width: 700px) {
   .oma-tasks-page .oma-kb-board__grid {
     grid-auto-columns: minmax(260px, 84vw) !important;

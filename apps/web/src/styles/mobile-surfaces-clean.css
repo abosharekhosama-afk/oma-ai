@@ -577,7 +577,9 @@
   html body .oma-deliv-page [data-testid='demo-deliv-groups'] {
     gap: 4px !important;
     padding: 4px 6px !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
   }
 
   html body .oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab,

@@ -21,6 +21,7 @@
     "css:audit:dead": "node scripts/css-audit/find-dead-classes.mjs --write-report",
     "css:audit:imposing": "node scripts/css-audit/find-imposing-rules.mjs",
     "css:audit:purge": "node scripts/css-audit/purgecss-run.mjs --dry-run",
+    "css:audit:overlap": "node scripts/css-audit/find-overlap.mjs",
     "format:fix": "prettier --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",

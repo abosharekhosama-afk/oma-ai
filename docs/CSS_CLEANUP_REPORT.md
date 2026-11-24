@@ -96,8 +96,20 @@ pnpm format
 | **PurgeCSS**                 | `pnpm css:audit:purge` (dry-run scaffold; not CI)                                                                                  |
 | **member table**             | `mobile-oct27`: `min-width: 900px` → `min(100%, 56rem)`                                                                            |
 
+## Phase 4 (dedupe imposing mobile/global rules)
+
+| Action                    | Detail                                                                            |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| **globals.css**           | Removed `MOBILE_PRECISE_NOV03 cascade reinforce` (−30 lines `!important`)         |
+| **globals.css**           | Removed duplicate deliverables tab block (owned by `stage4/40-detail-components`) |
+| **mobile-precise-nov03**  | Removed duplicate ops list + schedule title blocks                                |
+| **mobile-surfaces-clean** | Deliverables tabs: `nowrap` + horizontal scroll (no `wrap` fight)                 |
+| **mobile-ops-authority**  | Deliv tab row + team perms unsticky column (no `!important`)                      |
+| **Tooling**               | `pnpm css:audit:overlap` → `docs/CSS_MOBILE_OVERLAP_REPORT.txt`                   |
+
 ## 6. Follow-ups
 
-- Reduce remaining `!important` in `stage4/40-detail-components.css` per route after visual PASS
-- Enable PurgeCSS in CI only with per-route screenshot gate
-- Merge `mobile-redesign-v1` branch (#261) with this branch before production cut
+- Carve remaining globals `@media 767` blocks into route-owned partials
+- Reduce `!important` in `stage4/40-detail-components.css` per `CSS_ROUTE_OWNERSHIP.md`
+- `inbox-listening.css` (9.7k lines): domain split when brand/listening PASS recorded
+- PurgeCSS in CI only with per-route screenshot gate

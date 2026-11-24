@@ -63,20 +63,6 @@
     display: none !important;
   }
 
-  /* Schedule in-page title */
-  html body .oma-sched-page-head h1,
-  html body .oma-sched-page h1,
-  html body [data-testid='demo-schedule'] .oma-page-header h1,
-  html body [data-testid='demo-schedule'] h1 {
-    display: none !important;
-  }
-
-  /* Requests in-page h1 */
-  html body .oma-req-page .oma-req-header h1,
-  html body .oma-req-page .oma-req-header__title h1 {
-    display: none !important;
-  }
-
   /* ---- 2. Deliverables tabs: one scrollable row ---- */
   html body .oma-deliv-page .oma-deliv-groups,
   html body .oma-deliv-page [data-testid='demo-deliv-groups'],
@@ -102,23 +88,7 @@
     white-space: nowrap !important;
   }
 
-  /* ---- 3. Ops lists: compact card layouts for narrow screens ---- */
-  html body .oma-deliv-page .oma-deliv-desktop,
-  html body .oma-deliv-desktop {
-    display: none !important;
-  }
-  html body .oma-deliv-page .oma-deliv-mobile,
-  html body .oma-deliv-mobile {
-    display: grid !important;
-  }
-
-  html body .oma-req-page .oma-req-desktop {
-    display: none !important;
-  }
-  html body .oma-req-page .oma-req-mobile {
-    display: flex !important;
-    flex-direction: column !important;
-  }
+  /* Ops list desktop/table ↔ card: stage5 @900px + mobile-ops-authority @767px */
 
   /* Schedule table */
   html body .oma-sched-table-wrap,
