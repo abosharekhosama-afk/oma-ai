@@ -666,6 +666,7 @@ export default function RequestDetailPage() {
                           {t('demo.brief.formats') || 'Formats'}
                         </span>
                         <Input
+                          className="oma-brief-field__formats"
                           data-testid="demo-brief-formats"
                           value={safeCopy(briefDraft.formats, locale)}
                           onChange={(e) => {
@@ -726,6 +727,56 @@ export default function RequestDetailPage() {
                   ) : null}
                 </section>
               ) : null}
+            </div>
+
+            {/* Summary, comments, tasks (stacked in side column on desktop) */}
+            <aside className="oma-plx-req-detail__side oma-req-detail__side">
+              <div className="oma-plx-listening-panel oma-req-detail__side-card">
+                <h3>{locale.toLowerCase().startsWith('ar') ? 'الملخص' : 'Summary'}</h3>
+                <div className="oma-req-detail__side-row">
+                  <UserOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.requester')}
+                    </span>
+                    <strong>{row.requester}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <UserOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.assignee')}
+                    </span>
+                    <strong>{row.assignee ?? t('demo.requests.unassigned')}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <CalendarOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">{t('demo.requests.col.due')}</span>
+                    <strong className="oma-ltr">{row.dueAt}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <FlagOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.priority')}
+                    </span>
+                    <strong>{priorityLabel(row.priority, isAr)}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <CheckOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.status')}
+                    </span>
+                    <strong>{statusLabel(row.status, isAr)}</strong>
+                  </div>
+                </div>
+              </div>
 
               <section
                 className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__comments oma-plx-inbox-comments"
@@ -853,56 +904,6 @@ export default function RequestDetailPage() {
                   </ul>
                 )}
               </section>
-            </div>
-
-            {/* Sidebar summary */}
-            <aside className="oma-plx-req-detail__side oma-req-detail__side">
-              <div className="oma-plx-listening-panel oma-req-detail__side-card">
-                <h3>{locale.toLowerCase().startsWith('ar') ? 'الملخص' : 'Summary'}</h3>
-                <div className="oma-req-detail__side-row">
-                  <UserOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.requester')}
-                    </span>
-                    <strong>{row.requester}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <UserOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.assignee')}
-                    </span>
-                    <strong>{row.assignee ?? t('demo.requests.unassigned')}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <CalendarOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">{t('demo.requests.col.due')}</span>
-                    <strong className="oma-ltr">{row.dueAt}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <FlagOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.priority')}
-                    </span>
-                    <strong>{priorityLabel(row.priority, isAr)}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <CheckOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.status')}
-                    </span>
-                    <strong>{statusLabel(row.status, isAr)}</strong>
-                  </div>
-                </div>
-              </div>
             </aside>
           </div>
         ) : null}

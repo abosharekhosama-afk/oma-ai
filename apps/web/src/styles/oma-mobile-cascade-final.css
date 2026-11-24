@@ -1245,14 +1245,14 @@ html body .oma-plx-content-header-btn--primary {
 
   html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
   html body .oma-plx-listening.oma-plx-requests .oma-req-table td {
-    padding: 5px 6px !important;
-    font-size: 10px !important;
+    padding: 4px 5px !important;
+    font-size: 9px !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
     vertical-align: middle !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    max-width: 160px !important;
+    max-width: 120px !important;
   }
 
   html body .oma-plx-listening.oma-plx-requests .oma-req-table thead th {
@@ -1263,7 +1263,56 @@ html body .oma-plx-content-header-btn--primary {
 
   html body .oma-plx-listening.oma-plx-requests .oma-req-table th:first-child,
   html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child {
-    max-width: 200px !important;
+    max-width: none !important;
+    min-width: 28vw !important;
+    width: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child .oma-text-link,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child a {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    display: inline !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-panel__head {
+    overflow: visible !important;
+    border-radius: 6px 6px 0 0 !important;
+    background: var(--oma-surface, #fff) !important;
+    padding: 4px 4px 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups.oma-plx-requests-tabs {
+    border-radius: 6px 6px 0 0 !important;
+    overflow: visible !important;
+    background: var(--oma-home-track, #f3f4f6) !important;
+    padding: 2px 2px 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:first-child {
+    border-start-start-radius: 6px !important;
+    border-start-end-radius: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:last-child {
+    border-start-end-radius: 6px !important;
+    border-start-start-radius: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn.is-active {
+    background: var(--oma-surface, #fff) !important;
+    border-radius: 6px 6px 0 0 !important;
+  }
+
+  html body .oma-plx-req-detail__side {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
   /* ── Request detail: full width, compact fields grid, unified actions ─ */
@@ -1484,9 +1533,6 @@ html body .oma-plx-content-header-btn--primary {
     grid-template-columns: none !important;
   }
 
-  html body .oma-plx-req-detail__side {
-    display: none !important;
-  }
 
   html body .oma-plx-req-detail .oma-req-detail__title-block--flat,
   html body .oma-plx-req-detail .oma-req-detail__title-block.oma-req-detail__title-block--flat {
@@ -1853,11 +1899,15 @@ html body .oma-req-create__footer .oma-plx-compose-dialog__btn.ant-btn {
   }
 
   html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-block--flat {
-    margin: 0 0 8px !important;
+    margin: 0 0 10px !important;
     padding: 10px 12px !important;
     border-radius: 10px !important;
     border: 1px solid var(--oma-home-border, #eceef1) !important;
     background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__card[data-testid='demo-request-completeness'] {
+    margin-top: 2px !important;
   }
 
   html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__card-head,
@@ -1936,7 +1986,10 @@ html body .oma-req-create__footer .oma-plx-compose-dialog__btn.ant-btn {
 
   html body .oma-plx-listening.oma-plx-requests .oma-req-table th:first-child,
   html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child {
-    max-width: 220px !important;
+    max-width: none !important;
+    min-width: 28vw !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
   }
 
   html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell .oma-muted {
@@ -2132,4 +2185,90 @@ html body .oma-drawer.oma-drawer--nav .oma-nav-link {
 
 html body main.oma-container:has(.oma-plx-requests) {
   font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+@media (min-width: 1024px) {
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__workspace,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__workspace {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 300px) !important;
+    grid-template-rows: auto !important;
+    align-items: start !important;
+    gap: 12px 14px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__main {
+    grid-column: 1 !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__side {
+    grid-column: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title input {
+    border: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-block--flat {
+    margin-bottom: 12px !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field textarea,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field .ant-input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field__formats,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field__formats.ant-input {
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+    min-height: 52px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__fields input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__fields select,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__fields .oma-select,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-layout .oma-select {
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-channel-dropdown__trigger,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-channel-dropdown__summary {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+}
+
+/* Requests table title column — all viewports */
+html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th,
+html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td {
+  font-size: 9px !important;
+  max-width: 120px !important;
+}
+
+html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th:first-child,
+html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td:first-child {
+  max-width: none !important;
+  min-width: 28vw !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
 }
