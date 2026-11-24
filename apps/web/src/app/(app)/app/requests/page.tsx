@@ -920,7 +920,7 @@ export default function RequestsPage() {
         onClose={requestCloseCreate}
         title={t('demo.create.requestTitle')}
         labelledBy="demo-create-request-title"
-        size="lg"
+        size="md"
         className="oma-compose-dialog oma-plx-compose-dialog oma-plx-compose-dialog--requests"
         footer={
           <div className="oma-plx-compose-dialog__foot">

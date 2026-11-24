@@ -2107,8 +2107,15 @@ html body .oma-plx-compose-dialog--tasks .oma-compose__grid,
 html body .oma-plx-compose-dialog--requests .oma-plx-compose__grid,
 html body .oma-plx-compose-dialog--tasks .oma-plx-compose__grid {
   display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 8px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px 8px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__wide,
+html body .oma-plx-compose-dialog--tasks .oma-compose__wide,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid > .oma-compose__wide,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid > .oma-compose__wide {
+  grid-column: 1 / -1 !important;
 }
 
 html body .oma-plx-compose-dialog--requests .oma-compose__grid > label,
@@ -2806,4 +2813,143 @@ html body .oma-campaigns-page #oma-workspace-top-actions .oma-header-icon-btn {
 
 html body .oma-lucide--soft {
   stroke-width: 1.5 !important;
+}
+
+/* Compact create request/task modals */
+html body .oma-plx-compose-dialog--requests .ant-modal,
+html body .oma-plx-compose-dialog--tasks .ant-modal {
+  width: min(480px, calc(100vw - 20px)) !important;
+  max-width: min(480px, calc(100vw - 20px)) !important;
+  margin: 16px auto !important;
+  padding-bottom: 0 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-content,
+html body .oma-plx-compose-dialog--tasks .ant-modal-content {
+  border-radius: 10px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-header,
+html body .oma-plx-compose-dialog--tasks .ant-modal-header {
+  padding: 6px 8px !important;
+  margin-bottom: 0 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-body,
+html body .oma-plx-compose-dialog--tasks .ant-modal-body,
+html body .oma-plx-compose-dialog--requests .oma-plx-compose-panel.oma-plx-listening-panel,
+html body .oma-plx-compose-dialog--tasks .oma-plx-compose-panel.oma-plx-listening-panel {
+  padding: 6px 8px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose,
+html body .oma-plx-compose-dialog--tasks .oma-compose {
+  gap: 6px !important;
+}
+
+@media (max-width: 359px) {
+  html body .oma-plx-compose-dialog--requests .oma-compose__grid,
+  html body .oma-plx-compose-dialog--tasks .oma-compose__grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .ant-select-selection-item,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .ant-select-selection-item,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .ant-select-selection-placeholder,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .ant-select-selection-placeholder,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .oma-choice-select__trigger,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .oma-choice-select__trigger,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .oma-choice-select__value,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .oma-choice-select__value {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-select-selector,
+html body .oma-plx-compose-dialog--tasks .ant-select-selector {
+  min-height: 28px !important;
+  height: 28px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__grid input,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid input,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid textarea,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid textarea,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .oma-choice-select__trigger,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .oma-choice-select__trigger {
+  min-height: 28px !important;
+}
+
+/* Task detail drawer: icons, compact add rows, choice menu above drawer */
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons .oma-icon-action--bare {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons .oma-icon-action--bare:hover,
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons .oma-icon-action--bare:focus-visible {
+  color: var(--oma-primary, #1677ff) !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons .oma-lucide,
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__fields .oma-choice-select__trigger {
+  min-height: 30px !important;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+  border-radius: 7px !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__add-row {
+  align-items: stretch !important;
+  gap: 6px !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__add-row .ant-input,
+html body .oma-task-detail-drawer .oma-task-detail__add-row input {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__add-row .ant-btn,
+html body .oma-task-detail-drawer .oma-task-detail__handoff .ant-btn {
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
+  padding: 0 8px !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  border-radius: 7px !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+html body .oma-choice-select__menu.oma-choice-select__menu--floating {
+  z-index: 1400 !important;
+}
+
+html body .oma-choice-select__menu--floating .oma-choice-select__option {
+  font-size: 10px !important;
+  padding: 6px 8px !important;
 }

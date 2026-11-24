@@ -1059,7 +1059,7 @@ export default function TasksPage() {
         open={createOpen}
         onClose={() => !creating && setCreateOpen(false)}
         title={t('demo.tasks.create')}
-        size="lg"
+        size="md"
         className="oma-compose-dialog oma-plx-compose-dialog oma-plx-compose-dialog--tasks"
         footer={
           <div className="oma-plx-compose-dialog__foot">
