@@ -8,7 +8,6 @@ import { useCallback, useEffect, useState } from 'react';
 import type { DemoGraph, DemoLocaleCopy } from '@oma/demo';
 import { Dialog } from '../../../../../components/ui/dialog';
 import { EntityLink } from '../../../../../components/ui/entity-link';
-import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
@@ -396,8 +395,6 @@ export default function RequestDetailPage() {
             {row ? (
               <div className="oma-req-detail__top-meta oma-plx-req-detail__chips">
                 <span className="oma-plx-req-detail__ref oma-ltr">{requestId.slice(0, 8)}</span>
-                <StatusChip status={row.status} />
-                <StatusChip status={row.priority} />
               </div>
             ) : null}
           </div>
@@ -440,12 +437,15 @@ export default function RequestDetailPage() {
         {row ? (
           <div className="oma-plx-req-detail__workspace oma-req-detail__workspace">
             <div className="oma-plx-req-detail__main oma-req-detail__main">
-              <div className="oma-plx-listening-panel oma-req-detail__title-block">
+              <div className="oma-req-detail__title-block oma-req-detail__title-block--flat">
                 <h1 className="oma-req-detail__title">
-                  <Input
+                  <input
                     key={row.id + '-title'}
+                    type="text"
+                    className="oma-req-detail__title-input"
                     defaultValue={safeCopy(row.title, locale)}
                     data-testid="demo-request-title-edit"
+                    aria-label={t('demo.requests.col.request')}
                     onBlur={(e) => {
                       const v = e.target.value.trim();
                       if (v && v !== safeCopy(row.title, locale)) {
@@ -604,6 +604,7 @@ export default function RequestDetailPage() {
                     </div>
                     <Button
                       type="primary"
+                      className="oma-req-detail__action-btn"
                       data-testid="demo-brief-save"
                       disabled={saving}
                       onClick={() => void saveBrief()}
@@ -652,6 +653,7 @@ export default function RequestDetailPage() {
                           brandId={row?.brandId}
                           value={channelsArrayToPickerValue(briefDraft?.channels)}
                           multiple
+                          variant="dropdown"
                           locale={locale}
                           testId="demo-brief-channels"
                           onChange={(v) => {
