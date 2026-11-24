@@ -49,7 +49,6 @@ import {
 } from '../../../../lib/demo/stage4-tasks';
 import { clearBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
-import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
   LayoutGridOutlined,
