@@ -3779,7 +3779,7 @@ html body .oma-ws-overlay .oma-ws-panel-close {
     margin: 0 !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card {
     min-height: 0 !important;
     padding: 8px !important;
@@ -3787,47 +3787,47 @@ html body .oma-ws-overlay .oma-ws-panel-close {
     border-radius: 8px !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card__title,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__title,
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] strong.oma-plx-brand-hub-card__title,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] strong.oma-plx-brand-hub-card__title {
     font-size: var(--text-meta) !important;
     line-height: var(--leading-meta) !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card__meta,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__meta {
     font-size: var(--text-label) !important;
     line-height: var(--leading-label) !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card__foot,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__foot {
     font-size: var(--text-meta) !important;
     margin-top: 2px !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts {
     gap: 4px !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts dt,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts dt {
     font-size: var(--text-label) !important;
     margin: 0 0 1px !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts dd,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts dd {
     font-size: var(--text-meta) !important;
     font-weight: 600 !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .ant-btn,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .ant-btn,
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] a.ant-btn,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] a.ant-btn {
     height: var(--oma-control-height-compact) !important;
     min-height: var(--oma-control-height-compact) !important;
@@ -3837,7 +3837,7 @@ html body .oma-ws-overlay .oma-ws-panel-close {
     line-height: 1.2 !important;
   }
 
-  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .ant-tag,
   html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .ant-tag {
     font-size: var(--text-label) !important;
     line-height: var(--leading-label) !important;

@@ -363,4 +363,269 @@ html body .oma-plx-brand .oma-discovery-product-card__title {
     font-size: var(--text-control) !important;
     min-height: var(--oma-control-height-compact) !important;
   }
+
+  html body .oma-plx-brand-settings [data-testid='brand-settings-approvals'] .oma-ws-appr-sub,
+  html body .oma-plx-brand-settings [data-testid='brand-settings-approvals'] .oma-ws-appr-toggle-label,
+  html body .oma-plx-brand-settings [data-testid='brand-settings-approvals'] .oma-ws-label {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-plx-brand-settings [data-testid='brand-settings-approvals'] .oma-ws-toggle-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  html body .oma-plx-brand-settings [data-testid='brand-settings-approvals'] .oma-ws-appr-member-name,
+  html body .oma-plx-brand-settings [data-testid='brand-settings-approvals'] .oma-ws-appr-member-sub {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+  }
+
+  html body .oma-plx-brand-settings [data-testid='brand-settings-approvals'] .oma-ws-appr {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+}
+
+/* ── Hub cards: balanced type (all viewports) ─────────────────────────────── */
+html body .oma-plx-brand .oma-plx-brand-hub-card .oma-plx-listening-card__excerpt {
+  font-size: var(--text-meta) !important;
+  line-height: var(--leading-meta) !important;
+  margin: 0 !important;
+}
+
+@media (min-width: 768px) {
+  html body .oma-plx-brand .oma-plx-brand-hub-card .oma-plx-listening-card__excerpt {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+  }
+}
+
+/* ── Remove double panel padding (section shell + inner section head/body) ── */
+html body .oma-plx-brand .oma-plx-brand-section.oma-plx-listening-panel {
+  padding: 0;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+html body .oma-plx-brand .oma-profile-section.oma-plx-listening-panel {
+  padding: 12px 14px;
+}
+
+html body .oma-plx-brand .oma-profile-section.oma-plx-listening-panel > h3 {
+  font-size: var(--text-control);
+  line-height: var(--leading-control);
+  margin: 0 0 10px;
+}
+
+/* ── Nested inner cards: less padding inside outer panels (phone) ─────────── */
+@media (max-width: 767px) {
+  html body .oma-plx-listening.oma-plx-brand {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    padding-bottom: 12px !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-main {
+    gap: 10px !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-hub-grid {
+    margin-bottom: 8px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-hub-card.oma-plx-listening-card {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+    min-height: 0 !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-hub-card .oma-plx-listening-card__top {
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-hub-card .oma-plx-listening-card__foot {
+    gap: 4px !important;
+    padding-top: 0 !important;
+  }
+
+  html body .oma-plx-brand .oma-profile-section.oma-plx-listening-panel {
+    padding: 10px 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-profile-section .oma-insight-bundle.oma-plx-listening-card,
+  html body .oma-plx-brand .oma-profile-section .oma-insight-list .oma-plx-listening-card {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    border-radius: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-insight-bundle__title,
+  html body .oma-plx-brand .oma-profile-section > h3 {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-plx-brand .oma-insight-bundle__fields,
+  html body .oma-plx-brand .oma-insight-field-row__value,
+  html body .oma-plx-brand .oma-insight-field-row__label span {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+  }
+
+  html body .oma-plx-brand .oma-profile-version-card.oma-plx-listening-card {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-profile-version-card__title {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-plx-brand .oma-profile-version-card__facts {
+    font-size: var(--text-meta) !important;
+    gap: 8px 10px !important;
+  }
+
+  html body .oma-plx-brand .oma-profile-version-grid {
+    gap: 10px !important;
+  }
+
+  html body .oma-plx-brand .oma-strategy-card-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-strategy-card.oma-plx-listening-card {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-strategy-card__avatar {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: var(--text-meta) !important;
+  }
+
+  html body .oma-plx-brand .oma-strategy-card__title strong {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+    white-space: normal !important;
+  }
+
+  html body .oma-plx-brand .oma-strategy-card__title time {
+    font-size: var(--text-meta) !important;
+  }
+
+  html body .oma-plx-brand .oma-brand-detail-workboard .oma-panel,
+  html body .oma-plx-brand .oma-brand-detail-workboard .oma-card {
+    padding: 10px 12px !important;
+    max-width: 100% !important;
+  }
+
+  html body .oma-plx-brand .oma-brand-detail-workboard .oma-plx-brand-catalog-card {
+    padding: 8px 10px !important;
+    font-size: var(--text-meta) !important;
+  }
+
+  html body .oma-plx-brand .oma-brand-detail-workboard .oma-plx-brand-data-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-scan-run-meta {
+    padding: 12px 14px !important;
+  }
+
+  html body .oma-plx-brand .oma-scan-run-meta__head {
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  html body .oma-plx-brand .oma-scan-run-meta__chips {
+    max-width: 100%;
+  }
+
+  html body .oma-plx-brand .oma-discovery-page-card.oma-plx-listening-card {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-discovery-page-card__meta {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+    font-size: var(--text-meta) !important;
+  }
+
+  html body .oma-plx-brand .oma-discovery-page-card__actions {
+    padding-top: 8px !important;
+    gap: 8px !important;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  html body .oma-plx-brand .oma-discovery-hub .oma-plx-brand-page-head {
+    margin-bottom: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-discovery-hub .oma-discovery-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-stat-card {
+    padding: 8px 10px !important;
+  }
+
+  html body .oma-plx-brand .oma-plx-brand-stat-card__value {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  html body .oma-plx-brand .oma-profile-version-card.oma-plx-listening-card {
+    padding: 14px 16px;
+  }
+
+  html body .oma-plx-brand .oma-profile-version-card__title {
+    font-size: var(--text-control);
+    line-height: var(--leading-control);
+  }
+
+  html body .oma-plx-brand .oma-profile-version-card__facts {
+    font-size: var(--text-body);
+  }
+
+  html body .oma-plx-brand .oma-strategy-card__title strong {
+    font-size: var(--text-control);
+  }
+
+  html body .oma-plx-brand .oma-scan-run-meta {
+    padding: 16px 18px;
+  }
+
+  html body .oma-plx-brand .oma-scan-run-meta__title {
+    font-size: var(--text-control) !important;
+  }
+
+  html body .oma-plx-brand .oma-discovery-page-card {
+    padding: 14px 16px;
+  }
+
+  html body .oma-plx-brand .oma-discovery-page-card__title {
+    font-size: var(--text-control) !important;
+  }
 }
