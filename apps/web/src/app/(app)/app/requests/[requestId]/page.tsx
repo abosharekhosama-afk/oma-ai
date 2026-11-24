@@ -382,7 +382,7 @@ export default function RequestDetailPage() {
       data-testid="demo-request-detail"
     >
       <div className="oma-plx-workspace-surface">
-        <header className="oma-plx-req-detail__top oma-req-detail__top oma-req-detail__top--row oma-plx-listening-panel">
+        <header className="oma-plx-req-detail__top oma-req-detail__top oma-req-detail__top--row">
           <Link
             href="/app/requests"
             className="oma-req-detail__back oma-req-detail__back--compact"

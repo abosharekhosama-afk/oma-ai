@@ -922,7 +922,7 @@ export default function RequestsPage() {
         title={t('demo.create.requestTitle')}
         labelledBy="demo-create-request-title"
         size="lg"
-        className="oma-compose-dialog oma-plx-compose-dialog"
+        className="oma-compose-dialog oma-plx-compose-dialog oma-plx-compose-dialog--requests"
         footer={
           <div className="oma-plx-compose-dialog__foot">
             <Button
