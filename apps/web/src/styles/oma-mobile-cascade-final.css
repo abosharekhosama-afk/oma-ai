@@ -2952,7 +2952,8 @@ html body .oma-choice-select__menu--floating .oma-choice-select__option {
   padding: 6px 8px !important;
 }
 
-/* ── Team + Activity: compact type and spacing (requests table grammar: 9px) ── */
+/* ── Team + Activity: compact type and spacing — mobile only ── */
+@media (max-width: 767px) {
 html body .oma-plx-listening.oma-plx-team,
 html body .oma-plx-listening.oma-plx-activity {
   max-width: none !important;
@@ -3221,6 +3222,8 @@ html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-load-more .ant-b
   padding: 0 8px !important;
   font-size: 9px !important;
   font-weight: 600 !important;
+}
+
 }
 
 /* ── Deliverables: mobile-tight + list = table (requests grammar) ───────── */

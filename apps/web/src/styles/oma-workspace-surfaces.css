@@ -1,0 +1,273 @@
+/*
+ * Workspace canvas + Team / Activity laptop comfort + workspace settings nav rhythm.
+ * Loaded after oma-mobile-cascade-final.css and oma-brand-responsive.css.
+ */
+
+/* Gray canvas on app shells (cards/panels stay white) */
+html body main.oma-container,
+html body .oma-shell main.oma-container {
+  background: var(--oma-canvas, #f5f6f7) !important;
+}
+
+html body .oma-plx-workspace-surface,
+html body .oma-plx-listening:not([data-testid='listening-page']):not(
+    [data-testid='listening-alerts-page']
+  ):not([data-testid='listening-competitors-page']),
+html body .oma-plx-deliverables,
+html body .oma-plx-team,
+html body .oma-plx-activity.oma-activity-page,
+html body .oma-campaign-portfolio,
+html body .oma-campaigns-page,
+html body .oma-plx-inbox {
+  background: transparent !important;
+}
+
+html body .oma-plx-listening-panel,
+html body .oma-plx-deliv-panel__body,
+html body .oma-plx-requests-panel__body,
+html body .oma-plx-brand-panel.oma-plx-listening-panel {
+  background: var(--oma-surface, #fff) !important;
+}
+
+/* ── Team + Activity: laptop / tablet comfort ───────────────────────────── */
+@media (min-width: 768px) {
+  html body .oma-plx-listening.oma-plx-team .oma-plx-workspace-surface,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-workspace-surface {
+    padding: 0 var(--space-5) var(--space-6) !important;
+    max-width: min(1120px, 100%) !important;
+    margin-inline: auto !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-listening__intro,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__intro {
+    margin: var(--space-2) 0 var(--space-5) !important;
+    padding: 0 !important;
+    gap: var(--space-3) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-listening__title,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__title {
+    font-size: var(--text-title) !important;
+    line-height: var(--leading-title) !important;
+    font-weight: var(--weight-semibold, 600) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv__subtitle,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv__subtitle,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-listening__next-check,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__next-check {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-panel.oma-plx-listening-panel,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-panel.oma-plx-listening-panel {
+    border-radius: var(--radius-lg, 12px) !important;
+    margin-top: var(--space-2) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups.oma-plx-team-tabs,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups.oma-plx-activity-tabs {
+    gap: var(--space-1) !important;
+    padding: 0 var(--space-4) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn {
+    flex: 0 1 auto !important;
+    min-width: max-content !important;
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+    padding: 12px 16px !important;
+    font-weight: var(--weight-medium, 500) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn.is-active,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn[data-active='true'],
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn.is-active,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn[data-active='true'] {
+    font-weight: var(--weight-semibold, 600) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-panel__body,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-panel__body,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-panel__body {
+    padding: var(--space-5) var(--space-4) var(--space-6) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-grid {
+    gap: var(--space-4) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card {
+    gap: var(--space-3) !important;
+    padding: var(--space-4) var(--space-5) !important;
+    border-radius: var(--radius-md, 10px) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__head {
+    gap: var(--space-3) !important;
+    grid-template-columns: 40px minmax(0, 1fr) auto !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__avatar {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: var(--text-label) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__name-row strong {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__you,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__email,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__membership,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__status,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__online,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__perm-btn,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__remove {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field select,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field .oma-choice-select__trigger {
+    min-height: 36px !important;
+    font-size: var(--text-control) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table th,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table td,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-user-name,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-user-cell .oma-muted {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+    padding: var(--space-2) var(--space-3) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-notif,
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__copy strong,
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__copy span,
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__heading,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-subhead,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-empty-desc {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__section {
+    padding: var(--space-4) var(--space-5) !important;
+    gap: var(--space-3) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__row {
+    padding: var(--space-2) 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-feed {
+    gap: var(--space-3) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening-card.oma-plx-activity-card {
+    padding: var(--space-4) var(--space-5) !important;
+    gap: var(--space-2) !important;
+    border-radius: var(--radius-md, 10px) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__thumb,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__avatar {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: var(--text-label) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__time,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__verb,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__line,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__target,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__muted,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__quote,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__pill {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__quote {
+    padding: var(--space-2) var(--space-3) !important;
+    margin-top: var(--space-2) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-load-more .ant-btn {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 var(--space-4) !important;
+    font-size: var(--text-control) !important;
+  }
+}
+
+/* Workspace settings overlay — nav spacing (mobile + laptop) */
+@media (max-width: 767px) {
+  html body .oma-ws-overlay .oma-ws-panel-nav {
+    padding: 12px 10px !important;
+    gap: var(--space-1) !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-group {
+    margin: 10px 6px 6px !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-item,
+  html body .oma-ws-overlay .oma-ws-panel-nav-item span {
+    min-height: 36px !important;
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    margin-bottom: 4px !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-item svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  html body .oma-ws-overlay .oma-ws-panel-nav {
+    padding: 16px 12px !important;
+    gap: var(--space-2) !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-group {
+    margin: 14px 8px 8px !important;
+    font-size: var(--text-label) !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-item,
+  html body .oma-ws-overlay .oma-ws-panel-nav-item span {
+    min-height: 38px !important;
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    margin-bottom: 6px !important;
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-item svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-main {
+    padding: var(--space-5) var(--space-6) var(--space-6) !important;
+  }
+}

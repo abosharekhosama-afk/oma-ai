@@ -13,6 +13,7 @@ import '../styles/oma-mobile-cascade-final.css';
 import '../styles/oma-typography-unified.css';
 import '../styles/oma-responsive-density.css';
 import '../styles/oma-brand-responsive.css';
+import '../styles/oma-workspace-surfaces.css';
 
 const siteUrl = resolvePublicSiteUrl();
 
