@@ -2014,8 +2014,8 @@ html body .oma-plx-compose-dialog--tasks,
   html body .oma-plx-listening.oma-plx-req-detail label,
   html body .oma-plx-listening.oma-plx-req-detail .oma-brief-field__label,
   html body .oma-plx-listening.oma-plx-req-detail .oma-req-detail__card-head strong,
-  html body .oma-plx-compose-dialog--requests label,,
-html body .oma-plx-compose-dialog--tasks label,
+  html body .oma-plx-compose-dialog--requests label,
+  html body .oma-plx-compose-dialog--tasks label,
   html body .oma-plx-compose-dialog--requests .oma-compose__label,
 html body .oma-plx-compose-dialog--tasks .oma-compose__label {
     font-family: inherit !important;
@@ -2036,10 +2036,10 @@ html body .oma-plx-compose-dialog--tasks .oma-plx-compose-dialog__btn {
   html body .oma-plx-req-detail textarea,
   html body .oma-plx-req-detail select,
   html body .oma-plx-req-detail .oma-select,
-  html body .oma-plx-compose-dialog--requests input,,
-html body .oma-plx-compose-dialog--tasks input,
-  html body .oma-plx-compose-dialog--requests textarea,,
-html body .oma-plx-compose-dialog--tasks textarea,
+  html body .oma-plx-compose-dialog--requests input,
+  html body .oma-plx-compose-dialog--tasks input,
+  html body .oma-plx-compose-dialog--requests textarea,
+  html body .oma-plx-compose-dialog--tasks textarea,
   html body .oma-plx-compose-dialog--requests .oma-select,
 html body .oma-plx-compose-dialog--tasks .oma-select {
     font-family: inherit !important;
