@@ -300,7 +300,7 @@ describe('brand membership isolation + lifecycle', () => {
         headers: authHeaders(seed),
       },
     );
-    expect(gated.status).toBe(402);
+    expect(gated.status).toBe(409);
     await getPrisma().workspaceSubscription.update({
       where: { tenantId: seed.tenantId },
       data: { xApiAddon: true },

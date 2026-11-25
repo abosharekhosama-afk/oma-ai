@@ -73,10 +73,7 @@ describe('listening rule management', () => {
     expect(byId.REDDIT.readiness).toBe('public');
     expect(byId.YOUTUBE.readiness).toBe('not_configured');
     expect(byId.WEB.readiness).toBe('not_configured');
-    expect(byId.X).toMatchObject({
-      readiness: 'needs_account',
-      limitation: 'inbox_mentions_and_dms_not_global_search',
-    });
+    expect(sources.map((source) => source.id)).not.toContain('X');
     expect(byId.TIKTOK.mode).toBe('inbox_derived');
     expect(JSON.stringify(sources)).not.toMatch(/api[_-]?key|secret|token=/i);
   });

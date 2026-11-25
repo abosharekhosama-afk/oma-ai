@@ -22,12 +22,16 @@ describe('Mobile responsiveness: Top Header, Calendar Toolbar, and Off-Canvas Sa
   });
 
   it('styles the Saved column as an off-canvas drawer on <=1024px and unclips calendar toolbar popovers on <768px', () => {
-    const mobileCss = readFileSync(resolve('apps/web/src/styles/mobile-nov02.css'), 'utf8');
-    expect(mobileCss).toContain('.oma-cal-saved-backdrop');
-    expect(mobileCss).toContain('overflow: visible !important');
-    expect(mobileCss).toContain('.oma-pv-ds__pop');
-    expect(mobileCss).toContain('.oma-ext-cal-pop');
-    expect(mobileCss).toContain('display: flex !important');
+    const savedCss = readFileSync(resolve('apps/web/src/styles/mobile-nov02.css'), 'utf8');
+    const calendarCss = readFileSync(
+      resolve('apps/web/src/styles/oma-mobile-cascade-final.css'),
+      'utf8',
+    );
+    expect(savedCss).toContain('.oma-cal-saved-backdrop');
+    expect(calendarCss).toContain('overflow: visible !important');
+    expect(calendarCss).toContain('.oma-pv-ds__pop');
+    expect(calendarCss).toContain('.oma-ext-cal-pop');
+    expect(calendarCss).toContain('display: flex !important');
   });
 
   it('keeps calendar view as a grid on phones and never hides the Saved panel', () => {
