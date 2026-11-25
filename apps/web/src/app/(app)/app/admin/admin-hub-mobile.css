@@ -1,0 +1,343 @@
+/* Platform admin hub — phone layout (drawer nav + compact density) */
+
+.admin-hub__mobile-bar {
+  display: none;
+}
+
+.admin-hub__backdrop {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .admin-hub {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-x: clip;
+    max-width: 100vw;
+  }
+
+  .admin-hub__mobile-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 0.45rem 0.55rem;
+    background: var(--oma-surface-1, #fff);
+    border-bottom: 1px solid var(--oma-border-subtle, #e2e8f0);
+    box-shadow: 0 1px 0 rgb(15 23 42 / 4%);
+  }
+
+  .admin-hub__menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--oma-border-subtle, #e2e8f0);
+    border-radius: 10px;
+    background: var(--oma-surface-1, #fff);
+    color: var(--oma-text-primary, #0f172a);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .admin-hub__menu-toggle:active {
+    background: var(--oma-surface-0, #f8fafc);
+  }
+
+  .admin-hub__mobile-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .admin-hub__mobile-title strong {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+  }
+
+  .admin-hub__mobile-title span {
+    font-size: 0.68rem;
+    color: var(--oma-text-muted, #64748b);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .admin-hub__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 118;
+    background: rgb(15 23 42 / 42%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .admin-hub--nav-open .admin-hub__backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .admin-hub__rail {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 119;
+    width: min(272px, 86vw);
+    max-width: 100%;
+    margin: 0;
+    padding: 0.75rem 0.55rem;
+    border-inline-end: 1px solid var(--oma-border-subtle, #e2e8f0);
+    border-bottom: none;
+    box-shadow: 4px 0 24px rgb(15 23 42 / 12%);
+    transform: translateX(-105%);
+    transition: transform 200ms ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  [dir='rtl'] .admin-hub__rail {
+    transform: translateX(105%);
+    box-shadow: -4px 0 24px rgb(15 23 42 / 12%);
+  }
+
+  .admin-hub--nav-open .admin-hub__rail {
+    transform: translateX(0);
+  }
+
+  .admin-hub__brand {
+    padding: 0.25rem 0.45rem 0.55rem;
+  }
+
+  .admin-hub__brand strong {
+    font-size: 0.9rem;
+  }
+
+  .admin-hub__brand span {
+    font-size: 0.68rem;
+  }
+
+  .admin-hub__menu-item {
+    padding: 0.42rem 0.55rem;
+    font-size: 0.78rem;
+    gap: 0.45rem;
+    border-radius: 8px;
+  }
+
+  .admin-hub__content {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    padding: 0.55rem 0.6rem 1.25rem;
+    box-sizing: border-box;
+    overflow-x: clip;
+  }
+
+  .admin-hub__stack {
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  .admin-hub__page-head h1 {
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+
+  .admin-hub__muted {
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .admin-hub__card,
+  .admin-hub .oma-plx-listening-card {
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .admin-hub__card h3 {
+    font-size: 0.68rem;
+  }
+
+  .admin-hub__card p {
+    font-size: 1.05rem;
+  }
+
+  .admin-hub__probe-meta,
+  .admin-hub__probe-url,
+  .admin-hub__probe-result {
+    font-size: 0.72rem;
+  }
+
+  .admin-hub__grid,
+  .admin-hub__limit-grid,
+  .admin-hub__diag-grid,
+  .admin-hub__probe-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.55rem;
+  }
+
+  .admin-hub__split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  .admin-hub__split > .admin-hub__table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  .admin-hub__table {
+    font-size: 0.72rem;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-hub__table th,
+  .admin-hub__table td {
+    padding: 0.4rem 0.45rem;
+    white-space: nowrap;
+  }
+
+  .admin-hub input,
+  .admin-hub select,
+  .admin-hub textarea {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    font-size: 0.78rem;
+    padding: 0.38rem 0.5rem;
+    box-sizing: border-box;
+  }
+
+  .admin-hub__field {
+    font-size: 0.75rem;
+    min-width: 0;
+  }
+
+  .admin-hub__row {
+    gap: 0.35rem;
+  }
+
+  .admin-hub__btn {
+    font-size: 0.75rem;
+    padding: 0.38rem 0.65rem;
+  }
+
+  .admin-hub__diag-card {
+    padding: 0.65rem;
+    min-width: 0;
+  }
+
+  .admin-hub__diag-card h3 {
+    font-size: 0.78rem;
+  }
+
+  .admin-hub__diag-card ul {
+    font-size: 0.72rem;
+  }
+
+  .admin-hub__actions .admin-hub__btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Admin billing page nested inside hub */
+  .admin-hub__content .oma-planable-page.oma-billing {
+    padding: 0;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .admin-hub__content .oma-planable-page__header,
+  .admin-hub__content .oma-billing__header {
+    padding-inline: 0;
+  }
+
+  .admin-hub__content .oma-billing__header h1,
+  .admin-hub__content .oma-planable-page__header h1 {
+    font-size: 1.02rem !important;
+  }
+
+  .admin-hub__content .oma-billing__desc,
+  .admin-hub__content .oma-billing__eyebrow {
+    font-size: 0.7rem !important;
+  }
+
+  .admin-hub__content .oma-billing__card,
+  .admin-hub__content .oma-billing__admin-panel {
+    padding: 0.65rem 0.7rem !important;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .admin-hub__content .oma-billing__filter-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.45rem !important;
+  }
+
+  .admin-hub__content .oma-billing__subscriber-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+
+  .admin-hub__content .oma-billing__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.4rem !important;
+  }
+
+  .admin-hub__content .oma-billing__table-wrap {
+    margin-inline: -0.1rem;
+    max-width: calc(100% + 0.2rem);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-hub__content .oma-billing__subscribers-table {
+    font-size: 0.72rem;
+  }
+
+  .admin-hub__content .oma-billing__plan-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .admin-hub__content .oma-billing__current-fields {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-hub__content .oma-billing__plan-editor {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-hub__content .oma-billing__admin-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

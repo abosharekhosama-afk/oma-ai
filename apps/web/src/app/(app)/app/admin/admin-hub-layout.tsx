@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 import type { NavIconId } from '../../../../components/shell/nav-config';
 import { useLocale } from '../../../../lib/use-locale';
 import { usePlatformOperator } from '../../../../lib/use-platform-operator';
 import './admin-hub.css';
+import './admin-hub-mobile.css';
 
 type NavItem = {
   href: string;
@@ -74,6 +76,40 @@ export function AdminHubLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const isAr = useLocale() === 'ar';
   const { loading, ok, superAdmin, support } = usePlatformOperator();
+  const [navOpen, setNavOpen] = useState(false);
+
+  const closeNav = useCallback(() => setNavOpen(false), []);
+
+  useEffect(() => {
+    closeNav();
+  }, [pathname, closeNav]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [navOpen]);
+
+  const visible = useMemo(
+    () =>
+      loading || !ok
+        ? []
+        : nav.filter((item) => (item.superOnly ? superAdmin : superAdmin || support)),
+    [loading, ok, superAdmin, support],
+  );
+
+  const mobileSectionLabel = useMemo(() => {
+    const item = visible.find((entry) =>
+      entry.href === '/app/admin'
+        ? pathname === '/app/admin'
+        : (pathname?.startsWith(entry.href) ?? false),
+    );
+    if (!item) return isAr ? 'إدارة المنصة' : 'Platform admin';
+    return isAr ? item.labelAr : item.labelEn;
+  }, [visible, pathname, isAr]);
 
   if (loading) {
     return (
@@ -103,11 +139,35 @@ export function AdminHubLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const visible = nav.filter((item) => (item.superOnly ? superAdmin : superAdmin || support));
-
   return (
-    <div className="admin-hub" dir={isAr ? 'rtl' : 'ltr'}>
-      <aside className="admin-hub__rail" aria-label={isAr ? 'إدارة المنصة' : 'Platform admin'}>
+    <div className={`admin-hub${navOpen ? ' admin-hub--nav-open' : ''}`} dir={isAr ? 'rtl' : 'ltr'}>
+      <button
+        type="button"
+        className="admin-hub__backdrop"
+        aria-label={isAr ? 'إغلاق القائمة' : 'Close menu'}
+        onClick={closeNav}
+        tabIndex={navOpen ? 0 : -1}
+      />
+      <header className="admin-hub__mobile-bar">
+        <button
+          type="button"
+          className="admin-hub__menu-toggle"
+          aria-expanded={navOpen}
+          aria-controls="admin-hub-nav"
+          onClick={() => setNavOpen((open) => !open)}
+        >
+          <ShellIcon name="menu" size={18} />
+        </button>
+        <div className="admin-hub__mobile-title">
+          <strong>OMA</strong>
+          <span>{mobileSectionLabel}</span>
+        </div>
+      </header>
+      <aside
+        id="admin-hub-nav"
+        className="admin-hub__rail"
+        aria-label={isAr ? 'إدارة المنصة' : 'Platform admin'}
+      >
         <div className="admin-hub__brand">
           <strong>OMA</strong>
           <span>{isAr ? 'عمليات المنصة' : 'Platform ops'}</span>
@@ -124,6 +184,7 @@ export function AdminHubLayout({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className="admin-hub__menu-item"
                 data-active={active ? 'true' : 'false'}
+                onClick={closeNav}
               >
                 <ShellIcon name={item.icon} size={18} />
                 <span>{isAr ? item.labelAr : item.labelEn}</span>
@@ -132,11 +193,11 @@ export function AdminHubLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="admin-hub__rail-foot">
-          <Link href="/app/help" className="admin-hub__menu-item">
+          <Link href="/app/help" className="admin-hub__menu-item" onClick={closeNav}>
             <ShellIcon name="requests" size={18} />
             <span>{isAr ? 'مركز العميل' : 'Customer help'}</span>
           </Link>
-          <Link href="/app" className="admin-hub__menu-item">
+          <Link href="/app" className="admin-hub__menu-item" onClick={closeNav}>
             <ShellIcon name="company" size={18} />
             <span>{isAr ? 'مساحة العمل' : 'Workspace'}</span>
           </Link>
