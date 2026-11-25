@@ -589,6 +589,18 @@ export class BillingService {
     const provider = resolved.id;
     const prisma = getPrisma();
     await this.ensureSubscription(tenantId, { grandfather: true });
+    const openManual = await prisma.manualPaymentOrder.findFirst({
+      where: { tenantId, status: { in: ['awaiting_payment', 'proof_uploaded'] } },
+      select: { id: true, reference: true },
+    });
+    if (openManual) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'A manual payment request is already open for this workspace',
+        409,
+        'errors.billing_pending_order',
+      );
+    }
     const user = await prisma.user.findUnique({ where: { id: actorUserId } });
     const quote = this.quoteFor(
       planCode,

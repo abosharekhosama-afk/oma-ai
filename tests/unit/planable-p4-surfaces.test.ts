@@ -24,11 +24,12 @@ function read(rel: string): string {
 describe('P4 Planable requests/briefs/tasks surfaces', () => {
   it('rebuilds requests inbox without violet/signal contamination', () => {
     const page = read('apps/web/src/app/(app)/app/requests/page.tsx');
+    const client = read('apps/web/src/app/(app)/app/requests/requests-client.tsx');
     const css = readStage4Styles();
     expect(page).toContain('demo-requests');
     expect(page).toContain('demo-request-table');
     expect(page).toContain('demo-create-request-dialog');
-    expect(page).toContain('oma-req-avatar');
+    expect(client).toContain('oma-req-avatar');
     expect(page).toContain('<Dialog');
     expect(css).not.toContain('--oma-violet');
     expect(css).not.toContain('--oma-signal');
@@ -56,7 +57,7 @@ describe('P4 Planable requests/briefs/tasks surfaces', () => {
     expect(board).toContain('demo-tasks-board');
     expect(board).toContain('demo-kanban-drag-overlay');
     expect(board).toContain('demo-task-move-');
-    expect(board).toContain('oma-task-avatar');
+    expect(board).toContain('MediaSurface');
     expect(tasks).toContain('demo-tasks-view-board');
     expect(tasks).toContain('demo-task-drawer');
     expect(tasks).toContain('<Dialog');

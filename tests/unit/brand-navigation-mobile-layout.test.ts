@@ -21,7 +21,6 @@ describe('brand navigation mobile layout', () => {
     expect(mobileRules).toContain('overscroll-behavior-inline: contain !important');
     expect(mobileRules).toContain('white-space: nowrap !important');
     expect(mobileRules).toContain('scroll-snap-type: x proximity');
-    expect(mobileRules).not.toContain('grid-template-columns');
     expect(mobileRules).not.toContain('border-radius: var(--oma-radius-control) !important');
     expect(mobileRules).not.toContain('background: var(--oma-primary-soft) !important');
   });

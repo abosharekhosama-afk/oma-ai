@@ -14,7 +14,6 @@ import {
   DownOutlined,
   UpOutlined,
   PlusOutlined,
-  CloseOutlined,
   UnorderedListOutlined,
   CircleCheckSoftOutlined,
   ClockCircleOutlined,

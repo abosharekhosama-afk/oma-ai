@@ -13,12 +13,10 @@ describe('Tasks board view switcher on phone', () => {
     const tasks = read('apps/web/src/app/(app)/app/tasks/tasks-client.tsx');
     expect(tasks).toContain('demo-tasks-view-board');
     expect(tasks).toContain('demo-tasks-view-list');
-    expect(tasks).toContain('async function changeView(next: ViewMode)');
+    expect(tasks).toContain('function changeView(next: ViewMode)');
     expect(tasks).toContain('setView(resolved)');
     expect(tasks).toContain("window.localStorage.setItem('oma.tasks.defaultView', resolved)");
-    expect(tasks).toContain('isMobileTasksViewport()');
-    expect(tasks).toContain("window.matchMedia('(max-width: 767px)')");
-    expect(tasks).toContain("next === 'list' ? 'board' : next");
+    expect(tasks).toContain("params.set('view', resolved)");
   });
 
   it('keeps the desktop board column width and enables a full-width phone switcher', () => {

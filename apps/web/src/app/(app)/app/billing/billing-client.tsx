@@ -103,6 +103,29 @@ function formatUsd(cents?: number | null) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+const OPEN_MANUAL_STATUSES = new Set(['awaiting_payment', 'proof_uploaded']);
+
+function hasOpenManualPayment(
+  sub: SubscriptionView | null,
+  pendingOrder: PendingOrder | null,
+): boolean {
+  if (pendingOrder && OPEN_MANUAL_STATUSES.has(pendingOrder.status ?? 'awaiting_payment')) {
+    return true;
+  }
+  return (sub?.pending_manual_orders ?? []).some((o) => OPEN_MANUAL_STATUSES.has(o.status));
+}
+
+function transferFormComplete(transfer: TransferForm) {
+  return (
+    Boolean(transfer.sender_name.trim()) &&
+    Boolean(transfer.contact.trim()) &&
+    Boolean(transfer.amount.trim()) &&
+    Boolean(transfer.transfer_date) &&
+    Boolean(transfer.txn_ref.trim()) &&
+    Boolean(transfer.preview)
+  );
+}
+
 function isSafeCheckoutRedirect(url: string): boolean {
   try {
     const parsed = new URL(url);
@@ -196,6 +219,8 @@ export default function BillingClient() {
 
   const providers: ProviderDto[] = (sub?.providers ?? []).filter((item) => item.configured);
   const catalogVat = plans[0]?.vat_percent ?? sub?.settings_vat_percent;
+  const openManualPayment = hasOpenManualPayment(sub, pendingOrder);
+  const transferReady = transferFormComplete(transfer);
 
   const checkoutTitle = useMemo(() => {
     if (!checkoutPlan) return isAr ? 'اختيار طريقة الدفع' : 'Choose a payment method';
@@ -211,6 +236,19 @@ export default function BillingClient() {
   }
 
   function openCheckout(plan: PlanDto) {
+    if (openManualPayment) {
+      toast.push(
+        isAr
+          ? 'لديك طلب دفع قيد المراجعة. أكمله أو انتظر الموافقة قبل فتح طلب جديد.'
+          : 'You already have a payment request in review. Complete or wait for approval before starting another.',
+        'danger',
+      );
+      if (pendingOrder) {
+        setCheckoutStep(pendingOrder.status === 'proof_uploaded' ? 'pending' : 'manual');
+        setCheckoutOpen(true);
+      }
+      return;
+    }
     if (!canBill) {
       toast.push(
         isAr
@@ -227,6 +265,15 @@ export default function BillingClient() {
 
   async function checkoutWithProvider(item: ProviderDto) {
     if (!checkoutPlan) return;
+    if (openManualPayment) {
+      toast.push(
+        isAr
+          ? 'طلب دفع مفتوح موجود بالفعل لهذه المساحة.'
+          : 'An open payment request already exists for this workspace.',
+        'danger',
+      );
+      return;
+    }
     setBusy(item.id);
     try {
       const result = await startCheckout({
@@ -452,8 +499,8 @@ export default function BillingClient() {
           <h1 className="oma-planable-page__title">{isAr ? 'الخطط والدفع' : 'Plans & billing'}</h1>
           <p className="oma-planable-page__sub">
             {isAr
-              ? 'الأسعار قبل الضريبة، ويظهر الإجمالي شامل الضريبة بحسب النسبة الحالية من الإعدادات.'
-              : 'List prices are shown before VAT. Totals including VAT follow the current rate in billing settings.'}
+              ? 'الأسعار المعروضة هي المبلغ النهائي للفترة المختارة.'
+              : 'Prices shown are the final amount for the selected billing period.'}
           </p>
           <div className="oma-billing__trust-row">
             <span>{isAr ? 'أسعار واضحة' : 'Clear pricing'}</span>
@@ -478,9 +525,6 @@ export default function BillingClient() {
           <strong>
             {isAr ? sub.plan.name.ar : sub.plan.name.en} · {sub.status}
           </strong>
-          {catalogVat || sub.settings_vat_percent
-            ? ` · ${isAr ? 'الضريبة' : 'VAT'} ${catalogVat ?? sub.settings_vat_percent}`
-            : null}
           {sub.grace_period_ends_at && sub.status === 'past_due'
             ? ` · ${isAr ? 'مهلة السماح حتى' : 'Grace until'} ${sub.grace_period_ends_at.slice(0, 10)}`
             : null}
@@ -534,8 +578,10 @@ export default function BillingClient() {
         >
           {plans.map((plan) => {
             const active = sub?.plan_code === plan.code;
-            const price = annual ? plan.price_yearly_per_month_usd : plan.price_monthly_usd;
+            const listUsd = annual ? plan.price_yearly_per_month_usd : plan.price_monthly_usd;
             const vatBlock = annual ? plan.yearly_vat : plan.monthly_vat;
+            const displayUsd =
+              vatBlock?.inc_vat_cents != null ? vatBlock.inc_vat_cents / 100 : listUsd;
             const monthlyPrice = plan.price_monthly_usd;
             const yearlyPrice = plan.price_yearly_per_month_usd;
             const saving =
@@ -568,7 +614,7 @@ export default function BillingClient() {
                   {isAr ? plan.description.ar : plan.description.en}
                 </p>
                 <div className="oma-billing__price">
-                  <strong>{price != null ? money(price) : '—'}</strong>
+                  <strong>{displayUsd != null ? money(displayUsd) : '—'}</strong>
                   <span>
                     {' '}
                     /{' '}
@@ -581,20 +627,12 @@ export default function BillingClient() {
                         : 'month'}
                   </span>
                 </div>
-                <div className="oma-billing__price-note">
-                  <span>{isAr ? 'قبل الضريبة' : 'Before VAT'}</span>
-                  {annual && saving > 0 ? (
+                {annual && saving > 0 ? (
+                  <div className="oma-billing__price-note">
                     <strong>
                       {isAr ? `وفر ${money(saving)} / شهر` : `Save ${money(saving)} / mo`}
                     </strong>
-                  ) : null}
-                </div>
-                {vatBlock ? (
-                  <p className="oma-billing__price-vat oma-billing__price-vat--prominent">
-                    {isAr
-                      ? `شامل الضريبة (${plan.vat_percent}): ${formatUsd(vatBlock.inc_vat_cents)}`
-                      : `Including ${plan.vat_percent} VAT: ${formatUsd(vatBlock.inc_vat_cents)}`}
-                  </p>
+                  </div>
                 ) : null}
                 <div className="oma-billing__limits-heading">
                   {isAr ? 'يتضمن' : "What's included"}
@@ -610,7 +648,7 @@ export default function BillingClient() {
                 </ul>
                 <Button
                   type={active ? 'default' : 'primary'}
-                  disabled={active || busy === plan.code || !canBill}
+                  disabled={active || busy === plan.code || !canBill || openManualPayment}
                   onClick={() => openCheckout(plan)}
                 >
                   {active
@@ -744,7 +782,7 @@ export default function BillingClient() {
                   <p className="oma-billing__notice" role="status">
                     <strong>{isAr ? 'رقم المرجع' : 'Reference'}:</strong> {pendingOrder.reference}
                     {pendingOrder.amount_inc_vat_cents != null
-                      ? ` · ${isAr ? 'المبلغ مع الضريبة' : 'Amount including VAT'} ${formatUsd(pendingOrder.amount_inc_vat_cents)}${pendingOrder.vat_percent ? ` (${isAr ? 'الضريبة' : 'VAT'} ${pendingOrder.vat_percent})` : ''}`
+                      ? ` · ${isAr ? 'المبلغ' : 'Amount'} ${formatUsd(pendingOrder.amount_inc_vat_cents)}`
                       : ''}
                   </p>
                 ) : null}
@@ -841,7 +879,11 @@ export default function BillingClient() {
                         />
                       </figure>
                     ) : null}
-                    <Button type="primary" htmlType="submit" disabled={busy === 'proof'}>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      disabled={busy === 'proof' || !transferReady}
+                    >
                       {isAr ? 'إرسال الإثبات' : 'Submit proof'}
                     </Button>
                   </form>

@@ -59,6 +59,16 @@ describe('billing upgrade UX and VAT reflection', () => {
     expect(client).toContain('Tenant plan cards and plan-change controls are hidden here');
   });
 
+  it('blocks a second checkout while a manual payment request is still open', () => {
+    const service = read('apps/api/src/billing/billing.service.ts');
+    expect(service).toContain('errors.billing_pending_order');
+    expect(service).toContain("status: { in: ['awaiting_payment', 'proof_uploaded'] }");
+    const client = read('apps/web/src/app/(app)/app/billing/billing-client.tsx');
+    expect(client).toContain('hasOpenManualPayment');
+    expect(client).toContain('transferFormComplete');
+    expect(client).toContain('!transferReady');
+  });
+
   it('redesigns admin billing with status filters, transfer details, and receipt preview', () => {
     const admin = read('apps/web/src/app/(app)/app/admin/billing/admin-billing-client.tsx');
     const controller = read('apps/api/src/billing/billing-admin.controller.ts');

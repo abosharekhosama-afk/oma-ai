@@ -2304,6 +2304,7 @@
   "errors.approval_ineligible": "This item can’t be approved yet.",
   "errors.approved_immutable": "Approved versions can’t be edited. Create a new version instead.",
   "errors.billing_not_enabled": "Billing isn’t enabled for this workspace.",
+  "errors.billing_pending_order": "You already have a payment request awaiting review. Complete it or wait for approval before starting another.",
   "errors.brand_archived": "This brand is archived. Restore it to make changes.",
   "errors.brief_not_ready": "Add an objective, audience, key message and at least one deliverable before sending for review.",
   "errors.budget_exceeded": "The usage limit for this workspace has been reached.",
