@@ -1,0 +1,301 @@
+/*
+ * Unified typography — Plus Jakarta + token scale on laptop and phone.
+ * Loaded after oma-mobile-cascade-final.css so token rules beat legacy px overrides.
+ */
+
+html body {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-body) !important;
+  line-height: var(--leading-body) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html[lang='ar'] body,
+html[lang='ar'] body .oma-shell,
+html[dir='rtl'] body .oma-shell {
+  font-family: var(--font-arabic), var(--font-sans) !important;
+}
+
+html body .oma-shell,
+html body .oma-shell .oma-top,
+html body .oma-shell .oma-rail,
+html body .oma-shell main.oma-container,
+html body .oma-shell-popover,
+html body .ant-app {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+html body .oma-shell h1,
+html body .oma-shell .oma-page-title,
+html body .oma-shell .oma-plx-listening__title,
+html body .oma-shell .oma-home-greeting {
+  font-size: var(--text-title) !important;
+  line-height: var(--leading-title) !important;
+  font-weight: var(--weight-semibold, 600) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-shell h2,
+html body .oma-shell .oma-home-card__title {
+  font-size: var(--text-title-sm) !important;
+  line-height: var(--leading-title-sm) !important;
+  font-weight: var(--weight-semibold, 600) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-shell h3,
+html body .oma-shell h4,
+html body .oma-shell .oma-ws-subhead {
+  font-size: var(--text-control) !important;
+  line-height: var(--leading-control) !important;
+  font-weight: var(--weight-semibold, 600) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-shell .oma-nav-link,
+html body .oma-shell .oma-nav-section,
+html body .oma-shell .oma-breadcrumb,
+html body .oma-shell .oma-context-trail,
+html body .oma-shell .oma-command-trigger,
+html body .oma-shell .oma-rail-name,
+html body .oma-shell .oma-top-start,
+html body .oma-shell .oma-top-context {
+  font-size: var(--text-control) !important;
+  line-height: var(--leading-control) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-shell main.oma-container {
+  font-size: var(--text-body) !important;
+  line-height: var(--leading-body) !important;
+}
+
+html body .oma-shell main.oma-container .oma-plx-brand,
+html body .oma-shell main.oma-container .oma-plx-home,
+html body .oma-shell main.oma-container .oma-strategy-page-stack,
+html body .oma-shell main.oma-container .oma-plx-listening,
+html body .oma-shell main.oma-container [class*='oma-analytics'] {
+  font-size: inherit !important;
+  font-family: inherit !important;
+}
+
+html
+  body
+  .oma-shell
+  .ant-btn:not(.oma-icon-action):not(.oma-rail-utility-trigger):not(.oma-mobile-nav-toggle) {
+  font-size: var(--text-control) !important;
+  min-height: var(--oma-control-height-compact, 30px) !important;
+  height: var(--oma-control-height-compact, 30px) !important;
+  line-height: var(--leading-control) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-shell .ant-input,
+html body .oma-shell .ant-input-affix-wrapper input,
+html body .oma-shell .ant-input-affix-wrapper,
+html body .oma-shell .ant-select-selection-item,
+html body .oma-shell .ant-select-selection-placeholder,
+html body .oma-shell .ant-select-selector,
+html body .oma-shell textarea,
+html body .oma-shell .oma-choice-select__trigger,
+html body .oma-shell .oma-choice-select__value {
+  font-size: var(--text-control) !important;
+  line-height: var(--leading-control) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-notifications-panel,
+html body .oma-notifications-panel--planable,
+html body .oma-user-menu-panel,
+html body .oma-path-ws-menu,
+html body .oma-breadcrumb-ws-menu,
+html body .oma-shell-popover .oma-notifications-panel {
+  font-size: var(--text-body) !important;
+  line-height: var(--leading-body) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-notifications-panel h2,
+html body .oma-notifications-panel h3,
+html body .oma-notifications-panel strong {
+  font-size: var(--text-control) !important;
+  line-height: var(--leading-control) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-notifications-panel p,
+html body .oma-notifications-panel span,
+html body .oma-notifications-panel time,
+html body .oma-notifications-panel a,
+html body .oma-notifications-panel li,
+html body .oma-notifications-panel button {
+  font-size: inherit !important;
+  font-family: inherit !important;
+}
+
+html body .oma-notifications-panel .ant-btn {
+  font-size: var(--text-control) !important;
+  min-height: var(--oma-control-height-compact, 30px) !important;
+  height: var(--oma-control-height-compact, 30px) !important;
+  font-family: inherit !important;
+}
+
+/* Workspace settings — same token scale as shell (not isolated 9px track) */
+html body .oma-ws-overlay .oma-ws-panel {
+  font-size: var(--text-body) !important;
+  line-height: var(--leading-body) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-main {
+  font-size: inherit !important;
+}
+
+html body .oma-ws-overlay .oma-ws-section-title {
+  font-size: var(--text-title-sm) !important;
+  line-height: var(--leading-title-sm) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-nav-group {
+  font-size: var(--text-label) !important;
+  line-height: var(--leading-label) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel-nav-item,
+html body .oma-ws-overlay .oma-ws-panel-nav-item span,
+html body .oma-ws-overlay .oma-ws-label,
+html body .oma-ws-overlay .oma-ws-empty-desc,
+html body .oma-ws-overlay .oma-ws-save-msg,
+html body .oma-ws-overlay .oma-ws-toggle-row,
+html body .oma-ws-overlay .oma-ws-danger-title,
+html body .oma-ws-overlay .oma-ws-chip,
+html body .oma-ws-overlay .oma-ws-subhead,
+html body .oma-ws-overlay .oma-ws-panel p,
+html body .oma-ws-overlay .oma-ws-panel span,
+html body .oma-ws-overlay .oma-ws-panel strong,
+html body .oma-ws-overlay .oma-ws-panel label,
+html body .oma-ws-overlay .oma-notif-settings__heading,
+html body .oma-ws-overlay .oma-notif-settings__copy strong,
+html body .oma-ws-overlay .oma-notif-settings__copy span,
+html body .oma-ws-overlay .oma-ws-label-item {
+  font-size: var(--text-body) !important;
+  line-height: var(--leading-body) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-ws-overlay .oma-ws-field input,
+html body .oma-ws-overlay .oma-ws-field textarea,
+html body .oma-ws-overlay .oma-ws-field .ant-input,
+html body .oma-ws-overlay .oma-ws-field .ant-input-affix-wrapper,
+html body .oma-ws-overlay .oma-ws-field .ant-select-selector,
+html body .oma-ws-overlay .oma-ws-field .oma-choice-select__trigger,
+html body .oma-ws-overlay .oma-ws-field .oma-choice-select__value,
+html body .oma-ws-overlay .oma-ws-select {
+  font-size: var(--text-control) !important;
+  line-height: var(--leading-control) !important;
+  min-height: var(--oma-control-height-compact, 30px) !important;
+  height: var(--oma-control-height-compact, 30px) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-ws-overlay .oma-ws-panel .ant-btn,
+html body .oma-ws-overlay .oma-ws-panel button.ant-btn {
+  font-size: var(--text-control) !important;
+  min-height: var(--oma-control-height-compact, 30px) !important;
+  height: var(--oma-control-height-compact, 30px) !important;
+  font-family: inherit !important;
+}
+
+/* ── Laptop+: requests · tasks · deliverables · campaigns (token tables/tabs) ─ */
+@media (min-width: 768px) {
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn,
+  html body .oma-plx-tasks .oma-plx-deliv-groups__btn,
+  html body .oma-plx-deliverables .oma-plx-deliv-groups__btn,
+  html body .oma-plx-deliverables .oma-plx-listening-segment button,
+  html body .oma-campaigns-page .oma-campaign-status-tabs .ant-btn,
+  html body .oma-campaigns-page .oma-ws-tabs .oma-ws-tab {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+    font-family: inherit !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv__subtitle,
+  html body .oma-plx-deliverables .oma-plx-listening__next-check,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv__subtitle,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-listening__next-check {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th,
+  html body .oma-plx-tasks .oma-plx-tasks-table th,
+  html body .oma-plx-deliverables .oma-plx-deliv-table th,
+  html body .oma-campaigns-page .oma-campaign-req-table th,
+  html body .oma-campaigns-page .oma-req-table th,
+  html body .oma-campaigns-page .oma-campaign-table-head {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+    font-family: inherit !important;
+    font-weight: var(--weight-semibold, 600) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-text-link,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-req-table__sub,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-muted,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .ant-tag,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td,
+  html body .oma-plx-tasks .oma-plx-tasks-table td,
+  html body .oma-plx-tasks .oma-plx-tasks-table .oma-plx-tasks-table__title-text,
+  html body .oma-plx-tasks .oma-plx-tasks-table .oma-plx-deliv-table__sub,
+  html body .oma-plx-deliverables .oma-plx-deliv-table td,
+  html body .oma-plx-deliverables .oma-plx-deliv-table__title,
+  html body .oma-plx-deliverables .oma-plx-deliv-table__sub,
+  html body .oma-plx-deliverables .oma-plx-deliv-card__title,
+  html body .oma-plx-deliverables .oma-plx-deliv-card__meta,
+  html body .oma-campaigns-page .oma-campaign-req-table td,
+  html body .oma-campaigns-page .oma-req-table td,
+  html body .oma-campaigns-page .oma-campaign-table-row {
+    font-size: var(--text-body) !important;
+    line-height: var(--leading-body) !important;
+    font-family: inherit !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card .ant-tag,
+  html body .oma-plx-deliverables .oma-plx-deliv-table .ant-tag {
+    font-size: var(--text-label) !important;
+    line-height: var(--leading-label) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-listening-segment button {
+    min-height: var(--oma-control-height-compact, 30px) !important;
+    padding: 4px 10px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-groups__btn {
+    padding: 8px 12px !important;
+    line-height: var(--leading-body) !important;
+  }
+}
+
+/* Data tables: default meta on headers where no page override */
+html body .oma-shell main.oma-container table th {
+  font-size: var(--text-meta) !important;
+  line-height: var(--leading-meta) !important;
+  font-family: inherit !important;
+}
+
+html body .oma-shell main.oma-container table td,
+html body .oma-shell .oma-plx-requests-table td,
+html body .oma-shell .oma-req-page table td {
+  font-size: var(--text-body) !important;
+  line-height: var(--leading-body) !important;
+  font-family: inherit !important;
+}

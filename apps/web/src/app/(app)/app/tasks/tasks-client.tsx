@@ -15,6 +15,7 @@ import {
   TextArea,
 } from '@oma/ui/controls';
 import { Dialog } from '../../../../components/ui/dialog';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { AssigneePicker } from '../../../../components/ui/assignee-picker';
 import { EntityLink } from '../../../../components/ui/entity-link';
 import { StatusChip, statusLabel } from '../../../../components/ui/status-chip';
@@ -50,8 +51,10 @@ import { clearBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
-  BarsOutlined,
+  LayoutGridOutlined,
+  TableGridOutlined,
   CloseOutlined,
+  CopyOutlined,
   SearchOutlined,
   DownOutlined,
   UpOutlined,
@@ -143,7 +146,7 @@ export default function TasksPage() {
       if (raw === 'board' || raw === 'list') {
         const urlView = new URLSearchParams(window.location.search).get('view');
         if (urlView !== 'board' && urlView !== 'list') {
-          setView(raw === 'list' && isMobileTasksViewport() ? 'board' : raw);
+          setView(raw);
         }
       }
     } catch {
@@ -170,16 +173,9 @@ export default function TasksPage() {
     }
     const urlView = searchParams.get('view');
     if (urlView === 'board' || urlView === 'list') {
-      setView(urlView === 'list' && isMobileTasksViewport() ? 'board' : urlView);
+      setView(urlView);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    if (!prefsLoaded) return;
-    if (isMobileTasksViewport() && view === 'list') {
-      setView('board');
-    }
-  }, [prefsLoaded, view]);
 
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
@@ -207,15 +203,65 @@ export default function TasksPage() {
     };
   }, []);
 
-  async function changeView(next: ViewMode) {
-    const resolved = isMobileTasksViewport() && next === 'list' ? 'board' : next;
+  function changeView(next: ViewMode) {
+    const resolved = next;
     setView(resolved);
     try {
       window.localStorage.setItem('oma.tasks.defaultView', resolved);
     } catch {
       /* non-blocking */
     }
+    const params = new URLSearchParams(searchParams.toString());
+    if (resolved === 'board') {
+      params.delete('view');
+    } else {
+      params.set('view', resolved);
+    }
+    const q = params.toString();
+    router.replace(q ? `/app/tasks?${q}` : '/app/tasks', { scroll: false });
   }
+
+  const viewSwitcher = (
+    <div
+      className="oma-plx-tasks-view-strip"
+      role="group"
+      aria-label={t('demo.view.kanban')}
+      data-testid="demo-tasks-view-switcher"
+    >
+      <OmaIconAction
+        type="button"
+        className="oma-icon-action--bare"
+        data-active={view === 'board' ? 'true' : 'false'}
+        data-testid="demo-tasks-view-board"
+        aria-pressed={view === 'board'}
+        aria-label={t('demo.view.kanban')}
+        onClick={() => changeView('board')}
+      >
+        <LayoutGridOutlined
+          className="oma-lucide oma-lucide--soft"
+          aria-hidden
+          width={18}
+          height={18}
+        />
+      </OmaIconAction>
+      <OmaIconAction
+        type="button"
+        className="oma-icon-action--bare"
+        data-active={view === 'list' ? 'true' : 'false'}
+        data-testid="demo-tasks-view-list"
+        aria-pressed={view === 'list'}
+        aria-label={t('demo.view.list')}
+        onClick={() => changeView('list')}
+      >
+        <TableGridOutlined
+          className="oma-lucide oma-lucide--soft"
+          aria-hidden
+          width={18}
+          height={18}
+        />
+      </OmaIconAction>
+    </div>
+  );
 
   const filtered = useMemo(() => filterTasks(rows, filters, locale), [rows, filters, locale]);
   const byBoard = useMemo(() => groupTasksByBoard(filtered), [filtered]);
@@ -466,6 +512,7 @@ export default function TasksPage() {
         filterCount={filterCount}
         panelTitle={filterPanelTitle}
         panelTestId="demo-task-filters"
+        headerLeading={viewSwitcher}
         createTestId="demo-create-task"
         createLabel={t('demo.tasks.create')}
         onCreateClick={() => setCreateOpen(true)}
@@ -481,7 +528,7 @@ export default function TasksPage() {
           ) : null
         }
       >
-        <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
+        <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list oma-plx-tasks-filter-panel">
           <div className="oma-filter-accordion">
             <button
               type="button"
@@ -525,7 +572,7 @@ export default function TasksPage() {
             </button>
             {filterSection === 'status' ? (
               <div className="oma-filter-accordion__body">
-                <label className="oma-filter-check">
+                <label className="oma-filter-check oma-filter-check--radio">
                   <input
                     type="radio"
                     name="task-status"
@@ -536,14 +583,14 @@ export default function TasksPage() {
                   <span>{t('demo.filter.all')}</span>
                 </label>
                 {BOARD_COLUMNS.map((c) => (
-                  <label key={c.id} className="oma-filter-check">
+                  <label key={c.id} className="oma-filter-check oma-filter-check--radio">
                     <input
                       type="radio"
                       name="task-status"
                       checked={filters.status === c.id}
                       onChange={() => setFilters((f) => ({ ...f, status: c.id }))}
                     />
-                    <span>{c.id}</span>
+                    <span>{t(`demo.tasks.column.${c.id}`)}</span>
                   </label>
                 ))}
               </div>
@@ -566,7 +613,7 @@ export default function TasksPage() {
             </button>
             {filterSection === 'assignee' ? (
               <div className="oma-filter-accordion__body">
-                <label className="oma-filter-check">
+                <label className="oma-filter-check oma-filter-check--radio">
                   <input
                     type="radio"
                     name="task-assignee"
@@ -576,7 +623,7 @@ export default function TasksPage() {
                   />
                   <span>{t('demo.filter.all')}</span>
                 </label>
-                <label className="oma-filter-check">
+                <label className="oma-filter-check oma-filter-check--radio">
                   <input
                     type="radio"
                     name="task-assignee"
@@ -586,7 +633,7 @@ export default function TasksPage() {
                   <span>Unassigned</span>
                 </label>
                 {assignees.map((a) => (
-                  <label key={a} className="oma-filter-check">
+                  <label key={a} className="oma-filter-check oma-filter-check--radio">
                     <input
                       type="radio"
                       name="task-assignee"
@@ -617,7 +664,7 @@ export default function TasksPage() {
             {filterSection === 'priority' ? (
               <div className="oma-filter-accordion__body">
                 {(['all', 'URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const).map((pr) => (
-                  <label key={pr} className="oma-filter-check">
+                  <label key={pr} className="oma-filter-check oma-filter-check--radio">
                     <input
                       type="radio"
                       name="task-priority"
@@ -647,38 +694,7 @@ export default function TasksPage() {
           ) : null}
         </div>
 
-        {!loading && !unavailable && !error ? (
-          <div className="oma-plx-deliv-view-row">
-            <div
-              className="oma-plx-listening-segment"
-              role="group"
-              aria-label={t('demo.view.kanban')}
-            >
-              <button
-                type="button"
-                className={view === 'board' ? 'is-active' : ''}
-                data-testid="demo-tasks-view-board"
-                aria-pressed={view === 'board'}
-                onClick={() => void changeView('board')}
-              >
-                <UnorderedListOutlined aria-hidden />
-                <span>{t('demo.view.kanban')}</span>
-              </button>
-              <button
-                type="button"
-                className={view === 'list' ? 'is-active' : ''}
-                data-testid="demo-tasks-view-list"
-                aria-pressed={view === 'list'}
-                onClick={() => void changeView('list')}
-              >
-                <BarsOutlined aria-hidden />
-                <span>{t('demo.view.list')}</span>
-              </button>
-            </div>
-          </div>
-        ) : null}
-
-        {loading ? <TasksShimmer part="body" /> : null}
+        {loading ? <TasksShimmer part="body" view={view} /> : null}
         {unavailable ? (
           <p className="oma-muted" data-testid="demo-tasks-denied">
             {t('demo.unavailable')}
@@ -789,11 +805,32 @@ export default function TasksPage() {
       >
         {selected ? (
           <div className="oma-task-detail" data-testid="demo-task-drawer">
-            <header className="oma-task-detail__head">
-              <div className="oma-task-detail__head-main">
+            <header className="oma-task-detail__head oma-task-detail__head--compact">
+              <div className="oma-task-detail__head-top">
                 <p className="oma-task-detail__id" title={selected.id}>
                   {[t('entity.type.task'), selected.brandName].filter(Boolean).join(' · ')}
                 </p>
+                <div className="oma-task-detail__head-actions oma-task-detail__head-actions--icons">
+                  <OmaIconAction
+                    type="button"
+                    className="oma-icon-action--bare"
+                    data-testid="demo-task-copy-link"
+                    aria-label={t('demo.tasks.copyLink')}
+                    onClick={() => void copyLink()}
+                  >
+                    <CopyOutlined className="oma-lucide oma-lucide--soft" width={18} height={18} />
+                  </OmaIconAction>
+                  <OmaIconAction
+                    type="button"
+                    className="oma-icon-action--bare"
+                    aria-label={t('common.cancel')}
+                    onClick={closeTask}
+                  >
+                    <CloseOutlined className="oma-lucide oma-lucide--soft" width={18} height={18} />
+                  </OmaIconAction>
+                </div>
+              </div>
+              <div className="oma-task-detail__head-main">
                 <Input
                   className="oma-task-detail__title-input"
                   defaultValue={pickCopy(selected.title, locale)}
@@ -810,19 +847,6 @@ export default function TasksPage() {
                   <StatusChip status={selected.status} />
                   <StatusChip status={selected.priority} />
                 </div>
-              </div>
-              <div className="oma-task-detail__head-actions oma-action-bar">
-                <Button data-testid="demo-task-copy-link" onClick={() => void copyLink()}>
-                  {t('demo.tasks.copyLink')}
-                </Button>
-                <button
-                  type="button"
-                  className="oma-req-filter-panel__close"
-                  aria-label={t('common.cancel')}
-                  onClick={closeTask}
-                >
-                  <CloseOutlined />
-                </button>
               </div>
             </header>
 
@@ -1045,122 +1069,131 @@ export default function TasksPage() {
         open={createOpen}
         onClose={() => !creating && setCreateOpen(false)}
         title={t('demo.tasks.create')}
-        size="lg"
-        className="oma-compose-dialog"
-      >
-        <div className="oma-compose" data-testid="demo-create-task-dialog">
-          <div className="oma-compose__grid">
-            <label className="oma-compose__wide">
-              {t('demo.create.title')}
-              <Input
-                value={createForm.title}
-                data-testid="demo-create-task-title"
-                onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
-              />
-            </label>
-            <label className="oma-compose__wide">
-              {t('demo.requests.description')}
-              <TextArea
-                rows={3}
-                value={createForm.description}
-                onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.requests.filter.brand')}
-              <SelectField
-                value={createForm.brandId}
-                onChange={(e) =>
-                  setCreateForm((f) => ({
-                    ...f,
-                    brandId: e.target.value,
-                    campaignId: campaigns.some(
-                      (c) => c.id === f.campaignId && c.brandId === e.target.value,
-                    )
-                      ? f.campaignId
-                      : '',
-                  }))
-                }
-              >
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {pickCopy(b.name, locale)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.create.campaign')}
-              <SelectField
-                value={createForm.campaignId}
-                onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}
-              >
-                <option value="">{t('demo.optional')}</option>
-                {campaigns
-                  .filter((c) => c.brandId === createForm.brandId)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {pickCopy(c.name, locale)}
-                    </option>
-                  ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.tasks.filter.priority')}
-              <SelectField
-                value={createForm.priority}
-                onChange={(e) => setCreateForm((f) => ({ ...f, priority: e.target.value }))}
-              >
-                {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((priority) => (
-                  <option key={priority} value={priority}>
-                    {priority}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.requests.col.due')}
-              <DatePicker
-                value={createForm.dueAt ? dayjs(createForm.dueAt) : null}
-                onChange={(_, dateString) =>
-                  setCreateForm((f) => ({
-                    ...f,
-                    dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
-                  }))
-                }
-              />
-            </label>
-            <label className="oma-compose__wide">
-              {t('demo.tasks.filter.assignee')}
-              <SelectField
-                value={createForm.assignee}
-                data-testid="demo-create-task-assignee"
-                onChange={(e) => setCreateForm((f) => ({ ...f, assignee: e.target.value }))}
-              >
-                <option value="">{t('demo.requests.unassigned')}</option>
-                {members
-                  .filter((m) => m.user?.id)
-                  .map((m) => (
-                    <option key={m.id} value={m.user?.id || ''}>
-                      {m.user?.name || m.user?.email || m.invited_email || 'Member'}
-                    </option>
-                  ))}
-              </SelectField>
-            </label>
-          </div>
-          <div className="oma-compose__footer">
-            <Button type="default" disabled={creating} onClick={() => setCreateOpen(false)}>
+        size="md"
+        className="oma-compose-dialog oma-plx-compose-dialog oma-plx-compose-dialog--tasks"
+        footer={
+          <div className="oma-plx-compose-dialog__foot">
+            <Button
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
+              disabled={creating}
+              onClick={() => setCreateOpen(false)}
+            >
               {t('demo.create.cancel')}
             </Button>
             <Button
               type="primary"
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
+              loading={creating}
               data-testid="demo-create-task-submit"
-              disabled={creating}
               onClick={() => void submitCreate()}
             >
-              {creating ? t('demo.create.creating') : t('demo.create.confirm')}
+              {t('demo.create.confirm')}
             </Button>
           </div>
+        }
+      >
+        <div className="oma-compose oma-plx-compose" data-testid="demo-create-task-dialog">
+          <section className="oma-plx-listening-panel oma-plx-compose-panel">
+            <div className="oma-compose__grid oma-plx-compose__grid">
+              <label className="oma-compose__wide">
+                {t('demo.create.title')}
+                <Input
+                  value={createForm.title}
+                  data-testid="demo-create-task-title"
+                  onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
+                />
+              </label>
+              <label className="oma-compose__wide">
+                {t('demo.requests.description')}
+                <TextArea
+                  rows={3}
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
+                />
+              </label>
+              <label>
+                {t('demo.requests.filter.brand')}
+                <SelectField
+                  value={createForm.brandId}
+                  onChange={(e) =>
+                    setCreateForm((f) => ({
+                      ...f,
+                      brandId: e.target.value,
+                      campaignId: campaigns.some(
+                        (c) => c.id === f.campaignId && c.brandId === e.target.value,
+                      )
+                        ? f.campaignId
+                        : '',
+                    }))
+                  }
+                >
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {pickCopy(b.name, locale)}
+                    </option>
+                  ))}
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.create.campaign')}
+                <SelectField
+                  value={createForm.campaignId}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}
+                >
+                  <option value="">{t('demo.optional')}</option>
+                  {campaigns
+                    .filter((c) => c.brandId === createForm.brandId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {pickCopy(c.name, locale)}
+                      </option>
+                    ))}
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.tasks.filter.priority')}
+                <SelectField
+                  value={createForm.priority}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, priority: e.target.value }))}
+                >
+                  {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((priority) => (
+                    <option key={priority} value={priority}>
+                      {priority}
+                    </option>
+                  ))}
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.requests.col.due')}
+                <DatePicker
+                  value={createForm.dueAt ? dayjs(createForm.dueAt) : null}
+                  onChange={(_, dateString) =>
+                    setCreateForm((f) => ({
+                      ...f,
+                      dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                    }))
+                  }
+                />
+              </label>
+              <label className="oma-compose__wide">
+                {t('demo.tasks.filter.assignee')}
+                <SelectField
+                  value={createForm.assignee}
+                  data-testid="demo-create-task-assignee"
+                  onChange={(e) => setCreateForm((f) => ({ ...f, assignee: e.target.value }))}
+                >
+                  <option value="">{t('demo.requests.unassigned')}</option>
+                  {members
+                    .filter((m) => m.user?.id)
+                    .map((m) => (
+                      <option key={m.id} value={m.user?.id || ''}>
+                        {m.user?.name || m.user?.email || m.invited_email || 'Member'}
+                      </option>
+                    ))}
+                </SelectField>
+              </label>
+            </div>
+          </section>
         </div>
       </Dialog>
     </div>

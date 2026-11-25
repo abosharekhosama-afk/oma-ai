@@ -1,0 +1,2723 @@
+/* ===== Fix: floating card action menu + no gap under header ===== */
+
+/* Remove vertical gap between shell header and calendar */
+.oma-content-plan.oma-stack {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-plan > *:first-child {
+  margin-top: 0 !important;
+}
+.oma-cal-with-saved {
+  margin-top: 0 !important;
+  gap: 0 !important;
+}
+.oma-cal-main {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-cal-toolbar {
+  margin: 0 !important;
+  padding: 6px 12px !important;
+  border-top: 0 !important;
+}
+.oma-content-chrome,
+.oma-content-chrome--actions-only {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Allow menus to escape cell clipping */
+.oma-cal-grid,
+.oma-cal-week,
+.oma-cal-day,
+.oma-cal-day__body,
+.oma-cal-item-wrap {
+  overflow: visible !important;
+}
+
+/* Floating action menu over the card (not pushing layout) */
+.oma-cal-item-wrap {
+  position: relative !important;
+  z-index: 1 !important;
+}
+.oma-cal-item-wrap:hover {
+  z-index: 50 !important;
+}
+.oma-cal-item-wrap > .oma-card-menu {
+  display: none !important;
+  position: absolute !important;
+  top: 0 !important;
+  inset-inline-start: calc(100% - 8px) !important;
+  inset-inline-end: auto !important;
+  bottom: auto !important;
+  z-index: 200 !important;
+  min-width: 200px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16) !important;
+  pointer-events: auto !important;
+}
+.oma-cal-item-wrap:hover > .oma-card-menu {
+  display: block !important;
+}
+
+/* RTL: float menu to the other side */
+[dir='rtl'] .oma-cal-item-wrap > .oma-card-menu {
+  inset-inline-start: auto !important;
+  inset-inline-end: calc(100% - 8px) !important;
+}
+
+/* ==== OMA PLANABLE FIX 2026-10-19-v3: gap + float menu ==== */
+.oma-content-plan--tight.oma-stack,
+.oma-content-plan--tight {
+  gap: 0 !important;
+  row-gap: 0 !important;
+  column-gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-plan--tight > .oma-stage3-toolbar {
+  display: none !important;
+}
+.oma-cal-with-saved,
+.oma-cal-main,
+.oma-cal-toolbar {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-cal-toolbar {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+
+/* Floating menu portaled to body */
+.oma-card-menu--float {
+  display: block !important;
+  position: fixed !important;
+  z-index: 9999 !important;
+  min-width: 200px !important;
+  padding: 6px !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18) !important;
+}
+.oma-card-menu--float .oma-card-menu__item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+}
+.oma-card-menu--float .oma-card-menu__item[data-disabled='true'],
+.oma-card-menu--float .oma-card-menu__item:disabled {
+  opacity: 0.45 !important;
+  cursor: default !important;
+}
+.oma-card-menu--float .oma-card-menu__item:hover:not(:disabled):not([data-disabled='true']) {
+  background: #f5f6f7 !important;
+}
+.oma-card-menu--float .oma-card-menu__item-ico {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 16px !important;
+  color: #667085 !important;
+  font-size: 13px !important;
+}
+.oma-card-menu--float .oma-card-menu__sep {
+  height: 1px !important;
+  margin: 4px 8px !important;
+  background: #eef0f2 !important;
+}
+/* ==== end OMA PLANABLE FIX v3 ==== */
+
+/* ==== Inline private notes inside calendar cells (Planable) ==== */
+.oma-cal-note--inline {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  width: 100% !important;
+  min-height: 88px !important;
+  margin-top: 4px !important;
+  padding: 8px 8px 6px !important;
+  border-radius: 6px 8px 6px 6px !important;
+  border: 0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  position: relative !important;
+  cursor: text !important;
+}
+.oma-cal-note--inline[data-color='yellow'] {
+  background: #fde68a !important;
+}
+.oma-cal-note--inline[data-color='mint'] {
+  background: #a7f3d0 !important;
+}
+.oma-cal-note--inline[data-color='pink'] {
+  background: #fbcfe8 !important;
+}
+.oma-cal-note--inline[data-color='lavender'] {
+  background: #ddd6fe !important;
+}
+.oma-cal-note--inline[data-color='blue'] {
+  background: #bfdbfe !important;
+}
+.oma-cal-note__input {
+  width: 100% !important;
+  border: 0 !important;
+  outline: none !important;
+  resize: none !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  line-height: 18px !important;
+  color: #1f2937 !important;
+  font-family: inherit !important;
+  min-height: 48px !important;
+}
+.oma-cal-note__input::placeholder {
+  color: #6b7280 !important;
+}
+.oma-cal-note__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+.oma-cal-note__action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 26px !important;
+  height: 26px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #4b5563 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+.oma-cal-note__action:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+}
+.oma-cal-note__color-dot {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  margin-inline-end: 2px !important;
+}
+.oma-cal-note__color-dot[data-color='yellow'],
+.oma-cal-note-swatch[data-color='yellow'] {
+  background: #fbbf24 !important;
+}
+.oma-cal-note__color-dot[data-color='mint'],
+.oma-cal-note-swatch[data-color='mint'] {
+  background: #34d399 !important;
+}
+.oma-cal-note__color-dot[data-color='pink'],
+.oma-cal-note-swatch[data-color='pink'] {
+  background: #f472b6 !important;
+}
+.oma-cal-note__color-dot[data-color='lavender'],
+.oma-cal-note-swatch[data-color='lavender'] {
+  background: #a78bfa !important;
+}
+.oma-cal-note__color-dot[data-color='blue'],
+.oma-cal-note-swatch[data-color='blue'] {
+  background: #60a5fa !important;
+}
+.oma-cal-note__color-wrap {
+  position: relative !important;
+}
+.oma-cal-note__swatches {
+  position: absolute !important;
+  bottom: calc(100% + 6px) !important;
+  inset-inline-start: 0 !important;
+  z-index: 20 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 18px) !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  background: #fff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14) !important;
+  border: 1px solid #e8e9eb !important;
+}
+.oma-cal-note-swatch {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  border: 2px solid transparent !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+.oma-cal-note-swatch[data-active='true'] {
+  border-color: #111 !important;
+}
+
+/* Tooltips for note actions */
+.oma-cal-note__action[data-tooltip]:hover::after,
+.oma-plan-list__ico-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  bottom: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 50 !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* ==== Planable List view ==== */
+.oma-plan-list {
+  background: #f5f6f7 !important;
+  min-height: calc(100vh - 56px) !important;
+  padding: 16px 20px 80px !important;
+}
+.oma-plan-list__head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  max-width: 920px !important;
+  margin: 0 auto 8px !important;
+  padding: 10px 14px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px 10px 0 0 !important;
+  font-size: 13px !important;
+  color: #5e6166 !important;
+}
+.oma-plan-list__select-all {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+}
+.oma-plan-list__sort {
+  border: 0 !important;
+  background: transparent !important;
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+}
+.oma-plan-list__body {
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-top: 0 !important;
+  border-radius: 0 0 10px 10px !important;
+  overflow: hidden !important;
+}
+.oma-plan-list__row {
+  display: grid !important;
+  grid-template-columns: 36px 48px minmax(0, 1fr) 40px 120px 140px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 64px !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #f0f1f3 !important;
+  cursor: pointer !important;
+  background: #fff !important;
+}
+.oma-plan-list__row:last-child {
+  border-bottom: 0 !important;
+}
+.oma-plan-list__row:hover {
+  background: #f7f8f9 !important;
+}
+.oma-plan-list__row[data-selected='true'] {
+  background: #e8f3ff !important;
+}
+.oma-plan-list__check {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-list__thumb {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 6px !important;
+  background: #eef0f2 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-list__thumb img,
+.oma-plan-list__thumb video,
+.oma-plan-list__thumb span.oma-media-surface {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+.oma-plan-list__thumb-ph {
+  color: #9ca3af !important;
+  font-size: 16px !important;
+}
+.oma-plan-list__main {
+  min-width: 0 !important;
+}
+.oma-plan-list__page {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  color: #5e6166 !important;
+  font-weight: 500 !important;
+}
+.oma-plan-list__page-ico {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 4px !important;
+  background: #111 !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-list__title {
+  font-size: 14px !important;
+  color: #1f1f1f !important;
+  margin-top: 2px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.oma-plan-list__mid {
+  display: flex !important;
+  justify-content: center !important;
+  color: #52c41a !important;
+}
+.oma-plan-list__hover {
+  display: none !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 2px !important;
+}
+.oma-plan-list__row:hover .oma-plan-list__hover {
+  display: inline-flex !important;
+}
+.oma-plan-list__row:hover .oma-plan-list__when {
+  display: none !important;
+}
+.oma-plan-list__ico-btn {
+  position: relative !important;
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+}
+.oma-plan-list__ico-btn:hover {
+  background: #eef0f2 !important;
+}
+.oma-plan-list__when {
+  text-align: end !important;
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  white-space: nowrap !important;
+}
+
+/* ==== Notes + List polish 2026-10-19-v4 ==== */
+
+/* Kill header–calendar gap hard */
+.oma-content-plan--tight,
+.oma-content-plan.oma-stack {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-plan--tight > *:not(.oma-cal-with-saved):not(.oma-plan-list) {
+  margin-top: 0 !important;
+}
+.oma-cal-with-saved {
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+.oma-cal-toolbar {
+  margin: 0 !important;
+  padding: 8px 12px !important;
+}
+
+/* Note action icons — monochrome official look */
+.oma-cal-note__action {
+  color: #4b5563 !important;
+}
+.oma-cal-note__action-ico,
+.oma-cal-note__action .anticon {
+  font-size: 14px !important;
+  color: #4b5563 !important;
+}
+.oma-cal-note__color-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Color picker BELOW the note card */
+.oma-cal-note--inline {
+  position: relative !important;
+}
+.oma-cal-note__swatches {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  bottom: auto !important;
+  inset-inline-start: 8px !important;
+  z-index: 40 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+  padding: 8px 10px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14) !important;
+  grid-template-columns: none !important;
+}
+.oma-cal-note__swatches--below {
+  position: relative !important;
+  top: auto !important;
+  margin-top: 8px !important;
+}
+
+/* Tooltips only on hover — never block clicks */
+.oma-cal-note__action[data-tooltip]:hover::after,
+.oma-plan-list__ico-btn[data-tooltip]:hover::after {
+  pointer-events: none !important;
+}
+
+/* Mobile note modal */
+.oma-cal-note-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10000 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+}
+.oma-cal-note-modal__backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  border: 0 !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+}
+.oma-cal-note-modal__card {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  margin: 0 12px 16px !important;
+  padding: 14px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2) !important;
+}
+.oma-cal-note-modal__card[data-color='yellow'] {
+  background: #fde68a !important;
+}
+.oma-cal-note-modal__card[data-color='mint'] {
+  background: #a7f3d0 !important;
+}
+.oma-cal-note-modal__card[data-color='pink'] {
+  background: #fbcfe8 !important;
+}
+.oma-cal-note-modal__card[data-color='lavender'] {
+  background: #ddd6fe !important;
+}
+.oma-cal-note-modal__card[data-color='blue'] {
+  background: #bfdbfe !important;
+}
+.oma-cal-note-modal__done {
+  margin-inline-start: auto !important;
+  border: 0 !important;
+  background: #111 !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+@media (max-width: 767px) {
+  .oma-cal-note--inline textarea {
+    /* keep visible but modal is primary editor when noteDay set */
+  }
+}
+
+/* Planable selection bottom bar */
+.oma-plan-selbar {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 24px !important;
+  transform: translateX(-50%) !important;
+  z-index: 1000 !important;
+  min-width: 420px !important;
+  max-width: calc(100vw - 32px) !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28) !important;
+}
+.oma-plan-selbar__top {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  font-size: 13px !important;
+}
+.oma-plan-selbar__close {
+  border: 0 !important;
+  background: transparent !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+}
+.oma-plan-selbar__badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  padding: 0 6px !important;
+  border-radius: 999px !important;
+  background: #3b82f6 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+.oma-plan-selbar__link {
+  border: 0 !important;
+  background: transparent !important;
+  color: #93c5fd !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  margin-inline-start: 4px !important;
+}
+.oma-plan-selbar__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+.oma-plan-selbar__btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 36px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #2b2b2b !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+.oma-plan-selbar__btn:hover {
+  background: #3a3a3a !important;
+}
+.oma-plan-selbar__icon {
+  width: 36px !important;
+  height: 36px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #2b2b2b !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-selbar__icon:hover {
+  background: #3a3a3a !important;
+}
+
+/* List menu item with icon */
+.oma-card-menu__item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+.oma-card-menu__item-ico {
+  width: 18px !important;
+  color: #5e6166 !important;
+  display: inline-flex !important;
+}
+.oma-plan-list__ico .anticon {
+  color: #52c41a !important;
+  font-size: 14px !important;
+}
+.oma-plan-list__ico-btn .anticon {
+  font-size: 14px !important;
+  color: #5e6166 !important;
+}
+
+/* ── Planable-style compose card ─────────────────────────────── */
+
+.oma-compose-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.oma-compose-card {
+  position: relative;
+  width: 700px;
+  max-width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.22),
+    0 4px 12px rgba(15, 23, 42, 0.08);
+  overflow: visible;
+}
+
+.oma-compose-close {
+  position: absolute;
+  top: -16px;
+  inset-inline-end: -16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #111827;
+  font-size: 14px;
+  z-index: 2;
+  transition: background 0.15s ease;
+}
+.oma-compose-close:hover {
+  background: #f3f4f6;
+}
+
+.oma-compose-pills {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px 0;
+}
+.oma-compose-pill-wrap {
+  position: relative;
+}
+.oma-compose-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fbfcfd;
+  border: 1px solid #e2e5ea;
+  border-radius: 8px;
+  color: #3f4652;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+.oma-compose-pill:hover {
+  background: #eef0f3;
+  border-color: #d4d8de;
+}
+
+.oma-compose-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 10;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+}
+.oma-compose-menu__item {
+  text-align: start;
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.oma-compose-menu__item:hover {
+  background: #f3f4f6;
+}
+
+.oma-compose-body {
+  display: flex;
+  gap: 14px;
+  padding: 18px 20px 8px;
+}
+.oma-compose-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.oma-compose-avatar {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e9edf3;
+  border: 1px solid #e2e5ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a94a3;
+  font-size: 18px;
+}
+.oma-compose-avatar-badge {
+  position: absolute;
+  bottom: -3px;
+  inset-inline-end: -3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #5b6b82;
+  color: #fff;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+.oma-compose-media {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #e2e5ea;
+  background: #f7f8fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9aa3ad;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.oma-compose-media:hover {
+  background: #eef0f3;
+}
+
+.oma-compose-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.oma-compose-title {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  padding: 0;
+  height: auto;
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+}
+.oma-compose-title::placeholder {
+  color: #c3c9d1;
+}
+.oma-compose-text {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  padding: 0;
+  resize: none;
+  font-size: 15px;
+  color: #374151;
+  min-height: 110px;
+}
+.oma-compose-text::placeholder {
+  color: #a7b0ba;
+}
+
+.oma-compose-extras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  padding: 4px 20px 12px;
+  border-top: 1px dashed #eef0f2;
+  margin-top: 4px;
+}
+.oma-compose-extras label {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+  color: #8a94a3;
+}
+
+.oma-compose-error {
+  margin: 0 20px 8px;
+  color: var(--status-danger);
+  font-size: 13px;
+}
+
+.oma-compose-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #eef0f2;
+  padding: 12px 20px;
+}
+.oma-compose-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+.oma-compose-meta .ant-picker {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  font-size: 13px;
+}
+.oma-compose-tz {
+  color: #9aa3ad;
+  font-size: 13px;
+}
+
+.oma-compose-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.oma-compose-view {
+  color: #9aa3ad;
+  font-size: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+.oma-compose-view:hover {
+  color: #6b7280;
+}
+.oma-compose-save {
+  display: inline-flex;
+  align-items: stretch;
+  border: none;
+  cursor: pointer;
+  background: #f2f3f5;
+  color: #111827;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+  transition: background 0.15s ease;
+}
+.oma-compose-save:hover {
+  background: #e8eaee;
+}
+.oma-compose-save > span:first-child {
+  padding: 8px 12px;
+}
+.oma-compose-save__caret {
+  border-inline-start: 1px solid #e0e2e6;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+}
+
+/* ==== Planable post detail modal ==== */
+.oma-plan-post-modal .oma-dialog,
+.oma-plan-post-modal [class*='dialog'],
+.oma-content-detail-modal.oma-plan-post-modal {
+  max-width: min(1120px, 96vw) !important;
+}
+.oma-plan-post-modal {
+  padding: 0 !important;
+}
+.oma-plan-post {
+  display: flex !important;
+  min-height: min(82vh, 720px) !important;
+  background: #fff !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+.oma-plan-post__rail {
+  width: 48px !important;
+  flex-shrink: 0 !important;
+  border-inline-end: 1px solid #eef0f2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  padding-top: 14px !important;
+  background: #fafbfc !important;
+}
+.oma-plan-post__rail-ico {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background: #111 !important;
+  color: #fff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-post__main {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.oma-plan-post__top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-height: 52px !important;
+  padding: 0 12px 0 16px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-plan-post__top-start,
+.oma-plan-post__top-end {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+.oma-plan-post__chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 30px !important;
+  padding: 0 10px !important;
+  border: 1px dashed #d0d3d8 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #5e6166 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+.oma-plan-post__approve-count {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  color: #10b981 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  margin-inline-end: 4px !important;
+}
+.oma-plan-post__tool-btn {
+  height: 32px !important;
+  padding: 0 12px !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 8px !important;
+  background: #f5f6f7 !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+.oma-plan-post__icon-btn {
+  width: 32px !important;
+  height: 32px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+}
+.oma-plan-post__icon-btn:hover,
+.oma-plan-post__icon-btn[data-active='true'] {
+  background: #f0f1f3 !important;
+}
+.oma-plan-post__icon-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 20 !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+}
+.oma-plan-post__more-wrap {
+  position: relative !important;
+}
+.oma-plan-post__more-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  inset-inline-end: 0 !important;
+  z-index: 40 !important;
+  min-width: 220px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  list-style: none !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14) !important;
+}
+.oma-plan-post__more-menu button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+}
+.oma-plan-post__more-menu button:hover {
+  background: #f5f6f7 !important;
+}
+.oma-plan-post__body {
+  flex: 1 !important;
+  display: flex !important;
+  min-height: 0 !important;
+}
+.oma-plan-post__canvas {
+  flex: 1 !important;
+  min-width: 0 !important;
+  position: relative !important;
+  padding: 20px 24px 32px !important;
+  overflow: auto !important;
+}
+.oma-plan-post__preview-toggle {
+  position: absolute !important;
+  top: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  display: inline-flex !important;
+  gap: 2px !important;
+  padding: 3px !important;
+  border-radius: 999px !important;
+  background: #f0f1f3 !important;
+  z-index: 2 !important;
+}
+.oma-plan-post__preview-toggle button {
+  width: 36px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: #8c8c8c !important;
+  cursor: pointer !important;
+}
+.oma-plan-post__preview-toggle button[data-active='true'] {
+  background: #fff !important;
+  color: #111 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+.oma-plan-post__editor {
+  display: grid !important;
+  grid-template-columns: 120px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  max-width: 720px !important;
+  margin: 48px auto 0 !important;
+}
+.oma-plan-post__status-col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 16px !important;
+  padding-top: 28px !important;
+  position: relative !important;
+}
+.oma-plan-post__status-item {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 6px !important;
+}
+.oma-plan-post__status-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  border: 1px solid #e8e9eb !important;
+  background: #fff !important;
+  color: #8c8c8c !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-post__status-label {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  text-align: end !important;
+  max-width: 100px !important;
+}
+.oma-plan-post__tip-card {
+  position: absolute !important;
+  top: 0 !important;
+  inset-inline-end: calc(100% + 10px) !important;
+  z-index: 30 !important;
+  width: 240px !important;
+  padding: 12px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  text-align: start !important;
+  font-size: 13px !important;
+  color: #333 !important;
+}
+.oma-plan-post__tip-card strong {
+  display: block !important;
+  margin-bottom: 6px !important;
+}
+.oma-plan-post__tip-card p {
+  margin: 0 0 6px !important;
+  color: #5e6166 !important;
+  font-size: 12px !important;
+}
+.oma-plan-post__tip-section {
+  font-weight: 600 !important;
+  margin-top: 8px !important;
+}
+.oma-plan-post__tip-user {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 6px !important;
+}
+.oma-plan-post__tip-card--sm {
+  width: auto !important;
+  white-space: nowrap !important;
+}
+.oma-plan-post__fields {
+  min-width: 0 !important;
+}
+.oma-plan-post__meta-line {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 8px !important;
+  color: #5e6166 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+.oma-plan-post__date-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+}
+.oma-plan-post__title-input {
+  width: 100% !important;
+  border: 0 !important;
+  outline: none !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  color: #111 !important;
+  background: transparent !important;
+  margin-bottom: 8px !important;
+}
+.oma-plan-post__title-input:focus {
+  background: #fff8e6 !important;
+  border-radius: 6px !important;
+}
+.oma-plan-post__body-input {
+  width: 100% !important;
+  border: 0 !important;
+  outline: none !important;
+  resize: vertical !important;
+  min-height: 160px !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  color: #1f1f1f !important;
+  background: transparent !important;
+  font-family: inherit !important;
+}
+.oma-plan-post__count {
+  margin-top: 24px !important;
+  text-align: end !important;
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+}
+.oma-plan-post__save-row {
+  display: flex !important;
+  gap: 8px !important;
+  margin-top: 16px !important;
+}
+.oma-plan-post__phone {
+  display: flex !important;
+  justify-content: center !important;
+  padding-top: 56px !important;
+}
+.oma-plan-post__phone-screen {
+  width: 280px !important;
+  min-height: 480px !important;
+  border: 10px solid #e5e7eb !important;
+  border-radius: 36px !important;
+  padding: 28px 16px 20px !important;
+  background: #fff !important;
+}
+.oma-plan-post__phone-meta {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  margin-bottom: 10px !important;
+}
+.oma-plan-post__phone-title {
+  display: block !important;
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+.oma-plan-post__phone-body {
+  font-size: 14px !important;
+  color: #333 !important;
+  margin: 0 !important;
+}
+.oma-plan-post__side {
+  width: 320px !important;
+  flex-shrink: 0 !important;
+  border-inline-start: 1px solid #eef0f2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #fff !important;
+}
+.oma-plan-post__side-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 48px !important;
+  padding: 0 12px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  font-size: 15px !important;
+}
+.oma-plan-post__activity,
+.oma-plan-post__feedback {
+  flex: 1 !important;
+  overflow: auto !important;
+  padding: 12px !important;
+}
+.oma-plan-post__activity-row {
+  display: flex !important;
+  gap: 10px !important;
+  margin-bottom: 14px !important;
+  font-size: 13px !important;
+}
+.oma-plan-post__activity-row p {
+  margin: 0 0 2px !important;
+}
+.oma-plan-post__activity-meta {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+}
+.oma-plan-post__avatar {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: #10b981 !important;
+  color: #fff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  flex-shrink: 0 !important;
+}
+.oma-plan-post__link {
+  border: 0 !important;
+  background: transparent !important;
+  color: #2563eb !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  padding: 0 !important;
+}
+.oma-plan-post__feedback-tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 12px !important;
+  background: #f5f6f7 !important;
+  padding: 3px !important;
+  border-radius: 8px !important;
+}
+.oma-plan-post__feedback-tabs button {
+  flex: 1 !important;
+  height: 30px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+.oma-plan-post__feedback-tabs button[data-active='true'] {
+  background: #fff !important;
+  color: #111 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+.oma-plan-post__comment-box {
+  border: 1px solid #93c5fd !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  margin-bottom: 16px !important;
+}
+.oma-plan-post__comment-input-row {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+.oma-plan-post__comment-input-row input {
+  flex: 1 !important;
+  border: 0 !important;
+  outline: none !important;
+  font-size: 13px !important;
+}
+.oma-plan-post__comment-tools {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+.oma-plan-post__internal {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+}
+.oma-plan-post__comment-actions {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+.oma-plan-post__post-btn {
+  border: 0 !important;
+  background: transparent !important;
+  color: #2563eb !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+}
+.oma-plan-post__empty {
+  text-align: center !important;
+  padding: 32px 12px !important;
+  color: #8c8c8c !important;
+}
+.oma-plan-post__empty strong {
+  display: block !important;
+  color: #333 !important;
+  margin-bottom: 6px !important;
+}
+.oma-plan-post__empty p {
+  margin: 0 !important;
+  font-size: 13px !important;
+}
+@media (max-width: 900px) {
+  .oma-plan-post__side {
+    width: 100% !important;
+    position: absolute !important;
+    inset: 52px 0 0 0 !important;
+    z-index: 5 !important;
+  }
+  .oma-plan-post__body {
+    position: relative !important;
+  }
+  .oma-plan-post__editor {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+  }
+}
+
+/* ==== Notes polish + float-within-bounds + grid (v5) ==== */
+
+/* Sticky note closer to Planable */
+.oma-cal-note--inline {
+  border-radius: 4px 10px 10px 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  min-height: 96px !important;
+}
+.oma-cal-note__actions {
+  opacity: 0.85 !important;
+}
+.oma-cal-note--inline:hover .oma-cal-note__actions,
+.oma-cal-note--inline[data-active='true'] .oma-cal-note__actions {
+  opacity: 1 !important;
+}
+.oma-cal-note__swatches {
+  top: calc(100% + 4px) !important;
+  bottom: auto !important;
+  inset-inline-start: 4px !important;
+  z-index: 80 !important;
+}
+
+/* Mobile note: always modal */
+@media (max-width: 767px) {
+  .oma-cal-note--inline {
+    display: none !important;
+  }
+  .oma-cal-note-modal {
+    display: flex !important;
+  }
+}
+
+/* Tooltips: high contrast + never clip out of dialogs */
+.oma-plan-post,
+.oma-plan-post__main,
+.oma-plan-post__canvas,
+.oma-plan-post__editor,
+.oma-plan-post__status-col,
+.oma-plan-post__status-item,
+.oma-plan-post__top,
+.oma-plan-post__more-wrap {
+  overflow: visible !important;
+}
+.oma-plan-post__tip-card {
+  z-index: 100 !important;
+  max-width: min(260px, 70vw) !important;
+}
+/* Flip tip inward if near left edge */
+.oma-plan-post__status-item .oma-plan-post__tip-card {
+  inset-inline-end: auto !important;
+  inset-inline-start: calc(100% + 10px) !important;
+}
+.oma-plan-post__icon-btn[data-tooltip]:hover::after,
+.oma-cal-note__action[data-tooltip]:hover::after,
+.oma-plan-list__ico-btn[data-tooltip]:hover::after {
+  z-index: 200 !important;
+  background: #111 !important;
+  color: #fff !important;
+  font-weight: 500 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22) !important;
+  padding: 7px 11px !important;
+}
+
+/* More menu stays inside modal */
+.oma-plan-post__more-menu {
+  z-index: 120 !important;
+  max-height: min(70vh, 420px) !important;
+  overflow: auto !important;
+}
+
+/* Dialog shell must allow overflow for tooltips */
+.oma-plan-post-modal,
+.oma-plan-post-modal .oma-dialog__body,
+.oma-plan-post-modal [class*='Dialog'] {
+  overflow: visible !important;
+}
+
+/* ==== Planable Grid view ==== */
+.oma-plan-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 220px)) !important;
+  gap: 12px !important;
+  justify-content: center !important;
+  padding: 28px 20px 80px !important;
+  background: #f5f6f7 !important;
+  min-height: calc(100vh - 56px) !important;
+}
+@media (max-width: 900px) {
+  .oma-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 560px) {
+  .oma-plan-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+.oma-plan-grid__card {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  text-align: start !important;
+}
+.oma-plan-grid__card[data-selected='true'] {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+.oma-plan-grid__media {
+  position: relative !important;
+  aspect-ratio: 1 / 1.15 !important;
+  background: linear-gradient(180deg, #6b7280 0%, #d1d5db 55%, #e5e7eb 100%) !important;
+  overflow: hidden !important;
+}
+.oma-plan-grid__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  filter: saturate(0.85) !important;
+}
+.oma-plan-grid__shade {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.05) 40%,
+    rgba(0, 0, 0, 0.45) 100%
+  ) !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  color: #fff !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__when {
+  font-size: 11px !important;
+  opacity: 0.9 !important;
+}
+.oma-plan-grid__title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+}
+.oma-plan-grid__corner {
+  position: absolute !important;
+  inset-inline-end: 10px !important;
+  bottom: 10px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 14px !important;
+}
+.oma-plan-grid__ph {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 28px !important;
+}
+.oma-plan-post__save-state {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  margin-inline-end: auto !important;
+}
+.oma-plan-post__save-state[data-state='error'] {
+  color: #dc2626 !important;
+}
+.oma-plan-post__save-state[data-state='saved'] {
+  color: #16a34a !important;
+}
+
+/* ==== v6: grid flush + saved expand + filter icons ==== */
+
+/* Calendar expands when Saved is closed */
+.oma-cal-with-saved[data-saved-open='false'] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.oma-cal-with-saved[data-saved-open='false'] .oma-cal-main {
+  border-inline-end: 0 !important;
+}
+
+/* Official close icon for Saved */
+.oma-cal-saved-close {
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #8c8c8c !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+.oma-cal-saved-close:hover {
+  background: #f0f1f3 !important;
+  color: #333 !important;
+}
+
+/* Filter accordion official icons */
+.oma-filter-accordion__ico {
+  width: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #8c8c8c !important;
+  font-size: 14px !important;
+}
+.oma-filter-accordion__caret {
+  display: inline-flex !important;
+  align-items: center !important;
+  color: #8c8c8c !important;
+  font-size: 11px !important;
+}
+
+/* Planable grid: equal tiles, no gaps, tight */
+.oma-plan-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+  justify-content: stretch !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #e8e9eb !important;
+  min-height: calc(100vh - 56px) !important;
+  width: 100% !important;
+  max-width: 720px !important;
+  margin-inline: auto !important;
+}
+@media (max-width: 900px) {
+  .oma-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 560px) {
+  .oma-plan-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+.oma-plan-grid__card {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+.oma-plan-grid__media {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  background: linear-gradient(180deg, #6b7280 0%, #c4c8ce 100%) !important;
+  overflow: hidden !important;
+}
+.oma-plan-grid__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease !important;
+}
+.oma-plan-grid__shade {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.05) 45%,
+    rgba(0, 0, 0, 0.5) 100%
+  ) !important;
+  transition: background 0.2s ease !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__card:hover .oma-plan-grid__media img {
+  transform: scale(1.04) !important;
+  filter: brightness(1.05) !important;
+}
+.oma-plan-grid__card:hover .oma-plan-grid__shade {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.1) 45%,
+    rgba(0, 0, 0, 0.55) 100%
+  ) !important;
+}
+.oma-plan-grid__card[data-selected='true'] {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: -2px !important;
+  z-index: 1 !important;
+}
+.oma-plan-grid__overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  color: #fff !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__when {
+  font-size: 11px !important;
+  opacity: 0.92 !important;
+  font-weight: 500 !important;
+}
+.oma-plan-grid__title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  line-height: 1.3 !important;
+}
+.oma-plan-grid__corner {
+  position: absolute !important;
+  inset-inline-end: 10px !important;
+  bottom: 10px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 13px !important;
+  opacity: 0.85 !important;
+}
+.oma-plan-grid__card:hover .oma-plan-grid__corner {
+  opacity: 1 !important;
+}
+
+/* ==== Content Plan: no gap under header, no campaign bars, Post/Note top ==== */
+.oma-content-plan.oma-stack {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-plan > .oma-page-header-stack,
+.oma-content-plan > .oma-demo-disclosure,
+.oma-content-plan > .oma-honesty-inline {
+  margin: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-cal-with-saved {
+  margin-top: 0 !important;
+  gap: 0 !important;
+}
+.oma-cal-main {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-cal-toolbar {
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+
+/* Hide any leftover campaign rails */
+.oma-cal-campaign-rails,
+.oma-cal-campaign-bar,
+.oma-cal-campaign-bar--span {
+  display: none !important;
+}
+
+/* Cell: Post + Note centered at top of cell, same row */
+.oma-cal-cell {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 4px !important;
+  min-height: 110px !important;
+  padding: 6px 6px 8px !important;
+}
+.oma-cal-daynum {
+  align-self: flex-start !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #8c8c8c !important;
+  line-height: 1.2 !important;
+}
+.oma-cal-cell-actions {
+  display: none !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin: 2px 0 4px !important;
+  order: 0 !important;
+}
+.oma-cal-cell:hover .oma-cal-cell-actions,
+.oma-cal-cell[data-selected='true'] .oma-cal-cell-actions {
+  display: flex !important;
+}
+.oma-cal-cell-actions__btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  height: 26px !important;
+  padding: 0 10px !important;
+  border: 1px dashed #c9cdd3 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #5e6166 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+.oma-cal-cell-actions__btn:hover {
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+  background: #f8fbff !important;
+}
+.oma-cal-cell-actions__btn .anticon {
+  font-size: 12px !important;
+}
+
+/* Content card hover polish */
+.oma-cal-item-wrap {
+  position: relative !important;
+  z-index: 1 !important;
+}
+.oma-cal-item-wrap:hover {
+  z-index: 4 !important;
+}
+.oma-cal-item {
+  border: 1px solid #e8e9eb !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease !important;
+}
+.oma-cal-item-wrap:hover .oma-cal-item {
+  border-color: #c9cdd3 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Floating action menu like Planable */
+.oma-card-menu--float {
+  position: fixed !important;
+  z-index: 9999 !important;
+  min-width: 220px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+}
+.oma-card-menu__item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 9px 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+}
+.oma-card-menu__item:hover {
+  background: #f5f6f7 !important;
+}
+.oma-card-menu__item-ico {
+  width: 16px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  color: #5e6166 !important;
+  font-size: 14px !important;
+}
+
+/* Note card Planable */
+.oma-cal-note--inline {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 10px 10px 8px !important;
+  border-radius: 10px !important;
+  border: 1px solid transparent !important;
+  min-height: 72px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+.oma-cal-note--inline[data-color='yellow'] {
+  background: #fef9c3 !important;
+}
+.oma-cal-note--inline[data-color='mint'] {
+  background: #d1fae5 !important;
+}
+.oma-cal-note--inline[data-color='pink'] {
+  background: #fce7f3 !important;
+}
+.oma-cal-note--inline[data-color='lavender'] {
+  background: #ede9fe !important;
+}
+.oma-cal-note--inline[data-color='blue'] {
+  background: #e0f2fe !important;
+}
+.oma-cal-note__input {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  resize: none !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  color: #333 !important;
+  min-height: 36px !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+.oma-cal-note__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.oma-cal-note__action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 26px !important;
+  height: 26px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  cursor: pointer !important;
+}
+.oma-cal-note__action:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+.oma-cal-note__swatches {
+  display: flex !important;
+  gap: 6px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+  position: absolute !important;
+  bottom: calc(100% + 4px) !important;
+  inset-inline-start: 8px !important;
+  z-index: 20 !important;
+}
+.oma-cal-note-swatch {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  border: 2px solid transparent !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+.oma-cal-note-swatch[data-color='yellow'] {
+  background: #fde047 !important;
+}
+.oma-cal-note-swatch[data-color='mint'] {
+  background: #6ee7b7 !important;
+}
+.oma-cal-note-swatch[data-color='pink'] {
+  background: #f9a8d4 !important;
+}
+.oma-cal-note-swatch[data-color='lavender'] {
+  background: #c4b5fd !important;
+}
+.oma-cal-note-swatch[data-color='blue'] {
+  background: #7dd3fc !important;
+}
+.oma-cal-note-swatch[data-active='true'] {
+  border-color: #111 !important;
+}
+
+/* Path view slot: text only, no underline, no icon */
+#oma-content-view-slot {
+  text-decoration: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #111 !important;
+  cursor: pointer !important;
+}
+#oma-content-view-slot:hover,
+#oma-content-view-slot:focus {
+  text-decoration: none !important;
+  color: #111 !important;
+  outline: none !important;
+}
+.oma-breadcrumb--planable a,
+.oma-breadcrumb--planable span,
+.oma-context-trail--content a,
+.oma-context-trail--content span {
+  text-decoration: none !important;
+}
+.oma-view-path__text,
+.oma-view-path__btn--ghost {
+  text-decoration: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #111 !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+.oma-view-path__text:hover,
+.oma-view-path__btn--ghost:hover {
+  text-decoration: none !important;
+  background: transparent !important;
+}
+
+/* ── Content calendar polish (Planable denser chrome) ── */
+.oma-content-plan.oma-stack {
+  gap: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-content-plan .oma-demo-disclosure {
+  display: none !important; /* reduce top dead space above calendar */
+}
+.oma-cal-main {
+  padding: 4px 8px 8px !important;
+}
+.oma-cal-toolbar {
+  margin-bottom: 4px !important;
+  min-height: 36px !important;
+  padding: 2px 4px !important;
+  border-bottom: 0 !important;
+}
+.oma-cal-with-saved {
+  min-height: calc(100vh - 96px) !important;
+}
+
+/* Weekday headers more Planable-like */
+.oma-cal-dow {
+  padding: 10px 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+  background: #fafbfc !important;
+  border-bottom: 1px solid #e8e9eb !important;
+}
+
+/* Calendar post cards */
+.oma-cal-cell .oma-post-card--calendar {
+  min-height: 96px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e8e9eb !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  overflow: hidden !important;
+}
+.oma-post-card--calendar .oma-post-card__media {
+  border-radius: 8px 8px 0 0 !important;
+}
+.oma-post-card--calendar .oma-post-card__title {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+}
+.oma-post-card--calendar .oma-post-card__caption {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+.oma-post-card--calendar .oma-post-card__meta {
+  font-size: 10px !important;
+  color: #9ca3af !important;
+}
+
+/* Comment input */
+.oma-plan-post__comment-box {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  background: #fafbfc !important;
+}
+.oma-plan-post__comment-input-row {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: flex-end !important;
+}
+.oma-plan-post__comment-input {
+  flex: 1 !important;
+  min-height: 40px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  resize: vertical !important;
+  background: #fff !important;
+}
+.oma-plan-post__comment-input:focus {
+  outline: none !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+.oma-plan-post__comment-send {
+  border-radius: 10px !important;
+}
+
+/* Detail tool tooltips — full readable tip below control */
+.oma-plan-post__tool-btn,
+.oma-plan-post__status-btn,
+.oma-plan-post__approve-count,
+.oma-plan-list__ico {
+  position: relative !important;
+}
+.oma-plan-post__tool-btn[data-tooltip]:hover::after,
+.oma-plan-post__status-btn[data-tooltip]:hover::after,
+.oma-plan-post__approve-count[data-tooltip]:hover::after,
+.oma-plan-list__ico[data-tooltip]:hover::after,
+.oma-cal-cell-actions__btn[data-tooltip]:hover::after,
+.oma-cal-request-approvals[data-tooltip]:hover::after,
+.oma-cal-ext-indicator[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  z-index: 10050 !important;
+  top: calc(100% + 8px) !important;
+  bottom: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  padding: 7px 11px !important;
+  border-radius: 8px !important;
+  background: #1f2937 !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 500 !important;
+  white-space: normal !important;
+  max-width: 240px !important;
+  min-width: 0 !important;
+  width: max-content !important;
+  text-align: center !important;
+  pointer-events: none !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ── Planable calendar tightness (flush under toolbar) ── */
+.oma-cal-with-saved {
+  gap: 0 !important;
+  margin-top: 0 !important;
+}
+.oma-cal-main {
+  gap: 0 !important;
+}
+.oma-cal-toolbar {
+  margin-bottom: 0 !important;
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #e8eaed !important;
+  background: #fff !important;
+}
+.oma-cal-grid {
+  border-radius: 0 !important;
+  border-top: 0 !important;
+  border-color: #e8eaed !important;
+}
+.oma-cal-dow {
+  padding: 10px 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #8b8f97 !important;
+  background: #fafbfc !important;
+  border-bottom: 1px solid #e8eaed !important;
+}
+.oma-cal-cell {
+  min-height: 118px !important;
+  padding: 6px 6px 8px !important;
+  border-color: #e8eaed !important;
+  background: #fff !important;
+  gap: 4px !important;
+}
+.oma-cal-cell[data-out='true'] {
+  background: #fafbfc !important;
+  color: #c0c4cc !important;
+}
+.oma-cal-daynum {
+  justify-self: end !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  font-size: 12px !important;
+  color: #6b7280 !important;
+}
+.oma-cal-cell[data-today='true'] .oma-cal-daynum {
+  background: #e5484d !important;
+  color: #fff !important;
+}
+
+/* Content post card on calendar — dashed Planable style */
+.oma-cal-cell .oma-post-card--calendar,
+.oma-cal-cell .oma-post-card.oma-post-card--calendar {
+  border: 1px dashed #d0d4db !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  padding: 6px 8px !important;
+  min-height: 44px !important;
+  box-shadow: none !important;
+}
+.oma-cal-cell .oma-post-card--calendar:hover {
+  border-color: #4c8dff !important;
+  background: #f8faff !important;
+}
+
+/* Note sticky card */
+.oma-cal-note,
+.oma-cal-note--inline {
+  position: relative !important;
+  border-radius: 8px !important;
+  border: 0 !important;
+  padding: 8px 10px 28px !important;
+  min-height: 64px !important;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06) !important;
+  z-index: 1 !important;
+}
+.oma-cal-note[data-color='yellow'],
+.oma-cal-note--inline[data-color='yellow'] {
+  background: #fef6c7 !important;
+}
+.oma-cal-note[data-color='mint'],
+.oma-cal-note--inline[data-color='mint'] {
+  background: #d1fae5 !important;
+}
+.oma-cal-note[data-color='pink'],
+.oma-cal-note--inline[data-color='pink'] {
+  background: #fce7f3 !important;
+}
+.oma-cal-note[data-color='blue'],
+.oma-cal-note--inline[data-color='blue'] {
+  background: #dbeafe !important;
+}
+.oma-cal-note[data-color='purple'],
+.oma-cal-note--inline[data-color='purple'] {
+  background: #ede9fe !important;
+}
+.oma-cal-note[data-color='orange'],
+.oma-cal-note--inline[data-color='orange'] {
+  background: #ffedd5 !important;
+}
+
+.oma-cal-note__input {
+  background: transparent !important;
+  border: 0 !important;
+  width: 100% !important;
+  font-size: 12px !important;
+  color: #374151 !important;
+  resize: none !important;
+  outline: none !important;
+  min-height: 36px !important;
+}
+
+/* Floating color swatches ABOVE note content */
+.oma-cal-note__swatches {
+  position: absolute !important;
+  bottom: calc(100% + 6px) !important;
+  inset-inline-start: 4px !important;
+  z-index: 40 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.14) !important;
+  width: max-content !important;
+  max-width: 140px !important;
+}
+.oma-cal-note-swatch {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 999px !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 0 0 1px #e5e7eb !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+.oma-cal-note-swatch[data-color='yellow'] {
+  background: #fde68a !important;
+}
+.oma-cal-note-swatch[data-color='mint'] {
+  background: #6ee7b7 !important;
+}
+.oma-cal-note-swatch[data-color='pink'] {
+  background: #f9a8d4 !important;
+}
+.oma-cal-note-swatch[data-color='blue'] {
+  background: #93c5fd !important;
+}
+.oma-cal-note-swatch[data-color='purple'] {
+  background: #c4b5fd !important;
+}
+.oma-cal-note-swatch[data-color='orange'] {
+  background: #fdba74 !important;
+}
+
+.oma-cal-note__actions {
+  position: absolute !important;
+  inset-inline-end: 4px !important;
+  bottom: 4px !important;
+  display: flex !important;
+  gap: 2px !important;
+}
+
+/* Campaign-name band across week rows */
+.oma-cal-campaign-band,
+.oma-cal-week-label {
+  border: 1px solid #e8eaed !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  font-size: 12px !important;
+  color: #6b7280 !important;
+}
+
+/* Lifecycle-disabled card menu items */
+.oma-card-menu__item:disabled,
+.oma-card-menu__item[data-disabled='true'] {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+.oma-cal-item-wrap[draggable='true'] {
+  cursor: grab;
+}
+.oma-cal-item-wrap[draggable='true']:active {
+  cursor: grabbing;
+}
+
+/* Weekday row participates in the 7-column calendar grid and stays visible. */
+.oma-cal-dow-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.oma-cal-grid {
+  overflow: visible;
+}
+.oma-cal-dow {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.oma-inline-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.oma-inline-labels > span {
+  max-width: 100%;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #1d4ed8;
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-inline-labels--on-media > span {
+  background: rgba(255, 255, 255, 0.92);
+  color: #1f2937;
+}
+.oma-plan-grid__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.oma-card-actions-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--oma-icon-action-size, 28px);
+  height: var(--oma-icon-action-size, 28px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--oma-icon-action-radius, 8px);
+  background: transparent;
+  color: var(--oma-workspace-muted, #6b7280);
+  cursor: pointer;
+  flex: 0 0 auto;
+  box-shadow: none;
+}
+.oma-card-actions-btn:hover,
+.oma-card-actions-btn[data-open='true'] {
+  color: var(--oma-primary, #1677ff);
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent);
+}
+.oma-cal-item-wrap {
+  position: relative;
+}
+.oma-card-actions-btn--cal {
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 2px;
+  z-index: 3;
+  width: 24px;
+  height: 24px;
+  background: color-mix(in srgb, var(--oma-surface, #fff) 88%, transparent);
+}
+.oma-feed-card__column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.oma-feed-card__head .oma-card-actions-btn {
+  margin-inline-start: auto;
+}
+.oma-plan-list__row {
+  grid-template-columns: 36px 48px minmax(0, 1fr) 36px minmax(72px, 120px) 32px minmax(96px, 140px) !important;
+}
+.oma-card-actions-btn--list {
+  justify-self: end;
+}
+.oma-plan-grid__tile {
+  position: relative;
+  min-width: 0;
+}
+.oma-card-actions-btn--grid {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  z-index: 3;
+  background: color-mix(in srgb, var(--oma-surface, #fff) 88%, transparent);
+}
+.oma-cal-saved-card {
+  position: relative;
+}
+.oma-card-actions-btn--saved {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  z-index: 3;
+}
+.oma-cal-agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.oma-cal-agenda-item .oma-cal-item {
+  flex: 1 1 auto;
+}
+.oma-cal-agenda-day__label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.oma-label-panel,
+.oma-template-panel {
+  display: grid;
+  gap: 14px;
+}
+.oma-label-panel__lead,
+.oma-template-panel__lead {
+  margin: 0;
+  color: #5e6166;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.oma-label-panel__list,
+.oma-template-panel__grid {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+}
+.oma-template-panel__grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.oma-label-card {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 18px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #e8eaed;
+  border-radius: 10px;
+  background: #fff;
+  text-align: start;
+  cursor: pointer;
+}
+.oma-label-card[data-selected='true'] {
+  border-color: #93c5fd;
+  background: #f5f9ff;
+}
+.oma-label-card__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+.oma-label-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+.oma-label-card__check {
+  color: #1677ff;
+  font-weight: 700;
+}
+.oma-label-panel__empty,
+.oma-template-panel__empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 28px 12px;
+  border: 1px dashed #d0d4db;
+  border-radius: 12px;
+  color: #6b7280;
+  text-align: center;
+}
+.oma-label-panel__empty strong,
+.oma-template-panel__empty strong {
+  color: #111827;
+}
+.oma-label-panel__create {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eef0f2;
+}
+.oma-label-panel__create-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.oma-label-panel__create-row .ant-input,
+.oma-label-panel__create-row input {
+  flex: 1;
+}
+.oma-label-panel__colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.oma-label-panel__color {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #e5e7eb;
+  cursor: pointer;
+  padding: 0;
+}
+.oma-label-panel__color[data-active='true'] {
+  box-shadow: 0 0 0 2px #1677ff;
+}
+.oma-template-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  background: #fff;
+}
+.oma-template-card__media {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #9ca3af;
+  font-size: 22px;
+}
+.oma-template-card__media img,
+.oma-template-card__media video,
+.oma-template-card__media span.oma-media-surface {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.oma-template-card__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.oma-template-card__body strong {
+  font-size: 14px;
+}
+.oma-template-card__meta,
+.oma-template-card__body p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+.oma-template-card__body p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.oma-template-card__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.oma-template-card__labels span {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  font-size: 11px;
+  color: #374151;
+}
+.oma-template-card__body .ant-btn,
+.oma-template-card__body button {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+/* ========== Content UI fixes (compose pickers, calendar, path view) ========== */

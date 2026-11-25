@@ -6,6 +6,7 @@ import {
   encryptToken,
   fromSocialEnum,
   isSocialNetwork,
+  isSocialNetworkProductDisabled,
   newId,
   pkceChallenge,
   pkceVerifier,
@@ -139,8 +140,13 @@ export class SocialService {
 
   async start(tenantId: string, userId: string, brandId: string, network: string) {
     if (!isSocialNetwork(network)) throw notFound();
-    if (network === 'x') {
-      await billingService.assertAddon(tenantId, 'x_api');
+    if (isSocialNetworkProductDisabled(network)) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'This network is not offered',
+        409,
+        'errors.social_network_disabled',
+      );
     }
     const brand = await this.brand(tenantId, brandId);
     if (brand.status === 'ARCHIVED') {

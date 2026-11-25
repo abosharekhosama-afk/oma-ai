@@ -41,6 +41,8 @@ const SettingsPanel = dynamic(
 );
 import { PlxLogo } from '../ui/plx-icons';
 import { FloatingTooltips } from '../ui/floating-tooltips';
+import { applyMobileOpsFlag } from '../../lib/mobile-ops-flag';
+import { OmaIconAction } from '../ui/oma-icon-action';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
@@ -428,6 +430,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    applyMobileOpsFlag();
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = () => applyMobileOpsFlag();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
     setHydrated(true);
     try {
       const raw = window.localStorage.getItem(SHELL_RAIL_PREF_KEY);
@@ -508,23 +518,21 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           className="oma-shell-column"
           data-mobile-page-title={mobilePageTitle ? 'true' : 'false'}
         >
-          <Button
-            type="text"
+          <OmaIconAction
             aria-label={t('shell.openNav')}
             onClick={() => setMobileOpen(true)}
             className="oma-mobile-nav-fab"
             data-testid="mobile-nav-trigger"
           >
             <ShellIcon name="menu" />
-          </Button>
+          </OmaIconAction>
           <header
             className="oma-top"
             data-content-workspace={isContentWorkspace ? 'true' : 'false'}
           >
             <div className="oma-top-start">
               {/* Mobile (<768px): hamburger opens the off-canvas nav drawer. Hidden on desktop. */}
-              <Button
-                type="text"
+              <OmaIconAction
                 aria-label={t('shell.openNav')}
                 aria-expanded={mobileOpen}
                 aria-controls="oma-mobile-nav"
@@ -533,7 +541,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 data-testid="mobile-nav-toggle"
               >
                 <ShellIcon name="menu" />
-              </Button>
+              </OmaIconAction>
               {mobilePageTitle ? (
                 <span
                   className="oma-mobile-page-title"
@@ -575,29 +583,24 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               />
             ) : isActivityWorkspace ? (
               <div className="oma-top-actions">
-                <button
+                <OmaIconAction
                   type="button"
-                  className="oma-activity-refresh"
                   aria-label={t('activity.refresh')}
                   data-testid="activity-refresh"
                   onClick={() => window.dispatchEvent(new Event('oma:activity-refresh'))}
                 >
-                  <ReloadOutlined width={18} height={18} />
-                </button>
+                  <ReloadOutlined width={16} height={16} aria-hidden />
+                </OmaIconAction>
               </div>
             ) : hideShellCreate ? null : isHome ? (
               <div className="oma-top-actions oma-top-actions--home">
-                <OmaLinkButton
+                <OmaIconAction
                   href="/app/content?create=1"
-                  type="primary"
-                  className="oma-header-create-icon"
                   data-testid="shell-create"
                   aria-label={t('home.v2.createPost')}
-                  title={t('home.v2.createPost')}
                 >
                   <ShellIcon name="plus" size={16} />
-                  <span className="oma-header-create-icon__label">{t('home.v2.createPost')}</span>
-                </OmaLinkButton>
+                </OmaIconAction>
               </div>
             ) : isBrandsList ? (
               <div className="oma-top-actions">
@@ -612,17 +615,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </div>
             ) : pathname === '/app/team' ? (
               <div className="oma-top-actions">
-                <Button
-                  type="primary"
-                  className="oma-header-create-icon"
+                <OmaIconAction
+                  type="button"
                   data-testid="shell-invite-members"
                   aria-label={t('team.invite_members')}
-                  title={t('team.invite_members')}
                   onClick={openTeamInvite}
                 >
                   <ShellIcon name="plus" size={16} />
-                  <span className="oma-header-create-icon__label">{t('team.invite_members')}</span>
-                </Button>
+                </OmaIconAction>
               </div>
             ) : isBrandDetail && brandIdFromPath && !pathname.endsWith('/settings') ? (
               <div className="oma-top-actions">

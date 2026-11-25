@@ -9,15 +9,16 @@ function read(rel: string): string {
 }
 
 describe('Tasks board view switcher on phone', () => {
-  it('lets board and list both be chosen on every viewport', () => {
+  it('keeps board/list switcher; on phone list resolves to board (kanban UX)', () => {
     const tasks = read('apps/web/src/app/(app)/app/tasks/tasks-client.tsx');
     expect(tasks).toContain('demo-tasks-view-board');
     expect(tasks).toContain('demo-tasks-view-list');
     expect(tasks).toContain('async function changeView(next: ViewMode)');
-    expect(tasks).toContain('setView(next)');
-    expect(tasks).toContain("window.localStorage.setItem('oma.tasks.defaultView', next)");
-    expect(tasks).not.toContain("window.matchMedia('(max-width: 767px)')");
-    expect(tasks).not.toContain("if (mq.matches) setView('list')");
+    expect(tasks).toContain('setView(resolved)');
+    expect(tasks).toContain("window.localStorage.setItem('oma.tasks.defaultView', resolved)");
+    expect(tasks).toContain('isMobileTasksViewport()');
+    expect(tasks).toContain("window.matchMedia('(max-width: 767px)')");
+    expect(tasks).toContain("next === 'list' ? 'board' : next");
   });
 
   it('keeps the desktop board column width and enables a full-width phone switcher', () => {

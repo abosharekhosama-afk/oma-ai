@@ -1,0 +1,172 @@
+{
+  "apps/web/src/styles/activity.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 24
+  },
+  "apps/web/src/styles/analytics-planable.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 125
+  },
+  "apps/web/src/styles/approvals-planable.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 95
+  },
+  "apps/web/src/styles/brand-intel.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 249
+  },
+  "apps/web/src/styles/brand-mobile-clean.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 41
+  },
+  "apps/web/src/styles/brand-settings.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 104
+  },
+  "apps/web/src/styles/content-views.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 157
+  },
+  "apps/web/src/styles/home.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 75
+  },
+  "apps/web/src/styles/inbox-listening.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 954
+  },
+  "apps/web/src/styles/mobile-compact-final.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 22
+  },
+  "apps/web/src/styles/mobile-density.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 19
+  },
+  "apps/web/src/styles/mobile-feel-better.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 46
+  },
+  "apps/web/src/styles/mobile-nov02.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 64
+  },
+  "apps/web/src/styles/mobile-oct27.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 102
+  },
+  "apps/web/src/styles/mobile-precise-nov03.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 62
+  },
+  "apps/web/src/styles/mobile-strategy-briefs.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 24
+  },
+  "apps/web/src/styles/mobile-surfaces-clean.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 117
+  },
+  "apps/web/src/styles/mobile-ui-compact.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 16
+  },
+  "apps/web/src/styles/mobile-ux-pro-max-reset.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 58
+  },
+  "apps/web/src/styles/planable-org.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 182
+  },
+  "apps/web/src/styles/post-preview.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 92
+  },
+  "apps/web/src/styles/shell.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 294
+  },
+  "apps/web/src/styles/shimmer.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 58
+  },
+  "apps/web/src/styles/side-drawers.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 90
+  },
+  "apps/web/src/styles/stage-depth.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 49
+  },
+  "apps/web/src/styles/stage2.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 61
+  },
+  "apps/web/src/styles/stage3.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 497
+  },
+  "apps/web/src/styles/stage4.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 354
+  },
+  "apps/web/src/styles/stage5.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 220
+  },
+  "apps/web/src/styles/stage6.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 36
+  },
+  "apps/web/src/styles/states.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 78
+  },
+  "apps/web/src/styles/strategy-plan-briefs.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 62
+  },
+  "apps/web/src/styles/ui-polish.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 77
+  },
+  "apps/web/src/styles/work-analytics.css": {
+    "dead": [],
+    "deadCount": 0,
+    "scanned": 46
+  }
+}

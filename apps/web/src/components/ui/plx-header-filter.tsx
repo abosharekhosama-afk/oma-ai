@@ -1,6 +1,7 @@
 'use client';
 
 import { CloseOutlined, FilterOutlined, PlusOutlined } from './lucide-icons';
+import { OmaIconAction } from './oma-icon-action';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -116,36 +117,42 @@ export function PlxHeaderFilter({
         {headerLeading}
         {hideFilterTrigger ? null : (
           <div className="oma-plx-header-filter-anchor">
-            <button
+            <OmaIconAction
               ref={triggerRef}
               type="button"
-              className="oma-plx-listening-filter__trigger"
+              className="oma-icon-action--bare"
+              aria-label={filterLabel}
               data-testid={filterTestId}
               data-active={open ? 'true' : 'false'}
+              badge={filterCount}
               aria-expanded={open}
               aria-haspopup="dialog"
               onClick={() => onOpenChange(!open)}
             >
-              <FilterOutlined aria-hidden />
-              <span className="oma-req-filter-btn__label">{filterLabel}</span>
-              {filterCount > 0 ? (
-                <span className="oma-plx-deliv-filter-count">{filterCount}</span>
-              ) : null}
-            </button>
+              <FilterOutlined
+                className="oma-lucide oma-lucide--soft"
+                aria-hidden
+                width={18}
+                height={18}
+              />
+            </OmaIconAction>
           </div>
         )}
-        {createTestId && onCreateClick ? (
-          <button
+        {createTestId && onCreateClick && createLabel ? (
+          <OmaIconAction
             type="button"
-            className="oma-plx-tasks__create-icon"
+            className="oma-icon-action--compose oma-icon-action--bare"
             data-testid={createTestId}
             aria-label={createLabel}
-            title={createLabel}
             onClick={onCreateClick}
           >
-            <PlusOutlined aria-hidden />
-            <span>{createLabel}</span>
-          </button>
+            <PlusOutlined
+              className="oma-lucide oma-lucide--soft"
+              aria-hidden
+              width={18}
+              height={18}
+            />
+          </OmaIconAction>
         ) : null}
       </div>
     ) : null;
@@ -179,14 +186,14 @@ export function PlxHeaderFilter({
               >
                 <header className="oma-plx-filter-popover__head">
                   <strong>{panelTitle}</strong>
-                  <button
+                  <OmaIconAction
                     type="button"
-                    className="oma-plx-deliv-filter-panel__close"
+                    className="oma-plx-deliv-filter-panel__close oma-icon-action--bare"
                     aria-label="Close"
                     onClick={() => onOpenChange(false)}
                   >
-                    <CloseOutlined />
-                  </button>
+                    <CloseOutlined className="oma-lucide" aria-hidden width={16} height={16} />
+                  </OmaIconAction>
                 </header>
                 <div className="oma-plx-filter-popover__body">{children}</div>
                 {footer ? <footer className="oma-plx-filter-popover__foot">{footer}</footer> : null}

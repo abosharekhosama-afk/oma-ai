@@ -67,7 +67,7 @@ describe('provider availability', () => {
     const noKey = socialAvailability({ X_CLIENT_ID: 'id', X_CLIENT_SECRET: 's' });
     expect(noKey.find((p) => p.network === 'x')).toMatchObject({
       available: false,
-      reason: 'encryption_key_missing',
+      reason: 'not_configured',
     });
     const ok = socialAvailability({
       X_CLIENT_ID: 'id',
@@ -79,9 +79,9 @@ describe('provider availability', () => {
     expect(ok.filter((p) => p.available).map((p) => p.network)).toEqual([
       'facebook',
       'instagram',
-      'x',
       'whatsapp',
     ]);
+    expect(ok.find((p) => p.network === 'x')).toMatchObject({ available: false });
   });
 });
 

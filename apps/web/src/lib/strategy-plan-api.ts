@@ -159,7 +159,6 @@ export const PAID_PLATFORMS = [
   'FACEBOOK',
   'TIKTOK',
   'SNAPCHAT',
-  'X',
   'LINKEDIN',
   'YOUTUBE',
   'GOOGLE_SEARCH',

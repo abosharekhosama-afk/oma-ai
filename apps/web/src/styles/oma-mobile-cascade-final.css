@@ -1,0 +1,3961 @@
+/*
+ * Final mobile shell + requests + icon grammar.
+ * Loaded after ui-polish.css in app/layout.tsx so it wins the cascade.
+ */
+
+/* ── Borderless header icons (content, requests, nav, workspace) ───────── */
+html body .oma-icon-action,
+html body .oma-top-actions .oma-icon-action,
+html body .oma-top-actions--content .oma-icon-action,
+html body .oma-top-actions--workspace .oma-icon-action,
+html body .oma-workspace-header-actions .oma-icon-action,
+html body .oma-plx-content-header-actions .oma-icon-action,
+html body .oma-plx-content-header-actions > .oma-icon-action,
+html body #oma-content-top-actions .oma-icon-action,
+html body #oma-workspace-top-actions .oma-icon-action,
+html body .oma-req-filter-icon,
+html body .oma-req-create-icon,
+html body .oma-header-create-icon,
+html body .oma-sched-icon-btn,
+html body .oma-activity-refresh,
+html body .oma-plx-tasks__create-icon,
+html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action,
+html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action--compose,
+html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action,
+html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
+  width: var(--oma-icon-action-size, 32px) !important;
+  height: var(--oma-icon-action-size, 32px) !important;
+  min-width: var(--oma-icon-action-size, 32px) !important;
+  min-height: var(--oma-icon-action-size, 32px) !important;
+  max-width: var(--oma-icon-action-size, 32px) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: var(--oma-icon-action-radius, 8px) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: inherit !important;
+  font-weight: 400 !important;
+  gap: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action:hover,
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action:active,
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action:focus-visible {
+  border: 0 !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  box-shadow: none !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action .oma-lucide,
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action--compose {
+  color: var(--oma-primary, #1677ff) !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action,
+html body .oma-plx-approvals__approve-all-btn.oma-icon-action,
+html body .oma-plx-approvals__review-cta.oma-icon-action,
+html body .oma-card-actions-btn.oma-icon-action,
+html body .oma-cal-cell-actions__btn.oma-icon-action,
+html body .oma-mobile-nav-toggle.oma-icon-action,
+html body .oma-mobile-nav-fab.oma-icon-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: var(--oma-icon-action-size, 32px) !important;
+  height: var(--oma-icon-action-size, 32px) !important;
+  min-width: var(--oma-icon-action-size, 32px) !important;
+  min-height: var(--oma-icon-action-size, 32px) !important;
+  max-width: var(--oma-icon-action-size, 32px) !important;
+  max-height: var(--oma-icon-action-size, 32px) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: var(--oma-icon-action-radius, 8px) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+  flex: 0 0 auto !important;
+}
+
+html body .oma-icon-action--compose,
+html body .oma-plx-content-header-btn--primary.oma-icon-action {
+  color: var(--oma-primary, #1677ff) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .oma-icon-action:hover,
+html body .oma-icon-action:focus-visible,
+html body .oma-icon-action[data-active='true'] {
+  color: var(--oma-primary, #1677ff) !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Legacy content header btn class (dead markup) — never paint as bordered tiles */
+html body .oma-plx-content-header-btn,
+html body .oma-plx-content-header-btn--primary {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  width: var(--oma-icon-action-size, 32px) !important;
+  min-width: var(--oma-icon-action-size, 32px) !important;
+  height: var(--oma-icon-action-size, 32px) !important;
+  padding: 0 !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-top .oma-mobile-nav-toggle,
+  html body .oma-top .oma-mobile-nav-toggle.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    min-height: var(--oma-icon-action-size, 32px) !important;
+    border-radius: var(--oma-icon-action-radius, 8px) !important;
+  }
+
+  html body .oma-top-actions--workspace,
+  html body .oma-plx-content-header-actions,
+  html body .oma-workspace-header-actions {
+    gap: 2px !important;
+  }
+}
+
+/* ── Requests: table on phone, compact tabs (underline active) ─────────── */
+@media (max-width: 900px) {
+  html body .oma-req-page .oma-req-desktop,
+  html body .oma-req-page .oma-req-main .oma-req-desktop {
+    display: block !important;
+  }
+
+  html body .oma-req-page .oma-req-mobile,
+  html body .oma-req-page .oma-req-main .oma-req-mobile {
+    display: none !important;
+  }
+
+  /* Live /app/requests route (oma-plx-requests) — table, not card feed */
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-requests-table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-request-feed.oma-plx-requests-cards {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html body main.oma-container:has(.oma-req-page),
+  html body .oma-container:has(.oma-req-page) {
+    padding: 6px 6px 12px !important;
+  }
+
+  html body .oma-req-page .oma-req-header {
+    padding: 4px 2px 0 !important;
+    margin: 0 0 4px !important;
+  }
+
+  html body .oma-req-page .oma-req-main {
+    padding: 4px 0 10px !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs,
+  html body .oma-req-page .oma-ws-tabs,
+  html body .oma-req-page .oma-req-tabs.oma-ws-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    margin: 0 0 6px !important;
+    padding: 0 !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--oma-workspace-border-strong) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab,
+  html body .oma-req-page .oma-req-tabs .oma-req-tab,
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 7px 9px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--oma-workspace-muted) !important;
+    border-bottom: 2px solid transparent !important;
+    margin-bottom: -1px !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab.is-active,
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab[data-active='true'],
+  html body .oma-req-page .oma-req-tabs .oma-ws-tab[aria-selected='true'],
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab.is-active,
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab[data-active='true'],
+  html body .oma-req-page .oma-ws-tabs .oma-ws-tab[aria-selected='true'] {
+    color: var(--oma-workspace-ink) !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+    border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary)) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-table-wrap {
+    margin: 0 0 6px !important;
+    max-height: calc(100vh - 200px) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups.oma-plx-requests-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--oma-workspace-border-strong) !important;
+    background: transparent !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    text-align: center !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--oma-workspace-muted) !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    padding: 7px 9px !important;
+    border-bottom: 2px solid transparent !important;
+    margin-bottom: -1px !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn.is-active,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn[data-active='true'] {
+    background: transparent !important;
+    color: var(--oma-workspace-ink) !important;
+    font-weight: 500 !important;
+    border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary)) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-req-page .oma-req-table {
+    font-size: 11px !important;
+  }
+
+  html body .oma-req-page .oma-req-table th,
+  html body .oma-req-page .oma-req-table td {
+    padding: 7px 8px !important;
+    min-width: 72px !important;
+  }
+
+  html body .oma-req-page .oma-req-table th:first-child,
+  html body .oma-req-page .oma-req-table td:first-child {
+    min-width: 140px !important;
+    max-width: 200px !important;
+    position: static !important;
+    box-shadow: none !important;
+  }
+
+  /* ── Content: calendar toolbar + card action icons (no button chrome) ──── */
+  html body .oma-cal-toolbar .oma-pv-icon-btn,
+  html body .oma-cal-toolbar .oma-cal-nav__btn,
+  html body .oma-cal-toolbar .oma-cal-nav__btn.ant-btn,
+  html body .oma-cal-toolbar .oma-pv-ds > button,
+  html body .oma-plx-content-feed .oma-card-actions-btn,
+  html body .oma-feed-card .oma-card-actions-btn,
+  html body .oma-card-actions-btn,
+  html body .oma-card-actions-btn.oma-icon-action,
+  html body .oma-card-actions-btn--cal,
+  html body .oma-card-actions-btn--cal.oma-icon-action,
+  html body .oma-card-actions-btn--list,
+  html body .oma-card-actions-btn--list.oma-icon-action,
+  html body .oma-card-actions-btn--grid,
+  html body .oma-card-actions-btn--saved,
+  html body .oma-fp__icon-btn,
+  html body .oma-compose-view {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--oma-workspace-muted, #6b7280) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    min-height: var(--oma-icon-action-size, 32px) !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    padding: 0 !important;
+  }
+
+  html body .oma-card-actions-btn .anticon,
+  html body .oma-card-actions-btn.oma-icon-action .anticon {
+    font-size: var(--oma-icon-action-glyph, 16px) !important;
+    line-height: 1 !important;
+  }
+
+  html body .oma-card-actions-btn--cal,
+  html body .oma-card-actions-btn--cal.oma-icon-action {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-request-approvals,
+  html body .oma-cal-toolbar .oma-cal-saved-toggle {
+    width: var(--oma-icon-action-size, 32px) !important;
+    max-width: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 0 !important;
+    justify-content: center !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-indicator {
+    width: auto !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    max-width: 44px !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    padding: 0 2px !important;
+    gap: 2px !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    position: relative !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-label {
+    display: none !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-indicator .oma-cal-ext-count {
+    position: absolute !important;
+    top: 2px !important;
+    inset-inline-end: 2px !important;
+    min-width: 12px !important;
+    height: 12px !important;
+    padding: 0 2px !important;
+    font-size: 8px !important;
+    line-height: 12px !important;
+    border-radius: 999px !important;
+    background: var(--oma-workspace-ink, #111827) !important;
+    color: #fff !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-ext-wrap {
+    position: relative !important;
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body .oma-pv-ds__pop {
+    position: fixed !important;
+    inset-inline-start: 12px !important;
+    inset-inline-end: auto !important;
+    width: min(300px, calc(100vw - 24px)) !important;
+    max-width: min(300px, calc(100vw - 24px)) !important;
+    top: max(96px, env(safe-area-inset-top, 0px) + 88px) !important;
+    max-height: min(420px, 68dvh) !important;
+    padding: 12px 14px !important;
+    font-size: 12px !important;
+    z-index: 1250 !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-pv-ds__title {
+    font-size: 13px !important;
+  }
+
+  html body .oma-pv-ds__label {
+    font-size: 11px !important;
+  }
+
+  html body .oma-ext-cal-pop {
+    position: fixed !important;
+    inset-inline-start: 12px !important;
+    inset-inline-end: auto !important;
+    width: min(300px, calc(100vw - 24px)) !important;
+    max-width: min(300px, calc(100vw - 24px)) !important;
+    top: max(96px, env(safe-area-inset-top, 0px) + 88px) !important;
+    max-height: min(420px, 68dvh) !important;
+    padding: 12px 14px !important;
+    font-size: 12px !important;
+    z-index: 1250 !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-ext-cal-pop__head strong {
+    font-size: 13px !important;
+  }
+
+  html body .oma-ext-cal-tile {
+    font-size: 12px !important;
+  }
+
+  html body .oma-cal-toolbar .oma-card-actions-btn[data-open='true'],
+  html body .oma-cal-toolbar .oma-card-actions-btn:hover {
+    color: var(--oma-primary, #1677ff) !important;
+    background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-request-approvals:hover,
+  html body .oma-cal-toolbar .oma-cal-saved-toggle:hover,
+  html body .oma-cal-toolbar .oma-cal-ext-indicator:hover {
+    color: var(--oma-primary, #1677ff) !important;
+    background: transparent !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-request-approvals[data-active='true'],
+  html body .oma-cal-toolbar .oma-cal-saved-toggle[data-active='true'],
+  html body .oma-cal-toolbar .oma-cal-ext-indicator[data-open='true'] {
+    color: var(--oma-primary, #1677ff) !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-cal-toolbar .oma-cal-request-approvals:active,
+  html body .oma-cal-toolbar .oma-cal-saved-toggle:active,
+  html body .oma-cal-toolbar .oma-cal-ext-indicator:active,
+  html body .oma-cal-toolbar .oma-pv-ds > button:active {
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar button .anticon,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar button svg {
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 16px !important;
+  }
+
+  html body .oma-cal-toolbar {
+    gap: 6px !important;
+    padding: 6px 0 8px !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+  }
+
+  html body .oma-cal-toolbar__start,
+  html body .oma-cal-toolbar__end {
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+  }
+
+  html body .oma-plx-content.oma-content-plan,
+  html body .oma-content-plan.oma-plx-content {
+    overflow-x: visible !important;
+  }
+
+  html body [data-testid='demo-content-calendar'].oma-cal-with-saved,
+  html body [data-testid='demo-content-calendar'] .oma-cal-with-saved {
+    overflow-x: visible !important;
+    min-width: 0 !important;
+  }
+
+  /* Calendar toolbar: one scroll row; keep saved / approvals / display settings visible */
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__start,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    max-width: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end {
+    margin-inline-start: 0 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle,
+  html body [data-testid='demo-content-calendar'] .oma-cal-request-approvals,
+  html body [data-testid='demo-content-calendar'] .oma-cal-ext-indicator,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end > * {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Calendar: 3 visible day columns; rest via horizontal scroll on oma-cal-hscroll */
+  html body [data-testid='demo-content-calendar'] {
+    --oma-cal-day-col: calc((100vw - 20px) / 3);
+  }
+
+  html body .oma-shell-main:has([data-testid='demo-content-calendar']),
+  html body .oma-page:has([data-testid='demo-content-calendar']),
+  html body .oma-workspace:has([data-testid='demo-content-calendar']),
+  html body .oma-plx-ml-split__main:has([data-testid='demo-content-calendar']),
+  html body .oma-content-plan.oma-plx-content:has([data-testid='demo-content-calendar']) {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    min-width: 0 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-main {
+    display: block !important;
+    overflow: visible !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  html body [data-testid='demo-content-cal-scroll'].oma-cal-hscroll,
+  html body [data-testid='demo-content-calendar'] .oma-cal-hscroll {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: scroll !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-x: contain !important;
+    touch-action: pan-x pan-y !important;
+    scrollbar-width: thin !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 4px !important;
+    padding-bottom: 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Beat planable-org repeat(7, minmax(0, 1fr)) — fixed day width + scroll */
+  html
+    body
+    [data-testid='demo-content-cal-scroll']
+    [data-testid='demo-content-cal-grid'].oma-cal-grid,
+  html body [data-testid='demo-content-cal-scroll'] .oma-cal-grid,
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid,
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid.oma-cal-grid {
+    display: grid !important;
+    width: calc(7 * var(--oma-cal-day-col)) !important;
+    min-width: calc(7 * var(--oma-cal-day-col)) !important;
+    max-width: none !important;
+    overflow: visible !important;
+    grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
+    grid-auto-rows: minmax(108px, auto) !important;
+    align-content: start !important;
+    box-sizing: border-box !important;
+  }
+
+  html body [data-testid='demo-content-cal-scroll'] .oma-cal-grid[data-hide-weekends='true'],
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid[data-hide-weekends='true'],
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] {
+    width: calc(5 * var(--oma-cal-day-col)) !important;
+    min-width: calc(5 * var(--oma-cal-day-col)) !important;
+    grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;
+  }
+
+  html body [data-testid='demo-content-cal-scroll'] .oma-cal-dow-row,
+  html body [data-testid='demo-content-calendar'] .oma-cal-dow-row {
+    display: grid !important;
+    grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
+    width: calc(7 * var(--oma-cal-day-col)) !important;
+    min-width: calc(7 * var(--oma-cal-day-col)) !important;
+    max-width: none !important;
+  }
+
+  html
+    body
+    [data-testid='demo-content-cal-scroll']
+    .oma-cal-grid[data-hide-weekends='true']
+    .oma-cal-dow-row,
+  html
+    body
+    [data-testid='demo-content-calendar']
+    .oma-cal-grid[data-hide-weekends='true']
+    .oma-cal-dow-row {
+    grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;
+    width: calc(5 * var(--oma-cal-day-col)) !important;
+    min-width: calc(5 * var(--oma-cal-day-col)) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell {
+    position: relative !important;
+    min-width: var(--oma-cal-day-col) !important;
+    max-width: none !important;
+    width: auto !important;
+    min-height: 108px !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 4px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Post / note — desktop-like row: 50% each, dashed tiles */
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions,
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions--icon-row {
+    display: flex !important;
+    position: relative !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    gap: 4px !important;
+    width: 100% !important;
+    margin: 0 0 4px !important;
+    padding: 0 !important;
+    z-index: 6 !important;
+    pointer-events: auto !important;
+    order: unset !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 1 50% !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    padding: 0 6px !important;
+    gap: 4px !important;
+    border: 1px dashed #c9cdd3 !important;
+    border-radius: 8px !important;
+    background: var(--oma-surface, #fff) !important;
+    box-shadow: none !important;
+    color: #5e6166 !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__label {
+    display: inline !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 10px !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn .oma-lucide {
+    width: 12px !important;
+    height: 12px !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell-actions__btn:hover {
+    border-color: var(--oma-primary, #3b82f6) !important;
+    color: var(--oma-primary, #1d4ed8) !important;
+    background: #f8fbff !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-item-wrap {
+    padding-inline-end: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-item--has-menu .oma-cal-item__inner {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-card-actions-btn--in-card {
+    position: absolute !important;
+    top: 2px !important;
+    inset-inline-end: 2px !important;
+    inset-inline-start: auto !important;
+    bottom: auto !important;
+    z-index: 4 !important;
+    background: color-mix(in srgb, var(--oma-surface, #fff) 90%, transparent) !important;
+  }
+
+  html body .oma-card-menu--float {
+    width: min(200px, calc(100vw - 16px)) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 4px !important;
+    font-size: 12px !important;
+    overflow: visible !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-card-menu--float .oma-card-menu__item {
+    min-height: 30px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-pv-chip--campaign,
+  html body [data-testid='demo-content-calendar'] .oma-pv-chip {
+    max-width: 72px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+  }
+
+  html body .oma-plan-post .oma-compose-pills--icon-only {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-plan-post .oma-compose-pills--icon-only .oma-compose-pill-wrap {
+    flex: 0 0 auto !important;
+  }
+
+  html body .oma-plan-post .oma-compose-pill--icon.oma-icon-action {
+    flex: 0 0 auto !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-plan-post__top-end {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  html body .oma-plan-post__top-end .oma-plan-post__icon-btn.oma-icon-action {
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    min-height: var(--oma-icon-action-size, 32px) !important;
+  }
+
+  html body .oma-plan-post__top-end .oma-plan-post__icon-btn .oma-lucide {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  html body .oma-plan-post__top-end .oma-plan-post__tool-btn,
+  html body .oma-plan-post__top-end .oma-plan-post__share {
+    display: none !important;
+  }
+
+  html body .oma-plan-post__top .oma-plan-post__secondary {
+    display: inline-flex !important;
+  }
+
+  html body .oma-plan-post__more-mobile {
+    display: none !important;
+  }
+
+  /* Request-approval selection checkbox on calendar cards */
+  html body [data-testid='demo-content-calendar'] .oma-cal-select {
+    position: absolute !important;
+    top: 3px !important;
+    inset-inline-start: 3px !important;
+    inset-inline-end: auto !important;
+    z-index: 7 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    background: color-mix(in srgb, var(--oma-surface, #fff) 94%, transparent) !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+    border: 1px solid var(--oma-home-border, #e5e7eb) !important;
+    cursor: pointer !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-select:has(input:checked) {
+    border-color: var(--oma-primary, #1677ff) !important;
+    background: color-mix(
+      in srgb,
+      var(--oma-primary, #1677ff) 10%,
+      var(--oma-surface, #fff)
+    ) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-select input[type='checkbox'] {
+    width: 14px !important;
+    height: 14px !important;
+    margin: 0 !important;
+    accent-color: var(--oma-primary, #1677ff) !important;
+    cursor: pointer !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell__scroll {
+    max-height: min(148px, 42vw) !important;
+    margin-top: 22px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell .oma-post-card--calendar,
+  html
+    body
+    [data-testid='demo-content-calendar']
+    .oma-cal-cell
+    .oma-post-card.oma-post-card--calendar {
+    min-height: 0 !important;
+    max-height: 120px !important;
+    padding: 4px 6px !important;
+    font-size: 10px !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-card-actions-btn,
+  html body [data-testid='demo-content-calendar'] .oma-card-actions-btn--cal,
+  html body [data-testid='demo-content-calendar'] .oma-card-actions-btn.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: var(--oma-icon-action-size, 24px) !important;
+    height: var(--oma-icon-action-size, 24px) !important;
+    min-width: var(--oma-icon-action-size, 24px) !important;
+    min-height: var(--oma-icon-action-size, 24px) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-card-actions-btn .anticon {
+    font-size: var(--oma-icon-action-glyph, 14px) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-daynum {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Feed: keep cards inside viewport */
+  html body .oma-plx-content-feed,
+  html body .oma-content-feed.oma-plx-content-feed {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 8px 8px 20px !important;
+    box-sizing: border-box !important;
+    overflow-x: clip !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-pv-feed-stories {
+    padding-inline: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-content-feed .oma-pp,
+  html body .oma-plx-content-feed .oma-fp,
+  html body .oma-feed-card,
+  html body .oma-feed-card__column {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-content.oma-content-plan {
+    min-width: 0 !important;
+    overflow-x: visible !important;
+  }
+
+  /* Compose: scrollable overlay (not a fixed centered trap) */
+  html body .oma-compose-overlay {
+    align-items: flex-start !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: max(12px, env(safe-area-inset-top, 12px)) 8px
+      calc(env(safe-area-inset-bottom, 0px) + 24px) !important;
+  }
+
+  html body .oma-plx-compose-card.oma-compose-card,
+  html body .oma-compose-card {
+    width: min(100%, calc(100vw - 16px)) !important;
+    max-height: none !important;
+    margin: 0 auto 16px !important;
+    overflow: visible !important;
+  }
+
+  html body .oma-plx-compose-card .oma-compose-pills--inline,
+  html body .oma-compose-card .oma-compose-pills--inline {
+    padding: 12px 14px 0 !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-compose-save-menu {
+    position: relative !important;
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body .oma-compose-save-flyout {
+    position: absolute !important;
+    inset-inline-end: 0 !important;
+    bottom: calc(100% + 6px) !important;
+    z-index: 1300 !important;
+    min-width: 168px !important;
+    padding: 4px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--oma-home-border, #e5e7eb) !important;
+    background: var(--oma-surface, #fff) !important;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16) !important;
+  }
+
+  html body .oma-compose-save-flyout button {
+    display: flex !important;
+    width: 100% !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    text-align: start !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--oma-workspace-ink, #111827) !important;
+    cursor: pointer !important;
+  }
+
+  html body .oma-compose-save-flyout button:hover {
+    background: var(--oma-home-hover, #f3f4f6) !important;
+  }
+
+  /* My approvals — compact columns/cards + header icons + channel sheet in viewport */
+  html body #oma-content-top-actions:has(.oma-plx-approvals__top-actions) {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    gap: 2px !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions {
+    gap: 2px !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__action-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions--icons {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions--icons > * {
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    display: inline-flex !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action,
+  html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    max-width: var(--oma-icon-action-size, 32px) !important;
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action .anticon,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action .anticon,
+  html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action .anticon,
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action svg,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action svg,
+  html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action svg,
+  html body #oma-content-top-actions .oma-plx-approvals__top-actions .oma-lucide {
+    font-size: var(--oma-icon-action-glyph, 16px) !important;
+    width: var(--oma-icon-action-glyph, 16px) !important;
+    height: var(--oma-icon-action-glyph, 16px) !important;
+    min-width: var(--oma-icon-action-glyph, 16px) !important;
+    min-height: var(--oma-icon-action-glyph, 16px) !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    flex: 0 0 auto !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action:disabled,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action:disabled {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 0.45 !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action:hover,
+  html body #oma-content-top-actions .oma-plx-approvals__approve-all-btn.oma-icon-action:active,
+  html
+    body
+    #oma-content-top-actions
+    .oma-plx-approvals__approve-all-btn.oma-icon-action:focus-visible,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action:hover,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action:active,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action:focus-visible,
+  html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action:hover,
+  html body #oma-content-top-actions .oma-plx-approvals-ch-dd__trigger.oma-icon-action:active {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action--compose,
+  html body #oma-content-top-actions .oma-plx-approvals__review-cta.oma-icon-action--compose:hover {
+    color: var(--oma-primary, #1677ff) !important;
+    background: transparent !important;
+  }
+
+  html body .oma-plx-approvals__column-wrap,
+  html body .oma-shim-approvals .oma-plx-approvals__column-wrap {
+    flex: 0 0 min(70vw, 222px) !important;
+    width: min(70vw, 222px) !important;
+    max-width: min(70vw, 222px) !important;
+  }
+
+  html body .oma-plx-approvals-card__brand {
+    font-size: 10px !important;
+    max-width: 44% !important;
+  }
+
+  html body .oma-plx-approvals-card__media {
+    flex: 0 0 104px !important;
+    height: 104px !important;
+    min-height: 104px !important;
+    max-height: 104px !important;
+    aspect-ratio: auto !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-plx-approvals-card__media img,
+  html body .oma-plx-approvals-card__media video {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  html body .oma-plx-approvals-channels,
+  html body .oma-plx-approvals-channels.oma-plx-approvals-channels--portal {
+    width: min(236px, calc(100vw - 16px)) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 8px !important;
+    font-size: 11px !important;
+    max-height: min(340px, calc(100dvh - 128px)) !important;
+    overflow: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-approvals-channels__row,
+  html body .oma-plx-approvals-channels__row-label {
+    font-size: 11px !important;
+  }
+
+  html body .oma-plx-approvals-channels__head {
+    font-size: 10px !important;
+  }
+
+  /* ── Requests list: flat white tabs + table (no card chrome) ──────────── */
+  html body main.oma-container:has(.oma-plx-requests),
+  html body .oma-container:has(.oma-plx-requests) {
+    padding: 4px 6px 12px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests {
+    max-width: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-workspace-surface {
+    padding: 0 4px 8px !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-listening__intro {
+    margin: 2px 0 6px !important;
+    padding: 0 2px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-listening__title {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    font-weight: 600 !important;
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv__subtitle,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-listening__next-check {
+    font-size: 11px !important;
+  }
+
+  html body .oma-plx-requests-panel--flat.oma-plx-listening-panel,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-requests-panel.oma-plx-listening-panel {
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-panel__head {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups.oma-plx-requests-tabs {
+    border-radius: 6px 6px 0 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:first-child {
+    border-start-start-radius: 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:last-child {
+    border-start-end-radius: 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell--plain .oma-req-avatar,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell--plain > .oma-req-avatar {
+    display: none !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell--plain {
+    gap: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-requests-panel__body {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-requests-table,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table-wrap {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 8px 10px 10px !important;
+    background: var(--oma-surface, #fff) !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table {
+    font-size: 10px !important;
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td {
+    padding: 4px 5px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 120px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table thead th {
+    font-size: 9px !important;
+    font-weight: 600 !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th:first-child,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child {
+    max-width: none !important;
+    min-width: 28vw !important;
+    width: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child .oma-text-link,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child a {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    display: inline !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-panel__head {
+    overflow: visible !important;
+    border-radius: 6px 6px 0 0 !important;
+    background: var(--oma-surface, #fff) !important;
+    padding: 4px 4px 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups.oma-plx-requests-tabs {
+    border-radius: 6px 6px 0 0 !important;
+    overflow: visible !important;
+    background: var(--oma-home-track, #f3f4f6) !important;
+    padding: 2px 2px 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:first-child {
+    border-start-start-radius: 6px !important;
+    border-start-end-radius: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn:last-child {
+    border-start-end-radius: 6px !important;
+    border-start-start-radius: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-groups__btn.is-active {
+    background: var(--oma-surface, #fff) !important;
+    border-radius: 6px 6px 0 0 !important;
+  }
+
+  html body .oma-plx-req-detail__side {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* ── Request detail: full width, compact fields grid, unified actions ─ */
+  html body main.oma-container:has(.oma-plx-req-detail),
+  html body .oma-container:has(.oma-plx-req-detail) {
+    padding: 4px 10px 14px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-req-detail {
+    max-width: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-plx-workspace-surface {
+    padding: 0 4px 10px !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  html body .oma-plx-req-detail__top.oma-plx-listening-panel,
+  html body .oma-plx-req-detail__top.oma-req-detail__top--row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin: 0 0 4px !important;
+    padding: 6px 8px !important;
+    box-shadow: none !important;
+    border-bottom: 0 !important;
+    background: var(--oma-surface, #fff) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__back--compact {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    color: var(--oma-workspace-ink, #111827) !important;
+    text-decoration: none !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__back--compact .oma-dir-icon {
+    flex: 0 0 auto !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__top-left {
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__back {
+    font-size: 11px !important;
+    padding: 4px 0 !important;
+  }
+
+  html body .oma-plx-req-detail__top-actions {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 5px !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
+    justify-content: flex-end !important;
+  }
+
+  html body .oma-plx-req-detail__top-actions .oma-req-detail__action-btn,
+  html body .oma-plx-req-detail__top-actions .oma-req-detail__action-btn.ant-btn {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    border-radius: 7px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title-block.oma-plx-listening-panel {
+    margin: 0 0 6px !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title,
+  html body .oma-plx-req-detail .oma-req-detail__title .ant-input,
+  html body .oma-plx-req-detail .oma-req-detail__title input {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__desc {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    margin: 4px 0 0 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-plx-workspace-surface {
+    padding: 0 0 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  html body .oma-plx-req-detail .oma-plx-req-card.oma-plx-listening-panel,
+  html body .oma-plx-req-detail .oma-req-detail__card.oma-plx-listening-panel {
+    margin: 0 0 6px !important;
+    padding: 8px 10px !important;
+    border-radius: 0 !important;
+    border-inline: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card--brief .oma-req-detail__card-head {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card--brief .oma-req-detail__card-head-text {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  html
+    body
+    .oma-plx-req-detail
+    .oma-req-detail__card--brief
+    .oma-req-detail__card-head
+    .oma-req-detail__action-btn {
+    flex: 0 0 auto !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    padding: 0 7px !important;
+    font-size: 9px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card-head,
+  html body .oma-plx-req-detail .oma-req-detail__card-head.oma-plx-listening-panel__head {
+    margin: 0 0 8px !important;
+    padding: 0 0 6px !important;
+    font-size: 12px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__card-head strong {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__meta {
+    font-size: 11px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__fields {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px 10px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__fields label {
+    font-size: 10px !important;
+    gap: 4px !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__fields .ant-select,
+  html body .oma-plx-req-detail .oma-req-detail__fields input,
+  html body .oma-plx-req-detail .oma-req-detail__fields select {
+    font-size: 12px !important;
+    min-height: 32px !important;
+  }
+
+  html body .oma-plx-req-detail__workspace,
+  html body .oma-plx-req-detail .oma-req-detail__workspace {
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__side-card.oma-plx-listening-panel {
+    padding: 8px 10px !important;
+    margin: 0 0 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__side-row {
+    font-size: 11px !important;
+    padding: 4px 0 !important;
+  }
+
+  html body .oma-plx-req-detail__workspace {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title-block--flat,
+  html body .oma-plx-req-detail .oma-req-detail__title-block.oma-req-detail__title-block--flat {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    margin: 0 0 4px !important;
+    padding: 4px 2px 6px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title-input,
+  html body .oma-plx-req-detail .oma-req-detail__title input.oma-req-detail__title-input {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+    color: var(--oma-workspace-ink, #111827) !important;
+    box-sizing: border-box !important;
+    min-height: 0 !important;
+    appearance: none !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__action-btn,
+  html body .oma-plx-req-detail .oma-req-detail__action-btn.ant-btn,
+  html body .oma-plx-req-detail .oma-req-detail__card-head .ant-btn {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-plx-req-detail,
+  html body .oma-plx-req-detail .oma-callout,
+  html body .oma-plx-req-detail .oma-muted,
+  html body .oma-plx-req-detail .oma-link,
+  html body .oma-plx-req-detail .oma-req-detail__link,
+  html body .oma-plx-req-detail .oma-comment-body,
+  html body .oma-plx-req-detail .oma-req-detail__desc,
+  html body .oma-plx-req-detail p {
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-brief-field__label,
+  html body .oma-plx-req-detail .oma-req-detail__fields > label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    color: var(--oma-workspace-ink-soft, #5e6166) !important;
+  }
+
+  html body .oma-plx-req-detail .oma-brief-field textarea,
+  html body .oma-plx-req-detail .oma-brief-field .ant-input,
+  html body .oma-plx-req-detail .oma-brief-field input,
+  html body .oma-plx-req-detail .oma-brief-field .ant-input-textarea textarea,
+  html body .oma-plx-req-detail .oma-brief-layout textarea,
+  html body .oma-plx-req-detail .oma-brief-layout input {
+    font-size: 10px !important;
+    line-height: 1.4 !important;
+    font-weight: 400 !important;
+    min-height: 28px !important;
+    padding: 5px 7px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-channel-dropdown__trigger {
+    min-height: 30px !important;
+    padding: 5px 8px !important;
+    font-size: 10px !important;
+    border-radius: 7px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-channel-dropdown__summary {
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-brief-field--channels {
+    margin-bottom: 8px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  html body .oma-plx-approvals__board,
+  html body .oma-shim-approvals .oma-plx-approvals__board {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  html body .oma-plx-approvals__column-wrap,
+  html body .oma-shim-approvals .oma-plx-approvals__column-wrap {
+    flex: initial !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-plx-approvals__columns,
+  html body .oma-shim-approvals .oma-plx-approvals__columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  html body .oma-plx-approvals__column,
+  html body .oma-shim-approvals .oma-plx-approvals__column {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-approvals-card,
+  html body .oma-shim-approvals .oma-plx-approvals-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-plx-approvals__cards {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/*
+ * Typography unification (requests).
+ * Conflicts: inbox-listening `.oma-plx-compose` (12px uppercase labels),
+ * stage4 `.oma-req-create`, shell nav (13px) vs table (11px in this file).
+ */
+
+html body .oma-plx-compose-dialog .oma-plx-compose-panel.oma-plx-listening-panel {
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  box-shadow: none !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-compose-dialog .ant-modal-body {
+  padding: 10px 12px 12px !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-compose-dialog .ant-modal-header .ant-modal-title h2 {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose label,
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-compose__label,
+html body .oma-req-create label,
+html body .oma-req-create .oma-req-create__label {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  color: var(--oma-workspace-ink-soft, #5e6166) !important;
+  gap: 4px !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose input,
+html body .oma-plx-compose-dialog .oma-plx-compose textarea,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-select,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-select-selector,
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-select,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-picker,
+html body .oma-plx-compose-dialog .oma-plx-compose .ant-picker-input input,
+html body .oma-req-create input,
+html body .oma-req-create textarea,
+html body .oma-req-create .ant-picker,
+html body .oma-req-create .oma-select {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  font-weight: 400 !important;
+  min-height: 32px !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-compose__chip {
+  font-size: 10px !important;
+  padding: 4px 8px !important;
+  min-height: 26px !important;
+}
+
+html body .oma-plx-compose-dialog .oma-plx-compose .oma-compose__note {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-compose-dialog .oma-channel-dropdown__trigger,
+html body .oma-plx-compose-dialog .oma-channel-dropdown__trigger.oma-card {
+  border: 1px solid var(--oma-home-border, #e5e7eb) !important;
+  border-radius: 7px !important;
+  background: var(--oma-surface, #fff) !important;
+  box-shadow: none !important;
+  min-height: 32px !important;
+  padding: 5px 8px !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+}
+
+html body .oma-plx-compose-dialog .oma-channel-dropdown__summary {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-plx-compose-dialog__foot .oma-plx-compose-dialog__btn,
+html body .oma-plx-compose-dialog__foot .oma-plx-compose-dialog__btn.ant-btn,
+html body .oma-req-create__footer .oma-plx-compose-dialog__btn.ant-btn {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link,
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link-label,
+  html body .oma-shell .oma-nav-link,
+  html body .oma-shell .oma-rail .oma-nav-link {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    font-weight: 500 !important;
+  }
+
+  html body .oma-drawer.oma-drawer--nav .oma-nav-section,
+  html body .oma-shell .oma-nav-section {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link-icon,
+  html body .oma-shell .oma-nav-link-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* ── Request detail: beat stage4 / inbox / mobile-surfaces !important layers ─ */
+@media (max-width: 900px) {
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__top,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__top,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__top--row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 6px 8px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid var(--oma-home-border, #eceef1) !important;
+    background: var(--oma-surface, #fff) !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__top-actions,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__top-actions {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 5px !important;
+    width: auto !important;
+    max-width: none !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__top-actions .ant-btn,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__top-actions button,
+  html
+    body
+    .oma-shell
+    .oma-plx-listening.oma-plx-req-detail
+    .oma-req-detail__top-actions
+    .oma-req-detail__action-btn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__workspace,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__workspace {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    grid-template-columns: none !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__main,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__main {
+    width: 100% !important;
+    max-width: none !important;
+    gap: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__card,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-card,
+  html
+    body
+    .oma-shell
+    .oma-plx-listening.oma-plx-req-detail
+    .oma-plx-listening-panel.oma-req-detail__card {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 0 8px !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--oma-home-border, #eceef1) !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__top--row {
+    margin: 0 0 8px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--oma-home-border, #eceef1) !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-block--flat {
+    margin: 0 0 10px !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--oma-home-border, #eceef1) !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+
+  html
+    body
+    .oma-shell
+    .oma-plx-listening.oma-plx-req-detail
+    .oma-req-detail__card[data-testid='demo-request-completeness'] {
+    margin-top: 2px !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__card-head,
+  html
+    body
+    .oma-shell
+    .oma-plx-listening.oma-plx-req-detail
+    .oma-req-detail__card-head.oma-plx-listening-panel__head {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-block--flat {
+    padding: 8px 10px !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-input {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__desc {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__card-head .ant-btn,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__action-btn.ant-btn {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+  }
+
+  /* Requests table — single-line rows + horizontal scroll */
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-height: none !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table {
+    table-layout: auto !important;
+    width: max-content !important;
+    min-width: 100% !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    vertical-align: middle !important;
+    padding: 5px 6px !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    max-width: 168px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table thead th {
+    font-weight: 600 !important;
+    position: static !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th:first-child,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td:first-child {
+    max-width: none !important;
+    min-width: 28vw !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-title-cell .oma-muted {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+  }
+
+  /* Requests type stack (match «كل الطلبات» / back link grammar) */
+  html body .oma-plx-listening.oma-plx-requests,
+  html body .oma-plx-listening.oma-plx-req-detail,
+  html body .oma-plx-compose-dialog--requests,
+  html body .oma-plx-compose-dialog--tasks,
+  html body .oma-drawer.oma-drawer--nav {
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__back--compact,
+  html body .oma-plx-listening.oma-plx-req-detail label,
+  html body .oma-plx-listening.oma-plx-req-detail .oma-brief-field__label,
+  html body .oma-plx-listening.oma-plx-req-detail .oma-req-detail__card-head strong,
+  html body .oma-plx-compose-dialog--requests label,
+  html body .oma-plx-compose-dialog--tasks label,
+  html body .oma-plx-compose-dialog--requests .oma-compose__label,
+  html body .oma-plx-compose-dialog--tasks .oma-compose__label {
+    font-family: inherit !important;
+    font-weight: 600 !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__action-btn,
+  html body .oma-plx-compose-dialog--requests .oma-plx-compose-dialog__btn,
+  html body .oma-plx-compose-dialog--tasks .oma-plx-compose-dialog__btn {
+    font-family: inherit !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-plx-req-detail input,
+  html body .oma-plx-req-detail textarea,
+  html body .oma-plx-req-detail select,
+  html body .oma-plx-req-detail .oma-select,
+  html body .oma-plx-compose-dialog--requests input,
+  html body .oma-plx-compose-dialog--tasks input,
+  html body .oma-plx-compose-dialog--requests textarea,
+  html body .oma-plx-compose-dialog--tasks textarea,
+  html body .oma-plx-compose-dialog--requests .oma-select,
+  html body .oma-plx-compose-dialog--tasks .oma-select {
+    font-family: inherit !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Ant / Oma select — prevent clipped selection text */
+  html body .oma-plx-req-detail .ant-select-selector,
+  html body .oma-plx-compose-dialog--requests .ant-select-selector,
+  html body .oma-plx-compose-dialog--tasks .ant-select-selector {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 30px !important;
+    height: 30px !important;
+    padding-block: 0 !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-plx-req-detail .ant-select-selection-item,
+  html body .oma-plx-req-detail .ant-select-selection-placeholder,
+  html body .oma-plx-compose-dialog--requests .ant-select-selection-item,
+  html body .oma-plx-compose-dialog--tasks .ant-select-selection-item,
+  html body .oma-plx-compose-dialog--requests .ant-select-selection-placeholder,
+  html body .oma-plx-compose-dialog--tasks .ant-select-selection-placeholder {
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    align-self: center !important;
+    padding-block: 0 !important;
+  }
+
+  html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__trigger,
+  html body .oma-plx-compose-dialog--tasks .oma-channel-dropdown__trigger,
+  html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__summary,
+  html body .oma-plx-compose-dialog--tasks .oma-channel-dropdown__summary,
+  html body .oma-plx-req-detail .oma-channel-dropdown__trigger,
+  html body .oma-plx-req-detail .oma-channel-dropdown__summary {
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    font-weight: 400 !important;
+  }
+}
+
+/* Create request dialog (--requests): beat globals .oma-compose__grid + inbox panel */
+html body .oma-plx-compose-dialog--requests .ant-modal-body,
+html body .oma-plx-compose-dialog--tasks .ant-modal-body,
+html body .oma-plx-compose-dialog--requests .oma-plx-compose-dialog .ant-modal-body,
+html body .oma-plx-compose-dialog--tasks .oma-plx-compose-dialog .ant-modal-body {
+  padding: 8px 10px 10px !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-plx-compose-panel.oma-plx-listening-panel,
+html body .oma-plx-compose-dialog--tasks .oma-plx-compose-panel.oma-plx-listening-panel {
+  padding: 8px 10px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__grid,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid,
+html body .oma-plx-compose-dialog--requests .oma-plx-compose__grid,
+html body .oma-plx-compose-dialog--tasks .oma-plx-compose__grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px 8px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__wide,
+html body .oma-plx-compose-dialog--tasks .oma-compose__wide,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid > .oma-compose__wide,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid > .oma-compose__wide {
+  grid-column: 1 / -1 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__grid > label,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid > label,
+html body .oma-plx-compose-dialog--requests .oma-compose__label,
+html body .oma-plx-compose-dialog--tasks .oma-compose__label,
+html body .oma-plx-compose-dialog--requests label,
+html body .oma-plx-compose-dialog--tasks label {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: var(--oma-workspace-ink-soft, #5e6166) !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  gap: 4px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__grid input,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid input,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid textarea,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid textarea,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .ant-select,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .ant-select,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .ant-select-selector,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .ant-select-selector,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .oma-select,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .oma-select,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .ant-picker-input input,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .ant-picker-input input {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  min-height: 32px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__chip,
+html body .oma-plx-compose-dialog--tasks .oma-compose__chip {
+  font-size: 10px !important;
+  min-height: 26px !important;
+  padding: 4px 8px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__note,
+html body .oma-plx-compose-dialog--tasks .oma-compose__note,
+html body .oma-plx-compose-dialog--requests .oma-compose__alert,
+html body .oma-plx-compose-dialog--tasks .oma-compose__alert {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-header,
+html body .oma-plx-compose-dialog--tasks .ant-modal-header {
+  padding: 10px 12px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-header .ant-modal-title h2,
+html body .oma-plx-compose-dialog--tasks .ant-modal-header .ant-modal-title h2 {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-footer,
+html body .oma-plx-compose-dialog--tasks .ant-modal-footer {
+  padding: 8px 10px !important;
+}
+
+html
+  body
+  .oma-plx-compose-dialog--requests
+  .oma-plx-compose-dialog__foot
+  .oma-plx-compose-dialog__btn,
+html body .oma-plx-compose-dialog--tasks .oma-plx-compose-dialog__foot .oma-plx-compose-dialog__btn,
+html
+  body
+  .oma-plx-compose-dialog--requests
+  .oma-plx-compose-dialog__foot
+  .oma-req-detail__action-btn.ant-btn,
+html
+  body
+  .oma-plx-compose-dialog--tasks
+  .oma-plx-compose-dialog__foot
+  .oma-req-detail__action-btn.ant-btn {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  line-height: 1.2 !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-select-selector,
+html body .oma-plx-compose-dialog--tasks .ant-select-selector {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  padding-block: 0 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-select-selection-item,
+html body .oma-plx-compose-dialog--tasks .ant-select-selection-item,
+html body .oma-plx-compose-dialog--requests .ant-select-selection-placeholder,
+html body .oma-plx-compose-dialog--tasks .ant-select-selection-placeholder {
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+  align-self: center !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__summary,
+html body .oma-plx-compose-dialog--tasks .oma-channel-dropdown__summary {
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-drawer.oma-drawer--nav,
+html body .oma-drawer.oma-drawer--nav .oma-nav-link {
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+}
+
+html body main.oma-container:has(.oma-plx-requests) {
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+@media (min-width: 1024px) {
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__workspace,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__workspace {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 300px) !important;
+    grid-template-rows: auto !important;
+    align-items: start !important;
+    gap: 12px 14px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__main {
+    grid-column: 1 !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-plx-req-detail__side {
+    grid-column: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title input {
+    border: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__title-block--flat {
+    margin-bottom: 12px !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field textarea,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field .ant-input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field__formats,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-field__formats.ant-input {
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+    min-height: 52px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__fields input,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__fields select,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-req-detail__fields .oma-select,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-brief-layout .oma-select {
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-channel-dropdown__trigger,
+  html body .oma-shell .oma-plx-listening.oma-plx-req-detail .oma-channel-dropdown__summary {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+}
+
+/* Requests table — compact type on phone only (laptop: oma-typography-unified.css) */
+@media (max-width: 767px) {
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td {
+    font-size: 9px !important;
+    max-width: 120px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th:first-child,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td:first-child {
+    max-width: none !important;
+    min-width: 28vw !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table td,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table th,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-text-link,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-req-table__sub,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .oma-muted,
+  html body .oma-plx-listening.oma-plx-requests .oma-req-table .ant-tag,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table td,
+  html body .oma-plx-listening.oma-plx-requests .oma-plx-deliv-table th {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+  }
+}
+
+html body .oma-plx-listening.oma-plx-requests .oma-req-table td .oma-req-avatar,
+html
+  body
+  .oma-plx-listening.oma-plx-requests
+  .oma-req-table
+  .oma-req-title-cell--plain
+  .oma-req-avatar {
+  display: none !important;
+}
+
+html body .oma-plx-req-detail .oma-req-detail__side-card h3,
+html body .oma-plx-req-detail .oma-req-detail__side-label {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-req-detail .oma-req-detail__side-row strong {
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  line-height: 1.25 !important;
+  font-family: inherit !important;
+}
+
+html body .oma-plx-req-detail .oma-channel-dropdown__trigger,
+html body .oma-plx-req-detail .oma-channel-dropdown__summary,
+html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__trigger,
+html body .oma-plx-compose-dialog--tasks .oma-channel-dropdown__trigger,
+html body .oma-plx-compose-dialog--requests .oma-channel-dropdown__summary,
+html body .oma-plx-compose-dialog--tasks .oma-channel-dropdown__summary {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+@media (min-width: 1024px) {
+  html body .oma-plx-req-detail__side .oma-req-detail__comments {
+    margin-bottom: 10px !important;
+  }
+
+  html body .oma-plx-req-detail .oma-req-detail__title-block--flat {
+    margin-bottom: 14px !important;
+  }
+}
+
+/* ── Project filter/sort popover (PlxHeaderFilter + deliv panel) ─────────── */
+html body .oma-plx-filter-popover,
+html body .oma-plx-deliv-filter-panel,
+html body .oma-req-filter-panel {
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body .oma-plx-filter-popover__head,
+html body .oma-plx-deliv-filter-panel__head,
+html body .oma-req-filter-panel__head {
+  min-height: 40px !important;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-plx-filter-popover__head strong,
+html body .oma-plx-deliv-filter-panel__head strong {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+}
+
+html body .oma-plx-filter-popover .oma-filter-accordion__row,
+html body .oma-plx-filter-popover .oma-filter-accordion__body,
+html body .oma-plx-filter-popover .oma-filter-check,
+html body .oma-plx-deliv-filter-panel .oma-filter-accordion__row,
+html body .oma-plx-deliv-filter-panel .oma-filter-accordion__body,
+html body .oma-plx-deliv-filter-panel .oma-filter-check,
+html body .oma-req-filter-panel .oma-filter-accordion__row,
+html body .oma-req-filter-panel .oma-filter-accordion__body,
+html body .oma-req-filter-panel .oma-filter-check {
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+}
+
+html body .oma-plx-filter-popover .oma-filter-accordion__row {
+  padding: 6px 4px !important;
+  gap: 8px !important;
+}
+
+html body .oma-plx-filter-popover__foot,
+html body .oma-plx-deliv-filter-panel__foot {
+  font-size: 10px !important;
+}
+
+html body .oma-plx-deliv-filter-panel__close.oma-icon-action,
+html body button.oma-plx-deliv-filter-panel__close,
+html body .oma-req-filter-panel__close.oma-icon-action,
+html body button.oma-req-filter-panel__close {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+html body .oma-plx-deliv-filter-panel__close.oma-icon-action:hover,
+html body .oma-plx-deliv-filter-panel__close.oma-icon-action:focus-visible,
+html body .oma-req-filter-panel__close.oma-icon-action:hover,
+html body .oma-req-filter-panel__close.oma-icon-action:focus-visible,
+html body button.oma-req-filter-panel__close:hover,
+html body button.oma-req-filter-panel__close:focus-visible {
+  color: var(--oma-primary, #1677ff) !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+}
+
+html body .oma-plx-deliv-filter-panel__close svg.oma-lucide,
+html body .oma-plx-deliv-filter-panel__close svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+/* ── Bare Lucide icons (no 32px tile, tight strip) ─────────────────────── */
+html body .oma-icon-action.oma-icon-action--bare,
+html body .oma-plx-approvals__top-actions--icons .oma-icon-action,
+html body #oma-workspace-top-actions .oma-icon-action--bare,
+html body #oma-content-top-actions .oma-icon-action--bare {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+html body .oma-plx-approvals-ch-dd__trigger.oma-icon-action--bare,
+html body .oma-plx-approvals__approve-all-btn.oma-icon-action--bare,
+html body .oma-plx-approvals__review-cta.oma-icon-action--bare {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .oma-icon-action.oma-icon-action--bare .oma-lucide,
+html body .oma-icon-action.oma-icon-action--bare svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+html body .oma-plx-approvals__top-actions--icons {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+html body .oma-workspace-top-actions-inner--icon-strip,
+html body #oma-workspace-top-actions .oma-workspace-top-actions-inner--icon-strip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+html body .oma-campaign-layout-switch--icons {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── Tasks board: exact approvals column + card chrome ───────────────── */
+html body .oma-plx-tasks,
+html body .oma-plx-tasks .oma-plx-workspace-surface,
+html body .oma-plx-deliverables.oma-plx-tasks {
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-tasks .oma-plx-tasks-panel,
+html body .oma-plx-tasks .oma-plx-tasks-panel .oma-plx-approvals__board {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+}
+
+html body .oma-plx-tasks .oma-plx-tasks__columns {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 18px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  align-items: stretch !important;
+  padding-bottom: 8px !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+html body .oma-plx-tasks .oma-plx-tasks__columns .oma-plx-approvals__column-wrap {
+  flex: 0 0 min(70vw, 222px) !important;
+  width: min(70vw, 222px) !important;
+  max-width: min(70vw, 222px) !important;
+  min-width: 0 !important;
+  min-height: auto !important;
+  max-height: none !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals__column {
+  min-height: min(68vh, 560px) !important;
+  max-height: calc(100dvh - 148px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  background: var(--oma-canvas, #f9fafb) !important;
+  border-radius: 12px !important;
+  padding: 10px !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals__cards {
+  min-width: 0 !important;
+}
+
+html body .oma-shim-tasks-board.oma-plx-tasks__columns {
+  display: flex !important;
+  gap: 18px !important;
+  overflow-x: auto !important;
+}
+
+html body .oma-shim-tasks-board .oma-plx-approvals__column {
+  max-height: calc(100dvh - 148px) !important;
+  overflow-y: auto !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals-card.is-dragging {
+  opacity: 0.45 !important;
+}
+
+html body .oma-plx-tasks .oma-plx-approvals-card--overlay {
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14) !important;
+}
+
+html body .oma-plx-tasks-view-strip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  margin-inline-end: 2px !important;
+}
+
+html
+  body
+  .oma-workspace-header-actions
+  .oma-plx-tasks-view-strip
+  .oma-icon-action[data-active='true'] {
+  color: var(--oma-primary, #1677ff) !important;
+}
+
+html body .oma-plx-tasks-col__add {
+  margin-inline-start: auto !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  padding: 2px 4px !important;
+}
+
+/* Tasks filter popover: 9px + circular radios */
+html body [data-testid='demo-task-filters'] .oma-filter-accordion__row,
+html body [data-testid='demo-task-filters'] .oma-plx-tasks-filter-panel .oma-filter-accordion__row,
+html body [data-testid='demo-task-filters'] .oma-filter-check,
+html body [data-testid='demo-task-filters'] .oma-filter-accordion__body .ant-input,
+html body [data-testid='demo-task-filters'] input {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+html body [data-testid='demo-task-filters'] .oma-filter-check {
+  min-height: 24px !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+html body [data-testid='demo-task-filters'] .oma-filter-check--radio input[type='radio'] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  margin: 0 !important;
+  border: 1.5px solid #d1d5db !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  accent-color: transparent !important;
+  cursor: pointer !important;
+}
+
+html body [data-testid='demo-task-filters'] .oma-filter-check--radio input[type='radio']:checked {
+  border-color: var(--oma-primary, #1677ff) !important;
+  background: radial-gradient(circle, var(--oma-primary, #1677ff) 42%, #fff 43%) !important;
+}
+
+html body .oma-campaigns-page .oma-req-filter-panel .oma-filter-check,
+html body .oma-campaigns-page .oma-req-filter-panel .oma-filter-accordion__row {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-campaigns-page .oma-req-filter-panel .oma-filter-check {
+  min-height: 24px !important;
+  gap: 6px !important;
+}
+
+html body .oma-campaigns-page .oma-filter-check--radio input[type='radio'] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  border: 1.5px solid #d1d5db !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  accent-color: transparent !important;
+}
+
+html body .oma-campaigns-page .oma-filter-check--radio input[type='radio']:checked {
+  border-color: var(--oma-primary, #1677ff) !important;
+  background: radial-gradient(circle, var(--oma-primary, #1677ff) 42%, #fff 43%) !important;
+}
+
+html body .oma-campaigns-page .oma-req-filter-panel__foot--icons {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0 !important;
+  padding: 8px 10px !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-status-tabs--header {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  border: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-tab-btn--icon.oma-icon-action {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-tab-btn--icon.oma-icon-action[data-active='true'] {
+  color: var(--oma-primary, #1677ff) !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-layout-switch--icons,
+html
+  body
+  .oma-campaigns-page
+  #oma-workspace-top-actions
+  .oma-workspace-top-actions-inner--icon-strip {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  gap: 0 !important;
+}
+
+html body .oma-campaigns-page #oma-workspace-top-actions .oma-header-icon-btn,
+html body .oma-campaigns-page #oma-workspace-top-actions .ant-btn.oma-req-create-button {
+  display: none !important;
+}
+
+html body .oma-plx-listening.oma-plx-requests #oma-workspace-top-actions .oma-lucide {
+  stroke-width: 1.5 !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-plx-tasks .oma-plx-tasks-table,
+  html body .oma-plx-tasks .oma-plx-tasks-table th,
+  html body .oma-plx-tasks .oma-plx-tasks-table td,
+  html body .oma-plx-tasks .oma-plx-tasks-table .oma-plx-tasks-table__title-text,
+  html body .oma-plx-tasks .oma-plx-tasks-table .oma-plx-deliv-table__sub {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+}
+
+html body .oma-task-detail-drawer .oma-task-detail {
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  font-size: 10px !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__head-top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__id,
+html body .oma-task-detail-drawer .oma-task-detail__card h3,
+html body .oma-task-detail-drawer .oma-task-detail__fields label,
+html body .oma-task-detail-drawer .oma-task-detail__field,
+html body .oma-task-detail-drawer .oma-task-detail__feed,
+html body .oma-task-detail-drawer .oma-task-detail__title-input,
+html body .oma-task-detail-drawer input,
+html body .oma-task-detail-drawer select,
+html body .oma-task-detail-drawer textarea {
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+  font-family: inherit !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__title-input {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-campaigns-page #oma-workspace-top-actions .oma-workspace-top-actions-inner,
+html body .oma-campaigns-page #oma-campaign-tabs-slot .oma-campaign-status-tabs--header {
+  gap: 0 !important;
+}
+
+html body .oma-campaigns-page #oma-workspace-top-actions .oma-icon-action,
+html body .oma-campaigns-page #oma-campaign-tabs-slot .oma-icon-action,
+html body .oma-campaigns-page .oma-campaign-tab-btn.oma-icon-action,
+html body .oma-campaigns-page .oma-campaign-layout-switch--icons .oma-icon-action {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0 !important;
+}
+
+html body .oma-campaigns-page #oma-workspace-top-actions .oma-icon-action:hover,
+html body .oma-campaigns-page #oma-campaign-tabs-slot .oma-icon-action[data-active='true'],
+html body .oma-campaigns-page .oma-campaign-tab-btn.oma-icon-action[data-active='true'] {
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+  color: var(--oma-primary, #1677ff) !important;
+}
+
+html body .oma-campaigns-page .oma-campaign-status-tabs--header button:not(.oma-icon-action),
+html body .oma-campaigns-page #oma-workspace-top-actions .oma-header-icon-btn {
+  display: none !important;
+}
+
+html body .oma-lucide--soft {
+  stroke-width: 1.5 !important;
+}
+
+/* Compact create request/task modals */
+html body .oma-plx-compose-dialog--requests .ant-modal,
+html body .oma-plx-compose-dialog--tasks .ant-modal {
+  width: min(480px, calc(100vw - 20px)) !important;
+  max-width: min(480px, calc(100vw - 20px)) !important;
+  margin: 16px auto !important;
+  padding-bottom: 0 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-content,
+html body .oma-plx-compose-dialog--tasks .ant-modal-content {
+  border-radius: 10px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-header,
+html body .oma-plx-compose-dialog--tasks .ant-modal-header {
+  padding: 6px 8px !important;
+  margin-bottom: 0 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-modal-body,
+html body .oma-plx-compose-dialog--tasks .ant-modal-body,
+html body .oma-plx-compose-dialog--requests .oma-plx-compose-panel.oma-plx-listening-panel,
+html body .oma-plx-compose-dialog--tasks .oma-plx-compose-panel.oma-plx-listening-panel {
+  padding: 6px 8px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose,
+html body .oma-plx-compose-dialog--tasks .oma-compose {
+  gap: 6px !important;
+}
+
+@media (max-width: 359px) {
+  html body .oma-plx-compose-dialog--requests .oma-compose__grid,
+  html body .oma-plx-compose-dialog--tasks .oma-compose__grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .ant-select-selection-item,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .ant-select-selection-item,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .ant-select-selection-placeholder,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .ant-select-selection-placeholder,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .oma-choice-select__trigger,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .oma-choice-select__trigger,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .oma-choice-select__value,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .oma-choice-select__value {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+html body .oma-plx-compose-dialog--requests .ant-select-selector,
+html body .oma-plx-compose-dialog--tasks .ant-select-selector {
+  min-height: 28px !important;
+  height: 28px !important;
+}
+
+html body .oma-plx-compose-dialog--requests .oma-compose__grid input,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid input,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid textarea,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid textarea,
+html body .oma-plx-compose-dialog--requests .oma-compose__grid .oma-choice-select__trigger,
+html body .oma-plx-compose-dialog--tasks .oma-compose__grid .oma-choice-select__trigger {
+  min-height: 28px !important;
+}
+
+/* Task detail drawer: icons, compact add rows, choice menu above drawer */
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons .oma-icon-action--bare {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+}
+
+html
+  body
+  .oma-task-detail-drawer
+  .oma-task-detail__head-actions--icons
+  .oma-icon-action--bare:hover,
+html
+  body
+  .oma-task-detail-drawer
+  .oma-task-detail__head-actions--icons
+  .oma-icon-action--bare:focus-visible {
+  color: var(--oma-primary, #1677ff) !important;
+  background: color-mix(in srgb, var(--oma-primary, #1677ff) 8%, transparent) !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons .oma-lucide,
+html body .oma-task-detail-drawer .oma-task-detail__head-actions--icons svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__fields .oma-choice-select__trigger {
+  min-height: 30px !important;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+  border-radius: 7px !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__add-row {
+  align-items: stretch !important;
+  gap: 6px !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__add-row .ant-input,
+html body .oma-task-detail-drawer .oma-task-detail__add-row input {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+html body .oma-task-detail-drawer .oma-task-detail__add-row .ant-btn,
+html body .oma-task-detail-drawer .oma-task-detail__handoff .ant-btn {
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
+  padding: 0 8px !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  border-radius: 7px !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+html body .oma-choice-select__menu.oma-choice-select__menu--floating {
+  z-index: 1400 !important;
+}
+
+html body .oma-choice-select__menu--floating .oma-choice-select__option {
+  font-size: 10px !important;
+  padding: 6px 8px !important;
+}
+
+/* ── Team + Activity: compact type and spacing — mobile only ── */
+@media (max-width: 767px) {
+  html body .oma-plx-listening.oma-plx-team,
+  html body .oma-plx-listening.oma-plx-activity {
+    max-width: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-workspace-surface,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-workspace-surface {
+    padding: 0 4px 8px !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-listening__intro,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__intro {
+    margin: 2px 0 6px !important;
+    padding: 0 2px !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-listening__title,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__title {
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv__subtitle,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv__subtitle,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-listening__next-check,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening__next-check {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-panel.oma-plx-listening-panel,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-panel.oma-plx-listening-panel {
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-panel__head,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-panel__head {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups.oma-plx-team-tabs,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups.oma-plx-activity-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--oma-workspace-border-strong, #e5e7eb) !important;
+    background: transparent !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    text-align: center !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--oma-workspace-muted, #6b7280) !important;
+    font-size: 9px !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
+    padding: 5px 6px !important;
+    margin-bottom: -1px !important;
+    border-bottom: 2px solid transparent !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn.is-active,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-groups__btn[data-active='true'],
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn.is-active,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-groups__btn[data-active='true'] {
+    color: var(--oma-workspace-ink, #111827) !important;
+    font-weight: 600 !important;
+    background: transparent !important;
+    border-bottom-color: var(
+      --oma-workspace-primary-border,
+      var(--oma-primary, #1677ff)
+    ) !important;
+    box-shadow: none !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-panel__body,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-deliv-panel__body,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-panel__body {
+    padding: 6px 4px 8px !important;
+    margin: 0 !important;
+  }
+
+  /* Team member cards */
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-grid {
+    gap: 8px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card {
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__head {
+    gap: 8px !important;
+    grid-template-columns: 32px minmax(0, 1fr) auto !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+    font-size: 10px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__name-row strong {
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__you,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__email,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__membership,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__status,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__online,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__perm-btn,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__remove {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field select,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__field .oma-choice-select__trigger {
+    min-height: 28px !important;
+    font-size: 9px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-card__foot {
+    gap: 6px !important;
+    padding-top: 4px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-empty,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-empty {
+    padding: 12px 8px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-empty h3,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-empty h3,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-empty p,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-empty p {
+    font-size: 9px !important;
+    line-height: 1.3 !important;
+    margin: 0 0 4px !important;
+  }
+
+  /* Team permissions matrix */
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table th,
+  html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table td,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-user-name,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-user-cell .oma-muted {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    padding: 4px 5px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-ws-avatar--sm {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 9px !important;
+  }
+
+  /* Team notifications tab */
+  html body .oma-plx-listening.oma-plx-team .oma-plx-team-notif,
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__copy strong,
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__copy span,
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__heading,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-subhead,
+  html body .oma-plx-listening.oma-plx-team .oma-ws-empty-desc {
+    font-size: 9px !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__section {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-team .oma-notif-settings__row {
+    min-height: 0 !important;
+    padding: 6px 0 !important;
+  }
+
+  /* Activity feed */
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-feed {
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-listening-card.oma-plx-activity-card {
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    gap: 4px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__thumb,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__avatar {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 7px !important;
+    font-size: 9px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__time,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__verb,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__line,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__target,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__muted,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__quote,
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__pill {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__body {
+    margin-top: 4px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__quote {
+    margin-top: 4px !important;
+    padding: 4px 6px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card__pill {
+    padding: 2px 6px !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-load-more {
+    margin-top: 8px !important;
+  }
+
+  html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-load-more .ant-btn {
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 9px !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* ── Deliverables: mobile-tight + list = table (requests grammar) ───────── */
+html body .oma-plx-deliverables {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  background: var(--oma-surface, #fff) !important;
+  min-height: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-workspace-surface {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening__intro,
+html body .oma-plx-deliverables .oma-plx-deliv__intro {
+  margin: 2px 0 6px !important;
+  padding: 0 2px !important;
+  gap: 6px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening__title {
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv__subtitle,
+html body .oma-plx-deliverables .oma-plx-listening__next-check {
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-view-row {
+  margin: 0 0 6px !important;
+  padding: 0 2px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening-segment button {
+  gap: 4px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-listening-segment button svg.oma-lucide {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-panel.oma-plx-listening-panel {
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-panel__head {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-groups {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--oma-workspace-border-strong, #e5e7eb) !important;
+  background: transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-groups__btn {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--oma-workspace-muted, #6b7280) !important;
+  font-weight: 500 !important;
+  margin-bottom: -1px !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-groups__btn.is-active,
+html body .oma-plx-deliverables .oma-plx-deliv-groups__btn[data-active='true'] {
+  color: var(--oma-workspace-ink, #111827) !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border-bottom-color: var(--oma-workspace-primary-border, var(--oma-primary, #1677ff)) !important;
+  box-shadow: none !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-panel__body {
+  padding: 6px 0 8px !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__title {
+  font-weight: 600 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__meta {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card__chips {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 2px !important;
+  margin: 0 !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-card .ant-tag,
+html body .oma-plx-deliverables .oma-plx-deliv-table .ant-tag {
+  margin: 0 !important;
+  border-radius: 4px !important;
+}
+
+/* List view: always table (including phone) */
+html body .oma-plx-deliverables .oma-plx-deliv-mobile {
+  display: none !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-desktop,
+html body .oma-plx-deliverables .oma-plx-deliv-table-wrap {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  max-height: none !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table,
+html body .oma-plx-deliverables .oma-plx-deliv-table th,
+html body .oma-plx-deliverables .oma-plx-deliv-table td,
+html body .oma-plx-deliverables .oma-plx-deliv-table__title,
+html body .oma-plx-deliverables .oma-plx-deliv-table__sub {
+  vertical-align: middle !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table th {
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+html body .oma-plx-deliverables .oma-plx-deliv-table td:first-child,
+html body .oma-plx-deliverables .oma-plx-deliv-table th:first-child {
+  padding-inline-start: 2px !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-plx-deliverables {
+    padding: 0 4px 8px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-grid {
+    display: grid !important;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(var(--oma-deliv-grid-min, 104px), 1fr)
+    ) !important;
+    gap: var(--oma-deliv-grid-gap, 6px) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card {
+    border-radius: var(--oma-deliv-card-radius, 8px) !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card__media {
+    aspect-ratio: 1 / 1 !important;
+    max-height: 88px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card__body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 5px 6px 6px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-thumb,
+  html body .oma-plx-deliverables .oma-plx-deliv-thumb--empty {
+    width: var(--oma-deliv-thumb, 28px) !important;
+    height: var(--oma-deliv-thumb, 28px) !important;
+    min-width: var(--oma-deliv-thumb, 28px) !important;
+    border-radius: 6px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-listening__title {
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv__subtitle,
+  html body .oma-plx-deliverables .oma-plx-listening__next-check {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-listening-segment button {
+    font-size: 9px !important;
+    padding: 4px 8px !important;
+    min-height: 26px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-groups__btn {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    padding: 5px 8px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card__title {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card__meta {
+    font-size: 8px !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-card .ant-tag,
+  html body .oma-plx-deliverables .oma-plx-deliv-table .ant-tag {
+    font-size: 8px !important;
+    line-height: 1.15 !important;
+    padding: 0 4px !important;
+    min-height: 16px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-table,
+  html body .oma-plx-deliverables .oma-plx-deliv-table th,
+  html body .oma-plx-deliverables .oma-plx-deliv-table td,
+  html body .oma-plx-deliverables .oma-plx-deliv-table__title,
+  html body .oma-plx-deliverables .oma-plx-deliv-table__sub {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    padding: 4px 5px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-table th {
+    font-size: 8px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .oma-plx-deliverables {
+    padding-inline: 4px !important;
+  }
+
+  html body .oma-plx-deliverables .oma-plx-deliv-grid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important;
+    gap: 5px !important;
+  }
+}
+
+/* ── Workspace canvas: table-white (not gray shell) ─────────────────────── */
+html body main.oma-container,
+html body .oma-plx-workspace-surface,
+html body .oma-plx-listening,
+html body .oma-plx-deliverables,
+html body .oma-plx-team,
+html body .oma-plx-activity.oma-activity-page,
+html body .oma-campaign-portfolio,
+html body .oma-campaigns-page {
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-listening-panel,
+html body .oma-plx-deliv-panel__body,
+html body .oma-plx-requests-panel__body {
+  background: var(--oma-surface, #fff) !important;
+}
+
+/* ── Social Listening: typography only (layout unchanged) ─────────────── */
+html body .oma-plx-listening[data-testid='listening-page'],
+html body .oma-plx-listening[data-testid='listening-alerts-page'],
+html body .oma-plx-listening.oma-plx-listening-alerts,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__title,
+html body .oma-plx-listening[data-testid='listening-alerts-page'] .oma-plx-listening__title,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] .oma-plx-listening__title {
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__next-check,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__source,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__range,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-filter__row,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-link,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-context,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__head,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__trend,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-card,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-card,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-card__body,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-card__author,
+html body .oma-plx-listening[data-testid='listening-page'] .oma-listening-pill,
+html body .oma-plx-listening[data-testid='listening-alerts-page'] .oma-plx-listening-panel,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] .oma-plx-listening-panel {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__value {
+  font-size: 20px !important;
+  line-height: 1.15 !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening-kpi__icon {
+  font-size: 11px !important;
+}
+
+html body .oma-plx-listening[data-testid='listening-page'] .oma-plx-listening__source select,
+html body .oma-plx-listening[data-testid='listening-page'] input,
+html body .oma-plx-listening[data-testid='listening-page'] textarea,
+html body .oma-plx-listening[data-testid='listening-page'] button,
+html body .oma-plx-listening[data-testid='listening-alerts-page'] button,
+html body .oma-plx-listening[data-testid='listening-competitors-page'] button {
+  font-size: 10px !important;
+}
+
+/* ── Social Inbox: typography only ────────────────────────────────────── */
+html body .oma-plx-inbox {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  font-family: var(--font-oma-pl, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  background: var(--oma-surface, #fff) !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-list__title {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-list__search,
+html body .oma-plx-inbox .oma-plx-inbox-list__connect-hint,
+html body .oma-plx-inbox .oma-plx-inbox-list__sync-meta,
+html body .oma-plx-inbox .oma-plx-inbox-row__primary,
+html body .oma-plx-inbox .oma-plx-inbox-thread-menu__drop button,
+html body .oma-plx-inbox .oma-plx-inbox-thread__assignee,
+html body .oma-plx-inbox .oma-plx-inbox-post__caption,
+html body .oma-plx-inbox .oma-plx-inbox-comment-card__text,
+html body .oma-plx-inbox .oma-plx-inbox-composer__pill-input,
+html body .oma-plx-inbox .oma-plx-inbox-composer__input,
+html body .oma-plx-inbox .oma-plx-inbox-status-dd__item-label,
+html body .oma-plx-inbox .oma-plx-inbox-bubble,
+html body .oma-plx-inbox .oma-plx-inbox-chat__date {
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-row__preview,
+html body .oma-plx-inbox .oma-plx-inbox-row__time,
+html body .oma-plx-inbox .oma-plx-inbox-thread-menu__sub-panel button,
+html body .oma-plx-inbox .oma-plx-inbox-comment-card__meta,
+html body .oma-plx-inbox .oma-plx-inbox-post__channel,
+html body .oma-plx-inbox .oma-plx-inbox-row__info-badge,
+html body .oma-plx-inbox .oma-plx-inbox-row__priority {
+  font-size: 9px !important;
+  line-height: 1.3 !important;
+}
+
+html body .oma-plx-inbox .oma-plx-inbox-thread__head h3,
+html body .oma-plx-inbox .oma-plx-inbox-comments-head {
+  font-size: 11px !important;
+}
+
+/* ── Data tables: gray canvas (team · activity · deliverables · campaigns) ─ */
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table-wrap,
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-panel__body,
+html body .oma-plx-deliverables .oma-plx-deliv-table-wrap,
+html body .oma-campaigns-page .oma-req-table-wrap,
+html body .oma-campaigns-page .oma-campaign-table,
+html body .oma-campaigns-page .oma-campaign-list-table {
+  background: #f4f5f7 !important;
+}
+
+html body .oma-plx-listening.oma-plx-team .oma-plx-deliv-table,
+html body .oma-plx-deliverables .oma-plx-deliv-table,
+html body .oma-campaigns-page .oma-req-table,
+html body .oma-campaigns-page .oma-campaign-table-row,
+html body .oma-campaigns-page .oma-campaign-table-head {
+  background: #fff !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-listening-feed.oma-plx-activity-feed {
+  background: #f4f5f7 !important;
+  padding: 6px !important;
+  border-radius: 8px !important;
+}
+
+html body .oma-plx-listening.oma-plx-activity .oma-plx-activity-card {
+  background: var(--oma-surface, #fff) !important;
+}
+
+/* Workspace + account settings: floating card — compact on phone only */
+@media (max-width: 767px) {
+  html body .oma-ws-overlay {
+    padding: 16px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel {
+    display: grid !important;
+    grid-template-columns: minmax(0, 118px) minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    width: min(640px, calc(100vw - 24px)) !important;
+    max-width: min(640px, calc(100vw - 24px)) !important;
+    height: auto !important;
+    max-height: min(86vh, 680px) !important;
+    margin: auto !important;
+    border-radius: 12px !important;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.2) !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav {
+    display: block !important;
+    flex: unset !important;
+    flex-wrap: unset !important;
+    gap: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 6px !important;
+    border-bottom: 0 !important;
+    border-inline-end: 1px solid #e5e7eb !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-group {
+    display: block !important;
+    margin: 6px 4px 3px !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-item,
+  html body .oma-ws-overlay .oma-ws-panel-nav-item span {
+    flex: unset !important;
+    width: 100% !important;
+    min-height: 26px !important;
+    padding: 0 5px !important;
+    gap: 4px !important;
+    border-radius: 6px !important;
+    white-space: normal !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-nav-item svg {
+    width: 11px !important;
+    height: 11px !important;
+    flex-shrink: 0 !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-main {
+    padding: 10px 12px 12px !important;
+    min-height: 220px !important;
+    overflow-y: auto !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-section-title {
+    margin: 0 0 8px !important;
+    padding-inline-end: 28px !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-field {
+    margin-bottom: 6px !important;
+    gap: 3px !important;
+    max-width: 100% !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-field input,
+  html body .oma-ws-overlay .oma-ws-field textarea,
+  html body .oma-ws-overlay .oma-ws-field .ant-input,
+  html body .oma-ws-overlay .oma-ws-field .ant-input-affix-wrapper,
+  html body .oma-ws-overlay .oma-ws-field .ant-select,
+  html body .oma-ws-overlay .oma-ws-field .ant-select-selector,
+  html body .oma-ws-overlay .oma-ws-field .oma-choice-select__trigger,
+  html body .oma-ws-overlay .oma-ws-field .oma-choice-select__value,
+  html body .oma-ws-overlay .oma-ws-select {
+    padding: 3px 7px !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-toggles {
+    margin: 6px 0 10px !important;
+    gap: 5px !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel .ant-btn,
+  html body .oma-ws-overlay .oma-ws-panel button.ant-btn {
+    padding: 0 7px !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-ws-overlay .oma-ws-panel-close {
+    width: 26px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    font-size: 14px !important;
+    padding: 0 !important;
+    top: 8px !important;
+    inset-inline-end: 8px !important;
+  }
+
+  @media (max-width: 720px) {
+    html body .oma-ws-overlay {
+      padding: 10px !important;
+    }
+
+    html body .oma-ws-overlay .oma-ws-panel {
+      width: min(520px, calc(100vw - 20px)) !important;
+      max-width: min(520px, calc(100vw - 20px)) !important;
+      max-height: min(88vh, 620px) !important;
+      grid-template-columns: minmax(0, 100px) minmax(0, 1fr) !important;
+    }
+  }
+}
+
+/* Brand intelligence hub — phone density only (laptop: oma-brand-responsive.css) */
+@media (max-width: 767px) {
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] {
+    gap: 6px !important;
+    margin: 0 0 8px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .oma-plx-brand-main .oma-plx-brand-page-head {
+    margin: 0 0 6px !important;
+    padding: 4px 0 !important;
+    gap: 6px !important;
+  }
+
+  html body .oma-plx-brand-main .oma-plx-brand-page-head__titles h2,
+  html body .oma-plx-brand-main .oma-plx-brand-page-head__titles .oma-muted {
+    font-size: var(--text-control) !important;
+    line-height: var(--leading-control) !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-plx-brand-hub-card,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card {
+    min-height: 0 !important;
+    padding: 8px !important;
+    gap: 4px !important;
+    border-radius: 8px !important;
+  }
+
+  html
+    body
+    .oma-plx-brand-main
+    [data-testid='brand-intelligence-hub']
+    .oma-plx-brand-hub-card__title,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__title,
+  html
+    body
+    .oma-plx-brand-main
+    [data-testid='brand-intelligence-hub']
+    strong.oma-plx-brand-hub-card__title,
+  html
+    body
+    .oma-plx-brand-main
+    [data-testid='brand-evidence-hub']
+    strong.oma-plx-brand-hub-card__title {
+    font-size: var(--text-meta) !important;
+    line-height: var(--leading-meta) !important;
+  }
+
+  html
+    body
+    .oma-plx-brand-main
+    [data-testid='brand-intelligence-hub']
+    .oma-plx-brand-hub-card__meta,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__meta {
+    font-size: var(--text-label) !important;
+    line-height: var(--leading-label) !important;
+  }
+
+  html
+    body
+    .oma-plx-brand-main
+    [data-testid='brand-intelligence-hub']
+    .oma-plx-brand-hub-card__foot,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-plx-brand-hub-card__foot {
+    font-size: var(--text-meta) !important;
+    margin-top: 2px !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts {
+    gap: 4px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts dt,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts dt {
+    font-size: var(--text-label) !important;
+    margin: 0 0 1px !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .oma-hub-facts dd,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .oma-hub-facts dd {
+    font-size: var(--text-meta) !important;
+    font-weight: 600 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .ant-btn,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .ant-btn,
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] a.ant-btn,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] a.ant-btn {
+    height: var(--oma-control-height-compact) !important;
+    min-height: var(--oma-control-height-compact) !important;
+    padding: 0 8px !important;
+    font-size: var(--text-meta) !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'] .ant-tag,
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] .ant-tag {
+    font-size: var(--text-label) !important;
+    line-height: var(--leading-label) !important;
+    padding: 0 4px !important;
+    margin: 0 !important;
+  }
+
+  html body .oma-plx-brand-main [data-testid='brand-intelligence-hub'],
+  html body .oma-plx-brand-main [data-testid='brand-evidence-hub'] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Typography: oma-typography-unified.css (loaded after this file) */

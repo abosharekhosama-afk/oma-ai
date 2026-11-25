@@ -39,6 +39,30 @@
   cursor: pointer;
 }
 
+@media (max-width: 767px) {
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle {
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    height: var(--oma-icon-action-size, 32px) !important;
+    min-width: var(--oma-icon-action-size, 32px) !important;
+    width: var(--oma-icon-action-size, 32px) !important;
+    font-size: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle[data-active='true'] {
+    background: transparent !important;
+    border: 0 !important;
+    color: var(--oma-primary) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-saved-toggle svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
 .oma-cal-saved-toggle svg.oma-lucide {
   width: 14px;
   height: 14px;
@@ -127,11 +151,7 @@
     align-items: center !important;
     justify-content: space-between !important;
     flex-wrap: nowrap !important;
-    min-height: var(--shell-header-height, 44px) !important;
     height: auto !important;
-    padding: 6px 10px !important;
-    padding-top: max(6px, env(safe-area-inset-top, 0px)) !important;
-    gap: 8px !important;
     background: var(--oma-surface) !important;
     border-bottom: 1px solid var(--oma-home-border) !important;
     overflow: visible !important;
@@ -149,31 +169,13 @@
     overflow: hidden !important;
   }
 
+  /* Nav toggle: OmaIconAction + oma-mobile-cascade-final.css */
   html body .oma-top .oma-mobile-nav-toggle {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    flex: 0 0 36px !important;
-    width: 36px !important;
-    min-width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
+    flex: 0 0 auto !important;
     padding: 0 !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--oma-home-border) !important;
-    background: var(--oma-surface) !important;
-    color: var(--oma-home-ink) !important;
-  }
-
-  html body .oma-mobile-page-title {
-    display: inline-block !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    color: var(--oma-home-ink) !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    max-width: 36vw !important;
   }
 
   html body .oma-top-center {
@@ -201,75 +203,9 @@
     flex-wrap: nowrap !important;
   }
 
-  html body .oma-plx-content-header-btn {
-    width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 0 !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--oma-home-border) !important;
-    background: var(--oma-surface) !important;
-    color: var(--oma-home-ink-2) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    position: relative !important;
-    flex: 0 0 34px !important;
-  }
+  /* Content header: OmaIconAction — oma-mobile-cascade-final.css */
 
-  /* Hide text labels inside compact content header buttons on mobile, keep icon & count badge */
-  html body .oma-plx-content-header-btn > span:not(.oma-plx-content-header-count) {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    clip: rect(0 0 0 0) !important;
-    white-space: nowrap !important;
-  }
-
-  html body .oma-plx-content-header-btn .oma-plx-content-header-count {
-    position: absolute !important;
-    top: -4px !important;
-    inset-inline-end: -4px !important;
-    min-width: 16px !important;
-    height: 16px !important;
-    line-height: 16px !important;
-    font-size: 10px !important;
-    padding: 0 4px !important;
-  }
-
-  html body .oma-plx-content-header-btn--primary {
-    background: var(--oma-primary) !important;
-    border-color: var(--oma-primary) !important;
-    color: var(--oma-primary-ink) !important;
-  }
-
-  html body .oma-plx-content-header-btn--primary svg.oma-lucide {
-    color: var(--oma-primary-ink) !important;
-  }
-
-  /* Approvals top actions inside header on mobile */
-  html body .oma-plx-approvals__top-actions {
-    gap: 6px !important;
-    flex-wrap: nowrap !important;
-  }
-  html body .oma-plx-approvals-ch-dd__trigger {
-    height: 32px !important;
-    padding: 0 8px !important;
-    font-size: 12px !important;
-  }
-  html body .oma-plx-approvals__approve-all-btn {
-    padding: 4px 6px !important;
-    font-size: 12px !important;
-    white-space: nowrap !important;
-  }
-  html body .oma-plx-approvals__review-cta {
-    height: 32px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-    white-space: nowrap !important;
-  }
+  /* Approvals header actions — borderless icons: oma-mobile-cascade-final.css */
 
   /* ========================================================================
      2. CONTENT CALENDAR TOOLBAR (.oma-cal-toolbar) — No clipped popovers,
@@ -279,23 +215,26 @@
   html body .oma-content-plan .oma-cal-toolbar {
     display: flex !important;
     flex-direction: row !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    gap: 6px 8px !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
     padding: 8px 10px !important;
     min-height: 44px !important;
-    overflow: visible !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
     position: relative !important;
     z-index: 30 !important;
   }
 
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__start {
     display: inline-flex !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
     gap: 6px !important;
-    flex: 1 1 auto !important;
+    flex: 0 0 auto !important;
     min-width: 0 !important;
   }
 
@@ -329,18 +268,7 @@
     gap: 4px !important;
   }
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-nav__btn {
-    width: 30px !important;
-    min-width: 30px !important;
-    height: 30px !important;
-    padding: 0 !important;
-    border: 1px solid var(--oma-home-border) !important;
-    border-radius: 7px !important;
-    background: var(--oma-surface) !important;
-    display: inline-grid !important;
-    place-items: center !important;
-    font-size: 16px !important;
-  }
+  /* Cal nav icons: oma-mobile-cascade-final.css */
 
   html body [data-testid='demo-content-calendar'] .oma-cal-month-label {
     font-size: 13px !important;
@@ -358,24 +286,7 @@
     background: var(--oma-surface) !important;
   }
 
-  /* Toolbar end buttons: Request approvals, Display settings, Holiday calendars, Saved/Drafts toggle */
-  html body .oma-cal-request-approvals,
-  html body [data-testid='demo-content-calendar'] .oma-pv-ds > button,
-  html body .oma-cal-ext-indicator,
-  html body .oma-cal-saved-toggle {
-    width: auto !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    padding: 0 8px !important;
-    border-radius: 7px !important;
-    border: 1px solid var(--oma-home-border) !important;
-    background: var(--oma-surface) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
-    cursor: pointer !important;
-  }
+  /* Calendar toolbar icon controls: oma-mobile-cascade-final.css */
 
   html body .oma-cal-saved-toggle__label,
   html body .oma-cal-request-approvals__label,
@@ -388,20 +299,7 @@
     white-space: nowrap !important;
   }
 
-  /* Ensure Display Settings & Holiday Calendars popovers stay inside the mobile screen */
-  html body .oma-pv-ds__pop,
-  html body .oma-ext-cal-pop {
-    position: fixed !important;
-    top: 104px !important;
-    inset-inline-start: 12px !important;
-    inset-inline-end: 12px !important;
-    width: auto !important;
-    max-width: calc(100vw - 24px) !important;
-    max-height: calc(100dvh - 124px) !important;
-    overflow-y: auto !important;
-    z-index: 1250 !important;
-    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.24) !important;
-  }
+  /* Display / holiday popovers on phone: oma-mobile-cascade-final.css */
 
   /* ---- Sidebar nav drawer: overlay, scroll body, pinned footer, safe-area ---- */
   html body .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
@@ -512,15 +410,7 @@
     margin-inline-end: 6px !important;
   }
 
-  /* ---- Calendar cells & grid on mobile ---- */
-  html body [data-testid='demo-content-calendar'] .oma-cal-grid,
-  html body .oma-cal-month {
-    min-width: 0 !important;
-  }
-  html body .oma-cal-cell {
-    min-height: 76px !important;
-    padding: 4px !important;
-  }
+  /* Calendar grid scroll + density: oma-mobile-cascade-final.css */
 
   /* ---- No horizontal page scroll ---- */
   html body,

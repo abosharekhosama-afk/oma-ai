@@ -72,7 +72,6 @@ const FAV_KEY = 'plx-favorite-workspaces';
 
 const PLATFORMS: Array<{ name: string; color: string }> = [
   { name: 'Facebook', color: '#1877F2' },
-  { name: 'X (Twitter)', color: '#111111' },
   { name: 'Instagram', color: '#E4405F' },
   { name: 'LinkedIn', color: '#0A66C2' },
   { name: 'Google Business Profile', color: '#4285F4' },
@@ -86,7 +85,6 @@ const PLATFORMS: Array<{ name: string; color: string }> = [
 
 const PLATFORM_NETWORK: Record<string, SocialNetwork | 'universal'> = {
   Facebook: 'facebook',
-  'X (Twitter)': 'x',
   Instagram: 'instagram',
   LinkedIn: 'linkedin',
   TikTok: 'tiktok',
@@ -106,7 +104,6 @@ const LABEL_KEYS: Record<string, string> = {
   'Create and edit posts': 'companies.perm.edit',
   'View invoices and manage billing': 'companies.perm.billing',
   'Company ownership': 'companies.perm.ownership',
-  'X (Twitter)': 'companies.platform.x',
   'Google Business Profile': 'companies.platform.gbp',
   'Universal Content': 'companies.platform.universal',
   Newsletters: 'companies.platform.newsletters',

@@ -355,7 +355,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
         { value: 'META_FB' as const, label: 'Facebook' },
         { value: 'TIKTOK' as const, label: 'TikTok' },
         { value: 'LINKEDIN' as const, label: 'LinkedIn' },
-        { value: 'X' as const, label: 'X' },
         { value: 'WHATSAPP' as const, label: 'WhatsApp' },
       ] satisfies { value: InboxPlatformFilter; label: string }[],
     [t],

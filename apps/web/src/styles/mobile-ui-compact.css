@@ -24,7 +24,7 @@
     --oma-control-pad-x: 10px;
     --oma-search-height-rail: 28px;
     --shell-header-height: 46px;
-    --shell-chrome-inset: 8px;
+    --shell-chrome-inset: 6px;
 
     --icon-sm: 14px;
     --icon-md: 18px;
@@ -47,7 +47,7 @@
   }
 
   html body .oma-shell .oma-container {
-    padding: 8px 10px 16px;
+    padding: 8px 8px 14px;
   }
 
   html body .oma-shell .ant-btn:not(.ant-btn-lg) {

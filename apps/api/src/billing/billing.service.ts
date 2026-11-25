@@ -401,11 +401,7 @@ export class BillingService {
         providers: visiblePaymentProviders(),
         settings_vat_rate_bps: settings.vatRateBps,
         settings_vat_percent: formatVatPercent(settings.vatRateBps),
-        addon: {
-          code: 'x_api',
-          price_monthly_usd: settings.xApiAddonMonthlyUsdCents / 100,
-          monthly_vat: computeVat(settings.xApiAddonMonthlyUsdCents, settings.vatRateBps),
-        },
+        addon: null,
         pending_manual_orders: pendingOrders.map((o) => this.mapManualOrder(o)),
       },
     };

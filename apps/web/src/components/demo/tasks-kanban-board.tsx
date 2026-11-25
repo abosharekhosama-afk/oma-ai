@@ -28,13 +28,24 @@ import type { DemoTaskStatus } from '@oma/demo';
 import {
   BOARD_COLUMNS,
   canTransitionTaskStatus,
-  taskIsDueSoon,
   taskIsOverdue,
   type TaskRow,
 } from '../../lib/demo/stage4-tasks';
 import { pickCopy } from '../../lib/demo/use-demo-api';
 import { useLocale, useT } from '../../lib/use-locale';
 import { MediaSurface, kindFromMime, kindFromUrl } from '../content/media-surface';
+import {
+  CheckCircleOutlined,
+  CheckOutlined,
+  ClockCircleOutlined,
+  CommentOutlined,
+  EyeOutlined,
+  FlagOutlined,
+  InboxOutlined,
+  LockOutlined,
+  PlayCircleOutlined,
+} from '../ui/lucide-icons';
+import type { ReactNode } from 'react';
 
 type Props = {
   byBoard: Record<string, TaskRow[]>;
@@ -63,13 +74,6 @@ function findColumnForTask(
   return null;
 }
 
-function initials(value: string): string {
-  const parts = value.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
-}
-
 const COLUMN_ACCENT: Record<string, string> = {
   BACKLOG: 'backlog',
   READY: 'ready',
@@ -80,31 +84,21 @@ const COLUMN_ACCENT: Record<string, string> = {
   OVERDUE: 'overdue',
 };
 
-function isAr(locale: string) {
-  return locale.toLowerCase().startsWith('ar');
+function ColumnSecIcon({ status }: { status: DemoTaskStatus }) {
+  const cls = 'oma-plx-approvals__sec-ico oma-lucide--soft';
+  const map: Record<string, ReactNode> = {
+    BACKLOG: <InboxOutlined className={cls} width={14} height={14} />,
+    READY: <ClockCircleOutlined className={cls} width={14} height={14} />,
+    IN_PROGRESS: <PlayCircleOutlined className={cls} width={14} height={14} />,
+    IN_REVIEW: <EyeOutlined className={cls} width={14} height={14} />,
+    BLOCKED: <LockOutlined className={cls} width={14} height={14} />,
+    DONE: <CheckCircleOutlined className={cls} width={14} height={14} />,
+  };
+  return map[status] ?? <CheckOutlined className={cls} width={14} height={14} />;
 }
 
-/** High / Urgent only — Medium/Low are the quiet default and render nothing. */
-function PriorityFlag({ priority }: { priority: string }) {
-  const t = useT();
-  const p = (priority || '').toUpperCase();
-  if (p !== 'HIGH' && p !== 'URGENT') return null;
-  return (
-    <span
-      className={`oma-kb-card__flag oma-kb-card__flag--${p.toLowerCase()}`}
-      data-testid="demo-task-card-priority"
-    >
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-        <path
-          d="M3.5 14V2.5h8.2l-1.6 3 1.6 3H3.5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-      </svg>
-      {t(`demo.tasks.card.priority.${p.toLowerCase()}`)}
-    </span>
-  );
+function isAr(locale: string) {
+  return locale.toLowerCase().startsWith('ar');
 }
 
 function formatDueLabel(dueAt: string, locale: string): string {
@@ -116,28 +110,6 @@ function formatDueLabel(dueAt: string, locale: string): string {
   }
 }
 
-function DueDate({ task }: { task: TaskRow }) {
-  const t = useT();
-  const locale = useLocale();
-  if (!task.dueAt) return null;
-  const label = formatDueLabel(task.dueAt, locale);
-  const done = task.status === 'DONE';
-  const overdue = taskIsOverdue(task);
-  const soon = !overdue && !done && taskIsDueSoon(task);
-  const tone = done ? 'done' : overdue ? 'overdue' : soon ? 'soon' : 'plain';
-  return (
-    <span className={`oma-kb-card__due oma-kb-card__due--${tone}`} data-tone={tone}>
-      {tone === 'overdue' ? null : (
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-          <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M2 6.5h12M5 1.8v2.4M11 1.8v2.4" stroke="currentColor" strokeWidth="1.4" />
-        </svg>
-      )}
-      {tone === 'overdue' ? `${t('demo.tasks.card.overdue')} · ${label}` : label}
-    </span>
-  );
-}
-
 function campaignLabel(task: TaskRow, locale: string): string {
   const c = task.campaignName;
   if (!c) return '';
@@ -147,115 +119,66 @@ function campaignLabel(task: TaskRow, locale: string): string {
 function KanbanCardBody({ task }: { task: TaskRow }) {
   const t = useT();
   const locale = useLocale();
-  const assignee = !task.assignee || task.assignee === 'Unassigned' ? null : String(task.assignee);
   const campaign = campaignLabel(task, locale);
-  const description = task.description ? briefDisplayText(task.description, locale) : '';
-  const context = [task.department, task.brandName]
-    .map((v) => (typeof v === 'string' ? v.trim() : ''))
-    .filter((v) => v && v !== '—')
-    .join(' · ');
+  const brand =
+    typeof task.brandName === 'string' ? task.brandName.trim() : campaign || t('demo.tasks.detail');
   const comments = task.commentCount ?? 0;
-  const checkTotal = task.checklistTotal ?? 0;
-  const checkDone = task.checklistDone ?? 0;
   const title = pickCopy(task.title, locale);
+  const caption = task.description ? briefDisplayText(task.description, locale) : title;
   const mediaUrl = task.previewAsset || '';
   const isVideo = (kindFromMime(task.previewAssetMime) ?? kindFromUrl(mediaUrl)) === 'video';
+  const dueMeta = task.dueAt ? formatDueLabel(task.dueAt, locale) : '';
+  const overdue = taskIsOverdue(task);
+  const statusKey = String(task.status || 'BACKLOG');
 
   return (
     <>
-      <div
-        className="oma-kb-card__media"
-        data-kind={isVideo ? 'video' : mediaUrl ? 'image' : 'empty'}
-      >
+      <header className="oma-plx-approvals-card__head">
+        <span className="oma-plx-approvals-card__nets">
+          <FlagOutlined
+            className="oma-plx-approvals-card__clock oma-lucide--soft"
+            width={14}
+            height={14}
+          />
+        </span>
+        <strong className="oma-plx-approvals-card__brand">{brand}</strong>
+        {dueMeta ? (
+          <span
+            className="oma-plx-approvals-card__time"
+            data-scheduled={overdue ? 'true' : 'false'}
+          >
+            {overdue ? <ClockCircleOutlined className="oma-plx-approvals-card__clock" /> : null}
+            <span>{overdue ? `${t('demo.tasks.card.overdue')} · ${dueMeta}` : dueMeta}</span>
+          </span>
+        ) : null}
+      </header>
+      <div className="oma-plx-approvals-card__media">
         {mediaUrl ? (
-          <MediaSurface src={mediaUrl} mime={task.previewAssetMime} alt={title} />
+          <>
+            <MediaSurface src={mediaUrl} mime={task.previewAssetMime} alt={title} />
+            {isVideo ? (
+              <span className="oma-plx-approvals-card__media-badge" aria-hidden>
+                <PlayCircleOutlined />
+              </span>
+            ) : null}
+          </>
         ) : (
-          <span className="oma-kb-card__media-placeholder" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="4" width="18" height="16" rx="3" />
-              <circle cx="8.5" cy="9" r="1.5" />
-              <path d="m5 17 5-5 3 3 2-2 4 4" />
-            </svg>
-          </span>
+          <div className="oma-plx-approvals-card__media-empty" aria-hidden />
         )}
-        {isVideo ? (
-          <span className="oma-kb-card__media-play" aria-hidden="true">
-            <svg viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 5.5v9l7-4.5-7-4.5Z" fill="currentColor" />
-            </svg>
-          </span>
-        ) : null}
       </div>
-      {campaign ? (
-        <div className="oma-kb-card__labels">
-          <span className="oma-kb-card__tag" data-testid="demo-task-card-campaign">
-            {campaign}
-          </span>
-        </div>
-      ) : null}
-      <h4 className="oma-kb-card__title">{title}</h4>
-      {description ? <p className="oma-kb-card__desc">{description}</p> : null}
-      {context ? <p className="oma-kb-card__ctx">{context}</p> : null}
-      <div className="oma-kb-card__meta">
-        <PriorityFlag priority={String(task.priority || '')} />
-        <DueDate task={task} />
+      <p className="oma-plx-approvals-card__caption">{caption}</p>
+      <footer className="oma-plx-approvals-card__foot">
+        <span className="oma-plx-approvals-card__status oma-plx-approvals-card__status--pending">
+          <span className="oma-plx-approvals-card__status-ring" />
+          <span>{t(`demo.tasks.column.${statusKey}`)}</span>
+        </span>
         {comments > 0 ? (
-          <span
-            className="oma-kb-card__count"
-            title={t('demo.tasks.card.comments')}
-            aria-label={`${comments} ${t('demo.tasks.card.comments')}`}
-          >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path
-                d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {comments}
+          <span className="oma-plx-approvals-card__comments">
+            <CommentOutlined className="oma-lucide--soft" width={14} height={14} />
+            <span>{comments}</span>
           </span>
         ) : null}
-        {checkTotal > 0 ? (
-          <span
-            className={`oma-kb-card__count${checkDone === checkTotal ? ' is-complete' : ''}`}
-            title={t('demo.tasks.card.checklist')}
-            aria-label={`${t('demo.tasks.card.checklist')} ${checkDone}/${checkTotal}`}
-          >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <rect
-                x="2.5"
-                y="2.5"
-                width="11"
-                height="11"
-                rx="2"
-                stroke="currentColor"
-                strokeWidth="1.4"
-              />
-              <path
-                d="M5.5 8l2 2 3.5-4"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className="oma-ltr">{`${checkDone}/${checkTotal}`}</span>
-          </span>
-        ) : null}
-        {assignee ? (
-          <span className="oma-kb-card__avatar oma-task-avatar" title={assignee}>
-            {initials(assignee)}
-          </span>
-        ) : (
-          <span
-            className="oma-kb-card__avatar oma-kb-card__avatar--empty oma-task-avatar"
-            title={t('demo.tasks.card.unassigned')}
-            aria-label={t('demo.tasks.card.unassigned')}
-          >
-            +
-          </span>
-        )}
-      </div>
+      </footer>
     </>
   );
 }
@@ -284,68 +207,68 @@ function SortableTaskCard({
   };
 
   return (
-    <article
-      ref={setNodeRef}
-      style={style}
-      className={`oma-kb-card oma-kb-card--${String(task.status).toLowerCase()}${
-        isDragging ? ' is-dragging' : ''
-      }`}
-      data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
-      data-testid={`demo-task-card-${task.id}`}
-      data-status={task.status}
-      {...attributes}
-      {...listeners}
-      onClick={(e) => {
-        // PointerSensor needs 6px of movement to start a drag, so a plain click opens.
-        e.stopPropagation();
-        onOpen();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-label={`${t('demo.tasks.detail')}: ${pickCopy(task.title, locale)}`}
-    >
-      <KanbanCardBody task={task} />
-      {onA11yMove && moveOptions && moveOptions.length > 0 ? (
-        <label className="oma-sr-only">
-          {t('demo.tasks.move')}
-          <select
-            data-testid={`demo-task-move-${task.id}`}
-            value=""
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => {
-              e.stopPropagation();
-              const next = e.target.value as DemoTaskStatus;
-              if (next) onA11yMove(next);
-            }}
-          >
-            <option value="">{t('demo.tasks.move')}</option>
-            {moveOptions.map((status) => (
-              <option key={status} value={status}>
-                {t(`demo.tasks.column.${status}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      <button
-        type="button"
-        className="oma-sr-only"
-        tabIndex={-1}
-        data-testid={`demo-task-open-${task.id}`}
+    <li>
+      <article
+        ref={setNodeRef}
+        style={style}
+        className={`oma-plx-approvals-card${isDragging ? ' is-dragging' : ''}`}
+        data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
+        data-testid={`demo-task-card-${task.id}`}
+        data-status={task.status}
+        {...attributes}
+        {...listeners}
         onClick={(e) => {
+          // PointerSensor needs 6px of movement to start a drag, so a plain click opens.
           e.stopPropagation();
           onOpen();
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpen();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`${t('demo.tasks.detail')}: ${pickCopy(task.title, locale)}`}
       >
-        {t('demo.tasks.open')}
-      </button>
-    </article>
+        <KanbanCardBody task={task} />
+        {onA11yMove && moveOptions && moveOptions.length > 0 ? (
+          <label className="oma-sr-only">
+            {t('demo.tasks.move')}
+            <select
+              data-testid={`demo-task-move-${task.id}`}
+              value=""
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                e.stopPropagation();
+                const next = e.target.value as DemoTaskStatus;
+                if (next) onA11yMove(next);
+              }}
+            >
+              <option value="">{t('demo.tasks.move')}</option>
+              {moveOptions.map((status) => (
+                <option key={status} value={status}>
+                  {t(`demo.tasks.column.${status}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <button
+          type="button"
+          className="oma-sr-only"
+          tabIndex={-1}
+          data-testid={`demo-task-open-${task.id}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+        >
+          {t('demo.tasks.open')}
+        </button>
+      </article>
+    </li>
   );
 }
 
@@ -375,22 +298,26 @@ function DroppableColumn({
 
   return (
     <section
-      ref={setNodeRef}
-      className={`oma-kb-col oma-kb-col--${accent}${isOver ? ' is-over' : ''}`}
+      className="oma-plx-approvals__column-wrap"
       data-testid={`demo-kanban-${id}`}
       data-column={id}
       data-accent={accent}
     >
-      <header className="oma-kb-col__head">
-        <span className="oma-kb-col__dot" aria-hidden />
-        <h3 className="oma-kb-col__title">{title}</h3>
-        <span className="oma-kb-col__count" data-testid={`demo-kanban-count-${id}`}>
+      <header className="oma-plx-approvals__column-head">
+        <span className="oma-plx-approvals__column-title">
+          <ColumnSecIcon status={id} />
+          <span>{title}</span>
+        </span>
+        <span
+          className={`oma-plx-approvals__column-count oma-plx-approvals__column-count--task-${accent}`}
+          data-testid={`demo-kanban-count-${id}`}
+        >
           {count}
         </span>
         {onAdd ? (
           <button
             type="button"
-            className="oma-kb-col__add"
+            className="oma-plx-tasks-col__add oma-icon-action oma-icon-action--bare"
             onClick={onAdd}
             aria-label={t('demo.tasks.create') || 'Add task'}
             title={t('demo.tasks.create') || 'Add task'}
@@ -400,12 +327,12 @@ function DroppableColumn({
         ) : null}
       </header>
 
-      <div className="oma-kb-col__cards">
-        {children}
+      <div ref={setNodeRef} className={`oma-plx-approvals__column${isOver ? ' is-over' : ''}`}>
+        <ul className="oma-plx-approvals__cards">{children}</ul>
         {empty ? (
-          <div className={`oma-kb-col__empty${isOver ? ' is-over' : ''}`} aria-hidden>
-            {t('demo.tasks.dropHere') || 'Drop tasks here'}
-          </div>
+          <p className="oma-plx-approvals__empty">
+            {isOver ? t('demo.tasks.dropHere') : t('demo.tasks.dropHere')}
+          </p>
         ) : null}
       </div>
     </section>
@@ -519,13 +446,13 @@ export function TasksKanbanBoard({
       }}
     >
       <div
-        className="oma-kb-board"
+        className="oma-plx-approvals__board oma-plx-tasks__board"
         data-testid="demo-tasks-board"
         data-dnd="true"
         data-reorder-persistence="local-only"
         dir="auto"
       >
-        <div className="oma-kb-board__grid">
+        <div className="oma-plx-approvals__columns oma-plx-tasks__columns">
           {BOARD_COLUMNS.map((col) => {
             const items = localBoard[col.id] ?? [];
             return (
@@ -560,7 +487,7 @@ export function TasksKanbanBoard({
       <DragOverlay dropAnimation={null}>
         {activeTask ? (
           <div
-            className={`oma-kb-card oma-kb-card--overlay oma-kb-card--${String(activeTask.status).toLowerCase()}`}
+            className="oma-plx-approvals-card oma-plx-approvals-card--overlay"
             data-testid="demo-kanban-drag-overlay"
           >
             <KanbanCardBody task={activeTask} />

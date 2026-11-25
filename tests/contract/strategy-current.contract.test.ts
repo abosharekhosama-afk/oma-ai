@@ -17,7 +17,7 @@ describe('strategy current pointer', () => {
     for (const c of closers) await c();
   });
 
-  it('never auto-sets current on approve; set/clear with brand version', async () => {
+  it('sets current on approve; clear with brand version', async () => {
     const seed = await seedBrandTenant();
     closers.push(async () => seed.app.close());
     const { body: brandBody } = await createBrand(seed);
@@ -32,12 +32,8 @@ describe('strategy current pointer', () => {
       submitted.body.data.row_version,
     );
     let brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
+    expect(brand.currentApprovedStrategyId).toBe(a.strategyId);
 
-    const set = await setCurrentStrategy(seed, brandId, a.strategyId, brand.version);
-    expect([200, 201]).toContain(set.res.status);
-
-    brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
     const stale = await setCurrentStrategy(seed, brandId, null, brand.version - 1);
     expect(stale.res.status).toBe(409);
 

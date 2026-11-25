@@ -627,26 +627,6 @@ export default function DeliverablesPage() {
                           </tbody>
                         </table>
                       </div>
-                      <ul
-                        className="oma-plx-deliv-mobile"
-                        aria-label={t('demo.deliverables.title')}
-                      >
-                        {filtered.map((d) => (
-                          <li key={d.id}>
-                            <Link
-                              href={`/app/deliverables/${d.id}`}
-                              className="oma-plx-deliv-mobile-card"
-                              data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
-                            >
-                              <strong>{pickCopy(d.title, locale)}</strong>
-                              <StatusChip status={d.reviewStatus} />
-                              <span className="oma-plx-deliv-card__meta">
-                                {d.owner} · {d.dueAt}
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
                     </>
                   )}
                 </div>

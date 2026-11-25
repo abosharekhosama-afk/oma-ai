@@ -186,7 +186,8 @@ test.describe('Stage 4 Requests + Tasks visual rebuild', () => {
     await expect(page.getByTestId('demo-task-drawer')).toHaveCount(0);
     await page.goto('/app/requests');
     await expect(page.getByTestId('demo-requests')).toBeVisible();
-    await expect(page.locator('.oma-req-mobile-card').first()).toBeVisible();
+    await expect(page.locator('.oma-req-table').first()).toBeVisible();
+    await expect(page.locator('.oma-req-mobile-card')).toHaveCount(0);
     guards.assertClean();
   });
 

@@ -10,6 +10,7 @@ import {
   SearchOutlined,
   TagOutlined,
 } from '../ui/lucide-icons';
+import { OmaIconAction } from '../ui/oma-icon-action';
 import { pickCopy } from '../../lib/demo/use-demo-api';
 
 const LABEL_COLORS = [
@@ -70,6 +71,7 @@ export function ComposeMetaPills({
   onOpenLabels,
   testPrefix = 'demo-compose',
   testIds,
+  variant = 'pill',
 }: {
   locale: string;
   templates: ComposeMetaTemplate[];
@@ -94,6 +96,8 @@ export function ComposeMetaPills({
     labels?: string;
     labelsMenu?: string;
   };
+  /** `icon` = Lucide-only header controls (preview modal on phone). */
+  variant?: 'pill' | 'icon';
 }) {
   const isAr = locale.toLowerCase().startsWith('ar');
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -122,24 +126,128 @@ export function ComposeMetaPills({
     return `${lab.name?.en ?? ''} ${lab.name?.ar ?? ''}`.toLowerCase().includes(q);
   });
 
+  const iconOnly = variant === 'icon';
+
+  const templateTrigger = iconOnly ? (
+    <OmaIconAction
+      type="button"
+      className="oma-compose-pill oma-compose-pill--icon"
+      aria-expanded={templateMenu}
+      aria-haspopup="dialog"
+      data-active={templateMenu ? 'true' : 'false'}
+      aria-label={isAr ? 'القوالب' : 'Templates'}
+      onClick={() => {
+        setTemplateMenu((v) => !v);
+        setLabelMenu(false);
+        setCampaignMenu(false);
+        onOpenTemplates?.();
+      }}
+      data-testid={testIds?.templates ?? `${testPrefix}-templates`}
+    >
+      <FileTextOutlined width={16} height={16} aria-hidden />
+    </OmaIconAction>
+  ) : (
+    <button
+      type="button"
+      className="oma-compose-pill"
+      aria-expanded={templateMenu}
+      onClick={() => {
+        setTemplateMenu((v) => !v);
+        setLabelMenu(false);
+        setCampaignMenu(false);
+        onOpenTemplates?.();
+      }}
+      data-testid={testIds?.templates ?? `${testPrefix}-templates`}
+    >
+      <FileTextOutlined />
+      {isAr ? 'القوالب' : 'Templates'}
+    </button>
+  );
+
+  const campaignTrigger = iconOnly ? (
+    <OmaIconAction
+      type="button"
+      className="oma-compose-pill oma-compose-pill--icon"
+      aria-expanded={campaignMenu}
+      aria-haspopup="menu"
+      data-active={campaignMenu ? 'true' : 'false'}
+      aria-label={
+        selectedCampaign ? campaignName(selectedCampaign, locale) : isAr ? 'الحملة' : 'Campaign'
+      }
+      data-testid={testIds?.campaign ?? `${testPrefix}-campaign`}
+      onClick={() => {
+        setCampaignMenu((v) => !v);
+        setLabelMenu(false);
+        setTemplateMenu(false);
+      }}
+    >
+      <FlagOutlined width={16} height={16} aria-hidden />
+    </OmaIconAction>
+  ) : (
+    <button
+      type="button"
+      className="oma-compose-pill"
+      aria-expanded={campaignMenu}
+      data-testid={testIds?.campaign ?? `${testPrefix}-campaign`}
+      onClick={() => {
+        setCampaignMenu((v) => !v);
+        setLabelMenu(false);
+        setTemplateMenu(false);
+      }}
+    >
+      <FlagOutlined />
+      {selectedCampaign ? campaignName(selectedCampaign, locale) : isAr ? 'الحملة' : 'Campaign'}
+      <DownOutlined style={{ fontSize: 10 }} />
+    </button>
+  );
+
+  const labelTrigger = iconOnly ? (
+    <OmaIconAction
+      type="button"
+      className="oma-compose-pill oma-compose-pill--icon"
+      aria-expanded={labelMenu}
+      aria-haspopup="dialog"
+      data-active={labelMenu ? 'true' : 'false'}
+      aria-label={isAr ? 'التصنيفات' : 'Labels'}
+      badge={selectedLabels.length > 0 ? selectedLabels.length : undefined}
+      data-testid={testIds?.labels ?? `${testPrefix}-labels`}
+      onClick={() => {
+        setLabelMenu((v) => !v);
+        setTemplateMenu(false);
+        setCampaignMenu(false);
+        onOpenLabels?.();
+      }}
+    >
+      <TagOutlined width={16} height={16} aria-hidden />
+    </OmaIconAction>
+  ) : (
+    <button
+      type="button"
+      className="oma-compose-pill"
+      aria-expanded={labelMenu}
+      onClick={() => {
+        setLabelMenu((v) => !v);
+        setTemplateMenu(false);
+        setCampaignMenu(false);
+        onOpenLabels?.();
+      }}
+      data-testid={testIds?.labels ?? `${testPrefix}-labels`}
+    >
+      <TagOutlined />
+      {isAr ? 'التصنيفات' : 'Labels'}
+      {selectedLabels.length ? (
+        <span className="oma-compose-pill__count">{selectedLabels.length}</span>
+      ) : null}
+    </button>
+  );
+
   return (
-    <div className="oma-compose-pills oma-compose-pills--inline" ref={wrapRef}>
+    <div
+      className={`oma-compose-pills oma-compose-pills--inline${iconOnly ? ' oma-compose-pills--icon-only' : ''}`}
+      ref={wrapRef}
+    >
       <div className="oma-compose-pill-wrap">
-        <button
-          type="button"
-          className="oma-compose-pill"
-          aria-expanded={templateMenu}
-          onClick={() => {
-            setTemplateMenu((v) => !v);
-            setLabelMenu(false);
-            setCampaignMenu(false);
-            onOpenTemplates?.();
-          }}
-          data-testid={testIds?.templates ?? `${testPrefix}-templates`}
-        >
-          <FileTextOutlined />
-          {isAr ? 'القوالب' : 'Templates'}
-        </button>
+        {templateTrigger}
         {templateMenu ? (
           <div
             className="oma-compose-flyout"
@@ -191,21 +299,7 @@ export function ComposeMetaPills({
         ) : null}
       </div>
       <div className="oma-compose-pill-wrap">
-        <button
-          type="button"
-          className="oma-compose-pill"
-          aria-expanded={campaignMenu}
-          data-testid={testIds?.campaign ?? `${testPrefix}-campaign`}
-          onClick={() => {
-            setCampaignMenu((v) => !v);
-            setLabelMenu(false);
-            setTemplateMenu(false);
-          }}
-        >
-          <FlagOutlined />
-          {selectedCampaign ? campaignName(selectedCampaign, locale) : isAr ? 'الحملة' : 'Campaign'}
-          <DownOutlined style={{ fontSize: 10 }} />
-        </button>
+        {campaignTrigger}
         {campaignMenu ? (
           <div
             className="oma-compose-menu"
@@ -240,24 +334,7 @@ export function ComposeMetaPills({
         ) : null}
       </div>
       <div className="oma-compose-pill-wrap">
-        <button
-          type="button"
-          className="oma-compose-pill"
-          aria-expanded={labelMenu}
-          onClick={() => {
-            setLabelMenu((v) => !v);
-            setTemplateMenu(false);
-            setCampaignMenu(false);
-            onOpenLabels?.();
-          }}
-          data-testid={testIds?.labels ?? `${testPrefix}-labels`}
-        >
-          <TagOutlined />
-          {isAr ? 'التصنيفات' : 'Labels'}
-          {selectedLabels.length ? (
-            <span className="oma-compose-pill__count">{selectedLabels.length}</span>
-          ) : null}
-        </button>
+        {labelTrigger}
         {labelMenu ? (
           <div
             className="oma-compose-flyout oma-compose-flyout--labels"

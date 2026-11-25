@@ -77,8 +77,6 @@ jobs:
       - run: pnpm --filter @oma/api build
       - run: pnpm --filter @oma/worker build
       - name: Production web build
-        env:
-          NEXT_FONT_GOOGLE_MOCKED_RESPONSES: ${{ github.workspace }}/apps/web/mocked-google-fonts.cjs
         run: NODE_ENV=production pnpm --filter @oma/web build
       - run: pnpm audit:deps
       - run: pnpm audit:deps:all

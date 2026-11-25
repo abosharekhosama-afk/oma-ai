@@ -14,7 +14,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
-import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
+import { StrategyAiAssistantLink } from '../../../../../../../../components/strategy/strategy-ai-assistant-link';
 import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
@@ -113,13 +113,7 @@ export default function StrategyFoundationPage() {
       />
       <div className="oma-strategy-page-stack">
         <BrandPlxPageHead title={t('strategy.foundation.title')} />
-        <StrategyPageAi
-          brandId={brandId}
-          strategyId={strategyId}
-          version={version}
-          focus="foundation"
-          onApplied={() => void load()}
-        />
+        <StrategyAiAssistantLink brandId={brandId} strategyId={strategyId} />
         <StrategyLinkProfilePanel
           brandId={brandId}
           strategyId={strategyId}

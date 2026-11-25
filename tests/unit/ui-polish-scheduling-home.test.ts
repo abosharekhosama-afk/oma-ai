@@ -87,14 +87,14 @@ describe('UI polish: scheduling, account menu, home, primary button, calendar he
     expect(polish).toContain('background: var(--oma-action-bg) !important');
   });
 
-  it('collapses calendar header buttons to icons with aria-label + title when narrow', () => {
+  it('uses borderless OmaIconAction in content header with aria-label only', () => {
     const src = read('apps/web/src/app/(app)/app/content/content-client.tsx');
     const start = src.indexOf('oma-plx-content-header-actions');
     const block = src.slice(start, src.indexOf('headerSlot,', start));
-    expect(block.match(/oma-plx-content-header-btn__label/g)?.length).toBe(5);
-    expect(block.match(/\btitle=\{/g)?.length).toBe(5);
-    expect(block.match(/aria-label=/g)?.length).toBe(5);
-    expect(polish).toMatch(/@media \(max-width: 1279px\)[\s\S]*oma-plx-content-header-btn__label/);
+    expect(block).toContain('OmaIconAction');
+    expect(block).not.toContain('oma-plx-content-header-btn');
+    expect(block).not.toContain('oma-plx-content-header-btn__label');
+    expect((block.match(/aria-label=/g) ?? []).length).toBeGreaterThanOrEqual(5);
   });
 
   it('keeps ui-polish.css free of raw hex colors', () => {

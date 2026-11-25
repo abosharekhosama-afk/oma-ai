@@ -3101,6 +3101,7 @@
   "brandSettings.networkDesc.x": "X profiles",
   "brandSettings.networkDesc.whatsapp": "WhatsApp Business phone numbers for inbox messages",
   "errors.social_unavailable": "This network is not available yet.",
+  "errors.social_network_disabled": "This network is not offered in OMA right now.",
   "shell.breadcrumbBrand": "Brand",
   "demo.settings.section.storage": "Storage",
   "brandSettings.general.logoHintWorkDrive": "PNG, JPEG, WebP or GIF. Saved to WorkDrive ({org}).",

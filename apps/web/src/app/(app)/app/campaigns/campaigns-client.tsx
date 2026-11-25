@@ -8,12 +8,18 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FilterOutlined,
-  AppstoreOutlined,
   UnorderedListOutlined,
   SearchOutlined,
   DownOutlined,
   UpOutlined,
   PlusOutlined,
+  CloseOutlined,
+  CheckOutlined,
+  TableGridOutlined,
+  LayoutGridOutlined,
+  CircleCheckSoftOutlined,
+  ClockCircleOutlined,
+  PlayCircleOutlined,
 } from '../../../../components/ui/lucide-icons';
 import type { DemoGraph } from '@oma/demo';
 import { TrackPill } from '../../../../components/demo/track-pill';
@@ -21,6 +27,7 @@ import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/e
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
@@ -440,7 +447,7 @@ export default function CampaignsPage() {
         </button>
         {filterSection === 'brand' ? (
           <div className="oma-filter-accordion__body">
-            <label className="oma-filter-check">
+            <label className="oma-filter-check oma-filter-check--radio">
               <input
                 type="radio"
                 name="campaign-brand"
@@ -450,7 +457,7 @@ export default function CampaignsPage() {
               <span>{t('demo.filter.all')}</span>
             </label>
             {brands.map((b) => (
-              <label key={b.id} className="oma-filter-check">
+              <label key={b.id} className="oma-filter-check oma-filter-check--radio">
                 <input
                   type="radio"
                   name="campaign-brand"
@@ -481,7 +488,7 @@ export default function CampaignsPage() {
         </button>
         {filterSection === 'status' ? (
           <div className="oma-filter-accordion__body">
-            <label className="oma-filter-check">
+            <label className="oma-filter-check oma-filter-check--radio">
               <input
                 type="radio"
                 name="campaign-status"
@@ -492,7 +499,7 @@ export default function CampaignsPage() {
               <span>{t('demo.filter.all')}</span>
             </label>
             {statusOptions.map((s) => (
-              <label key={s} className="oma-filter-check">
+              <label key={s} className="oma-filter-check oma-filter-check--radio">
                 <input
                   type="radio"
                   name="campaign-status"
@@ -526,7 +533,7 @@ export default function CampaignsPage() {
               ['ORGANIC', t('demo.organic')],
               ['PAID', t('demo.paid')],
             ].map(([val, label]) => (
-              <label key={val} className="oma-filter-check">
+              <label key={val} className="oma-filter-check oma-filter-check--radio">
                 <input
                   type="radio"
                   name="campaign-track"
@@ -555,7 +562,7 @@ export default function CampaignsPage() {
         </button>
         {filterSection === 'strategy' ? (
           <div className="oma-filter-accordion__body">
-            <label className="oma-filter-check">
+            <label className="oma-filter-check oma-filter-check--radio">
               <input
                 type="radio"
                 name="campaign-strategy"
@@ -565,7 +572,7 @@ export default function CampaignsPage() {
               <span>{t('demo.filter.all')}</span>
             </label>
             {strategies.map((s) => (
-              <label key={s.id} className="oma-filter-check">
+              <label key={s.id} className="oma-filter-check oma-filter-check--radio">
                 <input
                   type="radio"
                   name="campaign-strategy"
@@ -594,7 +601,7 @@ export default function CampaignsPage() {
         </button>
         {filterSection === 'owner' ? (
           <div className="oma-filter-accordion__body">
-            <label className="oma-filter-check">
+            <label className="oma-filter-check oma-filter-check--radio">
               <input
                 type="radio"
                 name="campaign-owner"
@@ -604,7 +611,7 @@ export default function CampaignsPage() {
               <span>{t('demo.filter.all')}</span>
             </label>
             {ownerOptions.map((o) => (
-              <label key={String(o)} className="oma-filter-check">
+              <label key={String(o)} className="oma-filter-check oma-filter-check--radio">
                 <input
                   type="radio"
                   name="campaign-owner"
@@ -624,62 +631,78 @@ export default function CampaignsPage() {
     <div className="oma-stack oma-campaigns-page" data-testid="demo-campaigns">
       {actionsHost
         ? createPortal(
-            <div className="oma-workspace-top-actions-inner">
+            <div className="oma-workspace-top-actions-inner oma-workspace-top-actions-inner--icon-strip">
               <div
-                className="oma-campaign-layout-switch"
+                className="oma-campaign-layout-switch oma-campaign-layout-switch--icons"
                 role="group"
                 aria-label={t('demo.campaigns.layouts')}
               >
-                <button
+                <OmaIconAction
                   type="button"
-                  className="oma-header-icon-btn"
+                  className="oma-icon-action--bare"
                   aria-pressed={layout === 'portfolio'}
-                  data-active={layout === 'portfolio' ? 'true' : undefined}
+                  data-active={layout === 'portfolio' ? 'true' : 'false'}
                   data-testid="demo-campaigns-view-portfolio"
                   onClick={() => setLayoutPref('portfolio')}
                   aria-label={isAr ? 'عرض البطاقات' : 'Card view'}
                 >
-                  <AppstoreOutlined />
-                </button>
-                <button
+                  <LayoutGridOutlined
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
+                </OmaIconAction>
+                <OmaIconAction
                   type="button"
-                  className="oma-header-icon-btn"
+                  className="oma-icon-action--bare"
                   aria-pressed={layout === 'list'}
-                  data-active={layout === 'list' ? 'true' : undefined}
+                  data-active={layout === 'list' ? 'true' : 'false'}
                   data-testid="demo-campaigns-view-table"
                   onClick={() => setLayoutPref('list')}
                   aria-label={isAr ? 'عرض القائمة' : 'List view'}
                 >
-                  <UnorderedListOutlined />
-                </button>
+                  <TableGridOutlined
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
+                </OmaIconAction>
               </div>
-              <button
+              <OmaIconAction
                 type="button"
-                className="oma-header-icon-btn"
+                className="oma-icon-action--bare"
                 data-testid="demo-campaign-open-filters"
                 aria-label={t('demo.campaigns.openFilters')}
+                badge={filterCount > 0 ? filterCount : undefined}
                 onClick={() => setFilterSheet(true)}
               >
-                <FilterOutlined />
-                {filterCount > 0 ? (
-                  <span className="oma-header-icon-btn__badge">{filterCount}</span>
-                ) : null}
-              </button>
-              <Button
-                type="primary"
-                className="oma-req-create-button"
+                <FilterOutlined
+                  className="oma-lucide oma-lucide--soft"
+                  aria-hidden
+                  width={18}
+                  height={18}
+                />
+              </OmaIconAction>
+              <OmaIconAction
+                type="button"
+                className="oma-icon-action--compose oma-icon-action--bare"
                 data-testid="demo-create-campaign"
+                aria-label={isAr ? 'حملة جديدة' : 'New campaign'}
                 onClick={() => {
                   setEditingId(null);
                   setCreateError(null);
                   setCreateOpen(true);
                 }}
               >
-                <span className="oma-req-create-button__icon" aria-hidden>
-                  <PlusOutlined />
-                </span>
-                <span>{isAr ? 'حملة جديدة' : 'New campaign'}</span>
-              </Button>
+                <PlusOutlined
+                  className="oma-lucide oma-lucide--soft"
+                  aria-hidden
+                  width={18}
+                  height={18}
+                />
+              </OmaIconAction>
             </div>,
             actionsHost,
           )
@@ -694,29 +717,30 @@ export default function CampaignsPage() {
             >
               {(
                 [
-                  ['all', isAr ? 'الكل' : 'All', null],
-                  ['active', isAr ? 'نشطة' : 'Active', '↻'],
-                  ['planning', isAr ? 'قيد التخطيط' : 'Planning', '◷'],
-                  ['completed', isAr ? 'مكتملة' : 'Completed', '✓'],
+                  ['all', isAr ? 'الكل' : 'All', LayoutGridOutlined],
+                  ['active', isAr ? 'نشطة' : 'Active', PlayCircleOutlined],
+                  ['planning', isAr ? 'قيد التخطيط' : 'Planning', ClockCircleOutlined],
+                  ['completed', isAr ? 'مكتملة' : 'Completed', CircleCheckSoftOutlined],
                 ] as const
-              ).map(([key, label, icon]) => (
-                <button
+              ).map(([key, label, Icon]) => (
+                <OmaIconAction
                   key={key}
                   type="button"
                   role="tab"
-                  className="oma-campaign-tab-btn"
+                  className="oma-campaign-tab-btn oma-campaign-tab-btn--icon oma-icon-action--bare"
                   aria-selected={campaignTab === key}
                   data-active={campaignTab === key ? 'true' : 'false'}
                   data-testid={`demo-campaign-tab-${key}`}
+                  aria-label={label}
                   onClick={() => setCampaignTab(key)}
                 >
-                  {icon ? (
-                    <span className="oma-campaign-tab-btn__ico" aria-hidden>
-                      {icon}
-                    </span>
-                  ) : null}
-                  <span>{label}</span>
-                </button>
+                  <Icon
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
+                </OmaIconAction>
               ))}
             </div>,
             tabsHost,
@@ -727,18 +751,24 @@ export default function CampaignsPage() {
           {chips.map((chip) => (
             <span key={chip.id} className="oma-filter-chip">
               {chip.label}
-              <Button
-                type="default"
+              <OmaIconAction
+                type="button"
+                className="oma-icon-action--bare oma-filter-chip__clear"
                 aria-label={`${t('demo.campaigns.clearFilters')}: ${chip.label}`}
                 onClick={() => setFilters((f) => clearCampaignChip(f, chip.id))}
               >
-                ×
-              </Button>
+                <CloseOutlined className="oma-lucide oma-lucide--soft" width={14} height={14} />
+              </OmaIconAction>
             </span>
           ))}
-          <Button type="default" onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}>
-            {t('demo.campaigns.clearFilters')}
-          </Button>
+          <OmaIconAction
+            type="button"
+            className="oma-icon-action--bare"
+            aria-label={t('demo.campaigns.clearFilters')}
+            onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
+          >
+            <CloseOutlined className="oma-lucide oma-lucide--soft" width={16} height={16} />
+          </OmaIconAction>
         </div>
       ) : null}
 
@@ -986,31 +1016,50 @@ export default function CampaignsPage() {
         <aside className="oma-req-filter-panel" data-testid="demo-campaign-filter-sheet">
           <header className="oma-req-filter-panel__head">
             <strong>{t('demo.campaigns.filters')}</strong>
-            <button
+            <OmaIconAction
               type="button"
-              className="oma-req-filter-panel__close"
+              className="oma-req-filter-panel__close oma-icon-action--bare"
               aria-label={isAr ? 'إغلاق' : 'Close'}
               onClick={() => setFilterSheet(false)}
             >
-              ×
-            </button>
+              <CloseOutlined
+                className="oma-lucide oma-lucide--soft"
+                aria-hidden
+                width={16}
+                height={16}
+              />
+            </OmaIconAction>
           </header>
           {filterPanelBody}
-          <footer className="oma-req-filter-panel__foot">
-            <Button
-              type="default"
-              onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
+          <footer className="oma-req-filter-panel__foot oma-req-filter-panel__foot--icons">
+            <OmaIconAction
+              type="button"
+              className="oma-icon-action--bare"
               data-testid="demo-campaign-filter-clear"
+              aria-label={t('demo.campaigns.clearFilters')}
+              onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
             >
-              {t('demo.campaigns.clearFilters')}
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => setFilterSheet(false)}
+              <CloseOutlined
+                className="oma-lucide oma-lucide--soft"
+                aria-hidden
+                width={18}
+                height={18}
+              />
+            </OmaIconAction>
+            <OmaIconAction
+              type="button"
+              className="oma-icon-action--compose oma-icon-action--bare"
               data-testid="demo-campaign-filter-apply"
+              aria-label={t('demo.filters.apply')}
+              onClick={() => setFilterSheet(false)}
             >
-              {t('demo.filters.apply')}
-            </Button>
+              <CheckOutlined
+                className="oma-lucide oma-lucide--soft"
+                aria-hidden
+                width={18}
+                height={18}
+              />
+            </OmaIconAction>
           </footer>
         </aside>
       ) : null}

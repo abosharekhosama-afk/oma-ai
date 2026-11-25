@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { readStage3Styles } from '../helpers/stage-styles';
 
 describe('Mobile responsiveness: Top Header, Calendar Toolbar, and Off-Canvas Saved/Drafts Drawer', () => {
   it('provides mobile page titles across all workspaces in ShellChrome', () => {
@@ -30,7 +31,7 @@ describe('Mobile responsiveness: Top Header, Calendar Toolbar, and Off-Canvas Sa
   });
 
   it('keeps calendar view as a grid on phones and never hides the Saved panel', () => {
-    const stage3 = readFileSync(resolve('apps/web/src/styles/stage3.css'), 'utf8');
+    const stage3 = readStage3Styles();
     expect(stage3).not.toMatch(
       /@media \(max-width: 720px\)[\s\S]{0,800}?\.oma-cal-grid \{\s*display: none;/,
     );

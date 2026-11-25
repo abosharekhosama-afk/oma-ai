@@ -63,12 +63,6 @@ const INTEGRATIONS: Integration[] = [
     purpose: { en: 'Publish company updates', ar: 'نشر تحديثات الشركة' },
   },
   {
-    id: 'x',
-    category: 'social',
-    name: { en: 'X', ar: 'إكس' },
-    purpose: { en: 'Publish posts', ar: 'نشر التغريدات' },
-  },
-  {
     id: 'slack',
     category: 'messaging',
     name: { en: 'Slack', ar: 'سلاك' },

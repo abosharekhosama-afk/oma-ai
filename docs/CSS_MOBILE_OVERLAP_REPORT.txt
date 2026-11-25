@@ -1,0 +1,10 @@
+# Mobile selector overlap (≥3 files) — 2026-11-24
+
+:root
+  → apps/web/src/styles/mobile-compact-final.css
+  → apps/web/src/styles/mobile-density.css
+  → apps/web/src/styles/mobile-ui-compact.css
+html body .oma-shell
+  → apps/web/src/styles/mobile-feel-better.css
+  → apps/web/src/styles/mobile-oct27.css
+  → apps/web/src/styles/mobile-ux-pro-max-reset.css

@@ -20,6 +20,8 @@ import { brandAttention } from '../../../../lib/brand-attention';
 import { ErrorState } from '../../../../components/ui/empty-state';
 import { BrandsShimmer } from '../../../../components/ui/screen-shimmer';
 import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
+import { ShellIcon } from '../../../../components/shell/shell-icons';
 
 type SortKey = 'name' | 'updated' | 'status';
 
@@ -119,14 +121,13 @@ export default function BrandsListPage() {
         panelTitle={filterPanelTitle}
         panelTestId="brand-filter-panel"
         headerLeading={
-          <OmaLinkButton
+          <OmaIconAction
             href="/app/brands/new"
-            type="primary"
-            className="oma-plx-tasks__create-icon"
             data-testid="shell-create-brand"
+            aria-label={t('brand.list.create')}
           >
-            {t('brand.list.create')}
-          </OmaLinkButton>
+            <ShellIcon name="plus" size={16} />
+          </OmaIconAction>
         }
         footer={
           <>

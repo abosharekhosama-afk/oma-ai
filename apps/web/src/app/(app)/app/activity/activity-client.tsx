@@ -98,7 +98,6 @@ export default function ActivityPage() {
         ) : null}
       </div>
 
-      {loading ? <TableShimmer rows={8} /> : null}
       {error ? (
         <div className="oma-inbox-error" role="alert">
           <p style={{ margin: 0 }}>{error}</p>
@@ -108,9 +107,7 @@ export default function ActivityPage() {
             </Button>
           </div>
         </div>
-      ) : null}
-
-      {!loading && !error ? (
+      ) : (
         <section className="oma-plx-listening-panel oma-plx-activity-panel">
           <header className="oma-plx-deliv-panel__head">
             <div
@@ -125,6 +122,7 @@ export default function ActivityPage() {
                   type="button"
                   role="tab"
                   aria-selected={filter === id}
+                  disabled={loading && items.length === 0}
                   className={`oma-plx-deliv-groups__btn${filter === id ? ' is-active' : ''}`}
                   data-active={filter === id ? 'true' : 'false'}
                   data-testid={`activity-tab-${id}`}
@@ -136,12 +134,14 @@ export default function ActivityPage() {
             </div>
           </header>
           <div className="oma-plx-deliv-panel__body oma-plx-activity-panel__body">
-            {filtered.length === 0 ? (
+            {loading && items.length === 0 ? <TableShimmer rows={6} avatar /> : null}
+            {!loading && filtered.length === 0 ? (
               <div className="oma-ws-empty-block oma-plx-activity-empty">
                 <h3>{t('activity.empty')}</h3>
                 <p>{t('activity.emptyBody')}</p>
               </div>
-            ) : (
+            ) : null}
+            {filtered.length > 0 ? (
               <ul
                 className="oma-plx-listening-feed oma-plx-activity-feed"
                 data-testid="activity-feed"
@@ -150,8 +150,8 @@ export default function ActivityPage() {
                   <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
                 ))}
               </ul>
-            )}
-            {cursor ? (
+            ) : null}
+            {cursor && !loading ? (
               <div className="oma-plx-activity-load-more">
                 <Button
                   type="default"
@@ -164,7 +164,7 @@ export default function ActivityPage() {
             ) : null}
           </div>
         </section>
-      ) : null}
+      )}
     </div>
   );
 }

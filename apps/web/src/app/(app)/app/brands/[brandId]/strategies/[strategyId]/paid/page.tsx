@@ -12,7 +12,7 @@ import {
   isTenantRequired,
 } from '../../../../../../../../lib/brand-api';
 import { StrategyWorkspaceShell } from '../../../../../../../../components/strategy/strategy-workspace-shell';
-import { StrategyPageAi } from '../../../../../../../../components/strategy/strategy-page-ai';
+import { StrategyAiAssistantLink } from '../../../../../../../../components/strategy/strategy-ai-assistant-link';
 import { BrandPlxPageHead } from '../../../../../../../../components/brand/brand-plx-section';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PaidPlanningBanner } from '../../../../../../../../components/strategy/honesty-banners';
@@ -62,13 +62,7 @@ export default function StrategyPaidPage() {
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <div className="oma-strategy-page-stack">
         <BrandPlxPageHead title={t('strategy.paid.title')} />
-        <StrategyPageAi
-          brandId={brandId}
-          strategyId={strategyId}
-          version={version}
-          focus="paid"
-          onApplied={() => void load()}
-        />
+        <StrategyAiAssistantLink brandId={brandId} strategyId={strategyId} />
         <PaidPlanningBanner />
         {error ? (
           <p className="oma-save-status" data-state="error" role="alert">

@@ -511,19 +511,7 @@
     justify-content: flex-start;
   }
 
-  html body .oma-plx-content-header-btn {
-    flex: 0 1 auto !important;
-    width: auto !important;
-    max-width: 100%;
-    min-height: var(--oma-control-height, 28px) !important;
-    height: var(--oma-control-height, 28px) !important;
-    padding-inline: 10px !important;
-    font-size: 12px !important;
-  }
-
-  html body .oma-plx-content-header-btn--primary {
-    padding-inline: 12px !important;
-  }
+  /* content header: oma-icon-action + mobile-phone-tight */
 
   html body .oma-plx-content-list.oma-plan-list {
     padding: 6px 4px 56px !important;
@@ -535,7 +523,7 @@
   }
 
   html body .oma-plx-content-list .oma-plan-list__row {
-    padding: 8px 10px !important;
+    padding: 8px !important;
     font-size: 12px !important;
   }
 
@@ -577,7 +565,9 @@
   html body .oma-deliv-page [data-testid='demo-deliv-groups'] {
     gap: 4px !important;
     padding: 4px 6px !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
   }
 
   html body .oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab,

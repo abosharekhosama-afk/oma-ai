@@ -38,12 +38,12 @@ export function OmaAntdProvider({ locale, children }: { locale: string; children
     const base = { ...omaAntdTheme.components };
     const mobileTokens = mobileCompact
       ? {
-          fontSize: 13,
+          fontSize: 12,
           fontSizeSM: 11,
-          fontSizeLG: 15,
+          fontSizeLG: 14,
           controlHeight: 30,
           controlHeightSM: 28,
-          lineHeight: 1.35,
+          lineHeight: 1.5,
         }
       : {};
     return {
@@ -57,7 +57,7 @@ export function OmaAntdProvider({ locale, children }: { locale: string; children
       components: mobileCompact
         ? {
             ...base,
-            Button: { ...base.Button, controlHeight: 30, paddingInline: 10, fontSize: 13 },
+            Button: { ...base.Button, controlHeight: 30, paddingInline: 10, fontSize: 12 },
             Input: { ...base.Input, paddingBlock: 2 },
             Select: { ...base.Select, controlHeight: 30 },
             Tabs: { ...base.Tabs, titleFontSize: 12, horizontalItemPadding: '6px 8px' },

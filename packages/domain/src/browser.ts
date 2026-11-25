@@ -29,6 +29,12 @@ export {
   type MediaValidationIssue,
   type SocialNetworkKey,
 } from './social/media-constraints';
+export {
+  CUSTOMER_SOCIAL_NETWORKS,
+  PRODUCT_DISABLED_SOCIAL_NETWORKS,
+  isCustomerOfferedSocialNetwork,
+  isSocialNetworkProductDisabled,
+} from './social/product-offerings';
 export { PLAN_CODES, PLAN_CATALOG, type PlanCode, type PlanDefinition } from './billing/plans';
 export { brandFolderSlug } from './workdrive/layout';
 export {

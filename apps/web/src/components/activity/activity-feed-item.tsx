@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { memo } from 'react';
 import type { ActivityItem } from '../../lib/activity-api';
 import { MediaSurface } from '../content/media-surface';
 
@@ -14,6 +15,18 @@ export function activityVerb(t: T, item: Pick<ActivityItem, 'action' | 'title'>)
   return item.title.toLowerCase();
 }
 
+const RELATIVE_TIME_CACHE = new Map<string, Intl.RelativeTimeFormat>();
+
+function relativeTimeFormatter(lang: 'ar' | 'en') {
+  if (!RELATIVE_TIME_CACHE.has(lang)) {
+    RELATIVE_TIME_CACHE.set(
+      lang,
+      new Intl.RelativeTimeFormat(lang, { numeric: 'auto', style: 'short' }),
+    );
+  }
+  return RELATIVE_TIME_CACHE.get(lang)!;
+}
+
 /** Short relative time ("5m ago", "منذ ٥ دقائق"), falling back to a date for older items. */
 export function relativeTime(iso: string, locale: string, now = Date.now()): string {
   const at = new Date(iso).getTime();
@@ -21,7 +34,7 @@ export function relativeTime(iso: string, locale: string, now = Date.now()): str
   const lang = locale.toLowerCase().startsWith('ar') ? 'ar' : 'en';
   const diff = Math.round((at - now) / 1000);
   const abs = Math.abs(diff);
-  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto', style: 'short' });
+  const rtf = relativeTimeFormatter(lang);
   if (abs < 45) return rtf.format(0, 'second');
   if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
   if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
@@ -44,7 +57,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   settings: 'Settings',
 };
 
-export function ActivityFeedItem({
+export const ActivityFeedItem = memo(function ActivityFeedItem({
   item,
   locale,
   t,
@@ -133,4 +146,4 @@ export function ActivityFeedItem({
       </div>
     </li>
   );
-}
+});

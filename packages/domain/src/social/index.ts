@@ -1,4 +1,5 @@
 export * from './adapter';
+export * from './product-offerings';
 export * from './token-crypto';
 export * from './meta.adapter';
 export * from './linkedin.adapter';

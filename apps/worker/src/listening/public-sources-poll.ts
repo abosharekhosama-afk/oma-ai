@@ -1,4 +1,4 @@
-import { listeningSearchTerms } from '@oma/domain';
+import { isListeningPlatformProductDisabled, listeningSearchTerms } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { matchedTerms, recordListeningHit } from './record-hit';
 
@@ -17,6 +17,7 @@ function parseArr(s: string): string[] {
 }
 
 function platformAllowed(platforms: string[], p: string) {
+  if (isListeningPlatformProductDisabled(p)) return false;
   return !platforms.length || platforms.includes(p);
 }
 

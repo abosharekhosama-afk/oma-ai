@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { readStage3Styles } from '../helpers/stage-styles';
 import { EMPTY_DELIVERABLE_FILTERS } from '../../apps/web/src/lib/demo/stage5-deliverables';
 
 describe('Owner surface-depth rebuild', () => {
   it('ships specialized depth CSS archetypes across Planable stage sheets', () => {
     const depth = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage-depth.css'), 'utf8');
-    const stage3 = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage3.css'), 'utf8');
+    const stage3 = readStage3Styles();
     const stage6 = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage6.css'), 'utf8');
     expect(depth).toContain('.oma-doc-canvas');
     expect(depth).toContain('.oma-review-queue-cards');
@@ -29,8 +30,9 @@ describe('Owner surface-depth rebuild', () => {
       'utf8',
     );
     expect(src).toContain('brand-intelligence-canvas');
-    expect(src).toContain('oma-doc-outline');
     expect(src).toContain('brand-profile-completeness');
+    const depth = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage-depth.css'), 'utf8');
+    expect(depth).toContain('.oma-doc-canvas--profile .oma-doc-outline');
   });
 
   it('adds campaign portfolio and strategy document canvas', () => {

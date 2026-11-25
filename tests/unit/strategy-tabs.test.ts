@@ -48,7 +48,7 @@ describe('DEC-029 4.9 strategy tabs', () => {
     ];
     const withAssistant = pages.filter((p) => {
       try {
-        return readFileSync(join(dir, p), 'utf8').includes('<StrategyAiAssistant');
+        return readFileSync(join(dir, p), 'utf8').includes('<StrategyPageAi');
       } catch {
         return false;
       }

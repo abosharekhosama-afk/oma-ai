@@ -8,7 +8,6 @@ import { useCallback, useEffect, useState } from 'react';
 import type { DemoGraph, DemoLocaleCopy } from '@oma/demo';
 import { Dialog } from '../../../../../components/ui/dialog';
 import { EntityLink } from '../../../../../components/ui/entity-link';
-import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
@@ -383,28 +382,20 @@ export default function RequestDetailPage() {
       data-testid="demo-request-detail"
     >
       <div className="oma-plx-workspace-surface">
-        <header className="oma-plx-req-detail__top oma-req-detail__top oma-plx-listening-panel">
-          <div className="oma-req-detail__top-left">
-            <Link
-              href="/app/requests"
-              className="oma-req-detail__back"
-              data-testid="demo-request-back"
-            >
-              <ArrowLeftOutlined className="oma-dir-icon" />
-              <span>{t('demo.requests.back')}</span>
-            </Link>
-            {row ? (
-              <div className="oma-req-detail__top-meta oma-plx-req-detail__chips">
-                <span className="oma-plx-req-detail__ref oma-ltr">{requestId.slice(0, 8)}</span>
-                <StatusChip status={row.status} />
-                <StatusChip status={row.priority} />
-              </div>
-            ) : null}
-          </div>
+        <header className="oma-plx-req-detail__top oma-req-detail__top oma-req-detail__top--row">
+          <Link
+            href="/app/requests"
+            className="oma-req-detail__back oma-req-detail__back--compact"
+            data-testid="demo-request-back"
+          >
+            <ArrowLeftOutlined className="oma-dir-icon" width={14} height={14} aria-hidden />
+            <span>{t('demo.requests.back')}</span>
+          </Link>
           {row ? (
             <div className="oma-req-detail__top-actions oma-plx-req-detail__top-actions oma-action-bar">
               <Button
                 type="default"
+                className="oma-req-detail__action-btn"
                 data-testid="demo-request-close"
                 disabled={!canCloseRequest(row.status)}
                 onClick={() => setConfirmClose(true)}
@@ -413,6 +404,7 @@ export default function RequestDetailPage() {
               </Button>
               <Button
                 type="primary"
+                className="oma-req-detail__action-btn"
                 data-testid="demo-request-convert"
                 disabled={!ready || converting || !canConvertRequest(row.status)}
                 onClick={() => void convert()}
@@ -420,7 +412,9 @@ export default function RequestDetailPage() {
                 {converting ? t('demo.create.creating') : t('demo.requests.convert')}
               </Button>
             </div>
-          ) : null}
+          ) : (
+            <span className="oma-req-detail__top-spacer" aria-hidden />
+          )}
         </header>
 
         {loading ? <DetailShimmer /> : null}
@@ -438,12 +432,15 @@ export default function RequestDetailPage() {
         {row ? (
           <div className="oma-plx-req-detail__workspace oma-req-detail__workspace">
             <div className="oma-plx-req-detail__main oma-req-detail__main">
-              <div className="oma-plx-listening-panel oma-req-detail__title-block">
+              <div className="oma-req-detail__title-block oma-req-detail__title-block--flat">
                 <h1 className="oma-req-detail__title">
-                  <Input
+                  <input
                     key={row.id + '-title'}
+                    type="text"
+                    className="oma-req-detail__title-input"
                     defaultValue={safeCopy(row.title, locale)}
                     data-testid="demo-request-title-edit"
+                    aria-label={t('demo.requests.col.request')}
                     onBlur={(e) => {
                       const v = e.target.value.trim();
                       if (v && v !== safeCopy(row.title, locale)) {
@@ -495,7 +492,7 @@ export default function RequestDetailPage() {
                     >
                       {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
                         <option key={s} value={s}>
-                          {s}
+                          {priorityLabel(s, isAr)}
                         </option>
                       ))}
                     </SelectField>
@@ -602,6 +599,7 @@ export default function RequestDetailPage() {
                     </div>
                     <Button
                       type="primary"
+                      className="oma-req-detail__action-btn"
                       data-testid="demo-brief-save"
                       disabled={saving}
                       onClick={() => void saveBrief()}
@@ -650,6 +648,7 @@ export default function RequestDetailPage() {
                           brandId={row?.brandId}
                           value={channelsArrayToPickerValue(briefDraft?.channels)}
                           multiple
+                          variant="dropdown"
                           locale={locale}
                           testId="demo-brief-channels"
                           onChange={(v) => {
@@ -667,6 +666,7 @@ export default function RequestDetailPage() {
                           {t('demo.brief.formats') || 'Formats'}
                         </span>
                         <Input
+                          className="oma-brief-field__formats"
                           data-testid="demo-brief-formats"
                           value={safeCopy(briefDraft.formats, locale)}
                           onChange={(e) => {
@@ -727,6 +727,56 @@ export default function RequestDetailPage() {
                   ) : null}
                 </section>
               ) : null}
+            </div>
+
+            {/* Summary, comments, tasks (stacked in side column on desktop) */}
+            <aside className="oma-plx-req-detail__side oma-req-detail__side">
+              <div className="oma-plx-listening-panel oma-req-detail__side-card">
+                <h3>{locale.toLowerCase().startsWith('ar') ? 'الملخص' : 'Summary'}</h3>
+                <div className="oma-req-detail__side-row">
+                  <UserOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.requester')}
+                    </span>
+                    <strong>{row.requester}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <UserOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.assignee')}
+                    </span>
+                    <strong>{row.assignee ?? t('demo.requests.unassigned')}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <CalendarOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">{t('demo.requests.col.due')}</span>
+                    <strong className="oma-ltr">{row.dueAt}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <FlagOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.priority')}
+                    </span>
+                    <strong>{priorityLabel(row.priority, isAr)}</strong>
+                  </div>
+                </div>
+                <div className="oma-req-detail__side-row">
+                  <CheckOutlined />
+                  <div>
+                    <span className="oma-req-detail__side-label">
+                      {t('demo.requests.filter.status')}
+                    </span>
+                    <strong>{statusLabel(row.status, isAr)}</strong>
+                  </div>
+                </div>
+              </div>
 
               <section
                 className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__comments oma-plx-inbox-comments"
@@ -854,56 +904,6 @@ export default function RequestDetailPage() {
                   </ul>
                 )}
               </section>
-            </div>
-
-            {/* Sidebar summary */}
-            <aside className="oma-plx-req-detail__side oma-req-detail__side">
-              <div className="oma-plx-listening-panel oma-req-detail__side-card">
-                <h3>{locale.toLowerCase().startsWith('ar') ? 'الملخص' : 'Summary'}</h3>
-                <div className="oma-req-detail__side-row">
-                  <UserOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.requester')}
-                    </span>
-                    <strong>{row.requester}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <UserOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.assignee')}
-                    </span>
-                    <strong>{row.assignee ?? t('demo.requests.unassigned')}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <CalendarOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">{t('demo.requests.col.due')}</span>
-                    <strong className="oma-ltr">{row.dueAt}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <FlagOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.priority')}
-                    </span>
-                    <strong>{priorityLabel(row.priority, isAr)}</strong>
-                  </div>
-                </div>
-                <div className="oma-req-detail__side-row">
-                  <CheckOutlined />
-                  <div>
-                    <span className="oma-req-detail__side-label">
-                      {t('demo.requests.filter.status')}
-                    </span>
-                    <strong>{statusLabel(row.status, isAr)}</strong>
-                  </div>
-                </div>
-              </div>
             </aside>
           </div>
         ) : null}

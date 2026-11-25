@@ -1,0 +1,256 @@
+/*
+ * Mobile: optimal posting times, offline banner, content-feed shimmer, feed channel pills.
+ * Loaded late in layout (after analytics / post-preview / shimmer rules).
+ */
+
+@media (max-width: 767px) {
+  /* —— Best times to post (analytics optimal-times) —— */
+  html body .oma-pa.oma-ot {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
+  html body .oma-pa.oma-ot .oma-pa-top {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  html body .oma-pa.oma-ot .oma-pa-title {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-back {
+    margin-inline-start: 0;
+    font-size: 12px;
+    min-height: 30px;
+    padding: 4px 10px;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-body {
+    padding: 10px 8px 20px;
+    gap: 10px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  html body .oma-pa.oma-ot .oma-pa-card {
+    padding: 10px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  html body .oma-pa.oma-ot .oma-pa-card__head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  html body .oma-pa.oma-ot .oma-pa-card__title {
+    font-size: 14px;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  html body .oma-pa.oma-ot .oma-pa-seg {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    gap: 2px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-seg__btn {
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-select {
+    font-size: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-select select {
+    flex: 1 1 120px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-meta,
+  html body .oma-pa.oma-ot .oma-ot-banner {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-legend {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-heat-scroll {
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+    padding-inline: 0;
+    box-sizing: border-box;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-heat {
+    min-width: 588px;
+    grid-template-columns: minmax(52px, 60px) repeat(24, minmax(15px, 1fr));
+    gap: 2px;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-heat__h {
+    font-size: 9px;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-suggest {
+    min-width: 0;
+    width: 100%;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-suggest__slot {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  html body .oma-pa.oma-ot .oma-ot-top li {
+    padding: 6px 8px;
+  }
+
+  /* —— Offline / reconnected banner —— */
+  html body .oma-offline-banner {
+    padding: 5px 8px;
+    gap: 6px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  html body .oma-offline-banner__dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  html body .oma-offline-banner__retry {
+    font-size: 11px;
+  }
+
+  /* —— Content feed view: horizontal channel circles —— */
+  html body .oma-plx-content-feed .oma-fp__rail,
+  html body .oma-content-feed--preview .oma-fp__rail {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    width: 100%;
+  }
+
+  html body .oma-plx-content-feed .oma-fp__nets,
+  html body .oma-content-feed--preview .oma-fp__nets,
+  html body .oma-fp__nets {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 0;
+    gap: 0;
+  }
+
+  html body .oma-plx-content-feed .oma-fp__net,
+  html body .oma-content-feed--preview .oma-fp__net,
+  html body .oma-fp__net {
+    margin-block-start: 0 !important;
+    margin-inline-start: -5px;
+    width: 24px;
+    height: 24px;
+  }
+
+  html body .oma-plx-content-feed .oma-fp__net:first-child,
+  html body .oma-content-feed--preview .oma-fp__net:first-child,
+  html body .oma-fp__net:first-child {
+    margin-inline-start: 0;
+  }
+
+  /* —— Content feed loading shimmer —— */
+  html body .oma-shim-feed {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 8px 10px 24px !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .oma-shim-stories {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  html body .oma-shim-stories__row {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  html body .oma-shim-stories__item {
+    flex: 0 0 56px;
+    inline-size: 56px !important;
+    block-size: 88px !important;
+  }
+
+  html body .oma-shim-feed__item {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100%;
+    min-width: 0;
+  }
+
+  html body .oma-shim-feed__rail {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding-block-start: 0 !important;
+    padding-bottom: 2px;
+  }
+
+  html body .oma-shim-feed__comments {
+    display: none !important;
+  }
+
+  html body .oma-shim-feed__post {
+    padding: 12px !important;
+    gap: 10px !important;
+    border-radius: 10px !important;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  html body .oma-shim-feed__media {
+    max-width: 100%;
+  }
+}

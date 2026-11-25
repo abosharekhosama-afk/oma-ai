@@ -2,7 +2,7 @@
    Mobile precise fixes (Nov 03) — <768 only. Desktop unchanged.
    1) Page title in shell next to menu toggle
    2) Deliverables tabs: single horizontal scroll row
-   3) Prefer desktop tables over mobile cards
+   3) Use compact card rows for content lists on phones
    4) Create / invite: icon-only +
    5) Team permissions: no sticky first column
    ========================================================================== */
@@ -63,20 +63,6 @@
     display: none !important;
   }
 
-  /* Schedule in-page title */
-  html body .oma-sched-page-head h1,
-  html body .oma-sched-page h1,
-  html body [data-testid='demo-schedule'] .oma-page-header h1,
-  html body [data-testid='demo-schedule'] h1 {
-    display: none !important;
-  }
-
-  /* Requests in-page h1 */
-  html body .oma-req-page .oma-req-header h1,
-  html body .oma-req-page .oma-req-header__title h1 {
-    display: none !important;
-  }
-
   /* ---- 2. Deliverables tabs: one scrollable row ---- */
   html body .oma-deliv-page .oma-deliv-groups,
   html body .oma-deliv-page [data-testid='demo-deliv-groups'],
@@ -102,52 +88,7 @@
     white-space: nowrap !important;
   }
 
-  /* ---- 3. Same desktop table on phone (horizontal scroll) ---- */
-  html body .oma-deliv-page .oma-deliv-desktop,
-  html body .oma-deliv-desktop {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  html body .oma-deliv-page .oma-deliv-mobile,
-  html body .oma-deliv-mobile {
-    display: none !important;
-  }
-  html body .oma-deliv-page .oma-deliv-table-wrap,
-  html body .oma-deliv-table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-  html body .oma-deliv-page .oma-deliv-table,
-  html body .oma-deliv-table {
-    width: max-content !important;
-    min-width: 920px !important;
-  }
-
-  /* Requests: keep table (reinforce existing) */
-  html body .oma-req-page .oma-req-desktop {
-    display: block !important;
-  }
-  html body .oma-req-page .oma-req-mobile {
-    display: none !important;
-  }
-  html body .oma-req-page .oma-req-table-wrap {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  /* Tasks list table scroll */
-  html body .oma-task-table,
-  html body [data-testid='demo-task-table'] .oma-req-table {
-    min-width: 720px !important;
-  }
-  html body [data-testid='demo-task-table'] {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
+  /* Ops list desktop/table ↔ card: stage5 @900px + mobile-ops-authority @767px */
 
   /* Schedule table */
   html body .oma-sched-table-wrap,
@@ -156,64 +97,88 @@
     -webkit-overflow-scrolling: touch !important;
   }
 
-  /* Content list: keep the desktop column rhythm and scroll the list itself. */
+  /* Content list: use fluid, compact rows instead of a desktop-width table. */
   html body .oma-content-plan .oma-plan-list {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior-inline: contain !important;
-    touch-action: pan-x pan-y !important;
+    touch-action: pan-y !important;
+  }
+  html body .oma-content-plan .oma-plan-list__scroll {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
   html body .oma-content-plan .oma-plan-list__head,
   html body .oma-content-plan .oma-plan-list__body {
-    width: 920px !important;
-    min-width: 920px !important;
-    max-width: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     margin-inline: 0 !important;
     box-sizing: border-box !important;
   }
   html body .oma-content-plan .oma-plan-list__row {
     width: 100% !important;
-    min-width: 920px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    grid-template-columns: 20px 34px minmax(0, 1fr) minmax(52px, max-content) !important;
+    grid-template-areas:
+      'check thumb main actions'
+      'check thumb labels date'
+      'check thumb mid date' !important;
+    gap: 4px 8px !important;
+    min-height: auto !important;
+    padding: 8px !important;
     box-sizing: border-box !important;
+  }
+  html body .oma-content-plan .oma-plan-list__check {
+    grid-area: check !important;
+  }
+  html body .oma-content-plan .oma-plan-list__thumb {
+    grid-area: thumb !important;
+    width: 32px !important;
+    height: 32px !important;
   }
   html body .oma-content-plan .oma-plan-list__main,
   html body .oma-content-plan .oma-plan-list__title {
     min-width: 0 !important;
   }
+  html body .oma-content-plan .oma-plan-list__main {
+    grid-area: main !important;
+  }
+  html body .oma-content-plan .oma-plan-list__title {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+  html body .oma-content-plan .oma-plan-list__labels {
+    grid-area: labels !important;
+    min-width: 0 !important;
+  }
+  html body .oma-content-plan .oma-plan-list__mid {
+    grid-area: mid !important;
+    justify-self: start !important;
+  }
+  html body .oma-content-plan .oma-plan-list__hover {
+    display: none !important;
+  }
+  html body .oma-content-plan .oma-card-actions-btn--list {
+    grid-area: actions !important;
+    justify-self: end !important;
+  }
+  html body .oma-content-plan .oma-plan-list__when {
+    grid-area: date !important;
+    max-width: 100% !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-align: end !important;
+  }
 
-  /* ---- 4. Create / invite icon-only ---- */
-  html body .oma-req-create-icon,
-  html body .oma-header-create-icon {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    padding: 0 !important;
-    border: 1px solid #dbe2ea !important;
-    border-radius: 8px !important;
-    background: #fff !important;
-    color: #2563eb !important;
-    cursor: pointer !important;
-  }
-  html body .oma-header-create-icon__label,
-  html body .oma-header-create-icon > span:not(:has(svg)) {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-  }
-  /* Hide text labels on primary create buttons that still include text */
-  html body .oma-top-actions .ant-btn-primary > span:not(:has(svg)):not(.anticon),
-  html body .oma-workspace-header-actions .ant-btn-primary > span:not(:has(svg)):not(.anticon) {
-    /* keep structure; prefer dedicated icon buttons above */
-  }
+  /* ---- 4. Header icons: oma-icon-action.css ---- */
 
   /* ---- 5. Team permissions: no sticky first column ---- */
   html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,
@@ -246,30 +211,9 @@
     opacity: 1 !important;
   }
 
-  html body .oma-top-actions--workspace .oma-sched-icon-btn,
-  html body .oma-top-actions--workspace .oma-header-icon-btn {
-    border: 1px solid #dbe2ea !important;
-    border-radius: 8px !important;
-    background: #fff !important;
-    color: #374151 !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-  }
+  /* Workspace header icons: oma-icon-action + oma-mobile-cascade-final.css */
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-request-approvals,
-  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-pv-icon-btn,
-  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-ext-indicator {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    padding: 0 8px !important;
-    border: 1px solid #dbe2ea !important;
-    border-radius: 8px !important;
-    background: #fff !important;
-    color: #374151 !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-  }
+  /* Calendar toolbar icons: oma-mobile-cascade-final.css */
 
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end svg {
     display: block !important;

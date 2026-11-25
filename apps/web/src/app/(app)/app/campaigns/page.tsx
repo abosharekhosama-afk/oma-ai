@@ -8,17 +8,22 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FilterOutlined,
-  AppstoreOutlined,
-  UnorderedListOutlined,
+  LayoutGridOutlined,
+  TableGridOutlined,
   SearchOutlined,
   DownOutlined,
   UpOutlined,
   PlusOutlined,
+  CloseOutlined,
+  UnorderedListOutlined,
+  CircleCheckSoftOutlined,
+  ClockCircleOutlined,
+  PlayCircleOutlined,
 } from '../../../../components/ui/lucide-icons';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import type { DemoGraph } from '@oma/demo';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
-import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -111,6 +116,7 @@ export default function CampaignsPage() {
   const [filterSheet, setFilterSheet] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
+  const [tabsHost, setTabsHost] = useState<HTMLElement | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -200,7 +206,10 @@ export default function CampaignsPage() {
   }, [isAr]);
 
   useEffect(() => {
-    setActionsHost(document.getElementById('oma-workspace-top-actions'));
+    const actions = document.getElementById('oma-workspace-top-actions');
+    const tabs = document.getElementById('oma-campaign-tabs-slot');
+    setActionsHost(actions);
+    setTabsHost(tabs);
   }, []);
 
   // Refresh when the active brand changes in the header switcher.
@@ -707,101 +716,121 @@ export default function CampaignsPage() {
     <div className="oma-stack oma-campaigns-page" data-testid="demo-campaigns">
       {actionsHost
         ? createPortal(
-            <div className="oma-workspace-top-actions-inner">
+            <div className="oma-workspace-top-actions-inner oma-workspace-top-actions-inner--icon-strip">
               <div
-                className="oma-campaign-layout-switch"
+                className="oma-campaign-layout-switch oma-campaign-layout-switch--icons"
                 role="group"
                 aria-label={t('demo.campaigns.layouts')}
               >
-                <button
+                <OmaIconAction
                   type="button"
-                  className="oma-header-icon-btn"
+                  className="oma-icon-action--bare"
                   aria-pressed={layout === 'portfolio'}
-                  data-active={layout === 'portfolio' ? 'true' : undefined}
+                  data-active={layout === 'portfolio' ? 'true' : 'false'}
                   data-testid="demo-campaigns-view-portfolio"
                   onClick={() => setLayoutPref('portfolio')}
                   aria-label={isAr ? 'عرض البطاقات' : 'Card view'}
                 >
-                  <AppstoreOutlined />
-                </button>
-                <button
+                  <LayoutGridOutlined
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
+                </OmaIconAction>
+                <OmaIconAction
                   type="button"
-                  className="oma-header-icon-btn"
+                  className="oma-icon-action--bare"
                   aria-pressed={layout === 'list'}
-                  data-active={layout === 'list' ? 'true' : undefined}
+                  data-active={layout === 'list' ? 'true' : 'false'}
                   data-testid="demo-campaigns-view-table"
                   onClick={() => setLayoutPref('list')}
                   aria-label={isAr ? 'عرض القائمة' : 'List view'}
                 >
-                  <UnorderedListOutlined />
-                </button>
+                  <TableGridOutlined
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
+                </OmaIconAction>
               </div>
-              <button
+              <OmaIconAction
                 type="button"
-                className="oma-header-icon-btn"
+                className="oma-icon-action--bare"
                 data-testid="demo-campaign-open-filters"
                 aria-label={t('demo.campaigns.openFilters')}
+                badge={filterCount > 0 ? filterCount : undefined}
                 onClick={() => setFilterSheet(true)}
               >
-                <FilterOutlined />
-                {filterCount > 0 ? (
-                  <span className="oma-header-icon-btn__badge">{filterCount}</span>
-                ) : null}
-              </button>
-              <Button
-                type="primary"
-                className="oma-req-create-button"
+                <FilterOutlined
+                  className="oma-lucide oma-lucide--soft"
+                  aria-hidden
+                  width={18}
+                  height={18}
+                />
+              </OmaIconAction>
+              <OmaIconAction
+                type="button"
+                className="oma-icon-action--compose oma-icon-action--bare"
                 data-testid="demo-create-campaign"
+                aria-label={isAr ? 'حملة جديدة' : 'New campaign'}
                 onClick={() => {
                   setEditingId(null);
                   setCreateError(null);
                   setCreateOpen(true);
                 }}
               >
-                <span className="oma-req-create-button__icon" aria-hidden>
-                  <PlusOutlined />
-                </span>
-                <span>{isAr ? 'إنشاء حملة' : 'Create campaign'}</span>
-              </Button>
+                <PlusOutlined
+                  className="oma-lucide oma-lucide--soft"
+                  aria-hidden
+                  width={18}
+                  height={18}
+                />
+              </OmaIconAction>
             </div>,
             actionsHost,
           )
         : null}
 
-      <PageHeader
-        title={t('demo.campaigns.title')}
-        description={t('demo.campaigns.subtitle')}
-        actions={null}
-        meta={
-          <div
-            className="oma-ws-tabs oma-campaign-status-tabs"
-            role="tablist"
-            aria-label={t('demo.campaigns.title')}
-          >
-            {(
-              [
-                ['all', isAr ? 'الكل' : 'All'],
-                ['active', isAr ? 'نشطة' : 'Active'],
-                ['planning', isAr ? 'قيد التخطيط' : 'Planning'],
-                ['completed', isAr ? 'مكتملة' : 'Completed'],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                className={`oma-ws-tab${campaignTab === key ? ' is-active' : ''}`}
-                aria-selected={campaignTab === key}
-                data-active={campaignTab === key ? 'true' : 'false'}
-                data-testid={`demo-campaign-tab-${key}`}
-                onClick={() => setCampaignTab(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        }
-      />
+      {tabsHost
+        ? createPortal(
+            <div
+              className="oma-campaign-status-tabs oma-campaign-status-tabs--header"
+              role="tablist"
+              aria-label={t('demo.campaigns.title')}
+            >
+              {(
+                [
+                  ['all', isAr ? 'الكل' : 'All', LayoutGridOutlined],
+                  ['active', isAr ? 'نشطة' : 'Active', PlayCircleOutlined],
+                  ['planning', isAr ? 'قيد التخطيط' : 'Planning', ClockCircleOutlined],
+                  ['completed', isAr ? 'مكتملة' : 'Completed', CircleCheckSoftOutlined],
+                ] as const
+              ).map(([key, label, Icon]) => (
+                <OmaIconAction
+                  key={key}
+                  type="button"
+                  role="tab"
+                  className="oma-campaign-tab-btn oma-campaign-tab-btn--icon oma-icon-action--bare"
+                  aria-selected={campaignTab === key}
+                  data-active={campaignTab === key ? 'true' : 'false'}
+                  data-testid={`demo-campaign-tab-${key}`}
+                  aria-label={label}
+                  onClick={() => setCampaignTab(key)}
+                >
+                  <Icon
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
+                </OmaIconAction>
+              ))}
+            </div>,
+            tabsHost,
+          )
+        : null}
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-campaign-filter-chips">
           {chips.map((chip) => (

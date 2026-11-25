@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { PLAN_CATALOG, PLAN_CODES, type PlanCode } from '@oma/domain/browser';
 import { PlxLogo } from '../ui/plx-icons';
@@ -12,21 +11,8 @@ import { setLocaleCookie, updateProfile } from '../../lib/account-api';
 import { useInView } from './use-inview';
 import { LANDING_COPY, type LandingCopy } from './landing-copy';
 import { SHOT_SIZES, type ShotId } from './landing-shots';
-import {
-  FacebookGlyph,
-  InstagramGlyph,
-  LinkedInGlyph,
-  TikTokGlyph,
-  XGlyph,
-} from './platform-icons';
+import { FacebookGlyph, InstagramGlyph, LinkedInGlyph, TikTokGlyph } from './platform-icons';
 import './landing.css';
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['500', '600', '700', '800'],
-  variable: '--font-oma-pl',
-  display: 'swap',
-});
 
 const VIEW_IDS = ['calendar', 'feed', 'grid', 'list'] as const;
 type ViewId = (typeof VIEW_IDS)[number];
@@ -36,7 +22,6 @@ const CHANNELS = [
   { id: 'instagram', name: 'Instagram', Icon: InstagramGlyph },
   { id: 'facebook', name: 'Facebook', Icon: FacebookGlyph },
   { id: 'linkedin', name: 'LinkedIn', Icon: LinkedInGlyph },
-  { id: 'x', name: 'X', Icon: XGlyph },
 ] as const;
 
 function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -233,7 +218,7 @@ export function LandingPage() {
 
   return (
     <div
-      className={`oma-pl-root ${jakarta.variable}`}
+      className="oma-pl-root"
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
       lang={locale}
       data-testid="landing-page"

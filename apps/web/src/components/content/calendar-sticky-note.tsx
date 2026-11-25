@@ -79,9 +79,14 @@ export function CalendarStickyNote({
     }
     const r = colorBtnRef.current.getBoundingClientRect();
     const dir = document.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
-    const insetInlineStart =
-      dir === 'rtl' ? Math.max(8, window.innerWidth - r.right) : Math.max(8, r.left);
-    setColorPos({ top: r.bottom + 8, insetInlineStart });
+    const panelW = 168;
+    const pad = 8;
+    let insetInlineStart =
+      dir === 'rtl' ? Math.max(pad, window.innerWidth - r.right) : Math.max(pad, r.left);
+    insetInlineStart = Math.min(insetInlineStart, window.innerWidth - panelW - pad);
+    insetInlineStart = Math.max(pad, insetInlineStart);
+    const top = Math.min(r.bottom + 8, window.innerHeight - 56 - pad);
+    setColorPos({ top, insetInlineStart });
   }, [colorOpen]);
 
   useLayoutEffect(() => {

@@ -27,9 +27,10 @@
   --status-danger: #c43d4b;
   --status-neutral: rgba(0, 0, 0, 0.45);
 
-  /* Typography — LIVE English stack. html 10px is Planable rem contract; OMA pages still use rem at 16px so we do not copy the 10px root (would crush P2–P6 rem layout). Body is 14px explicit. */
+  /* Typography — Plus Jakarta (hosted in web @font-face); desktop 14px body, mobile scale in oma-fonts.css */
   --oma-font-sans:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
   --oma-font-arabic:
     var(--font-noto-arabic), 'Noto Sans Arabic', system-ui, 'Segoe UI', Tahoma, sans-serif;
   --font-sans: var(--oma-font-sans);
@@ -154,6 +155,33 @@
   --oma-action-radius: 8px;
   --oma-action-height: 34px;
   --oma-action-weight: 600;
+
+  /* Workspace chrome (stage4/5); replaces scattered #hex in ops surfaces */
+  --oma-workspace-bg: #f7f8f9;
+  --oma-workspace-bg-subtle: #fafbfc;
+  --oma-workspace-bg-hover: #f8f9fa;
+  --oma-workspace-border: #eef0f2;
+  --oma-workspace-border-card: #e8e9eb;
+  --oma-workspace-border-strong: #e5e7eb;
+  --oma-workspace-muted: #6b7280;
+  --oma-workspace-ink: #111827;
+  --oma-workspace-ink-soft: #8c8c8c;
+  --oma-workspace-tab-active-bg: #e8f1ff;
+  --oma-workspace-tab-active-fg: var(--oma-primary);
+  --oma-workspace-primary-border: #2563eb;
+  --oma-kb-board-bg: #f6f7f9;
+  --oma-kb-board-border: #eef0f3;
+
+  /* Kanban lane semantics (stage4) — external brand accents, tokenized once */
+  --oma-kb-lane-backlog: #9ca3af;
+  --oma-kb-lane-ready: #83aeff;
+  --oma-kb-lane-progress: #8180fd;
+  --oma-kb-lane-review: #ff9052;
+  --oma-kb-lane-blocked: #ff5f5f;
+  --oma-kb-lane-done: #21cc99;
+  --oma-kb-lane-drop: #c4b5fd;
+  --oma-kb-lane-drop-glow: rgb(129 128 253 / 0.16);
+  --oma-kb-lane-drop-bg: #faf9ff;
 }
 
 /* Home (Planable calm palette) */

@@ -14,6 +14,17 @@ export const LISTENING_PLATFORM_IDS = [
 ] as const;
 export type ListeningPlatformId = (typeof LISTENING_PLATFORM_IDS)[number];
 
+/** Hidden from listening UI and worker polling (paid / paused). */
+export const PRODUCT_DISABLED_LISTENING_PLATFORMS = ['X'] as const;
+
+export function isListeningPlatformProductDisabled(platform: string): boolean {
+  return (PRODUCT_DISABLED_LISTENING_PLATFORMS as readonly string[]).includes(platform);
+}
+
+export const CUSTOMER_LISTENING_PLATFORM_IDS = LISTENING_PLATFORM_IDS.filter(
+  (id) => !isListeningPlatformProductDisabled(id),
+);
+
 export const LISTENING_SYNC_STATUSES = [
   'IDLE',
   'QUEUED',
@@ -94,7 +105,11 @@ export function parseListeningPlatforms(raw: unknown, required: boolean): Listen
   const out: ListeningPlatformId[] = [];
   const seen = new Set<string>();
   for (const item of raw) {
-    if (typeof item !== 'string' || !LISTENING_PLATFORM_IDS.includes(item as ListeningPlatformId)) {
+    if (
+      typeof item !== 'string' ||
+      !LISTENING_PLATFORM_IDS.includes(item as ListeningPlatformId) ||
+      isListeningPlatformProductDisabled(item)
+    ) {
       throw new ListeningRuleValidationError('platforms');
     }
     if (seen.has(item)) continue;
@@ -257,12 +272,6 @@ export function buildListeningSourceCatalog(input: {
       mode: 'server_key',
       readiness: input.webConfigured ? 'configured' : 'not_configured',
       limitation: 'custom_search_last_7_days',
-    },
-    {
-      id: 'X',
-      mode: 'inbox_derived',
-      readiness: has('X') ? 'inbox_only' : 'needs_account',
-      limitation: 'inbox_mentions_and_dms_not_global_search',
     },
     {
       id: 'TIKTOK',

@@ -1007,4 +1007,116 @@
   .plx-ws-name {
     overflow-wrap: anywhere;
   }
+
+  .plx-dash-body {
+    padding-bottom: 40px;
+  }
+
+  .plx-topbar {
+    height: 52px;
+    font-size: 12px;
+  }
+
+  .plx-topbar-search {
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .plx-topbar-search input {
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .plx-company-row {
+    padding: 14px 12px 4px;
+    gap: 8px;
+  }
+
+  .plx-company-name {
+    font-size: 14px;
+    min-height: 36px;
+    padding: 4px 6px;
+  }
+
+  .plx-company-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .plx-company-actions > * {
+    font-size: 11px;
+    min-height: 34px;
+    padding: 6px 10px;
+  }
+
+  .plx-ws-grid {
+    padding: 10px 12px 8px;
+    gap: 12px;
+  }
+
+  .plx-ws-card,
+  .plx-ws-create {
+    min-height: 168px;
+    padding: 14px 14px 44px;
+    border-radius: 12px;
+  }
+
+  .plx-ws-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+
+  .plx-ws-name {
+    font-size: 14px;
+    margin-top: 10px;
+    line-height: 1.3;
+  }
+
+  .plx-ws-meta {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .plx-ws-create-plus {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+
+  .plx-ws-create-label {
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  .plx-other-head {
+    padding-inline: 12px;
+  }
+
+  .plx-other-head h2 {
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .plx-platform-grid {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .plx-platform-tile {
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+
+  .plx-menu {
+    font-size: 12px;
+  }
+
+  .plx-menu button,
+  .plx-menu a {
+    font-size: 12px;
+    min-height: 36px;
+  }
 }

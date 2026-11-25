@@ -18,6 +18,8 @@
 @import '../styles/approvals-planable.css';
 @import '../styles/analytics-planable.css';
 @import '../styles/brand-settings.css';
+/* Mobile cascade (last wins): oct27 → nov02 → precise → density → brand/surfaces →
+   compact → feel-better → ux-pro-max-reset → ops-authority (canonical ops lists). */
 @import '../styles/mobile-oct27.css';
 @import '../styles/mobile-nov02.css';
 @import '../styles/shimmer.css';
@@ -28,12 +30,16 @@
 @import '../styles/mobile-ui-compact.css';
 @import '../styles/mobile-strategy-briefs.css';
 @import '../styles/strategy-plan-briefs.css';
+@import '../styles/oma-icon-action.css';
 @import '../styles/inbox-listening.css';
 @import '../styles/brand-intel.css';
 @import '../styles/mobile-compact-final.css';
 @import '../styles/mobile-surfaces-clean.css';
 @import '../styles/mobile-feel-better.css';
 @import '../styles/mobile-ux-pro-max-reset.css';
+@import '../styles/mobile-phone-tight.css';
+@import '../styles/mobile-ops-authority.css';
+@import '../styles/mobile-requests-phone.css';
 
 * {
   box-sizing: border-box;
@@ -2108,202 +2114,14 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
   }
 }
 
-/* Final requests mobile cascade override — must remain after all imported CSS. */
-@media (max-width: 767px) {
-  html body .oma-top-actions--workspace .oma-requests-header-title {
-    display: inline-flex !important;
-    flex: 0 0 auto !important;
-    align-items: center !important;
-    width: auto !important;
-    max-width: min(42vw, 180px) !important;
-    min-width: 0 !important;
-    height: 32px !important;
-    margin: 0 2px 0 0 !important;
-    overflow: hidden !important;
-    color: #111827 !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    line-height: 32px !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    white-space: nowrap !important;
-  }
-
-  html body .oma-top-actions--workspace .oma-req-create-icon {
-    display: inline-flex !important;
-    flex: 0 0 32px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 32px !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    padding: 0 !important;
-    border: 1px solid #dbe2ea !important;
-    border-radius: 8px !important;
-    background: #ffffff !important;
-    color: #2563eb !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-  }
-
-  html body .oma-top-actions--workspace .oma-req-create-icon svg {
-    display: block !important;
-    width: 18px !important;
-    height: 18px !important;
-    color: #2563eb !important;
-    stroke: #2563eb !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-
-  html body .oma-req-page .oma-req-header__subtitle {
-    display: block !important;
-    margin: 4px 4px 14px !important;
-    min-height: 16px !important;
-    color: #64748b !important;
-    font-size: 11px !important;
-    line-height: 1.45 !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-}
-
-/* MOBILE_PRECISE_NOV03 cascade reinforce (after all rules) */
-@media (max-width: 767px) {
-  html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,
-  html body .oma-ws-table-scroll .oma-ws-table--perms td:first-child,
-  html body .oma-ws-table-scroll .oma-ws-table--perms thead th:first-child {
-    position: static !important;
-    inset-inline-start: auto !important;
-    left: auto !important;
-    right: auto !important;
-    z-index: auto !important;
-    box-shadow: none !important;
-  }
-  html body .oma-deliv-desktop {
-    display: block !important;
-  }
-  html body .oma-deliv-mobile {
-    display: none !important;
-  }
-  html body .oma-deliv-groups,
-  html body [data-testid='demo-deliv-groups'] {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-  }
-  html body .oma-mobile-page-title {
-    display: inline-flex !important;
-  }
-  html body .oma-shell-column[data-mobile-page-title='true'] .oma-top-context {
-    display: none !important;
-  }
-}
-
-/* MOBILE_PRECISE_CREATE_LABELS */
-@media (max-width: 767px) {
-  html body .oma-req-create-icon__label,
-  html body .oma-header-create-icon__label {
-    display: none !important;
-  }
-  html body .oma-req-create-icon,
-  html body .oma-header-create-icon {
-    width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    padding: 0 !important;
-    gap: 0 !important;
-  }
-}
 @media (min-width: 768px) {
-  html body .oma-req-create-icon {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    width: auto !important;
-    min-width: 0 !important;
-    height: 34px !important;
-    padding: 0 12px !important;
-    border-radius: 8px !important;
-  }
-  html body .oma-req-create-icon__label,
-  html body .oma-header-create-icon__label {
-    display: inline !important;
-    position: static !important;
-    width: auto !important;
-    height: auto !important;
-    clip: auto !important;
-    overflow: visible !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-  }
-  html body .oma-header-create-icon {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    width: auto !important;
-    min-width: 0 !important;
-    height: auto !important;
-    padding: 4px 12px !important;
-  }
   html body .oma-mobile-page-title {
     display: none !important;
   }
 }
 
-.oma-deliv-page .oma-deliv-topbar,
-.oma-deliv-page .oma-req-topbar.oma-deliv-topbar {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  min-height: 0 !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'].oma-ws-tabs,
-.oma-deliv-page [data-testid='demo-deliv-groups'].oma-req-tabs {
-  display: flex !important;
-  align-items: stretch !important;
-  flex-wrap: nowrap !important;
-  gap: 4px !important;
-  margin: 0 0 16px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab {
-  height: auto !important;
-  min-height: 0 !important;
-  margin: 0 0 -1px !important;
-  padding: 10px 14px !important;
-  border: 0 !important;
-  border-bottom: 2px solid transparent !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #6b7280 !important;
-  font-size: 13.5px !important;
-  font-weight: 400 !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab:hover,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab:hover {
-  background: transparent !important;
-  color: #111827 !important;
-}
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab.is-active,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab.is-active,
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-ws-tab[data-active='true'],
-.oma-deliv-page [data-testid='demo-deliv-groups'] .oma-req-tab[data-active='true'] {
-  background: transparent !important;
-  color: #111827 !important;
-  font-weight: 500 !important;
-  border-bottom-color: #2563eb !important;
-  box-shadow: none !important;
-}
+/* Deliverables tabs/chrome: stage4/40-detail-components.css (OMA-PATCH-deliv-tabs) */
+
 @media (max-width: 700px) {
   .oma-tasks-page .oma-kb-board__grid {
     grid-auto-columns: minmax(260px, 84vw) !important;
@@ -2587,6 +2405,73 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
 .oma-cal-toolbar__end {
   flex: 0 1 auto !important;
   margin-inline-start: auto !important;
+}
+@media (max-width: 767px) {
+  html body [data-testid='demo-content-calendar'] .oma-cal-main {
+    overflow: visible !important;
+  }
+
+  html body [data-testid='demo-content-cal-scroll'].oma-cal-hscroll,
+  html body [data-testid='demo-content-calendar'] .oma-cal-hscroll {
+    overflow-x: scroll !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__start,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end {
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+  }
+  html body [data-testid='demo-content-calendar'] {
+    --oma-cal-day-col: calc((100vw - 20px) / 3);
+  }
+  html
+    body
+    [data-testid='demo-content-cal-scroll']
+    [data-testid='demo-content-cal-grid'].oma-cal-grid,
+  html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid {
+    width: calc(7 * var(--oma-cal-day-col)) !important;
+    min-width: calc(7 * var(--oma-cal-day-col)) !important;
+    max-width: none !important;
+    grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
+    overflow: visible !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-grid[data-hide-weekends='true'] {
+    width: calc(5 * var(--oma-cal-day-col)) !important;
+    grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-dow-row {
+    width: calc(7 * var(--oma-cal-day-col)) !important;
+    grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
+  }
+  html
+    body
+    [data-testid='demo-content-calendar']
+    .oma-cal-grid[data-hide-weekends='true']
+    .oma-cal-dow-row {
+    width: calc(5 * var(--oma-cal-day-col)) !important;
+    grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;
+  }
+  html body [data-testid='demo-content-cal-grid'][data-span='month'] {
+    grid-auto-rows: minmax(76px, auto) !important;
+    align-content: start !important;
+  }
+  html body [data-testid='demo-content-cal-grid'][data-span='month'] > .oma-cal-cell {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 76px !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-cell__scroll {
+    max-height: min(120px, 32vw) !important;
+    overflow-y: auto !important;
+  }
 }
 .oma-cal-month-label {
   min-width: 0 !important;

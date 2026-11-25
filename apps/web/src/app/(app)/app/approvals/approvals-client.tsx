@@ -5,11 +5,15 @@ import { createPortal } from 'react-dom';
 import {
   CheckCircleOutlined,
   CheckOutlined,
+  CircleCheckSoftOutlined,
   ClockCircleOutlined,
   CommentOutlined,
   LinkOutlined,
+  ListTodoSoftOutlined,
   PlayCircleOutlined,
+  UnorderedListOutlined,
 } from '../../../../components/ui/lucide-icons';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import {
   ApprovalChannelRail,
   type ApprovalChannelRow,
@@ -198,33 +202,38 @@ export function ApprovalsClient() {
   };
 
   const topBarActions = (
-    <div className="oma-plx-approvals__top-actions">
+    <div className="oma-plx-approvals__top-actions oma-plx-approvals__top-actions--icons">
+      <OmaIconAction
+        type="button"
+        className="oma-plx-approvals__approve-all-btn oma-icon-action--bare"
+        disabled={!buckets.awaiting.length || approvingAll}
+        aria-label={t('approvals.approve_all')}
+        onClick={() => setApproveAllConfirmOpen(true)}
+        data-testid="approvals-approve-all"
+      >
+        <CircleCheckSoftOutlined className="oma-lucide" aria-hidden width={18} height={18} />
+      </OmaIconAction>
+      <OmaIconAction
+        type="button"
+        className="oma-plx-approvals__review-cta oma-icon-action--compose oma-icon-action--bare"
+        disabled={pendingTotal === 0}
+        aria-label={
+          t('approvals.review_n_posts')
+            ? t('approvals.review_n_posts').replace('{n}', String(pendingTotal))
+            : `${t('approvals.review_posts')} ${pendingTotal}`
+        }
+        badge={pendingTotal > 0 ? pendingTotal : undefined}
+        onClick={() => openReviewForSection('awaiting')}
+        data-testid="approvals-review-posts"
+      >
+        <ListTodoSoftOutlined className="oma-lucide" aria-hidden width={18} height={18} />
+      </OmaIconAction>
       <ApprovalChannelRail
         channels={channels}
         enabled={channelFilter}
         onToggle={toggleChannel}
         onToggleAll={(on) => setChannelFilter(on ? new Set() : new Set(channels.map((c) => c.id)))}
       />
-      <button
-        type="button"
-        className="oma-plx-approvals__approve-all-btn"
-        disabled={!buckets.awaiting.length || approvingAll}
-        onClick={() => setApproveAllConfirmOpen(true)}
-        data-testid="approvals-approve-all"
-      >
-        {t('approvals.approve_all')}
-      </button>
-      <button
-        type="button"
-        className="oma-plx-approvals__review-cta"
-        disabled={pendingTotal === 0}
-        onClick={() => openReviewForSection('awaiting')}
-        data-testid="approvals-review-posts"
-      >
-        {t('approvals.review_n_posts')
-          ? t('approvals.review_n_posts').replace('{n}', String(pendingTotal))
-          : `${t('approvals.review_posts')} ${pendingTotal}`}
-      </button>
     </div>
   );
 

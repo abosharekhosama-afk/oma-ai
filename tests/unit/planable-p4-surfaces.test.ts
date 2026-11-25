@@ -13,6 +13,7 @@ import {
   EMPTY_TASK_FILTERS,
 } from '../../apps/web/src/lib/demo/stage4-tasks';
 import { DEMO_GRAPH } from '../../packages/demo/src/index';
+import { readStage4Styles } from '../helpers/stage-styles';
 
 const root = process.cwd();
 
@@ -23,7 +24,7 @@ function read(rel: string): string {
 describe('P4 Planable requests/briefs/tasks surfaces', () => {
   it('rebuilds requests inbox without violet/signal contamination', () => {
     const page = read('apps/web/src/app/(app)/app/requests/page.tsx');
-    const css = read('apps/web/src/styles/stage4.css');
+    const css = readStage4Styles();
     expect(page).toContain('demo-requests');
     expect(page).toContain('demo-request-table');
     expect(page).toContain('demo-create-request-dialog');

@@ -16,6 +16,7 @@ import {
   TextArea,
 } from '@oma/ui/controls';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
@@ -44,7 +45,7 @@ import {
   type RequestRow,
 } from '../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../lib/use-locale';
-import { canConvertRequest, statusLabel } from '../../../../lib/request-workflow-ui';
+import { canConvertRequest, priorityLabel, statusLabel } from '../../../../lib/request-workflow-ui';
 import {
   CloseOutlined,
   SearchOutlined,
@@ -214,6 +215,7 @@ function missingRequestLabels(row: RequestRow, locale: string) {
 export default function RequestsPage() {
   const t = useT();
   const locale = useLocale();
+  const isAr = locale.toLowerCase().startsWith('ar');
   const router = useRouter();
   const toast = useToast();
   const [rows, setRows] = useState<RequestRow[]>([]);
@@ -441,29 +443,26 @@ export default function RequestsPage() {
         ? createPortal(
             <>
               <span className="oma-requests-header-title">{t('demo.requests.title')}</span>
-              <button
+              <OmaIconAction
                 type="button"
                 className="oma-req-filter-icon"
                 data-testid="demo-request-open-filters"
                 data-active={filterSheet ? 'true' : 'false'}
                 aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+                badge={filterCount}
                 onClick={() => setFilterSheet((v) => !v)}
               >
-                <ShellIcon name="filter" size={18} />
-                {filterCount > 0 ? (
-                  <span className="oma-req-filter-icon__count">{filterCount}</span>
-                ) : null}
-              </button>
-              <button
+                <ShellIcon name="filter" size={16} />
+              </OmaIconAction>
+              <OmaIconAction
                 type="button"
                 className="oma-req-create-icon"
                 data-testid="demo-create-request"
                 aria-label={t('demo.requests.new')}
-                title={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}
               >
-                <ShellIcon name="plus" size={19} />
-              </button>
+                <ShellIcon name="plus" size={16} />
+              </OmaIconAction>
             </>,
             headerSlot,
           )
@@ -578,10 +577,7 @@ export default function RequestsPage() {
                               />
                             </td>
                             <td>
-                              <div className="oma-req-title-cell">
-                                <span className="oma-req-avatar" aria-hidden>
-                                  {initials(r.assignee ?? t('demo.requests.unassigned'))}
-                                </span>
+                              <div className="oma-req-title-cell oma-req-title-cell--plain">
                                 <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
                               </div>
                             </td>
@@ -789,7 +785,7 @@ export default function RequestsPage() {
                             checked={(filters.priority || 'all') === s}
                             onChange={() => setFilters((f) => ({ ...f, priority: s }))}
                           />
-                          <span>{s === 'all' ? t('demo.filter.all') : enumStatusLabel(t, s)}</span>
+                          <span>{s === 'all' ? t('demo.filter.all') : priorityLabel(s, isAr)}</span>
                         </label>
                       ))}
                     </div>
@@ -1085,7 +1081,7 @@ export default function RequestsPage() {
               testId="demo-create-request-type"
               onChange={(type) => patchForm({ type })}
               options={['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
-                (s) => ({ value: s, label: s }),
+                (s) => ({ value: s, label: enumStatusLabel(t, s) }),
               )}
             />
           </label>
@@ -1143,6 +1139,7 @@ export default function RequestsPage() {
               onChange={(channels) => patchForm({ channels })}
               locale={locale}
               multiple
+              variant="dropdown"
               testId="demo-create-request-channels"
             />
           </div>
@@ -1160,7 +1157,10 @@ export default function RequestsPage() {
               value={form.priority}
               testId="demo-create-request-priority"
               onChange={(priority) => patchForm({ priority })}
-              options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
+              options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({
+                value: s,
+                label: priorityLabel(s, isAr),
+              }))}
             />
           </label>
           <label>
@@ -1195,12 +1195,17 @@ export default function RequestsPage() {
           <p className="oma-muted" data-testid="demo-create-request-refs">
             {t('demo.optional')}: content / reference placeholders (Demo)
           </p>
-          <div className="oma-req-create__footer">
-            <Button disabled={creating} onClick={requestCloseCreate}>
+          <div className="oma-req-create__footer oma-plx-compose-dialog__foot">
+            <Button
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
+              disabled={creating}
+              onClick={requestCloseCreate}
+            >
               {t('demo.create.cancel')}
             </Button>
             <Button
               type="primary"
+              className="oma-req-detail__action-btn oma-plx-compose-dialog__btn"
               loading={creating}
               data-testid="demo-create-request-submit"
               onClick={() => void submitCreate()}

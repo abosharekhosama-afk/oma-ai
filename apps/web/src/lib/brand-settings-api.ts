@@ -27,10 +27,13 @@ export const SOCIAL_NETWORKS: SocialNetwork[] = [
   'x',
   'whatsapp',
 ];
-/** Calendar/feed compose — WhatsApp is inbox-only. */
+/** Calendar/feed compose — WhatsApp is inbox-only; X is not offered. */
 export const FEED_SOCIAL_NETWORKS: SocialNetwork[] = SOCIAL_NETWORKS.filter(
-  (n) => n !== 'whatsapp',
+  (n) => n !== 'whatsapp' && n !== 'x',
 );
+
+/** Brand settings connect list (excludes product-disabled networks). */
+export const CONNECTABLE_SOCIAL_NETWORKS: SocialNetwork[] = FEED_SOCIAL_NETWORKS;
 
 export type SocialPageRow = {
   id: string;

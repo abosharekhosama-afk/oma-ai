@@ -1,0 +1,104 @@
+/*
+ * Content calendar — mobile scroll + toolbar visibility (loads after cascade).
+ */
+
+@media (max-width: 767px) {
+  html body main.oma-container:has([data-testid='demo-content-calendar']),
+  html body .oma-shell main.oma-container:has([data-testid='demo-content-calendar']) {
+    overflow-x: visible !important;
+    min-width: 0 !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] {
+    --oma-cal-day-col: clamp(100px, calc((100vw - 28px) / 3), 124px);
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    padding: 0 6px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 30 !important;
+    background: var(--oma-surface, #fff) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 6px !important;
+    padding: 6px 2px 8px !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    flex-shrink: 0 !important;
+  }
+
+  html body [data-testid='demo-content-cal-scroll'].oma-cal-hscroll,
+  html body [data-testid='demo-content-calendar'] .oma-cal-hscroll {
+    contain: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    padding-inline: 0 !important;
+    padding-bottom: 6px !important;
+    scroll-padding-inline: 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  html body [data-testid='demo-content-cal-grid'] > .oma-cal-dow-row,
+  html body [data-testid='demo-content-cal-scroll'] .oma-cal-dow-row,
+  html body [data-testid='demo-content-calendar'] .oma-cal-dow-row {
+    display: grid !important;
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(7, var(--oma-cal-day-col)) !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: none !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 12 !important;
+    background: var(--oma-surface, #fff) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  html
+    body
+    [data-testid='demo-content-cal-grid'].oma-cal-grid[data-hide-weekends='true']
+    > .oma-cal-dow-row,
+  html
+    body
+    [data-testid='demo-content-calendar']
+    .oma-cal-grid[data-hide-weekends='true']
+    .oma-cal-dow-row {
+    grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-dow {
+    font-size: 10px !important;
+    padding: 4px 2px !important;
+    min-height: 24px !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-month-label {
+    font-size: 12px !important;
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

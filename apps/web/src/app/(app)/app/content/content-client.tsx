@@ -103,6 +103,7 @@ import {
   RetweetOutlined,
 } from '../../../../components/ui/lucide-icons';
 
+import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import { Dialog } from '../../../../components/ui/dialog';
 import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
@@ -504,6 +505,8 @@ function PlanableComposeCard({
   const [aiBusy, setAiBusy] = useState(false);
   const [aiProposal, setAiProposal] = useState<ContentAiProposal | null>(null);
   const [aiRefusal, setAiRefusal] = useState<string | null>(null);
+  const [saveMenu, setSaveMenu] = useState(false);
+  const saveMenuRef = useRef<HTMLDivElement | null>(null);
   const reportAiError = (err: unknown) => {
     const reason = aiRefusalReason(err, isAr ? 'ar' : 'en');
     setAiRefusal(reason);
@@ -534,6 +537,17 @@ function PlanableComposeCard({
     if (proposal.banner) toast.push(proposal.banner, 'default');
     return proposal;
   };
+  useEffect(() => {
+    if (!saveMenu) return;
+    const onDoc = (e: MouseEvent) => {
+      if (saveMenuRef.current && !saveMenuRef.current.contains(e.target as Node)) {
+        setSaveMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [saveMenu]);
+
   if (!open) return null;
   const now = dayjs();
   const preferred = [1, 2, 3, 4].map((d) =>
@@ -1144,29 +1158,52 @@ function PlanableComposeCard({
             >
               <EyeOutlined />
             </button>
-            {onEnqueue ? (
+            <div className="oma-compose-save-menu" ref={saveMenuRef}>
               <button
                 type="button"
-                className="oma-compose-queue"
+                className="oma-compose-save"
                 disabled={creating}
-                data-testid="compose-add-to-queue"
-                onClick={onEnqueue}
+                data-testid="demo-create-content-submit"
+                aria-haspopup="menu"
+                aria-expanded={saveMenu}
+                onClick={() => setSaveMenu((v) => !v)}
               >
-                {t('content.bestTime.enqueue')}
+                <span>{creating ? t('demo.content.saving') : t('content.save_draft')}</span>
+                <span className="oma-compose-save__caret" aria-hidden>
+                  <DownOutlined style={{ fontSize: 10 }} />
+                </span>
               </button>
-            ) : null}
-            <button
-              type="button"
-              className="oma-compose-save"
-              disabled={creating}
-              data-testid="demo-create-content-submit"
-              onClick={onSubmit}
-            >
-              <span>{creating ? t('demo.content.saving') : t('content.save_draft')}</span>
-              <span className="oma-compose-save__caret">
-                <DownOutlined style={{ fontSize: 10 }} />
-              </span>
-            </button>
+              {saveMenu ? (
+                <div className="oma-compose-save-flyout" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={creating}
+                    data-testid="demo-create-content-save-draft"
+                    onClick={() => {
+                      setSaveMenu(false);
+                      onSubmit();
+                    }}
+                  >
+                    {t('content.save_draft')}
+                  </button>
+                  {onEnqueue ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      disabled={creating}
+                      data-testid="compose-add-to-queue"
+                      onClick={() => {
+                        setSaveMenu(false);
+                        onEnqueue();
+                      }}
+                    >
+                      {t('content.bestTime.enqueue')}
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -1366,8 +1403,9 @@ function CardFloatingMenu({
         top: realPos.top,
         left: realPos.left,
         zIndex: 12000,
-        maxHeight: 'min(70vh, calc(100vh - 16px))',
-        overflowY: 'auto',
+        width: 'min(200px, calc(100vw - 16px))',
+        maxHeight: 'calc(100vh - 16px)',
+        overflowY: 'visible',
       }}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
@@ -1451,10 +1489,11 @@ function CardActionsButton({
   onOpen: (itemId: string, anchor: HTMLElement) => void;
   onClose: () => void;
 }) {
+  const btnClass = className ? `oma-card-actions-btn ${className}` : 'oma-card-actions-btn';
   return (
-    <button
+    <OmaIconAction
       type="button"
-      className={className ? `oma-card-actions-btn ${className}` : 'oma-card-actions-btn'}
+      className={btnClass}
       data-testid={`demo-content-actions-${itemId}`}
       data-open={open ? 'true' : 'false'}
       aria-label={label}
@@ -1468,8 +1507,8 @@ function CardActionsButton({
         else onOpen(itemId, e.currentTarget);
       }}
     >
-      <MoreOutlined />
-    </button>
+      <MoreOutlined aria-hidden />
+    </OmaIconAction>
   );
 }
 
@@ -3391,15 +3430,23 @@ export default function ContentPage() {
   function placeCardMenu(itemId: string, target: HTMLElement, keepVariant = false) {
     if (!keepVariant) setMenuVariant('full');
     const rect = target.getBoundingClientRect();
-    const menuW = 220;
-    const menuH = 280;
+    const pad = 8;
+    const menuW = Math.min(200, Math.max(168, window.innerWidth - pad * 2));
+    const menuH = Math.min(320, window.innerHeight - pad * 2);
     const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
-    let left = rtl ? rect.left - menuW - 8 : rect.right + 8;
+    let left = rtl ? rect.left - menuW - pad : rect.right + pad;
+    if (left + menuW > window.innerWidth - pad) {
+      left = rect.left - menuW - pad;
+    }
+    if (left < pad) left = pad;
+    left = Math.max(pad, Math.min(left, window.innerWidth - menuW - pad));
     let top = rect.top;
-    if (left + menuW + 8 > window.innerWidth) left = Math.max(8, rect.left - menuW - 8);
-    if (left < 8) left = Math.min(window.innerWidth - menuW - 8, rect.right + 8);
-    if (left < 8) left = 8;
-    if (top + menuH + 8 > window.innerHeight) top = Math.max(8, window.innerHeight - menuH - 8);
+    if (top + menuH > window.innerHeight - pad) {
+      top = Math.max(pad, rect.bottom - menuH);
+    }
+    if (top + menuH > window.innerHeight - pad) {
+      top = Math.max(pad, window.innerHeight - menuH - pad);
+    }
     setCardMenuId(itemId);
     setMenuPos({ top, left });
   }
@@ -4050,89 +4097,67 @@ export default function ContentPage() {
       {/* Portal: Filter / Media / Share / Compose into shell header */}
       {headerSlot &&
         createPortal(
-          <div className="oma-plx-content-header-actions oma-action-bar">
-            <button
+          <div className="oma-plx-content-header-actions oma-workspace-header-actions">
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn oma-top-action oma-top-action--view"
-              data-tooltip={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
-              title={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
               aria-label={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
+              data-testid="demo-content-view-toggle"
+              data-active={viewMenuOpen ? 'true' : 'false'}
               aria-haspopup="menu"
               aria-expanded={viewMenuOpen}
               onClick={(e) => {
                 e.stopPropagation();
                 setViewMenuOpen((v) => !v);
               }}
-              data-testid="demo-content-view-toggle"
             >
               {view === 'feed' ? (
-                <BarsOutlined />
+                <BarsOutlined aria-hidden />
               ) : view === 'list' ? (
-                <UnorderedListOutlined />
+                <UnorderedListOutlined aria-hidden />
               ) : view === 'grid' ? (
-                <AppstoreOutlined />
+                <AppstoreOutlined aria-hidden />
               ) : (
-                <CalendarOutlined />
+                <CalendarOutlined aria-hidden />
               )}
-              <span className="oma-plx-content-header-btn__label">{t(`demo.view.${view}`)}</span>
-            </button>
-            <button
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn"
-              data-active={filterSheet ? 'true' : 'false'}
-              data-tooltip={t('content.filter_sort')}
-              title={t('content.filter_sort')}
               aria-label={
                 filterCount > 0 ? `${t('content.filtered')} (${filterCount})` : t('content.filter')
               }
-              onClick={() => setFilterSheet((open) => !open)}
               data-testid="demo-content-open-filters"
+              data-active={filterSheet ? 'true' : 'false'}
+              badge={filterCount}
+              onClick={() => setFilterSheet((open) => !open)}
             >
-              <FilterOutlined />
-              <span className="oma-plx-content-header-btn__label">
-                {filterCount > 0 ? t('content.filtered') : t('content.filter')}
-              </span>
-              {filterCount > 0 ? (
-                <span className="oma-plx-content-header-count oma-ltr">{filterCount}</span>
-              ) : null}
-            </button>
-            <button
+              <FilterOutlined aria-hidden />
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn"
-              data-tooltip={t('content.media_library')}
-              title={t('content.media_library')}
               aria-label={t('demo.content.media')}
+              data-testid="demo-content-open-media"
               data-active={mediaLibraryOpen ? 'true' : 'false'}
               onClick={() => setMediaLibraryOpen((open) => !open)}
-              data-testid="demo-content-open-media"
             >
               <IconMedia />
-              <span className="oma-plx-content-header-btn__label">{t('content.media')}</span>
-            </button>
-            <button
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn"
-              data-tooltip={t('content.share_view')}
-              title={t('content.share_view')}
               aria-label={t('content.share')}
-              onClick={() => void shareContentWorkspace()}
               data-testid="demo-content-share"
+              onClick={() => void shareContentWorkspace()}
             >
               <IconShare />
-              <span className="oma-plx-content-header-btn__label">{t('content.share')}</span>
-            </button>
-            <button
+            </OmaIconAction>
+            <OmaIconAction
               type="button"
-              className="oma-plx-content-header-btn oma-plx-content-header-btn--primary"
-              data-tooltip={t('content.compose')}
-              title={t('content.compose')}
+              className="oma-icon-action--compose"
               aria-label={t('content.compose')}
               data-testid="demo-create-content"
               onClick={() => setCreateOpen(true)}
             >
-              <EditOutlined />
-              <span className="oma-plx-content-header-btn__label">{t('content.compose')}</span>
-            </button>
+              <EditOutlined aria-hidden />
+            </OmaIconAction>
           </div>,
           headerSlot,
         )}
@@ -4295,24 +4320,24 @@ export default function ContentPage() {
                       </Button>
                     </div>
                     <div className="oma-cal-nav">
-                      <Button
-                        type="text"
+                      <OmaIconAction
+                        type="button"
                         className="oma-cal-nav__btn"
                         aria-label={t('demo.content.prev')}
                         data-testid="demo-content-cal-prev"
                         onClick={() => stepCal(-1)}
                       >
                         ‹
-                      </Button>
-                      <Button
-                        type="text"
+                      </OmaIconAction>
+                      <OmaIconAction
+                        type="button"
                         className="oma-cal-nav__btn"
                         aria-label={t('demo.content.next')}
                         data-testid="demo-content-cal-next"
                         onClick={() => stepCal(1)}
                       >
                         ›
-                      </Button>
+                      </OmaIconAction>
                       <strong className="oma-cal-month-label">
                         {monthLabel(cursor.year, cursor.monthIndex, locale)}
                       </strong>
@@ -4444,335 +4469,352 @@ export default function ContentPage() {
                   </div>
                 </div>
 
-                <div
-                  className="oma-cal-grid"
-                  role="grid"
-                  aria-label={t('demo.view.calendar')}
-                  data-testid="demo-content-cal-grid"
-                  data-columns={calDisplay.showWeekends ? '7' : '5'}
-                  data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
-                  data-post-size={calDisplay.postSize}
-                  data-span={calSpan}
-                >
-                  <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
-                    {dows.map((dow, di) => (
-                      <div
-                        key={dow}
-                        className="oma-cal-dow"
-                        role="columnheader"
-                        data-weekend={
-                          isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? todayKeyVal, di))
-                            ? 'true'
-                            : 'false'
-                        }
-                      >
-                        {dow}
-                      </div>
-                    ))}
-                  </div>
-                  {Array.from({ length: Math.ceil(visibleCells.length / 7) }, (_, wi) => {
-                    const week = visibleCells.slice(wi * 7, wi * 7 + 7);
-                    if (!week.length) return null;
-                    const weekStart = week[0]!.key;
-                    return (
-                      <div
-                        key={`week-${weekStart}`}
-                        className="oma-cal-week"
-                        style={{ display: 'contents' }}
-                      >
-                        {week.map((cell) => {
-                          const items = byDay.get(cell.key) ?? [];
-                          const { visible: visibleCellItems, extra } = splitCellItems(items, 2);
-                          const note = dayNotes[cell.key];
-                          const holiday = holidayChips[cell.key];
-                          const noteOpen = noteDay === cell.key;
-                          return (
-                            <div
-                              key={cell.key}
-                              className="oma-cal-cell"
-                              role="gridcell"
-                              aria-selected={cell.key === selectedDay}
-                              data-out={cell.inMonth ? 'false' : 'true'}
-                              data-today={cell.key === todayKeyVal ? 'true' : 'false'}
-                              data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
-                              data-selected={cell.key === selectedDay ? 'true' : 'false'}
-                              data-note-open={noteOpen ? 'true' : 'false'}
-                              onClick={() => setSelectedDay(cell.key)}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.dataTransfer.dropEffect = 'move';
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                const id = e.dataTransfer.getData('text/oma-content-id');
-                                const from = e.dataTransfer.getData('text/oma-from-day') || null;
-                                if (id) void rescheduleContentToDay(id, cell.key, from);
-                              }}
-                            >
-                              <span className="oma-cal-daynum oma-ltr">
-                                {cell.date.getUTCDate()}
-                              </span>
+                <div className="oma-cal-hscroll" data-testid="demo-content-cal-scroll">
+                  <div
+                    className="oma-cal-grid"
+                    role="grid"
+                    aria-label={t('demo.view.calendar')}
+                    data-testid="demo-content-cal-grid"
+                    data-columns={calDisplay.showWeekends ? '7' : '5'}
+                    data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
+                    data-post-size={calDisplay.postSize}
+                    data-span={calSpan}
+                  >
+                    <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
+                      {dows.map((dow, di) => (
+                        <div
+                          key={dow}
+                          className="oma-cal-dow"
+                          role="columnheader"
+                          data-weekend={
+                            isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? todayKeyVal, di))
+                              ? 'true'
+                              : 'false'
+                          }
+                        >
+                          {dow}
+                        </div>
+                      ))}
+                    </div>
+                    {Array.from({ length: Math.ceil(visibleCells.length / 7) }, (_, wi) => {
+                      const week = visibleCells.slice(wi * 7, wi * 7 + 7);
+                      if (!week.length) return null;
+                      const weekStart = week[0]!.key;
+                      return (
+                        <div
+                          key={`week-${weekStart}`}
+                          className="oma-cal-week"
+                          style={{ display: 'contents' }}
+                        >
+                          {week.map((cell) => {
+                            const items = byDay.get(cell.key) ?? [];
+                            const { visible: visibleCellItems, extra } = splitCellItems(items, 2);
+                            const note = dayNotes[cell.key];
+                            const holiday = holidayChips[cell.key];
+                            const noteOpen = noteDay === cell.key;
+                            return (
+                              <div
+                                key={cell.key}
+                                className="oma-cal-cell"
+                                role="gridcell"
+                                aria-selected={cell.key === selectedDay}
+                                data-out={cell.inMonth ? 'false' : 'true'}
+                                data-today={cell.key === todayKeyVal ? 'true' : 'false'}
+                                data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
+                                data-selected={cell.key === selectedDay ? 'true' : 'false'}
+                                data-note-open={noteOpen ? 'true' : 'false'}
+                                onClick={() => setSelectedDay(cell.key)}
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.dataTransfer.dropEffect = 'move';
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const id = e.dataTransfer.getData('text/oma-content-id');
+                                  const from = e.dataTransfer.getData('text/oma-from-day') || null;
+                                  if (id) void rescheduleContentToDay(id, cell.key, from);
+                                }}
+                              >
+                                <span className="oma-cal-daynum oma-ltr">
+                                  {cell.date.getUTCDate()}
+                                </span>
 
-                              {/* Post/Note hover actions at top */}
-                              <div className="oma-cal-cell-actions">
-                                <button
-                                  type="button"
-                                  className="oma-cal-cell-actions__btn"
-                                  data-testid={`demo-cal-post-${cell.key}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedDay(cell.key);
-                                    setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                    setCreateOpen(true);
-                                  }}
-                                >
-                                  <EditOutlined />
-                                  <span>{t('content.post')}</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  className="oma-cal-cell-actions__btn"
-                                  data-testid={`demo-cal-note-${cell.key}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedDay(cell.key);
-                                    if (!calDisplay.showNotes) {
-                                      setCalDisplay({ ...calDisplay, showNotes: true });
-                                    }
-                                    setDayNotes((prev) =>
-                                      prev[cell.key]
-                                        ? prev
-                                        : {
-                                            ...prev,
-                                            [cell.key]: {
-                                              text: '',
-                                              color: 'yellow',
-                                              visibility: 'only_me',
-                                            },
-                                          },
-                                    );
-                                    setNoteDay(cell.key);
-                                    setNoteColorOpen(false);
-                                    setNoteMenuOpen(false);
-                                    if (!dayNotes[cell.key]) {
-                                      void persistNote(cell.key, {
-                                        text: '',
-                                        color: 'yellow',
-                                        visibility: 'only_me',
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <FileTextOutlined />
-                                  <span>{t('content.note')}</span>
-                                </button>
-                              </div>
-
-                              {(calDisplay.showNotes && note) || noteOpen ? (
-                                <CalendarStickyNote
-                                  dayKey={cell.key}
-                                  note={
-                                    dayNotes[cell.key] ?? {
-                                      text: '',
-                                      color: 'yellow',
-                                      visibility: 'only_me',
-                                    }
-                                  }
-                                  active={noteDay === cell.key}
-                                  colorOpen={noteDay === cell.key && noteColorOpen}
-                                  menuOpen={noteDay === cell.key && noteMenuOpen}
-                                  t={t}
-                                  onActivate={() => {
-                                    setNoteDay(cell.key);
-                                  }}
-                                  onClosePopovers={() => {
-                                    setNoteColorOpen(false);
-                                    setNoteMenuOpen(false);
-                                  }}
-                                  onToggleColor={() => {
-                                    setNoteDay(cell.key);
-                                    setNoteColorOpen((v) => !v);
-                                    setNoteMenuOpen(false);
-                                  }}
-                                  onToggleMenu={() => {
-                                    setNoteDay(cell.key);
-                                    setNoteMenuOpen((v) => !v);
-                                    setNoteColorOpen(false);
-                                  }}
-                                  onChangeText={(text) => {
-                                    setDayNotes((prev) => ({
-                                      ...prev,
-                                      [cell.key]: {
-                                        text,
-                                        color: prev[cell.key]?.color ?? 'yellow',
-                                        visibility: prev[cell.key]?.visibility ?? 'only_me',
-                                      },
-                                    }));
-                                  }}
-                                  onCommitText={(text) => void persistNote(cell.key, { text })}
-                                  onColor={(c) => {
-                                    void persistNote(cell.key, { color: c });
-                                    setNoteColorOpen(false);
-                                  }}
-                                  onVisibility={(visibility) => {
-                                    void persistNote(cell.key, { visibility });
-                                    setNoteMenuOpen(false);
-                                  }}
-                                  onDelete={() => {
-                                    void persistNote(cell.key, { remove: true });
-                                  }}
-                                  onCreatePost={() => {
-                                    setSelectedDay(cell.key);
-                                    setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                    setCreateOpen(true);
-                                    setNoteMenuOpen(false);
-                                  }}
-                                />
-                              ) : null}
-
-                              {holiday ? (
                                 <div
-                                  className="oma-cal-holiday-chip"
-                                  title={holiday}
-                                  data-testid={`demo-cal-holiday-${cell.key}`}
+                                  className="oma-cal-cell-actions oma-cal-cell-actions--icon-row"
+                                  role="group"
+                                  aria-label={`${t('content.post')} / ${t('content.note')}`}
                                 >
-                                  {holiday}
-                                </div>
-                              ) : null}
-
-                              <div className="oma-cal-cell__scroll">
-                                {/* Post cards (max 2 per cell; rest via +N more) */}
-                                {visibleCellItems.map((item) => (
-                                  <div
-                                    key={item.id}
-                                    className="oma-cal-item-wrap"
-                                    data-selected={selectedId === item.id ? 'true' : 'false'}
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData('text/oma-content-id', item.id);
-                                      e.dataTransfer.setData('text/oma-from-day', cell.key);
-                                      e.dataTransfer.effectAllowed = 'move';
-                                    }}
-                                    onMouseEnter={(e) => scheduleCardMenu(item.id, e.currentTarget)}
-                                    onMouseLeave={() => cancelCardMenu()}
-                                  >
-                                    {approvalMode ? (
-                                      <label
-                                        className="oma-cal-select"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedIds.includes(item.id)}
-                                          onChange={() => toggleSelectId(item.id)}
-                                        />
-                                      </label>
-                                    ) : null}
-                                    <SurfaceButton
-                                      data-status={item.status}
-                                      data-testid={`demo-cal-item-${item.id}`}
-                                      data-selected={selectedId === item.id ? 'true' : 'false'}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (approvalMode) {
-                                          toggleSelectId(item.id);
-                                          return;
-                                        }
-                                        openItem(item);
-                                      }}
-                                      onContextMenu={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        placeCardMenu(item.id, e.currentTarget);
-                                      }}
-                                      className="oma-cal-item"
-                                    >
-                                      {renderCalendarCard(item)}
-                                    </SurfaceButton>
-                                    <CardActionsButton
-                                      itemId={item.id}
-                                      open={cardMenuId === item.id}
-                                      label={t('content.post_actions')}
-                                      className="oma-card-actions-btn--cal"
-                                      onOpen={placeCardMenu}
-                                      onClose={closeCardMenu}
-                                    />
-                                  </div>
-                                ))}
-                                {extra > 0 ? (
-                                  <Button
-                                    type="default"
-                                    data-testid="demo-day-overflow"
+                                  <button
+                                    type="button"
+                                    className="oma-cal-cell-actions__btn"
+                                    data-testid={`demo-cal-post-${cell.key}`}
+                                    aria-label={t('content.post')}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setSelectedDay(cell.key);
-                                      setOverflowDay(cell.key);
+                                      setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                      setCreateOpen(true);
                                     }}
-                                    className="oma-cal-more"
-                                    aria-label={t('demo.content.openDay')}
                                   >
-                                    +{extra} {isAr ? 'المزيد' : 'more'}
-                                  </Button>
-                                ) : null}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
+                                    <EditOutlined aria-hidden width={12} height={12} />
+                                    <span className="oma-cal-cell-actions__label">
+                                      {t('content.post')}
+                                    </span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="oma-cal-cell-actions__btn"
+                                    data-testid={`demo-cal-note-${cell.key}`}
+                                    aria-label={t('content.note')}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedDay(cell.key);
+                                      if (!calDisplay.showNotes) {
+                                        setCalDisplay({ ...calDisplay, showNotes: true });
+                                      }
+                                      setDayNotes((prev) =>
+                                        prev[cell.key]
+                                          ? prev
+                                          : {
+                                              ...prev,
+                                              [cell.key]: {
+                                                text: '',
+                                                color: 'yellow',
+                                                visibility: 'only_me',
+                                              },
+                                            },
+                                      );
+                                      setNoteDay(cell.key);
+                                      setNoteColorOpen(false);
+                                      setNoteMenuOpen(false);
+                                      if (!dayNotes[cell.key]) {
+                                        void persistNote(cell.key, {
+                                          text: '',
+                                          color: 'yellow',
+                                          visibility: 'only_me',
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <FileTextOutlined aria-hidden width={12} height={12} />
+                                    <span className="oma-cal-cell-actions__label">
+                                      {t('content.note')}
+                                    </span>
+                                  </button>
+                                </div>
 
-                {/* Mobile agenda (hidden on desktop) */}
-                <div
-                  className="oma-cal-agenda"
-                  data-testid="demo-content-agenda"
-                  hidden
-                  aria-hidden="true"
-                >
-                  {agendaDays.map((day) => (
-                    <div key={day.key} className="oma-cal-agenda-day">
-                      <strong className="oma-cal-agenda-day__label">
-                        <span>{weekdayForKey(day.key, locale)}</span>
-                        <span className="oma-ltr">{day.key}</span>
-                      </strong>
-                      {day.items.length === 0 ? (
-                        <p className="oma-muted" style={{ margin: '8px 0 0' }}>
-                          {t('demo.empty')}
-                        </p>
-                      ) : (
-                        <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
-                          {day.items.map((item) => (
-                            <div key={item.id} className="oma-cal-agenda-item">
-                              <SurfaceButton
-                                data-status={item.status}
-                                data-testid={`demo-cal-item-${item.id}`}
-                                onClick={() => openItem(item)}
-                                className="oma-cal-item"
-                              >
-                                <MediaSurface
-                                  className="oma-cal-thumb"
-                                  src={item.previewAsset}
-                                  alt=""
-                                />
-                                <span>
-                                  {pickCopy(item.title, locale)} · {item.channel} ·{' '}
-                                  {statusLabel(item.status, locale)}
-                                </span>
-                              </SurfaceButton>
-                              <CardActionsButton
-                                itemId={item.id}
-                                open={cardMenuId === item.id}
-                                label={t('content.post_actions')}
-                                onOpen={placeCardMenu}
-                                onClose={closeCardMenu}
-                              />
-                            </div>
-                          ))}
+                                {(calDisplay.showNotes && note) || noteOpen ? (
+                                  <CalendarStickyNote
+                                    dayKey={cell.key}
+                                    note={
+                                      dayNotes[cell.key] ?? {
+                                        text: '',
+                                        color: 'yellow',
+                                        visibility: 'only_me',
+                                      }
+                                    }
+                                    active={noteDay === cell.key}
+                                    colorOpen={noteDay === cell.key && noteColorOpen}
+                                    menuOpen={noteDay === cell.key && noteMenuOpen}
+                                    t={t}
+                                    onActivate={() => {
+                                      setNoteDay(cell.key);
+                                    }}
+                                    onClosePopovers={() => {
+                                      setNoteColorOpen(false);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onToggleColor={() => {
+                                      setNoteDay(cell.key);
+                                      setNoteColorOpen((v) => !v);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onToggleMenu={() => {
+                                      setNoteDay(cell.key);
+                                      setNoteMenuOpen((v) => !v);
+                                      setNoteColorOpen(false);
+                                    }}
+                                    onChangeText={(text) => {
+                                      setDayNotes((prev) => ({
+                                        ...prev,
+                                        [cell.key]: {
+                                          text,
+                                          color: prev[cell.key]?.color ?? 'yellow',
+                                          visibility: prev[cell.key]?.visibility ?? 'only_me',
+                                        },
+                                      }));
+                                    }}
+                                    onCommitText={(text) => void persistNote(cell.key, { text })}
+                                    onColor={(c) => {
+                                      void persistNote(cell.key, { color: c });
+                                      setNoteColorOpen(false);
+                                    }}
+                                    onVisibility={(visibility) => {
+                                      void persistNote(cell.key, { visibility });
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onDelete={() => {
+                                      void persistNote(cell.key, { remove: true });
+                                    }}
+                                    onCreatePost={() => {
+                                      setSelectedDay(cell.key);
+                                      setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                      setCreateOpen(true);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                  />
+                                ) : null}
+
+                                {holiday ? (
+                                  <div
+                                    className="oma-cal-holiday-chip"
+                                    title={holiday}
+                                    data-testid={`demo-cal-holiday-${cell.key}`}
+                                  >
+                                    {holiday}
+                                  </div>
+                                ) : null}
+
+                                <div className="oma-cal-cell__scroll">
+                                  {/* Post cards (max 2 per cell; rest via +N more) */}
+                                  {visibleCellItems.map((item) => (
+                                    <div
+                                      key={item.id}
+                                      className="oma-cal-item-wrap"
+                                      data-selected={selectedId === item.id ? 'true' : 'false'}
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData('text/oma-content-id', item.id);
+                                        e.dataTransfer.setData('text/oma-from-day', cell.key);
+                                        e.dataTransfer.effectAllowed = 'move';
+                                      }}
+                                      onMouseEnter={(e) =>
+                                        scheduleCardMenu(item.id, e.currentTarget)
+                                      }
+                                      onMouseLeave={() => cancelCardMenu()}
+                                    >
+                                      {approvalMode ? (
+                                        <label
+                                          className="oma-cal-select"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedIds.includes(item.id)}
+                                            onChange={() => toggleSelectId(item.id)}
+                                          />
+                                        </label>
+                                      ) : null}
+                                      <SurfaceButton
+                                        data-status={item.status}
+                                        data-testid={`demo-cal-item-${item.id}`}
+                                        data-selected={selectedId === item.id ? 'true' : 'false'}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (approvalMode) {
+                                            toggleSelectId(item.id);
+                                            return;
+                                          }
+                                          openItem(item);
+                                        }}
+                                        onContextMenu={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          placeCardMenu(item.id, e.currentTarget);
+                                        }}
+                                        className="oma-cal-item oma-cal-item--has-menu"
+                                      >
+                                        <span className="oma-cal-item__inner">
+                                          {renderCalendarCard(item)}
+                                          {!approvalMode ? (
+                                            <CardActionsButton
+                                              itemId={item.id}
+                                              open={cardMenuId === item.id}
+                                              label={t('content.post_actions')}
+                                              className="oma-card-actions-btn--cal oma-card-actions-btn--in-card"
+                                              onOpen={placeCardMenu}
+                                              onClose={closeCardMenu}
+                                            />
+                                          ) : null}
+                                        </span>
+                                      </SurfaceButton>
+                                    </div>
+                                  ))}
+                                  {extra > 0 ? (
+                                    <Button
+                                      type="default"
+                                      data-testid="demo-day-overflow"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedDay(cell.key);
+                                        setOverflowDay(cell.key);
+                                      }}
+                                      className="oma-cal-more"
+                                      aria-label={t('demo.content.openDay')}
+                                    >
+                                      +{extra} {isAr ? 'المزيد' : 'more'}
+                                    </Button>
+                                  ) : null}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
+
+                  {/* Mobile agenda (hidden on desktop) */}
+                  <div
+                    className="oma-cal-agenda"
+                    data-testid="demo-content-agenda"
+                    hidden
+                    aria-hidden="true"
+                  >
+                    {agendaDays.map((day) => (
+                      <div key={day.key} className="oma-cal-agenda-day">
+                        <strong className="oma-cal-agenda-day__label">
+                          <span>{weekdayForKey(day.key, locale)}</span>
+                          <span className="oma-ltr">{day.key}</span>
+                        </strong>
+                        {day.items.length === 0 ? (
+                          <p className="oma-muted" style={{ margin: '8px 0 0' }}>
+                            {t('demo.empty')}
+                          </p>
+                        ) : (
+                          <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
+                            {day.items.map((item) => (
+                              <div key={item.id} className="oma-cal-agenda-item">
+                                <SurfaceButton
+                                  data-status={item.status}
+                                  data-testid={`demo-cal-item-${item.id}`}
+                                  onClick={() => openItem(item)}
+                                  className="oma-cal-item"
+                                >
+                                  <MediaSurface
+                                    className="oma-cal-thumb"
+                                    src={item.previewAsset}
+                                    alt=""
+                                  />
+                                  <span>
+                                    {pickCopy(item.title, locale)} · {item.channel} ·{' '}
+                                    {statusLabel(item.status, locale)}
+                                  </span>
+                                </SurfaceButton>
+                                <CardActionsButton
+                                  itemId={item.id}
+                                  open={cardMenuId === item.id}
+                                  label={t('content.post_actions')}
+                                  onOpen={placeCardMenu}
+                                  onClose={closeCardMenu}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -5340,6 +5382,7 @@ export default function ContentPage() {
               <header className="oma-plan-post__top">
                 <div className="oma-plan-post__top-start">
                   <ComposeMetaPills
+                    variant="icon"
                     locale={locale}
                     templates={brandTemplates}
                     campaigns={modalCampaigns}
@@ -5402,35 +5445,31 @@ export default function ContentPage() {
                       testId="content-modal-approvals"
                     />
                   ) : null}
-                  <button
-                    type="button"
-                    className="oma-plan-post__tool-btn oma-plan-post__share"
-                    onClick={() => void shareContentWorkspace()}
-                  >
-                    {t('content.share')}
-                  </button>
-                  <button
+                  <OmaIconAction
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={t('content.feedback')}
+                    aria-label={t('content.share')}
+                    data-testid="content-modal-share"
+                    onClick={() => void shareContentWorkspace()}
+                  >
+                    <ShareAltOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
+                    type="button"
+                    className="oma-plan-post__icon-btn"
                     aria-label={t('content.feedback')}
                     data-active={detailSidePanel === 'feedback' ? 'true' : 'false'}
                     data-testid="content-modal-feedback"
+                    badge={prodComments.length > 0 ? prodComments.length : undefined}
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'feedback' ? 'none' : 'feedback'))
                     }
                   >
-                    <MessageOutlined />
-                    {prodComments.length ? (
-                      <span className="oma-plan-post__icon-count oma-ltr">
-                        {prodComments.length}
-                      </span>
-                    ) : null}
-                  </button>
-                  <button
+                    <MessageOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={t('nav.analytics')}
                     aria-label={t('nav.analytics')}
                     data-active={detailSidePanel === 'analytics' ? 'true' : 'false'}
                     data-testid="content-modal-analytics"
@@ -5438,361 +5477,352 @@ export default function ContentPage() {
                       setDetailSidePanel((p) => (p === 'analytics' ? 'none' : 'analytics'))
                     }
                   >
-                    <BarChartOutlined />
-                  </button>
-                  <button
+                    <BarChartOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
-                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
-                    data-tooltip={t('nav.activity')}
+                    className="oma-plan-post__icon-btn"
                     aria-label={t('nav.activity')}
                     data-active={detailSidePanel === 'activity' ? 'true' : 'false'}
+                    data-testid="content-modal-activity"
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
                     }
                   >
-                    <HistoryOutlined />
-                  </button>
-                  <button
+                    <HistoryOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
-                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
-                    data-tooltip={clientVisibilityMenuLabel}
+                    className="oma-plan-post__icon-btn"
                     aria-label={clientVisibilityMenuLabel}
                     onClick={() => {
                       if (selectedId) void toggleHideFromClients(selectedId);
                     }}
                   >
-                    <EyeInvisibleOutlined />
-                  </button>
-                  <button
+                    <EyeInvisibleOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
                     type="button"
-                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
-                    data-tooltip={t('wsPanel.delete')}
+                    className="oma-plan-post__icon-btn oma-plan-post__icon-btn--danger"
                     aria-label={t('wsPanel.delete')}
                     onClick={() => {
                       if (selectedId) setArchiveConfirmId(selectedId);
                     }}
                   >
-                    <DeleteOutlined />
-                  </button>
-                  <div className="oma-plan-post__more-wrap">
-                    <button
-                      ref={detailMoreBtnRef}
-                      type="button"
-                      className="oma-plan-post__icon-btn"
-                      aria-label={t('content.more_actions')}
-                      data-tooltip={t('content.more_actions')}
-                      aria-haspopup="menu"
-                      aria-expanded={detailMoreOpen}
-                      data-testid="content-modal-more"
-                      onClick={() => setDetailMoreOpen((v) => !v)}
-                    >
-                      <MoreOutlined />
-                    </button>
-                    <FloatingOverlay
-                      open={detailMoreOpen}
-                      anchorRef={detailMoreBtnRef}
-                      onClose={() => setDetailMoreOpen(false)}
-                      className="oma-plan-post__more-menu"
+                    <DeleteOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <OmaIconAction
+                    ref={detailMoreBtnRef}
+                    type="button"
+                    className="oma-plan-post__icon-btn oma-plan-post__more-btn"
+                    aria-label={t('content.more_actions')}
+                    aria-haspopup="menu"
+                    data-active={detailMoreOpen ? 'true' : 'false'}
+                    data-testid="content-modal-more"
+                    onClick={() => setDetailMoreOpen((v) => !v)}
+                  >
+                    <MoreOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
+                  <FloatingOverlay
+                    open={detailMoreOpen}
+                    anchorRef={detailMoreBtnRef}
+                    onClose={() => setDetailMoreOpen(false)}
+                    className="oma-plan-post__more-menu"
+                    role="menu"
+                    width={260}
+                    align="end"
+                  >
+                    <ul
+                      className="oma-plan-post__more-menu-list"
                       role="menu"
-                      width={260}
-                      align="end"
+                      onClick={() => setDetailMoreOpen(false)}
                     >
-                      <ul
-                        className="oma-plan-post__more-menu-list"
-                        role="menu"
-                        onClick={() => setDetailMoreOpen(false)}
-                      >
-                        {/* Mobile: the secondary top-bar actions collapse into this menu. */}
-                        <li className="oma-plan-post__more-mobile">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void shareContentWorkspace()}
-                          >
-                            <ShareAltOutlined /> {t('content.share')}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-mobile">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() =>
-                              setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
+                      {/* Mobile: the secondary top-bar actions collapse into this menu. */}
+                      <li className="oma-plan-post__more-mobile">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void shareContentWorkspace()}
+                        >
+                          <ShareAltOutlined /> {t('content.share')}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-mobile">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() =>
+                            setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
+                          }
+                        >
+                          <HistoryOutlined /> {t('nav.activity')}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-mobile">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) void toggleHideFromClients(selectedId);
+                          }}
+                        >
+                          <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => setDetailSidePanel('analytics')}
+                        >
+                          <BarChartOutlined /> {t('nav.analytics')}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-section" aria-hidden>
+                        {isAr ? 'إجراءات المنشور' : 'Post actions'}
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) {
+                              void duplicateContent(selectedId).then((apiRow) => {
+                                const row = toContentRow(apiRow);
+                                setRows((prev) => [row, ...prev]);
+                                toast.push(t('content.post_duplicated'), 'success');
+                                openItem(row);
+                              });
                             }
-                          >
-                            <HistoryOutlined /> {t('nav.activity')}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-mobile">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) void toggleHideFromClients(selectedId);
-                            }}
-                          >
-                            <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => setDetailSidePanel('analytics')}
-                          >
-                            <BarChartOutlined /> {t('nav.analytics')}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-section" aria-hidden>
-                          {isAr ? 'إجراءات المنشور' : 'Post actions'}
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) {
-                                void duplicateContent(selectedId).then((apiRow) => {
-                                  const row = toContentRow(apiRow);
-                                  setRows((prev) => [row, ...prev]);
-                                  toast.push(t('content.post_duplicated'), 'success');
-                                  openItem(row);
-                                });
-                              }
-                            }}
-                          >
-                            <FileTextOutlined /> {isAr ? 'إعادة نشر' : 'Repost'}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void runLifecycle('request-approval', selectedId)}
-                          >
-                            <FlagOutlined /> {t('demo.content.requestApproval')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void runLifecycle('request-changes', selectedId)}
-                          >
-                            <EditOutlined /> {t('strategy.review.requestChanges')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void runLifecycle('reject', selectedId)}
-                          >
-                            <CloseOutlined /> {t('strategy.review.reject')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              void publishContentNow(selectedId)
-                                .then((res) => {
-                                  setRows((prev) =>
-                                    prev.map((r) =>
-                                      r.id === selectedId ? toContentRow(res.data) : r,
-                                    ),
-                                  );
-                                  toast.push(
-                                    isAr
-                                      ? 'تمت إضافة المنشور إلى قائمة النشر'
-                                      : 'Post queued for publishing',
-                                    'success',
-                                  );
-                                })
-                                .catch((e) =>
-                                  toast.push(contentApiError(e, t('errors.http')), 'danger'),
+                          }}
+                        >
+                          <FileTextOutlined /> {isAr ? 'إعادة نشر' : 'Repost'}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void runLifecycle('request-approval', selectedId)}
+                        >
+                          <FlagOutlined /> {t('demo.content.requestApproval')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void runLifecycle('request-changes', selectedId)}
+                        >
+                          <EditOutlined /> {t('strategy.review.requestChanges')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void runLifecycle('reject', selectedId)}
+                        >
+                          <CloseOutlined /> {t('strategy.review.reject')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            void publishContentNow(selectedId)
+                              .then((res) => {
+                                setRows((prev) =>
+                                  prev.map((r) =>
+                                    r.id === selectedId ? toContentRow(res.data) : r,
+                                  ),
                                 );
-                            }}
-                          >
-                            <CheckOutlined />{' '}
-                            {t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              const extra = selected as ContentRowExtra;
-                              const pageId = extra.socialPageIds?.[0] || extra.socialPageId;
-                              if (!pageId) {
                                 toast.push(
-                                  isAr ? 'لا توجد قناة لفصلها' : 'No channel to detach',
-                                  'danger',
+                                  isAr
+                                    ? 'تمت إضافة المنشور إلى قائمة النشر'
+                                    : 'Post queued for publishing',
+                                  'success',
                                 );
-                                return;
-                              }
-                              void detachContentChannel(selectedId, pageId)
-                                .then((res) => {
-                                  const row = toContentRow(res.data);
-                                  setRows((prev) => [row, ...prev]);
-                                  toast.push(
-                                    isAr ? 'تم فصل القناة' : 'Channel detached',
-                                    'success',
-                                  );
-                                  openItem(row);
-                                })
-                                .catch((e) =>
-                                  toast.push(contentApiError(e, t('errors.http')), 'danger'),
-                                );
-                            }}
-                          >
-                            <EditOutlined /> {isAr ? 'فصل عن المجموعة' : 'Detach from group'}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              const first =
-                                brands.find((b) => b.id !== selected.brandId) || brands[0] || null;
-                              setCopyToBrandId(first?.id || null);
-                              setCopyToOpen(true);
-                              setDetailMoreOpen(false);
-                              if (first?.id) {
-                                setCopyToLoading(true);
-                                void brandSettingsApi
-                                  .social(first.id)
-                                  .then((r) =>
-                                    setCopyToPages(
-                                      r.data.pages.filter((pg) => pg.status !== 'DISCONNECTED'),
-                                    ),
-                                  )
-                                  .catch(() => setCopyToPages([]))
-                                  .finally(() => setCopyToLoading(false));
-                              } else {
-                                setCopyToPages([]);
-                              }
-                            }}
-                          >
-                            <CopyOutlined />{' '}
-                            {t('content.copy_to') || (isAr ? 'نسخ إلى…' : 'Copy to…')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              setAudienceDraft(
-                                (selected as ContentRowExtra).preferredAudience || '',
+                              })
+                              .catch((e) =>
+                                toast.push(contentApiError(e, t('errors.http')), 'danger'),
                               );
-                              setAudienceOpen(true);
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <UserOutlined /> {isAr ? 'الجمهور المفضل' : 'Preferred audience'}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-section" aria-hidden>
-                          {isAr ? 'إجراءات المجموعة' : 'Group actions'}
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              void ungroupContent(selectedId)
-                                .then((rows) => {
-                                  const mapped = rows.map((r) => toContentRow(r));
-                                  setRows((prev) => {
-                                    const ids = new Set(mapped.map((r) => r.id));
-                                    return [...mapped, ...prev.filter((r) => !ids.has(r.id))];
-                                  });
-                                  toast.push(
-                                    isAr ? 'تم فك تجميع المنشورات' : 'Posts ungrouped',
-                                    'success',
-                                  );
-                                })
-                                .catch((e) =>
-                                  toast.push(contentApiError(e, t('errors.http')), 'danger'),
-                                );
-                            }}
-                          >
-                            <FlagOutlined /> {isAr ? 'فك تجميع المنشورات' : 'Ungroup posts'}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) void toggleHideFromClients(selectedId);
-                            }}
-                          >
-                            <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) void saveAsTemplate(selectedId);
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <FileTextOutlined /> {t('content.save_as_template')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) setArchiveConfirmId(selectedId);
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <DeleteOutlined /> {t('content.archive_post')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) {
-                                void convertContentToOps(selectedId).then((ids) => {
-                                  if (ids?.requestId) {
-                                    window.location.href = `/app/requests/${ids.requestId}`;
-                                  }
+                          }}
+                        >
+                          <CheckOutlined />{' '}
+                          {t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            const extra = selected as ContentRowExtra;
+                            const pageId = extra.socialPageIds?.[0] || extra.socialPageId;
+                            if (!pageId) {
+                              toast.push(
+                                isAr ? 'لا توجد قناة لفصلها' : 'No channel to detach',
+                                'danger',
+                              );
+                              return;
+                            }
+                            void detachContentChannel(selectedId, pageId)
+                              .then((res) => {
+                                const row = toContentRow(res.data);
+                                setRows((prev) => [row, ...prev]);
+                                toast.push(isAr ? 'تم فصل القناة' : 'Channel detached', 'success');
+                                openItem(row);
+                              })
+                              .catch((e) =>
+                                toast.push(contentApiError(e, t('errors.http')), 'danger'),
+                              );
+                          }}
+                        >
+                          <EditOutlined /> {isAr ? 'فصل عن المجموعة' : 'Detach from group'}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            const first =
+                              brands.find((b) => b.id !== selected.brandId) || brands[0] || null;
+                            setCopyToBrandId(first?.id || null);
+                            setCopyToOpen(true);
+                            setDetailMoreOpen(false);
+                            if (first?.id) {
+                              setCopyToLoading(true);
+                              void brandSettingsApi
+                                .social(first.id)
+                                .then((r) =>
+                                  setCopyToPages(
+                                    r.data.pages.filter((pg) => pg.status !== 'DISCONNECTED'),
+                                  ),
+                                )
+                                .catch(() => setCopyToPages([]))
+                                .finally(() => setCopyToLoading(false));
+                            } else {
+                              setCopyToPages([]);
+                            }
+                          }}
+                        >
+                          <CopyOutlined />{' '}
+                          {t('content.copy_to') || (isAr ? 'نسخ إلى…' : 'Copy to…')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            setAudienceDraft((selected as ContentRowExtra).preferredAudience || '');
+                            setAudienceOpen(true);
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <UserOutlined /> {isAr ? 'الجمهور المفضل' : 'Preferred audience'}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-section" aria-hidden>
+                        {isAr ? 'إجراءات المجموعة' : 'Group actions'}
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            void ungroupContent(selectedId)
+                              .then((rows) => {
+                                const mapped = rows.map((r) => toContentRow(r));
+                                setRows((prev) => {
+                                  const ids = new Set(mapped.map((r) => r.id));
+                                  return [...mapped, ...prev.filter((r) => !ids.has(r.id))];
                                 });
-                              }
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <FlagOutlined /> {t('content.convert_to_request_task_deliverable')}
-                          </button>
-                        </li>
-                      </ul>
-                    </FloatingOverlay>
-                  </div>
-                  <button
+                                toast.push(
+                                  isAr ? 'تم فك تجميع المنشورات' : 'Posts ungrouped',
+                                  'success',
+                                );
+                              })
+                              .catch((e) =>
+                                toast.push(contentApiError(e, t('errors.http')), 'danger'),
+                              );
+                          }}
+                        >
+                          <FlagOutlined /> {isAr ? 'فك تجميع المنشورات' : 'Ungroup posts'}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) void toggleHideFromClients(selectedId);
+                          }}
+                        >
+                          <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) void saveAsTemplate(selectedId);
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <FileTextOutlined /> {t('content.save_as_template')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) setArchiveConfirmId(selectedId);
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <DeleteOutlined /> {t('content.archive_post')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) {
+                              void convertContentToOps(selectedId).then((ids) => {
+                                if (ids?.requestId) {
+                                  window.location.href = `/app/requests/${ids.requestId}`;
+                                }
+                              });
+                            }
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <FlagOutlined /> {t('content.convert_to_request_task_deliverable')}
+                        </button>
+                      </li>
+                    </ul>
+                  </FloatingOverlay>
+                  <OmaIconAction
                     type="button"
                     className="oma-plan-post__icon-btn oma-plan-post__close"
                     onClick={requestCloseDrawer}
                     aria-label={t('brand.evidence.close')}
+                    data-testid="content-modal-close"
                   >
-                    <CloseOutlined />
-                  </button>
+                    <CloseOutlined width={16} height={16} aria-hidden />
+                  </OmaIconAction>
                 </div>
               </header>
 

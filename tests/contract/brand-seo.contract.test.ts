@@ -12,7 +12,9 @@ describe('brand SEO contract', () => {
     app = seed.app;
   });
 
-  afterAll(async () => app.close());
+  afterAll(async () => {
+    if (app) await app.close();
+  });
 
   it('returns stable JSON shapes for health, research, and analytics', async () => {
     const { body: brand } = await createBrand(seed);
@@ -41,9 +43,9 @@ describe('brand SEO contract', () => {
     expect(kw.data.metrics[0]).toMatchObject({
       keyword: 'test',
       locale: 'en',
-      source: 'EXTERNAL',
+      source: 'FIXTURE',
     });
-    expect(kw.data.measured).toBe(true);
+    expect(kw.data.measured).toBe(false);
 
     await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/seo/search-console/connect-fixture`, {
       method: 'POST',

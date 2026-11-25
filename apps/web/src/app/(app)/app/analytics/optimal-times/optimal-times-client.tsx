@@ -13,7 +13,7 @@ import { useLocale, useT } from '../../../../../lib/use-locale';
 import { ErrorState, errorKindOf, type ErrorKind } from '../../../../../components/ui/error-state';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const NETWORK_ORDER = ['instagram', 'facebook', 'tiktok', 'x', 'linkedin', 'whatsapp'] as const;
+const NETWORK_ORDER = ['instagram', 'facebook', 'tiktok', 'linkedin', 'whatsapp'] as const;
 
 function formatHourClock(hour: number, isAr: boolean) {
   const h12 = hour % 12 === 0 ? 12 : hour % 12;

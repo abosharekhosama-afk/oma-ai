@@ -289,15 +289,14 @@ html
   body
   .oma-btn:not(.oma-btn--secondary):not(.oma-btn--ghost):not(.oma-btn--danger):not(.oma-btn--quiet),
 html body .oma-home-btn--primary,
-html body .oma-plx-tasks__create-icon,
-html body .oma-plx-content-header-btn--primary,
+html body .oma-plx-content-header-btn--primary:not(.oma-icon-action),
 html body .oma-error-state__btn--primary,
 html body .oma-plx-confirm-card__btn--primary,
 html body .oma-pa-btn--primary,
 html body .oma-ml-btn--primary,
 html body .oma-bulk-bar__btn--primary,
 html body .oma-plx-profile-btn--primary,
-html body .oma-plx-approvals__review-cta,
+html body .oma-plx-approvals__review-cta:not(.oma-icon-action),
 html body .oma-plx-approvals-review__post-btn:not(:disabled),
 html body .oma-listening-save,
 html body .oma-pp__alt-save,
@@ -316,15 +315,14 @@ html
     .oma-btn--quiet
   ):hover:not(:disabled),
 html body .oma-home-btn--primary:hover,
-html body .oma-plx-tasks__create-icon:hover,
-html body .oma-plx-content-header-btn--primary:hover,
+html body .oma-plx-content-header-btn--primary:not(.oma-icon-action):hover,
 html body .oma-error-state__btn--primary:hover,
 html body .oma-plx-confirm-card__btn--primary:hover:not(:disabled),
 html body .oma-pa-btn--primary:hover:not(:disabled),
 html body .oma-ml-btn--primary:hover,
 html body .oma-bulk-bar__btn--primary:hover,
 html body .oma-plx-profile-btn--primary:hover:not(:disabled),
-html body .oma-plx-approvals__review-cta:hover:not(:disabled),
+html body .oma-plx-approvals__review-cta:not(.oma-icon-action):hover:not(:disabled),
 html body .oma-plx-approvals-review__post-btn:hover:not(:disabled),
 html body .oma-listening-save:hover:not(:disabled),
 html body .oma-pp__alt-save:hover,
@@ -333,8 +331,7 @@ html body .plx-btn--primary:hover:not(:disabled) {
   border-color: var(--oma-action-hover-border) !important;
   color: var(--oma-action-fg) !important;
 }
-html body .oma-plx-content-header-btn--primary svg,
-html body .oma-plx-tasks__create-icon svg,
+html body .oma-plx-content-header-btn--primary:not(.oma-icon-action) svg,
 html body .oma-home-btn--primary svg,
 html body .oma-plx-approvals__review-cta svg {
   color: currentColor !important;
@@ -436,14 +433,11 @@ html body [data-testid='demo-content-agenda'] {
 }
 
 @media (max-width: 767px) {
+  /* Phone calendar scroll + column width: oma-mobile-cascade-final.css */
   html body [data-testid='demo-content-calendar'] .oma-cal-grid,
   html body [data-testid='demo-content-cal-grid'].oma-cal-grid,
   html body .oma-cal-grid {
     display: grid !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    overflow-x: hidden !important;
   }
   html body .oma-cal-grid[data-span='month'] {
     grid-auto-rows: minmax(68px, 1fr) !important;
