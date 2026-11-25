@@ -101,10 +101,6 @@ export default function TasksPage() {
     type: 'DESIGN',
   });
 
-  function isMobileTasksViewport() {
-    return typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
-  }
-
   const load = useCallback(async () => {
     setLoading(true);
     try {

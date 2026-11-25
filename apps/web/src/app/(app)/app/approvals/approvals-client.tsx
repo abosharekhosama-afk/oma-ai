@@ -11,7 +11,6 @@ import {
   LinkOutlined,
   ListTodoSoftOutlined,
   PlayCircleOutlined,
-  UnorderedListOutlined,
 } from '../../../../components/ui/lucide-icons';
 import { OmaIconAction } from '../../../../components/ui/oma-icon-action';
 import {
