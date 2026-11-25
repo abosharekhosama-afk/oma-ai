@@ -16,6 +16,7 @@ import '../styles/oma-brand-responsive.css';
 import '../styles/oma-workspace-surfaces.css';
 import '../styles/oma-shimmer-mobile.css';
 import '../styles/oma-content-calendar-mobile.css';
+import '../styles/oma-mobile-feed-surfaces.css';
 
 const siteUrl = resolvePublicSiteUrl();
 
