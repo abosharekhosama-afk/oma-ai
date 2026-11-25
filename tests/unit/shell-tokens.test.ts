@@ -49,10 +49,12 @@ describe('P1 Planable design tokens', () => {
       'apps/web/src/styles/stage-depth.css',
       'apps/web/src/styles/shell.css',
     ].map(glob);
+    const fonts = glob('apps/web/src/styles/oma-fonts.css');
     expect(globals).toContain('packages/ui/src/tokens.css');
     expect(layout).not.toMatch(/\bInter\b/);
     expect(layout).not.toContain('IBM_Plex');
-    expect(layout).toContain('Noto_Sans_Arabic');
+    expect(layout).toContain('oma-fonts.css');
+    expect(fonts).toContain("'Noto Sans Arabic'");
     for (const file of stageFiles) {
       expect(file).not.toMatch(/(^|\n):root\s*\{/);
       expect(file).not.toContain('--oma-primary: #6658');
