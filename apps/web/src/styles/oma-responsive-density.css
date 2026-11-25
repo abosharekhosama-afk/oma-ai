@@ -166,7 +166,9 @@
   }
 
   [dir='rtl'] html body .oma-ws-overlay .oma-ws-switch.is-on .oma-ws-switch-knob {
-    transform: translateX(calc(-1 * (var(--oma-switch-w) - var(--oma-switch-knob) - 4px))) !important;
+    transform: translateX(
+      calc(-1 * (var(--oma-switch-w) - var(--oma-switch-knob) - 4px))
+    ) !important;
   }
 
   html body .oma-ws-overlay .oma-ws-appr-member {

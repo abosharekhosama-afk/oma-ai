@@ -102,7 +102,7 @@ describe('css cleanup (stage2/4/5)', () => {
 
   it('layout imports cascade-final after ui-polish', () => {
     const layout = read('apps/web/src/app/layout.tsx');
-    const uiIdx = layout.indexOf("ui-polish.css");
+    const uiIdx = layout.indexOf('ui-polish.css');
     const finalIdx = layout.indexOf('oma-mobile-cascade-final.css');
     expect(uiIdx).toBeGreaterThan(-1);
     expect(finalIdx).toBeGreaterThan(uiIdx);

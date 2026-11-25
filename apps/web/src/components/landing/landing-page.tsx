@@ -11,12 +11,7 @@ import { setLocaleCookie, updateProfile } from '../../lib/account-api';
 import { useInView } from './use-inview';
 import { LANDING_COPY, type LandingCopy } from './landing-copy';
 import { SHOT_SIZES, type ShotId } from './landing-shots';
-import {
-  FacebookGlyph,
-  InstagramGlyph,
-  LinkedInGlyph,
-  TikTokGlyph,
-} from './platform-icons';
+import { FacebookGlyph, InstagramGlyph, LinkedInGlyph, TikTokGlyph } from './platform-icons';
 import './landing.css';
 
 const VIEW_IDS = ['calendar', 'feed', 'grid', 'list'] as const;

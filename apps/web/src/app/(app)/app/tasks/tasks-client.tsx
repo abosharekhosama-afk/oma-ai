@@ -237,7 +237,12 @@ export default function TasksPage() {
         aria-label={t('demo.view.kanban')}
         onClick={() => changeView('board')}
       >
-        <LayoutGridOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+        <LayoutGridOutlined
+          className="oma-lucide oma-lucide--soft"
+          aria-hidden
+          width={18}
+          height={18}
+        />
       </OmaIconAction>
       <OmaIconAction
         type="button"
@@ -248,7 +253,12 @@ export default function TasksPage() {
         aria-label={t('demo.view.list')}
         onClick={() => changeView('list')}
       >
-        <TableGridOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+        <TableGridOutlined
+          className="oma-lucide oma-lucide--soft"
+          aria-hidden
+          width={18}
+          height={18}
+        />
       </OmaIconAction>
     </div>
   );
@@ -1084,105 +1094,105 @@ export default function TasksPage() {
       >
         <div className="oma-compose oma-plx-compose" data-testid="demo-create-task-dialog">
           <section className="oma-plx-listening-panel oma-plx-compose-panel">
-          <div className="oma-compose__grid oma-plx-compose__grid">
-            <label className="oma-compose__wide">
-              {t('demo.create.title')}
-              <Input
-                value={createForm.title}
-                data-testid="demo-create-task-title"
-                onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
-              />
-            </label>
-            <label className="oma-compose__wide">
-              {t('demo.requests.description')}
-              <TextArea
-                rows={3}
-                value={createForm.description}
-                onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.requests.filter.brand')}
-              <SelectField
-                value={createForm.brandId}
-                onChange={(e) =>
-                  setCreateForm((f) => ({
-                    ...f,
-                    brandId: e.target.value,
-                    campaignId: campaigns.some(
-                      (c) => c.id === f.campaignId && c.brandId === e.target.value,
-                    )
-                      ? f.campaignId
-                      : '',
-                  }))
-                }
-              >
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {pickCopy(b.name, locale)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.create.campaign')}
-              <SelectField
-                value={createForm.campaignId}
-                onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}
-              >
-                <option value="">{t('demo.optional')}</option>
-                {campaigns
-                  .filter((c) => c.brandId === createForm.brandId)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {pickCopy(c.name, locale)}
+            <div className="oma-compose__grid oma-plx-compose__grid">
+              <label className="oma-compose__wide">
+                {t('demo.create.title')}
+                <Input
+                  value={createForm.title}
+                  data-testid="demo-create-task-title"
+                  onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
+                />
+              </label>
+              <label className="oma-compose__wide">
+                {t('demo.requests.description')}
+                <TextArea
+                  rows={3}
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
+                />
+              </label>
+              <label>
+                {t('demo.requests.filter.brand')}
+                <SelectField
+                  value={createForm.brandId}
+                  onChange={(e) =>
+                    setCreateForm((f) => ({
+                      ...f,
+                      brandId: e.target.value,
+                      campaignId: campaigns.some(
+                        (c) => c.id === f.campaignId && c.brandId === e.target.value,
+                      )
+                        ? f.campaignId
+                        : '',
+                    }))
+                  }
+                >
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {pickCopy(b.name, locale)}
                     </option>
                   ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.tasks.filter.priority')}
-              <SelectField
-                value={createForm.priority}
-                onChange={(e) => setCreateForm((f) => ({ ...f, priority: e.target.value }))}
-              >
-                {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((priority) => (
-                  <option key={priority} value={priority}>
-                    {priority}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.requests.col.due')}
-              <DatePicker
-                value={createForm.dueAt ? dayjs(createForm.dueAt) : null}
-                onChange={(_, dateString) =>
-                  setCreateForm((f) => ({
-                    ...f,
-                    dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
-                  }))
-                }
-              />
-            </label>
-            <label className="oma-compose__wide">
-              {t('demo.tasks.filter.assignee')}
-              <SelectField
-                value={createForm.assignee}
-                data-testid="demo-create-task-assignee"
-                onChange={(e) => setCreateForm((f) => ({ ...f, assignee: e.target.value }))}
-              >
-                <option value="">{t('demo.requests.unassigned')}</option>
-                {members
-                  .filter((m) => m.user?.id)
-                  .map((m) => (
-                    <option key={m.id} value={m.user?.id || ''}>
-                      {m.user?.name || m.user?.email || m.invited_email || 'Member'}
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.create.campaign')}
+                <SelectField
+                  value={createForm.campaignId}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}
+                >
+                  <option value="">{t('demo.optional')}</option>
+                  {campaigns
+                    .filter((c) => c.brandId === createForm.brandId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {pickCopy(c.name, locale)}
+                      </option>
+                    ))}
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.tasks.filter.priority')}
+                <SelectField
+                  value={createForm.priority}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, priority: e.target.value }))}
+                >
+                  {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((priority) => (
+                    <option key={priority} value={priority}>
+                      {priority}
                     </option>
                   ))}
-              </SelectField>
-            </label>
-          </div>
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.requests.col.due')}
+                <DatePicker
+                  value={createForm.dueAt ? dayjs(createForm.dueAt) : null}
+                  onChange={(_, dateString) =>
+                    setCreateForm((f) => ({
+                      ...f,
+                      dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                    }))
+                  }
+                />
+              </label>
+              <label className="oma-compose__wide">
+                {t('demo.tasks.filter.assignee')}
+                <SelectField
+                  value={createForm.assignee}
+                  data-testid="demo-create-task-assignee"
+                  onChange={(e) => setCreateForm((f) => ({ ...f, assignee: e.target.value }))}
+                >
+                  <option value="">{t('demo.requests.unassigned')}</option>
+                  {members
+                    .filter((m) => m.user?.id)
+                    .map((m) => (
+                      <option key={m.id} value={m.user?.id || ''}>
+                        {m.user?.name || m.user?.email || m.invited_email || 'Member'}
+                      </option>
+                    ))}
+                </SelectField>
+              </label>
+            </div>
           </section>
         </div>
       </Dialog>

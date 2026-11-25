@@ -731,7 +731,12 @@ export default function CampaignsPage() {
                   onClick={() => setLayoutPref('portfolio')}
                   aria-label={isAr ? 'عرض البطاقات' : 'Card view'}
                 >
-                  <LayoutGridOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+                  <LayoutGridOutlined
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
                 </OmaIconAction>
                 <OmaIconAction
                   type="button"
@@ -742,7 +747,12 @@ export default function CampaignsPage() {
                   onClick={() => setLayoutPref('list')}
                   aria-label={isAr ? 'عرض القائمة' : 'List view'}
                 >
-                  <TableGridOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+                  <TableGridOutlined
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
                 </OmaIconAction>
               </div>
               <OmaIconAction
@@ -753,7 +763,12 @@ export default function CampaignsPage() {
                 badge={filterCount > 0 ? filterCount : undefined}
                 onClick={() => setFilterSheet(true)}
               >
-                <FilterOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+                <FilterOutlined
+                  className="oma-lucide oma-lucide--soft"
+                  aria-hidden
+                  width={18}
+                  height={18}
+                />
               </OmaIconAction>
               <OmaIconAction
                 type="button"
@@ -766,7 +781,12 @@ export default function CampaignsPage() {
                   setCreateOpen(true);
                 }}
               >
-                <PlusOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+                <PlusOutlined
+                  className="oma-lucide oma-lucide--soft"
+                  aria-hidden
+                  width={18}
+                  height={18}
+                />
               </OmaIconAction>
             </div>,
             actionsHost,
@@ -799,7 +819,12 @@ export default function CampaignsPage() {
                   aria-label={label}
                   onClick={() => setCampaignTab(key)}
                 >
-                  <Icon className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+                  <Icon
+                    className="oma-lucide oma-lucide--soft"
+                    aria-hidden
+                    width={18}
+                    height={18}
+                  />
                 </OmaIconAction>
               ))}
             </div>,

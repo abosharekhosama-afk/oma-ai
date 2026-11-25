@@ -129,7 +129,12 @@ export function PlxHeaderFilter({
               aria-haspopup="dialog"
               onClick={() => onOpenChange(!open)}
             >
-              <FilterOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+              <FilterOutlined
+                className="oma-lucide oma-lucide--soft"
+                aria-hidden
+                width={18}
+                height={18}
+              />
             </OmaIconAction>
           </div>
         )}
@@ -141,7 +146,12 @@ export function PlxHeaderFilter({
             aria-label={createLabel}
             onClick={onCreateClick}
           >
-            <PlusOutlined className="oma-lucide oma-lucide--soft" aria-hidden width={18} height={18} />
+            <PlusOutlined
+              className="oma-lucide oma-lucide--soft"
+              aria-hidden
+              width={18}
+              height={18}
+            />
           </OmaIconAction>
         ) : null}
       </div>

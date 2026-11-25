@@ -83,9 +83,10 @@ html body .oma-shell main.oma-container [class*='oma-analytics'] {
   font-family: inherit !important;
 }
 
-html body .oma-shell .ant-btn:not(.oma-icon-action):not(.oma-rail-utility-trigger):not(
-    .oma-mobile-nav-toggle
-  ) {
+html
+  body
+  .oma-shell
+  .ant-btn:not(.oma-icon-action):not(.oma-rail-utility-trigger):not(.oma-mobile-nav-toggle) {
   font-size: var(--text-control) !important;
   min-height: var(--oma-control-height-compact, 30px) !important;
   height: var(--oma-control-height-compact, 30px) !important;

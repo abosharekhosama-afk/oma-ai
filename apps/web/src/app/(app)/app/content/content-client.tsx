@@ -1489,9 +1489,7 @@ function CardActionsButton({
   onOpen: (itemId: string, anchor: HTMLElement) => void;
   onClose: () => void;
 }) {
-  const btnClass = className
-    ? `oma-card-actions-btn ${className}`
-    : 'oma-card-actions-btn';
+  const btnClass = className ? `oma-card-actions-btn ${className}` : 'oma-card-actions-btn';
   return (
     <OmaIconAction
       type="button"
@@ -4471,353 +4469,352 @@ export default function ContentPage() {
                   </div>
                 </div>
 
-                <div
-                  className="oma-cal-hscroll"
-                  data-testid="demo-content-cal-scroll"
-                >
-                <div
-                  className="oma-cal-grid"
-                  role="grid"
-                  aria-label={t('demo.view.calendar')}
-                  data-testid="demo-content-cal-grid"
-                  data-columns={calDisplay.showWeekends ? '7' : '5'}
-                  data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
-                  data-post-size={calDisplay.postSize}
-                  data-span={calSpan}
-                >
-                  <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
-                    {dows.map((dow, di) => (
-                      <div
-                        key={dow}
-                        className="oma-cal-dow"
-                        role="columnheader"
-                        data-weekend={
-                          isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? todayKeyVal, di))
-                            ? 'true'
-                            : 'false'
-                        }
-                      >
-                        {dow}
-                      </div>
-                    ))}
-                  </div>
-                  {Array.from({ length: Math.ceil(visibleCells.length / 7) }, (_, wi) => {
-                    const week = visibleCells.slice(wi * 7, wi * 7 + 7);
-                    if (!week.length) return null;
-                    const weekStart = week[0]!.key;
-                    return (
-                      <div
-                        key={`week-${weekStart}`}
-                        className="oma-cal-week"
-                        style={{ display: 'contents' }}
-                      >
-                        {week.map((cell) => {
-                          const items = byDay.get(cell.key) ?? [];
-                          const { visible: visibleCellItems, extra } = splitCellItems(items, 2);
-                          const note = dayNotes[cell.key];
-                          const holiday = holidayChips[cell.key];
-                          const noteOpen = noteDay === cell.key;
-                          return (
-                            <div
-                              key={cell.key}
-                              className="oma-cal-cell"
-                              role="gridcell"
-                              aria-selected={cell.key === selectedDay}
-                              data-out={cell.inMonth ? 'false' : 'true'}
-                              data-today={cell.key === todayKeyVal ? 'true' : 'false'}
-                              data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
-                              data-selected={cell.key === selectedDay ? 'true' : 'false'}
-                              data-note-open={noteOpen ? 'true' : 'false'}
-                              onClick={() => setSelectedDay(cell.key)}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.dataTransfer.dropEffect = 'move';
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                const id = e.dataTransfer.getData('text/oma-content-id');
-                                const from = e.dataTransfer.getData('text/oma-from-day') || null;
-                                if (id) void rescheduleContentToDay(id, cell.key, from);
-                              }}
-                            >
-                              <span className="oma-cal-daynum oma-ltr">
-                                {cell.date.getUTCDate()}
-                              </span>
-
+                <div className="oma-cal-hscroll" data-testid="demo-content-cal-scroll">
+                  <div
+                    className="oma-cal-grid"
+                    role="grid"
+                    aria-label={t('demo.view.calendar')}
+                    data-testid="demo-content-cal-grid"
+                    data-columns={calDisplay.showWeekends ? '7' : '5'}
+                    data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
+                    data-post-size={calDisplay.postSize}
+                    data-span={calSpan}
+                  >
+                    <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
+                      {dows.map((dow, di) => (
+                        <div
+                          key={dow}
+                          className="oma-cal-dow"
+                          role="columnheader"
+                          data-weekend={
+                            isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? todayKeyVal, di))
+                              ? 'true'
+                              : 'false'
+                          }
+                        >
+                          {dow}
+                        </div>
+                      ))}
+                    </div>
+                    {Array.from({ length: Math.ceil(visibleCells.length / 7) }, (_, wi) => {
+                      const week = visibleCells.slice(wi * 7, wi * 7 + 7);
+                      if (!week.length) return null;
+                      const weekStart = week[0]!.key;
+                      return (
+                        <div
+                          key={`week-${weekStart}`}
+                          className="oma-cal-week"
+                          style={{ display: 'contents' }}
+                        >
+                          {week.map((cell) => {
+                            const items = byDay.get(cell.key) ?? [];
+                            const { visible: visibleCellItems, extra } = splitCellItems(items, 2);
+                            const note = dayNotes[cell.key];
+                            const holiday = holidayChips[cell.key];
+                            const noteOpen = noteDay === cell.key;
+                            return (
                               <div
-                                className="oma-cal-cell-actions oma-cal-cell-actions--icon-row"
-                                role="group"
-                                aria-label={`${t('content.post')} / ${t('content.note')}`}
+                                key={cell.key}
+                                className="oma-cal-cell"
+                                role="gridcell"
+                                aria-selected={cell.key === selectedDay}
+                                data-out={cell.inMonth ? 'false' : 'true'}
+                                data-today={cell.key === todayKeyVal ? 'true' : 'false'}
+                                data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
+                                data-selected={cell.key === selectedDay ? 'true' : 'false'}
+                                data-note-open={noteOpen ? 'true' : 'false'}
+                                onClick={() => setSelectedDay(cell.key)}
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.dataTransfer.dropEffect = 'move';
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const id = e.dataTransfer.getData('text/oma-content-id');
+                                  const from = e.dataTransfer.getData('text/oma-from-day') || null;
+                                  if (id) void rescheduleContentToDay(id, cell.key, from);
+                                }}
                               >
-                                <button
-                                  type="button"
-                                  className="oma-cal-cell-actions__btn"
-                                  data-testid={`demo-cal-post-${cell.key}`}
-                                  aria-label={t('content.post')}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedDay(cell.key);
-                                    setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                    setCreateOpen(true);
-                                  }}
-                                >
-                                  <EditOutlined aria-hidden width={12} height={12} />
-                                  <span className="oma-cal-cell-actions__label">
-                                    {t('content.post')}
-                                  </span>
-                                </button>
-                                <button
-                                  type="button"
-                                  className="oma-cal-cell-actions__btn"
-                                  data-testid={`demo-cal-note-${cell.key}`}
-                                  aria-label={t('content.note')}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedDay(cell.key);
-                                    if (!calDisplay.showNotes) {
-                                      setCalDisplay({ ...calDisplay, showNotes: true });
-                                    }
-                                    setDayNotes((prev) =>
-                                      prev[cell.key]
-                                        ? prev
-                                        : {
-                                            ...prev,
-                                            [cell.key]: {
-                                              text: '',
-                                              color: 'yellow',
-                                              visibility: 'only_me',
-                                            },
-                                          },
-                                    );
-                                    setNoteDay(cell.key);
-                                    setNoteColorOpen(false);
-                                    setNoteMenuOpen(false);
-                                    if (!dayNotes[cell.key]) {
-                                      void persistNote(cell.key, {
-                                        text: '',
-                                        color: 'yellow',
-                                        visibility: 'only_me',
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <FileTextOutlined aria-hidden width={12} height={12} />
-                                  <span className="oma-cal-cell-actions__label">
-                                    {t('content.note')}
-                                  </span>
-                                </button>
-                              </div>
+                                <span className="oma-cal-daynum oma-ltr">
+                                  {cell.date.getUTCDate()}
+                                </span>
 
-                              {(calDisplay.showNotes && note) || noteOpen ? (
-                                <CalendarStickyNote
-                                  dayKey={cell.key}
-                                  note={
-                                    dayNotes[cell.key] ?? {
-                                      text: '',
-                                      color: 'yellow',
-                                      visibility: 'only_me',
-                                    }
-                                  }
-                                  active={noteDay === cell.key}
-                                  colorOpen={noteDay === cell.key && noteColorOpen}
-                                  menuOpen={noteDay === cell.key && noteMenuOpen}
-                                  t={t}
-                                  onActivate={() => {
-                                    setNoteDay(cell.key);
-                                  }}
-                                  onClosePopovers={() => {
-                                    setNoteColorOpen(false);
-                                    setNoteMenuOpen(false);
-                                  }}
-                                  onToggleColor={() => {
-                                    setNoteDay(cell.key);
-                                    setNoteColorOpen((v) => !v);
-                                    setNoteMenuOpen(false);
-                                  }}
-                                  onToggleMenu={() => {
-                                    setNoteDay(cell.key);
-                                    setNoteMenuOpen((v) => !v);
-                                    setNoteColorOpen(false);
-                                  }}
-                                  onChangeText={(text) => {
-                                    setDayNotes((prev) => ({
-                                      ...prev,
-                                      [cell.key]: {
-                                        text,
-                                        color: prev[cell.key]?.color ?? 'yellow',
-                                        visibility: prev[cell.key]?.visibility ?? 'only_me',
-                                      },
-                                    }));
-                                  }}
-                                  onCommitText={(text) => void persistNote(cell.key, { text })}
-                                  onColor={(c) => {
-                                    void persistNote(cell.key, { color: c });
-                                    setNoteColorOpen(false);
-                                  }}
-                                  onVisibility={(visibility) => {
-                                    void persistNote(cell.key, { visibility });
-                                    setNoteMenuOpen(false);
-                                  }}
-                                  onDelete={() => {
-                                    void persistNote(cell.key, { remove: true });
-                                  }}
-                                  onCreatePost={() => {
-                                    setSelectedDay(cell.key);
-                                    setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                    setCreateOpen(true);
-                                    setNoteMenuOpen(false);
-                                  }}
-                                />
-                              ) : null}
-
-                              {holiday ? (
                                 <div
-                                  className="oma-cal-holiday-chip"
-                                  title={holiday}
-                                  data-testid={`demo-cal-holiday-${cell.key}`}
+                                  className="oma-cal-cell-actions oma-cal-cell-actions--icon-row"
+                                  role="group"
+                                  aria-label={`${t('content.post')} / ${t('content.note')}`}
                                 >
-                                  {holiday}
-                                </div>
-                              ) : null}
-
-                              <div className="oma-cal-cell__scroll">
-                                {/* Post cards (max 2 per cell; rest via +N more) */}
-                                {visibleCellItems.map((item) => (
-                                  <div
-                                    key={item.id}
-                                    className="oma-cal-item-wrap"
-                                    data-selected={selectedId === item.id ? 'true' : 'false'}
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData('text/oma-content-id', item.id);
-                                      e.dataTransfer.setData('text/oma-from-day', cell.key);
-                                      e.dataTransfer.effectAllowed = 'move';
-                                    }}
-                                    onMouseEnter={(e) => scheduleCardMenu(item.id, e.currentTarget)}
-                                    onMouseLeave={() => cancelCardMenu()}
-                                  >
-                                    {approvalMode ? (
-                                      <label
-                                        className="oma-cal-select"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedIds.includes(item.id)}
-                                          onChange={() => toggleSelectId(item.id)}
-                                        />
-                                      </label>
-                                    ) : null}
-                                    <SurfaceButton
-                                      data-status={item.status}
-                                      data-testid={`demo-cal-item-${item.id}`}
-                                      data-selected={selectedId === item.id ? 'true' : 'false'}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (approvalMode) {
-                                          toggleSelectId(item.id);
-                                          return;
-                                        }
-                                        openItem(item);
-                                      }}
-                                      onContextMenu={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        placeCardMenu(item.id, e.currentTarget);
-                                      }}
-                                      className="oma-cal-item oma-cal-item--has-menu"
-                                    >
-                                      <span className="oma-cal-item__inner">
-                                        {renderCalendarCard(item)}
-                                        {!approvalMode ? (
-                                          <CardActionsButton
-                                            itemId={item.id}
-                                            open={cardMenuId === item.id}
-                                            label={t('content.post_actions')}
-                                            className="oma-card-actions-btn--cal oma-card-actions-btn--in-card"
-                                            onOpen={placeCardMenu}
-                                            onClose={closeCardMenu}
-                                          />
-                                        ) : null}
-                                      </span>
-                                    </SurfaceButton>
-                                  </div>
-                                ))}
-                                {extra > 0 ? (
-                                  <Button
-                                    type="default"
-                                    data-testid="demo-day-overflow"
+                                  <button
+                                    type="button"
+                                    className="oma-cal-cell-actions__btn"
+                                    data-testid={`demo-cal-post-${cell.key}`}
+                                    aria-label={t('content.post')}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setSelectedDay(cell.key);
-                                      setOverflowDay(cell.key);
+                                      setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                      setCreateOpen(true);
                                     }}
-                                    className="oma-cal-more"
-                                    aria-label={t('demo.content.openDay')}
                                   >
-                                    +{extra} {isAr ? 'المزيد' : 'more'}
-                                  </Button>
-                                ) : null}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
+                                    <EditOutlined aria-hidden width={12} height={12} />
+                                    <span className="oma-cal-cell-actions__label">
+                                      {t('content.post')}
+                                    </span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="oma-cal-cell-actions__btn"
+                                    data-testid={`demo-cal-note-${cell.key}`}
+                                    aria-label={t('content.note')}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedDay(cell.key);
+                                      if (!calDisplay.showNotes) {
+                                        setCalDisplay({ ...calDisplay, showNotes: true });
+                                      }
+                                      setDayNotes((prev) =>
+                                        prev[cell.key]
+                                          ? prev
+                                          : {
+                                              ...prev,
+                                              [cell.key]: {
+                                                text: '',
+                                                color: 'yellow',
+                                                visibility: 'only_me',
+                                              },
+                                            },
+                                      );
+                                      setNoteDay(cell.key);
+                                      setNoteColorOpen(false);
+                                      setNoteMenuOpen(false);
+                                      if (!dayNotes[cell.key]) {
+                                        void persistNote(cell.key, {
+                                          text: '',
+                                          color: 'yellow',
+                                          visibility: 'only_me',
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <FileTextOutlined aria-hidden width={12} height={12} />
+                                    <span className="oma-cal-cell-actions__label">
+                                      {t('content.note')}
+                                    </span>
+                                  </button>
+                                </div>
 
-                {/* Mobile agenda (hidden on desktop) */}
-                <div
-                  className="oma-cal-agenda"
-                  data-testid="demo-content-agenda"
-                  hidden
-                  aria-hidden="true"
-                >
-                  {agendaDays.map((day) => (
-                    <div key={day.key} className="oma-cal-agenda-day">
-                      <strong className="oma-cal-agenda-day__label">
-                        <span>{weekdayForKey(day.key, locale)}</span>
-                        <span className="oma-ltr">{day.key}</span>
-                      </strong>
-                      {day.items.length === 0 ? (
-                        <p className="oma-muted" style={{ margin: '8px 0 0' }}>
-                          {t('demo.empty')}
-                        </p>
-                      ) : (
-                        <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
-                          {day.items.map((item) => (
-                            <div key={item.id} className="oma-cal-agenda-item">
-                              <SurfaceButton
-                                data-status={item.status}
-                                data-testid={`demo-cal-item-${item.id}`}
-                                onClick={() => openItem(item)}
-                                className="oma-cal-item"
-                              >
-                                <MediaSurface
-                                  className="oma-cal-thumb"
-                                  src={item.previewAsset}
-                                  alt=""
-                                />
-                                <span>
-                                  {pickCopy(item.title, locale)} · {item.channel} ·{' '}
-                                  {statusLabel(item.status, locale)}
-                                </span>
-                              </SurfaceButton>
-                              <CardActionsButton
-                                itemId={item.id}
-                                open={cardMenuId === item.id}
-                                label={t('content.post_actions')}
-                                onOpen={placeCardMenu}
-                                onClose={closeCardMenu}
-                              />
-                            </div>
-                          ))}
+                                {(calDisplay.showNotes && note) || noteOpen ? (
+                                  <CalendarStickyNote
+                                    dayKey={cell.key}
+                                    note={
+                                      dayNotes[cell.key] ?? {
+                                        text: '',
+                                        color: 'yellow',
+                                        visibility: 'only_me',
+                                      }
+                                    }
+                                    active={noteDay === cell.key}
+                                    colorOpen={noteDay === cell.key && noteColorOpen}
+                                    menuOpen={noteDay === cell.key && noteMenuOpen}
+                                    t={t}
+                                    onActivate={() => {
+                                      setNoteDay(cell.key);
+                                    }}
+                                    onClosePopovers={() => {
+                                      setNoteColorOpen(false);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onToggleColor={() => {
+                                      setNoteDay(cell.key);
+                                      setNoteColorOpen((v) => !v);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onToggleMenu={() => {
+                                      setNoteDay(cell.key);
+                                      setNoteMenuOpen((v) => !v);
+                                      setNoteColorOpen(false);
+                                    }}
+                                    onChangeText={(text) => {
+                                      setDayNotes((prev) => ({
+                                        ...prev,
+                                        [cell.key]: {
+                                          text,
+                                          color: prev[cell.key]?.color ?? 'yellow',
+                                          visibility: prev[cell.key]?.visibility ?? 'only_me',
+                                        },
+                                      }));
+                                    }}
+                                    onCommitText={(text) => void persistNote(cell.key, { text })}
+                                    onColor={(c) => {
+                                      void persistNote(cell.key, { color: c });
+                                      setNoteColorOpen(false);
+                                    }}
+                                    onVisibility={(visibility) => {
+                                      void persistNote(cell.key, { visibility });
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onDelete={() => {
+                                      void persistNote(cell.key, { remove: true });
+                                    }}
+                                    onCreatePost={() => {
+                                      setSelectedDay(cell.key);
+                                      setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                      setCreateOpen(true);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                  />
+                                ) : null}
+
+                                {holiday ? (
+                                  <div
+                                    className="oma-cal-holiday-chip"
+                                    title={holiday}
+                                    data-testid={`demo-cal-holiday-${cell.key}`}
+                                  >
+                                    {holiday}
+                                  </div>
+                                ) : null}
+
+                                <div className="oma-cal-cell__scroll">
+                                  {/* Post cards (max 2 per cell; rest via +N more) */}
+                                  {visibleCellItems.map((item) => (
+                                    <div
+                                      key={item.id}
+                                      className="oma-cal-item-wrap"
+                                      data-selected={selectedId === item.id ? 'true' : 'false'}
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData('text/oma-content-id', item.id);
+                                        e.dataTransfer.setData('text/oma-from-day', cell.key);
+                                        e.dataTransfer.effectAllowed = 'move';
+                                      }}
+                                      onMouseEnter={(e) =>
+                                        scheduleCardMenu(item.id, e.currentTarget)
+                                      }
+                                      onMouseLeave={() => cancelCardMenu()}
+                                    >
+                                      {approvalMode ? (
+                                        <label
+                                          className="oma-cal-select"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedIds.includes(item.id)}
+                                            onChange={() => toggleSelectId(item.id)}
+                                          />
+                                        </label>
+                                      ) : null}
+                                      <SurfaceButton
+                                        data-status={item.status}
+                                        data-testid={`demo-cal-item-${item.id}`}
+                                        data-selected={selectedId === item.id ? 'true' : 'false'}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (approvalMode) {
+                                            toggleSelectId(item.id);
+                                            return;
+                                          }
+                                          openItem(item);
+                                        }}
+                                        onContextMenu={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          placeCardMenu(item.id, e.currentTarget);
+                                        }}
+                                        className="oma-cal-item oma-cal-item--has-menu"
+                                      >
+                                        <span className="oma-cal-item__inner">
+                                          {renderCalendarCard(item)}
+                                          {!approvalMode ? (
+                                            <CardActionsButton
+                                              itemId={item.id}
+                                              open={cardMenuId === item.id}
+                                              label={t('content.post_actions')}
+                                              className="oma-card-actions-btn--cal oma-card-actions-btn--in-card"
+                                              onOpen={placeCardMenu}
+                                              onClose={closeCardMenu}
+                                            />
+                                          ) : null}
+                                        </span>
+                                      </SurfaceButton>
+                                    </div>
+                                  ))}
+                                  {extra > 0 ? (
+                                    <Button
+                                      type="default"
+                                      data-testid="demo-day-overflow"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedDay(cell.key);
+                                        setOverflowDay(cell.key);
+                                      }}
+                                      className="oma-cal-more"
+                                      aria-label={t('demo.content.openDay')}
+                                    >
+                                      +{extra} {isAr ? 'المزيد' : 'more'}
+                                    </Button>
+                                  ) : null}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Mobile agenda (hidden on desktop) */}
+                  <div
+                    className="oma-cal-agenda"
+                    data-testid="demo-content-agenda"
+                    hidden
+                    aria-hidden="true"
+                  >
+                    {agendaDays.map((day) => (
+                      <div key={day.key} className="oma-cal-agenda-day">
+                        <strong className="oma-cal-agenda-day__label">
+                          <span>{weekdayForKey(day.key, locale)}</span>
+                          <span className="oma-ltr">{day.key}</span>
+                        </strong>
+                        {day.items.length === 0 ? (
+                          <p className="oma-muted" style={{ margin: '8px 0 0' }}>
+                            {t('demo.empty')}
+                          </p>
+                        ) : (
+                          <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
+                            {day.items.map((item) => (
+                              <div key={item.id} className="oma-cal-agenda-item">
+                                <SurfaceButton
+                                  data-status={item.status}
+                                  data-testid={`demo-cal-item-${item.id}`}
+                                  onClick={() => openItem(item)}
+                                  className="oma-cal-item"
+                                >
+                                  <MediaSurface
+                                    className="oma-cal-thumb"
+                                    src={item.previewAsset}
+                                    alt=""
+                                  />
+                                  <span>
+                                    {pickCopy(item.title, locale)} · {item.channel} ·{' '}
+                                    {statusLabel(item.status, locale)}
+                                  </span>
+                                </SurfaceButton>
+                                <CardActionsButton
+                                  itemId={item.id}
+                                  open={cardMenuId === item.id}
+                                  label={t('content.post_actions')}
+                                  onOpen={placeCardMenu}
+                                  onClose={closeCardMenu}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -5527,300 +5524,295 @@ export default function ContentPage() {
                     <MoreOutlined width={16} height={16} aria-hidden />
                   </OmaIconAction>
                   <FloatingOverlay
-                      open={detailMoreOpen}
-                      anchorRef={detailMoreBtnRef}
-                      onClose={() => setDetailMoreOpen(false)}
-                      className="oma-plan-post__more-menu"
+                    open={detailMoreOpen}
+                    anchorRef={detailMoreBtnRef}
+                    onClose={() => setDetailMoreOpen(false)}
+                    className="oma-plan-post__more-menu"
+                    role="menu"
+                    width={260}
+                    align="end"
+                  >
+                    <ul
+                      className="oma-plan-post__more-menu-list"
                       role="menu"
-                      width={260}
-                      align="end"
+                      onClick={() => setDetailMoreOpen(false)}
                     >
-                      <ul
-                        className="oma-plan-post__more-menu-list"
-                        role="menu"
-                        onClick={() => setDetailMoreOpen(false)}
-                      >
-                        {/* Mobile: the secondary top-bar actions collapse into this menu. */}
-                        <li className="oma-plan-post__more-mobile">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void shareContentWorkspace()}
-                          >
-                            <ShareAltOutlined /> {t('content.share')}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-mobile">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() =>
-                              setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
+                      {/* Mobile: the secondary top-bar actions collapse into this menu. */}
+                      <li className="oma-plan-post__more-mobile">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void shareContentWorkspace()}
+                        >
+                          <ShareAltOutlined /> {t('content.share')}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-mobile">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() =>
+                            setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
+                          }
+                        >
+                          <HistoryOutlined /> {t('nav.activity')}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-mobile">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) void toggleHideFromClients(selectedId);
+                          }}
+                        >
+                          <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => setDetailSidePanel('analytics')}
+                        >
+                          <BarChartOutlined /> {t('nav.analytics')}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-section" aria-hidden>
+                        {isAr ? 'إجراءات المنشور' : 'Post actions'}
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) {
+                              void duplicateContent(selectedId).then((apiRow) => {
+                                const row = toContentRow(apiRow);
+                                setRows((prev) => [row, ...prev]);
+                                toast.push(t('content.post_duplicated'), 'success');
+                                openItem(row);
+                              });
                             }
-                          >
-                            <HistoryOutlined /> {t('nav.activity')}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-mobile">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) void toggleHideFromClients(selectedId);
-                            }}
-                          >
-                            <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => setDetailSidePanel('analytics')}
-                          >
-                            <BarChartOutlined /> {t('nav.analytics')}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-section" aria-hidden>
-                          {isAr ? 'إجراءات المنشور' : 'Post actions'}
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) {
-                                void duplicateContent(selectedId).then((apiRow) => {
-                                  const row = toContentRow(apiRow);
-                                  setRows((prev) => [row, ...prev]);
-                                  toast.push(t('content.post_duplicated'), 'success');
-                                  openItem(row);
-                                });
-                              }
-                            }}
-                          >
-                            <FileTextOutlined /> {isAr ? 'إعادة نشر' : 'Repost'}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void runLifecycle('request-approval', selectedId)}
-                          >
-                            <FlagOutlined /> {t('demo.content.requestApproval')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void runLifecycle('request-changes', selectedId)}
-                          >
-                            <EditOutlined /> {t('strategy.review.requestChanges')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => void runLifecycle('reject', selectedId)}
-                          >
-                            <CloseOutlined /> {t('strategy.review.reject')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              void publishContentNow(selectedId)
-                                .then((res) => {
-                                  setRows((prev) =>
-                                    prev.map((r) =>
-                                      r.id === selectedId ? toContentRow(res.data) : r,
-                                    ),
-                                  );
-                                  toast.push(
-                                    isAr
-                                      ? 'تمت إضافة المنشور إلى قائمة النشر'
-                                      : 'Post queued for publishing',
-                                    'success',
-                                  );
-                                })
-                                .catch((e) =>
-                                  toast.push(contentApiError(e, t('errors.http')), 'danger'),
+                          }}
+                        >
+                          <FileTextOutlined /> {isAr ? 'إعادة نشر' : 'Repost'}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void runLifecycle('request-approval', selectedId)}
+                        >
+                          <FlagOutlined /> {t('demo.content.requestApproval')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void runLifecycle('request-changes', selectedId)}
+                        >
+                          <EditOutlined /> {t('strategy.review.requestChanges')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => void runLifecycle('reject', selectedId)}
+                        >
+                          <CloseOutlined /> {t('strategy.review.reject')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            void publishContentNow(selectedId)
+                              .then((res) => {
+                                setRows((prev) =>
+                                  prev.map((r) =>
+                                    r.id === selectedId ? toContentRow(res.data) : r,
+                                  ),
                                 );
-                            }}
-                          >
-                            <CheckOutlined />{' '}
-                            {t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              const extra = selected as ContentRowExtra;
-                              const pageId = extra.socialPageIds?.[0] || extra.socialPageId;
-                              if (!pageId) {
                                 toast.push(
-                                  isAr ? 'لا توجد قناة لفصلها' : 'No channel to detach',
-                                  'danger',
+                                  isAr
+                                    ? 'تمت إضافة المنشور إلى قائمة النشر'
+                                    : 'Post queued for publishing',
+                                  'success',
                                 );
-                                return;
-                              }
-                              void detachContentChannel(selectedId, pageId)
-                                .then((res) => {
-                                  const row = toContentRow(res.data);
-                                  setRows((prev) => [row, ...prev]);
-                                  toast.push(
-                                    isAr ? 'تم فصل القناة' : 'Channel detached',
-                                    'success',
-                                  );
-                                  openItem(row);
-                                })
-                                .catch((e) =>
-                                  toast.push(contentApiError(e, t('errors.http')), 'danger'),
-                                );
-                            }}
-                          >
-                            <EditOutlined /> {isAr ? 'فصل عن المجموعة' : 'Detach from group'}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              const first =
-                                brands.find((b) => b.id !== selected.brandId) || brands[0] || null;
-                              setCopyToBrandId(first?.id || null);
-                              setCopyToOpen(true);
-                              setDetailMoreOpen(false);
-                              if (first?.id) {
-                                setCopyToLoading(true);
-                                void brandSettingsApi
-                                  .social(first.id)
-                                  .then((r) =>
-                                    setCopyToPages(
-                                      r.data.pages.filter((pg) => pg.status !== 'DISCONNECTED'),
-                                    ),
-                                  )
-                                  .catch(() => setCopyToPages([]))
-                                  .finally(() => setCopyToLoading(false));
-                              } else {
-                                setCopyToPages([]);
-                              }
-                            }}
-                          >
-                            <CopyOutlined />{' '}
-                            {t('content.copy_to') || (isAr ? 'نسخ إلى…' : 'Copy to…')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              setAudienceDraft(
-                                (selected as ContentRowExtra).preferredAudience || '',
+                              })
+                              .catch((e) =>
+                                toast.push(contentApiError(e, t('errors.http')), 'danger'),
                               );
-                              setAudienceOpen(true);
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <UserOutlined /> {isAr ? 'الجمهور المفضل' : 'Preferred audience'}
-                          </button>
-                        </li>
-                        <li className="oma-plan-post__more-section" aria-hidden>
-                          {isAr ? 'إجراءات المجموعة' : 'Group actions'}
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              void ungroupContent(selectedId)
-                                .then((rows) => {
-                                  const mapped = rows.map((r) => toContentRow(r));
-                                  setRows((prev) => {
-                                    const ids = new Set(mapped.map((r) => r.id));
-                                    return [...mapped, ...prev.filter((r) => !ids.has(r.id))];
-                                  });
-                                  toast.push(
-                                    isAr ? 'تم فك تجميع المنشورات' : 'Posts ungrouped',
-                                    'success',
-                                  );
-                                })
-                                .catch((e) =>
-                                  toast.push(contentApiError(e, t('errors.http')), 'danger'),
-                                );
-                            }}
-                          >
-                            <FlagOutlined /> {isAr ? 'فك تجميع المنشورات' : 'Ungroup posts'}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) void toggleHideFromClients(selectedId);
-                            }}
-                          >
-                            <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) void saveAsTemplate(selectedId);
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <FileTextOutlined /> {t('content.save_as_template')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) setArchiveConfirmId(selectedId);
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <DeleteOutlined /> {t('content.archive_post')}
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              if (selectedId) {
-                                void convertContentToOps(selectedId).then((ids) => {
-                                  if (ids?.requestId) {
-                                    window.location.href = `/app/requests/${ids.requestId}`;
-                                  }
+                          }}
+                        >
+                          <CheckOutlined />{' '}
+                          {t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            const extra = selected as ContentRowExtra;
+                            const pageId = extra.socialPageIds?.[0] || extra.socialPageId;
+                            if (!pageId) {
+                              toast.push(
+                                isAr ? 'لا توجد قناة لفصلها' : 'No channel to detach',
+                                'danger',
+                              );
+                              return;
+                            }
+                            void detachContentChannel(selectedId, pageId)
+                              .then((res) => {
+                                const row = toContentRow(res.data);
+                                setRows((prev) => [row, ...prev]);
+                                toast.push(isAr ? 'تم فصل القناة' : 'Channel detached', 'success');
+                                openItem(row);
+                              })
+                              .catch((e) =>
+                                toast.push(contentApiError(e, t('errors.http')), 'danger'),
+                              );
+                          }}
+                        >
+                          <EditOutlined /> {isAr ? 'فصل عن المجموعة' : 'Detach from group'}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            const first =
+                              brands.find((b) => b.id !== selected.brandId) || brands[0] || null;
+                            setCopyToBrandId(first?.id || null);
+                            setCopyToOpen(true);
+                            setDetailMoreOpen(false);
+                            if (first?.id) {
+                              setCopyToLoading(true);
+                              void brandSettingsApi
+                                .social(first.id)
+                                .then((r) =>
+                                  setCopyToPages(
+                                    r.data.pages.filter((pg) => pg.status !== 'DISCONNECTED'),
+                                  ),
+                                )
+                                .catch(() => setCopyToPages([]))
+                                .finally(() => setCopyToLoading(false));
+                            } else {
+                              setCopyToPages([]);
+                            }
+                          }}
+                        >
+                          <CopyOutlined />{' '}
+                          {t('content.copy_to') || (isAr ? 'نسخ إلى…' : 'Copy to…')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            setAudienceDraft((selected as ContentRowExtra).preferredAudience || '');
+                            setAudienceOpen(true);
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <UserOutlined /> {isAr ? 'الجمهور المفضل' : 'Preferred audience'}
+                        </button>
+                      </li>
+                      <li className="oma-plan-post__more-section" aria-hidden>
+                        {isAr ? 'إجراءات المجموعة' : 'Group actions'}
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (!selectedId) return;
+                            void ungroupContent(selectedId)
+                              .then((rows) => {
+                                const mapped = rows.map((r) => toContentRow(r));
+                                setRows((prev) => {
+                                  const ids = new Set(mapped.map((r) => r.id));
+                                  return [...mapped, ...prev.filter((r) => !ids.has(r.id))];
                                 });
-                              }
-                              setDetailMoreOpen(false);
-                            }}
-                          >
-                            <FlagOutlined /> {t('content.convert_to_request_task_deliverable')}
-                          </button>
-                        </li>
-                      </ul>
+                                toast.push(
+                                  isAr ? 'تم فك تجميع المنشورات' : 'Posts ungrouped',
+                                  'success',
+                                );
+                              })
+                              .catch((e) =>
+                                toast.push(contentApiError(e, t('errors.http')), 'danger'),
+                              );
+                          }}
+                        >
+                          <FlagOutlined /> {isAr ? 'فك تجميع المنشورات' : 'Ungroup posts'}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) void toggleHideFromClients(selectedId);
+                          }}
+                        >
+                          <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) void saveAsTemplate(selectedId);
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <FileTextOutlined /> {t('content.save_as_template')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) setArchiveConfirmId(selectedId);
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <DeleteOutlined /> {t('content.archive_post')}
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            if (selectedId) {
+                              void convertContentToOps(selectedId).then((ids) => {
+                                if (ids?.requestId) {
+                                  window.location.href = `/app/requests/${ids.requestId}`;
+                                }
+                              });
+                            }
+                            setDetailMoreOpen(false);
+                          }}
+                        >
+                          <FlagOutlined /> {t('content.convert_to_request_task_deliverable')}
+                        </button>
+                      </li>
+                    </ul>
                   </FloatingOverlay>
                   <OmaIconAction
                     type="button"

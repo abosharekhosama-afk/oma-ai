@@ -361,7 +361,10 @@ export function TasksShimmer({
       {v === 'list' ? (
         <TableBones cols={[220, 90, 110, 90, 80]} rows={7} thumb />
       ) : (
-        <div className="oma-plx-approvals__columns oma-plx-tasks__columns oma-shim-tasks-board" aria-hidden="true">
+        <div
+          className="oma-plx-approvals__columns oma-plx-tasks__columns oma-shim-tasks-board"
+          aria-hidden="true"
+        >
           {TASK_BOARD_COLS.map((cards, colIdx) => (
             <section key={colIdx} className="oma-plx-approvals__column-wrap">
               <header className="oma-plx-approvals__column-head">
@@ -519,11 +522,7 @@ export function RequestsShimmer({ part = 'page' }: { part?: ShimmerPart }) {
           />
         ))}
       </div>
-      <TableBones
-        cols={[180, 52, 72, 100, 48, 72, 64, 56, 48, 72]}
-        rows={7}
-        avatar={false}
-      />
+      <TableBones cols={[180, 52, 72, 100, 48, 72, 64, 56, 48, 72]} rows={7} avatar={false} />
     </div>
   );
   if (part === 'body') {

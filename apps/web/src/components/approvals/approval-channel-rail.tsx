@@ -53,7 +53,10 @@ export function ApprovalChannelRail({
         Math.min(anchorEnd, window.innerWidth - panelWidth - margin),
       );
     } else {
-      insetInlineStart = Math.max(margin, Math.min(r.left, window.innerWidth - panelWidth - margin));
+      insetInlineStart = Math.max(
+        margin,
+        Math.min(r.left, window.innerWidth - panelWidth - margin),
+      );
     }
     const top = Math.min(r.bottom + 8, maxTop);
     setPanelPos({ top, insetInlineStart });
@@ -106,50 +109,50 @@ export function ApprovalChannelRail({
             : undefined
         }
       >
-          <header className="oma-plx-approvals-channels__head">
-            <strong>{t('approvals.channels')}</strong>
-            <div className="oma-plx-approvals-channels__head-right">
-              <button
-                type="button"
-                className="oma-plx-approvals-channels__all"
-                onClick={() => onToggleAll(!allOn)}
-              >
-                {allOn ? t('approvals.channels_clear') : t('approvals.channels_all')}
-              </button>
-              <input
-                type="checkbox"
-                className="oma-plx-approvals-channels__check"
-                checked={allOn}
-                ref={(el) => {
-                  if (el) el.indeterminate = someOn;
-                }}
-                onChange={() => onToggleAll(!allOn)}
-                aria-label={t('approvals.all_channels')}
-              />
-            </div>
-          </header>
+        <header className="oma-plx-approvals-channels__head">
+          <strong>{t('approvals.channels')}</strong>
+          <div className="oma-plx-approvals-channels__head-right">
+            <button
+              type="button"
+              className="oma-plx-approvals-channels__all"
+              onClick={() => onToggleAll(!allOn)}
+            >
+              {allOn ? t('approvals.channels_clear') : t('approvals.channels_all')}
+            </button>
+            <input
+              type="checkbox"
+              className="oma-plx-approvals-channels__check"
+              checked={allOn}
+              ref={(el) => {
+                if (el) el.indeterminate = someOn;
+              }}
+              onChange={() => onToggleAll(!allOn)}
+              aria-label={t('approvals.all_channels')}
+            />
+          </div>
+        </header>
 
-          <ul className="oma-plx-approvals-channels__list">
-            {grouped.map(([brandName, rows]) =>
-              rows.map((ch) => {
-                const on = enabled.size === 0 || enabled.has(ch.id);
-                return (
-                  <li key={ch.id}>
-                    <label className="oma-plx-approvals-channels__row">
-                      <NetworkIcon channel={ch.channel} size={18} />
-                      <span className="oma-plx-approvals-channels__row-label">{brandName}</span>
-                      <input
-                        type="checkbox"
-                        className="oma-plx-approvals-channels__check"
-                        checked={on}
-                        onChange={() => onToggle(ch.id)}
-                      />
-                    </label>
-                  </li>
-                );
-              }),
-            )}
-          </ul>
+        <ul className="oma-plx-approvals-channels__list">
+          {grouped.map(([brandName, rows]) =>
+            rows.map((ch) => {
+              const on = enabled.size === 0 || enabled.has(ch.id);
+              return (
+                <li key={ch.id}>
+                  <label className="oma-plx-approvals-channels__row">
+                    <NetworkIcon channel={ch.channel} size={18} />
+                    <span className="oma-plx-approvals-channels__row-label">{brandName}</span>
+                    <input
+                      type="checkbox"
+                      className="oma-plx-approvals-channels__check"
+                      checked={on}
+                      onChange={() => onToggle(ch.id)}
+                    />
+                  </label>
+                </li>
+              );
+            }),
+          )}
+        </ul>
       </div>
     ) : null;
 

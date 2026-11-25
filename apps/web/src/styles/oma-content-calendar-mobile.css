@@ -76,9 +76,13 @@
     opacity: 1 !important;
   }
 
-  html body [data-testid='demo-content-cal-grid'].oma-cal-grid[data-hide-weekends='true']
+  html
+    body
+    [data-testid='demo-content-cal-grid'].oma-cal-grid[data-hide-weekends='true']
     > .oma-cal-dow-row,
-  html body [data-testid='demo-content-calendar']
+  html
+    body
+    [data-testid='demo-content-calendar']
     .oma-cal-grid[data-hide-weekends='true']
     .oma-cal-dow-row {
     grid-template-columns: repeat(5, var(--oma-cal-day-col)) !important;

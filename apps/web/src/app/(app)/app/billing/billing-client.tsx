@@ -525,7 +525,6 @@ export default function BillingClient() {
         </div>
       </div>
 
-
       {loading ? (
         <p className="oma-billing__desc">{isAr ? 'جاري التحميل…' : 'Loading…'}</p>
       ) : (

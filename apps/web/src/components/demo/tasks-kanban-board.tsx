@@ -135,11 +135,18 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
     <>
       <header className="oma-plx-approvals-card__head">
         <span className="oma-plx-approvals-card__nets">
-          <FlagOutlined className="oma-plx-approvals-card__clock oma-lucide--soft" width={14} height={14} />
+          <FlagOutlined
+            className="oma-plx-approvals-card__clock oma-lucide--soft"
+            width={14}
+            height={14}
+          />
         </span>
         <strong className="oma-plx-approvals-card__brand">{brand}</strong>
         {dueMeta ? (
-          <span className="oma-plx-approvals-card__time" data-scheduled={overdue ? 'true' : 'false'}>
+          <span
+            className="oma-plx-approvals-card__time"
+            data-scheduled={overdue ? 'true' : 'false'}
+          >
             {overdue ? <ClockCircleOutlined className="oma-plx-approvals-card__clock" /> : null}
             <span>{overdue ? `${t('demo.tasks.card.overdue')} · ${dueMeta}` : dueMeta}</span>
           </span>
@@ -201,66 +208,66 @@ function SortableTaskCard({
 
   return (
     <li>
-    <article
-      ref={setNodeRef}
-      style={style}
-      className={`oma-plx-approvals-card${isDragging ? ' is-dragging' : ''}`}
-      data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
-      data-testid={`demo-task-card-${task.id}`}
-      data-status={task.status}
-      {...attributes}
-      {...listeners}
-      onClick={(e) => {
-        // PointerSensor needs 6px of movement to start a drag, so a plain click opens.
-        e.stopPropagation();
-        onOpen();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-label={`${t('demo.tasks.detail')}: ${pickCopy(task.title, locale)}`}
-    >
-      <KanbanCardBody task={task} />
-      {onA11yMove && moveOptions && moveOptions.length > 0 ? (
-        <label className="oma-sr-only">
-          {t('demo.tasks.move')}
-          <select
-            data-testid={`demo-task-move-${task.id}`}
-            value=""
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => {
-              e.stopPropagation();
-              const next = e.target.value as DemoTaskStatus;
-              if (next) onA11yMove(next);
-            }}
-          >
-            <option value="">{t('demo.tasks.move')}</option>
-            {moveOptions.map((status) => (
-              <option key={status} value={status}>
-                {t(`demo.tasks.column.${status}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      <button
-        type="button"
-        className="oma-sr-only"
-        tabIndex={-1}
-        data-testid={`demo-task-open-${task.id}`}
+      <article
+        ref={setNodeRef}
+        style={style}
+        className={`oma-plx-approvals-card${isDragging ? ' is-dragging' : ''}`}
+        data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
+        data-testid={`demo-task-card-${task.id}`}
+        data-status={task.status}
+        {...attributes}
+        {...listeners}
         onClick={(e) => {
+          // PointerSensor needs 6px of movement to start a drag, so a plain click opens.
           e.stopPropagation();
           onOpen();
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpen();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`${t('demo.tasks.detail')}: ${pickCopy(task.title, locale)}`}
       >
-        {t('demo.tasks.open')}
-      </button>
-    </article>
+        <KanbanCardBody task={task} />
+        {onA11yMove && moveOptions && moveOptions.length > 0 ? (
+          <label className="oma-sr-only">
+            {t('demo.tasks.move')}
+            <select
+              data-testid={`demo-task-move-${task.id}`}
+              value=""
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                e.stopPropagation();
+                const next = e.target.value as DemoTaskStatus;
+                if (next) onA11yMove(next);
+              }}
+            >
+              <option value="">{t('demo.tasks.move')}</option>
+              {moveOptions.map((status) => (
+                <option key={status} value={status}>
+                  {t(`demo.tasks.column.${status}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <button
+          type="button"
+          className="oma-sr-only"
+          tabIndex={-1}
+          data-testid={`demo-task-open-${task.id}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+        >
+          {t('demo.tasks.open')}
+        </button>
+      </article>
     </li>
   );
 }
@@ -321,9 +328,7 @@ function DroppableColumn({
       </header>
 
       <div ref={setNodeRef} className={`oma-plx-approvals__column${isOver ? ' is-over' : ''}`}>
-        <ul className="oma-plx-approvals__cards">
-          {children}
-        </ul>
+        <ul className="oma-plx-approvals__cards">{children}</ul>
         {empty ? (
           <p className="oma-plx-approvals__empty">
             {isOver ? t('demo.tasks.dropHere') : t('demo.tasks.dropHere')}

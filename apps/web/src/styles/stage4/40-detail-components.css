@@ -2186,7 +2186,6 @@ button.oma-breadcrumb-workspace:hover {
     line-height: 1.35 !important;
     color: var(--oma-muted, #64748b) !important;
   }
-
 }
 
 /* Phone filter/create icons: oma-icon-action.css + plx-header-filter */

@@ -172,11 +172,7 @@ export function ComposeMetaPills({
       aria-haspopup="menu"
       data-active={campaignMenu ? 'true' : 'false'}
       aria-label={
-        selectedCampaign
-          ? campaignName(selectedCampaign, locale)
-          : isAr
-            ? 'الحملة'
-            : 'Campaign'
+        selectedCampaign ? campaignName(selectedCampaign, locale) : isAr ? 'الحملة' : 'Campaign'
       }
       data-testid={testIds?.campaign ?? `${testPrefix}-campaign`}
       onClick={() => {
