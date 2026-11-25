@@ -8,6 +8,7 @@ import type { NavIconId } from '../../../../components/shell/nav-config';
 import { useLocale } from '../../../../lib/use-locale';
 import { usePlatformOperator } from '../../../../lib/use-platform-operator';
 import './admin-hub.css';
+import './admin-hub-compact.css';
 import './admin-hub-mobile.css';
 
 type NavItem = {

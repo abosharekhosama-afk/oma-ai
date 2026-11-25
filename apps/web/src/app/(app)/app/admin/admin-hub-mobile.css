@@ -35,19 +35,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     padding: 0;
-    border: 1px solid var(--oma-border-subtle, #e2e8f0);
-    border-radius: 10px;
-    background: var(--oma-surface-1, #fff);
+    border: none;
+    border-radius: 6px;
+    background: transparent;
     color: var(--oma-text-primary, #0f172a);
     cursor: pointer;
     flex-shrink: 0;
+    box-shadow: none;
   }
 
   .admin-hub__menu-toggle:active {
-    background: var(--oma-surface-0, #f8fafc);
+    background: rgb(15 23 42 / 6%);
   }
 
   .admin-hub__mobile-title {
@@ -184,7 +185,11 @@
     font-size: 0.72rem;
   }
 
-  .admin-hub__grid,
+  .admin-hub__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
   .admin-hub__limit-grid,
   .admin-hub__diag-grid,
   .admin-hub__probe-grid {
@@ -259,9 +264,13 @@
     font-size: 0.72rem;
   }
 
-  .admin-hub__actions .admin-hub__btn {
-    flex: 1 1 auto;
+  .admin-hub .ant-btn,
+  .admin-hub .admin-hub__actions .admin-hub__btn,
+  .admin-hub .admin-hub__row .ant-btn {
+    width: auto;
+    flex: 0 1 auto;
     min-width: 0;
+    max-width: 100%;
   }
 
   /* Admin billing page nested inside hub */
@@ -337,7 +346,41 @@
   }
 
   .admin-hub__content .oma-billing__admin-row {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .admin-hub__content .oma-billing__admin-row .ant-btn {
+    width: auto;
+    flex: 0 1 auto;
+  }
+
+  .admin-hub__content .oma-billing__order {
+    padding: 0.55rem 0.65rem;
+    border-radius: 10px;
+  }
+
+  .admin-hub__content .oma-billing__order-head strong {
+    font-size: 0.8rem;
+  }
+
+  .admin-hub__content .oma-billing__order-head p {
+    font-size: 0.68rem;
+    margin-top: 2px;
+  }
+
+  .admin-hub__content .oma-billing__order-meta {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+    font-size: 0.68rem;
+  }
+
+  .admin-hub__content .oma-billing__order-meta dt {
+    font-size: 0.62rem;
+  }
+
+  .admin-hub__content .oma-billing__order-meta dd {
+    font-size: 0.72rem;
   }
 }

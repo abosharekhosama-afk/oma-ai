@@ -156,8 +156,12 @@
   color: #526273;
 }
 @media (max-width: 850px) {
-  .oma-billing__grid {
+  .oma-billing__grid:not(.oma-billing__pricing-grid) {
     grid-template-columns: 1fr;
+  }
+  .oma-billing__pricing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
   .oma-billing__card {
     min-height: 0;
@@ -225,8 +229,12 @@
   .oma-billing {
     padding: 20px 16px 48px;
   }
-  .oma-billing__grid {
+  .oma-billing__grid:not(.oma-billing__pricing-grid) {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .oma-billing__pricing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
   .oma-billing__header,
   .oma-billing__header-actions,
@@ -1048,9 +1056,13 @@
   color: #526273;
   font-size: 13px;
 }
-.oma-billing__pricing-card > button {
-  width: 100%;
+.oma-billing__pricing-card > button,
+.oma-billing__pricing-card > .ant-btn {
+  width: auto;
+  min-width: min(100%, 9.5rem);
+  max-width: 100%;
   margin-top: auto;
+  align-self: center;
 }
 .oma-billing__card-footnote {
   min-height: 30px;
@@ -1139,6 +1151,11 @@
 @media (max-width: 767px) {
   .oma-billing {
     padding: 12px 10px 40px;
+  }
+
+  .oma-billing__pricing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .oma-billing .oma-planable-page__header h1,

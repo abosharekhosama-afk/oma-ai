@@ -1,0 +1,93 @@
+/* Platform admin — compact type, multi-column metrics, inline actions */
+
+.admin-hub {
+  font-size: 13px;
+}
+
+.admin-hub__content > h1 {
+  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+  line-height: 1.35;
+}
+
+.admin-hub__page-head h1 {
+  font-size: 1.1rem;
+}
+
+.admin-hub__muted {
+  font-size: 0.78rem;
+}
+
+.admin-hub__card p {
+  font-size: 1.05rem;
+}
+
+.admin-hub__menu-item {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.admin-hub__brand strong {
+  font-size: 0.95rem;
+}
+
+.admin-hub .ant-btn,
+.admin-hub button.admin-hub__btn {
+  width: auto;
+  max-width: 100%;
+  min-height: 30px;
+  font-size: 0.78rem;
+  padding-inline: 0.65rem;
+}
+
+.admin-hub .admin-hub__row .ant-btn,
+.admin-hub .admin-hub__actions .ant-btn,
+.admin-hub .admin-hub__actions button {
+  flex: 0 1 auto;
+  width: auto;
+}
+
+.admin-hub__grid {
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 0.55rem;
+}
+
+.admin-hub__diag-grid {
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 0.55rem;
+}
+
+@media (max-width: 767px) {
+  .admin-hub__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-hub__card,
+  .admin-hub .oma-plx-listening-card {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .admin-hub__card p {
+    font-size: 0.95rem;
+  }
+
+  .admin-hub__probe-grid {
+    gap: 0.65rem;
+  }
+
+  .admin-hub h1,
+  .admin-hub h2,
+  .admin-hub h3,
+  .admin-hub h4 {
+    line-height: 1.35;
+  }
+
+  .admin-hub h3 {
+    font-size: 0.72rem;
+  }
+
+  .admin-hub h4 {
+    font-size: 0.78rem;
+    margin: 0 0 0.35rem;
+  }
+}

@@ -321,6 +321,14 @@ export function planErrorFromUnknown(err: unknown, isAr: boolean): string | null
   const details = raw.details ?? nested?.details;
   const detail = Array.isArray(details) ? details[0] : undefined;
   if (isAr && detail?.message_ar) return detail.message_ar;
+  if (
+    nested?.message_key === 'errors.billing_pending_order' ||
+    (code === 'CONFLICT_STATE' && nested?.message_key === 'errors.billing_pending_order')
+  ) {
+    return isAr
+      ? 'لديك طلب دفع بانتظار المراجعة. أكمله أو انتظر الموافقة قبل فتح طلب جديد.'
+      : 'You already have a payment request awaiting review. Complete it or wait for approval before starting another.';
+  }
   if (code === 'PROVIDER_NOT_CONFIGURED') {
     if (detail?.provider === 'stripe' || nested?.message_key === 'errors.stripe_not_configured') {
       return isAr ? 'لم يتم إعداد Stripe بعد' : 'Stripe is not set up yet';

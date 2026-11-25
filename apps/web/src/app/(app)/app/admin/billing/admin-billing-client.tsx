@@ -167,6 +167,17 @@ export default function AdminBillingClient() {
     [selected, workspaces],
   );
 
+  const workspaceLabelById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const workspace of workspaces) {
+      const id = String(workspace.id);
+      const name = textValue(workspace.name);
+      const slug = textValue(workspace.slug, '');
+      map.set(id, slug && name !== '—' ? `${name} (${slug})` : name);
+    }
+    return map;
+  }, [workspaces]);
+
   const workspaceCounts = useMemo(
     () => ({
       total: workspaces.length,
@@ -715,7 +726,11 @@ export default function AdminBillingClient() {
                   </div>
                   <div>
                     <dt>{isAr ? 'مساحة العمل' : 'Workspace'}</dt>
-                    <dd>{order.tenant_id || '—'}</dd>
+                    <dd>
+                      {order.tenant_id
+                        ? (workspaceLabelById.get(order.tenant_id) ?? order.tenant_id)
+                        : '—'}
+                    </dd>
                   </div>
                 </dl>
                 {order.proof_note ? <p className="oma-billing__desc">{order.proof_note}</p> : null}

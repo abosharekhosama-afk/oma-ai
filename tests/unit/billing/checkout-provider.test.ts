@@ -102,4 +102,17 @@ describe('upgrade error copy', () => {
     expect(planErrorFromUnknown(err, true)).toBe('لم يتم إعداد Stripe بعد');
     expect(planErrorFromUnknown(err, false)).toBe('Stripe is not set up yet');
   });
+
+  it('maps an open manual payment conflict to a localized billing message', () => {
+    const err = {
+      data: {
+        error: {
+          code: 'CONFLICT_STATE',
+          message_key: 'errors.billing_pending_order',
+        },
+      },
+    };
+    expect(planErrorFromUnknown(err, true)).toContain('طلب دفع');
+    expect(planErrorFromUnknown(err, false)).toContain('payment request');
+  });
 });
