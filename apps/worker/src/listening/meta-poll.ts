@@ -1,5 +1,10 @@
 import { getPrisma } from '@oma/db';
-import { decryptToken, safeListeningSyncError, tokenKeyFromEnv } from '@oma/domain';
+import {
+  decryptToken,
+  isListeningPlatformProductDisabled,
+  safeListeningSyncError,
+  tokenKeyFromEnv,
+} from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { matchedTerms, recordListeningHit } from './record-hit';
 import { bridgeInboxMessagesToListening } from './inbox-bridge';
@@ -32,6 +37,7 @@ function parseArr(s: string): string[] {
 }
 
 function platformAllowed(platforms: string[], p: string) {
+  if (isListeningPlatformProductDisabled(p)) return false;
   return !platforms.length || platforms.includes(p);
 }
 
@@ -57,7 +63,7 @@ export async function runListeningPoll(
     where: {
       tenantId: rule.tenantId,
       status: 'CONNECTED',
-      network: { in: ['FACEBOOK', 'INSTAGRAM', 'X'] },
+      network: { in: ['FACEBOOK', 'INSTAGRAM'] },
       ...(rule.brandId ? { brandId: rule.brandId } : {}),
     },
   });

@@ -5,7 +5,6 @@ export type ListeningView = 'brand' | 'topic' | 'competitors' | 'alerts';
 export const LISTENING_PLATFORMS = [
   { id: 'META_IG', short: 'IG', color: '#E4405F' },
   { id: 'META_FB', short: 'FB', color: '#1877F2' },
-  { id: 'X', short: 'X', color: '#0f1419' },
   { id: 'TIKTOK', short: 'TT', color: '#111827' },
   { id: 'LINKEDIN', short: 'IN', color: '#0A66C2' },
   { id: 'REDDIT', short: 'RD', color: '#ff4500' },

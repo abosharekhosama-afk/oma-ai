@@ -1,5 +1,6 @@
 import type { FetchLike, SocialNetworkCode, SocialProviderAdapter } from './adapter';
 import { SOCIAL_NETWORKS } from './adapter';
+import { isSocialNetworkProductDisabled } from './product-offerings';
 import { LinkedInAdapter } from './linkedin.adapter';
 import { MetaAdapter } from './meta.adapter';
 import { TikTokAdapter } from './tiktok.adapter';
@@ -37,6 +38,9 @@ export type ProviderAvailability = {
 export function socialAvailability(env: NodeJS.ProcessEnv = process.env): ProviderAvailability[] {
   const keyOk = Boolean(tokenKeyFromEnv(env));
   return SOCIAL_NETWORKS.map((network) => {
+    if (isSocialNetworkProductDisabled(network)) {
+      return { network, available: false, reason: 'not_configured' as const };
+    }
     const configured = createSocialAdapter(network, env).isConfigured();
     return {
       network,
@@ -56,6 +60,17 @@ export type NetworkReadiness = ProviderAvailability & {
 export function socialReadiness(env: NodeJS.ProcessEnv = process.env): NetworkReadiness[] {
   const keyOk = Boolean(tokenKeyFromEnv(env));
   return SOCIAL_NETWORKS.map((network) => {
+    if (isSocialNetworkProductDisabled(network)) {
+      return {
+        network,
+        available: false,
+        reason: 'not_configured' as const,
+        inbox: false,
+        feed_publish: false,
+        webhooks: false,
+        missing_env: [],
+      };
+    }
     const adapter = createSocialAdapter(network, env);
     const missing = adapter.requiredEnv.filter((k) => !String(env[k] ?? '').trim());
     if (!keyOk && !missing.includes('SOCIAL_TOKEN_ENCRYPTION_KEY')) {

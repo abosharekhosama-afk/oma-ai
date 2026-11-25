@@ -10,7 +10,7 @@ import { useLocale } from '../../lib/use-locale';
 import { BrandApprovalsSettings } from './brand-approvals-settings';
 import {
   BRAND_ROLES,
-  SOCIAL_NETWORKS,
+  CONNECTABLE_SOCIAL_NETWORKS,
   type BrandMemberCandidate,
   type BrandMemberRow,
   type BrandRole,
@@ -490,7 +490,7 @@ function AccountsTab(p: BrandSettingsViewProps) {
         <div className="oma-bs-skeleton" aria-busy="true" />
       ) : (
         <ul className="oma-bs-nets" data-testid="brand-accounts">
-          {SOCIAL_NETWORKS.map((n) => {
+          {CONNECTABLE_SOCIAL_NETWORKS.map((n) => {
             const prov = byNet.get(n);
             const pages = p.pages!.filter((x) => x.network === n);
             const available = Boolean(prov?.available);

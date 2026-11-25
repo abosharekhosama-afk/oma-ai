@@ -16,7 +16,6 @@ import {
   InstagramGlyph,
   LinkedInGlyph,
   TikTokGlyph,
-  XGlyph,
 } from './platform-icons';
 import './landing.css';
 
@@ -28,7 +27,6 @@ const CHANNELS = [
   { id: 'instagram', name: 'Instagram', Icon: InstagramGlyph },
   { id: 'facebook', name: 'Facebook', Icon: FacebookGlyph },
   { id: 'linkedin', name: 'LinkedIn', Icon: LinkedInGlyph },
-  { id: 'x', name: 'X', Icon: XGlyph },
 ] as const;
 
 function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {

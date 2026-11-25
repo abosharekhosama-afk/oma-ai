@@ -146,7 +146,6 @@ export default function BillingClient() {
   const [annual, setAnnual] = useState(false);
   const [plans, setPlans] = useState<PlanDto[]>([]);
   const [sub, setSub] = useState<SubscriptionView | null>(null);
-  const [xAddon, setXAddon] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -161,7 +160,6 @@ export default function BillingClient() {
       const [p, s] = await Promise.all([listPlans(), getSubscription()]);
       setPlans(p.data ?? []);
       setSub(s.data);
-      setXAddon(Boolean(s.data.x_api_addon));
       setPendingOrder((prev) => {
         if (prev) return prev;
         const existing = s.data.pending_manual_orders?.[0];
@@ -198,8 +196,6 @@ export default function BillingClient() {
 
   const providers: ProviderDto[] = (sub?.providers ?? []).filter((item) => item.configured);
   const catalogVat = plans[0]?.vat_percent ?? sub?.settings_vat_percent;
-  const addonPrice = sub?.addon?.price_monthly_usd;
-  const addonInc = formatUsd(sub?.addon?.monthly_vat?.inc_vat_cents);
 
   const checkoutTitle = useMemo(() => {
     if (!checkoutPlan) return isAr ? 'اختيار طريقة الدفع' : 'Choose a payment method';
@@ -237,7 +233,7 @@ export default function BillingClient() {
         plan_code: checkoutPlan.code,
         billing_cycle: annual ? 'yearly' : 'monthly',
         provider: item.id,
-        x_api_addon: xAddon,
+        x_api_addon: false,
       });
       if (item.mode === 'live' || result.data.redirect_url) {
         if (result.data.redirect_url && isSafeCheckoutRedirect(result.data.redirect_url)) {
@@ -529,26 +525,6 @@ export default function BillingClient() {
         </div>
       </div>
 
-      <label className="oma-billing__addon">
-        <input type="checkbox" checked={xAddon} onChange={(e) => setXAddon(e.target.checked)} />
-        <span className="oma-billing__addon-copy">
-          <strong>{isAr ? 'إضافة واجهة إكس المدفوعة' : 'Paid X API add-on'}</strong>
-          <span className="oma-billing__addon-price">
-            {addonPrice != null
-              ? isAr
-                ? `${addonPrice}$ / شهر قبل الضريبة${addonInc ? ` · ${addonInc} شامل الضريبة` : ''}`
-                : `$${addonPrice}/mo before VAT${addonInc ? ` · ${addonInc} including VAT` : ''}`
-              : isAr
-                ? 'سعر الإضافة من إعدادات الفوترة'
-                : 'Priced from billing settings'}
-          </span>
-          <span className="oma-billing__addon-help">
-            {isAr
-              ? 'تتيح ربط حساب إكس (تويتر) للنشر والاستماع. من دونها يُحظر ربط إكس لأن واجهة إكس مدفوعة.'
-              : 'Unlocks connecting an X (Twitter) account for publishing and listening. Without it, connecting X is blocked because X API access is paid.'}
-          </span>
-        </span>
-      </label>
 
       {loading ? (
         <p className="oma-billing__desc">{isAr ? 'جاري التحميل…' : 'Loading…'}</p>

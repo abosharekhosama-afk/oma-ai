@@ -3101,6 +3101,7 @@
   "brandSettings.networkDesc.x": "حسابات إكس",
   "brandSettings.networkDesc.whatsapp": "أرقام واتساب للأعمال لرسائل الصندوق الموحد",
   "errors.social_unavailable": "هذه الشبكة غير متاحة بعد.",
+  "errors.social_network_disabled": "هذه الشبكة غير متاحة في OMA حالياً.",
   "shell.breadcrumbBrand": "العلامة",
   "demo.settings.section.storage": "التخزين",
   "brandSettings.general.logoHintWorkDrive": "PNG أو JPEG أو WebP أو GIF. يُحفظ في WorkDrive ({org}).",

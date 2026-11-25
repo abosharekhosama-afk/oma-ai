@@ -43,7 +43,7 @@ export type ReadinessTarget = {
 };
 
 /** Networks a calendar post can be published to (WhatsApp is inbox-only). */
-export const FEED_NETWORKS = ['facebook', 'instagram', 'linkedin', 'tiktok', 'x'] as const;
+export const FEED_NETWORKS = ['facebook', 'instagram', 'linkedin', 'tiktok'] as const;
 
 export type ScheduleReadinessInput = {
   workflow: WorkflowSource;

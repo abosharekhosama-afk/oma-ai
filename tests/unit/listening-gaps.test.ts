@@ -25,6 +25,7 @@ describe('listening gap closure', () => {
 
   it('exposes Planable-style public platforms in source menu list', () => {
     const ids = LISTENING_PLATFORMS.map((p) => p.id);
+    expect(ids).not.toContain('X');
     expect(ids).toContain('REDDIT');
     expect(ids).toContain('WEB');
     expect(ids).toContain('YOUTUBE');

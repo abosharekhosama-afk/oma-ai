@@ -171,7 +171,7 @@ const EN = {
     level: 'approval level',
     cta: 'Get started',
     ctaContact: 'Get in touch',
-    note: 'Prices are shown before VAT. VAT is added at checkout (default 17%, configurable — Israel is 18%). Paid X API access is an add-on.',
+    note: 'Prices are shown before VAT. VAT is added at checkout (default 17%, configurable — Israel is 18%).',
     popular: 'Most popular',
   },
   faq: {
@@ -179,7 +179,7 @@ const EN = {
     items: [
       [
         'Which channels does OMA support?',
-        'You can plan and preview posts for TikTok, Instagram, Facebook, LinkedIn and X. Direct publishing depends on each connected account.',
+        'You can plan and preview posts for TikTok, Instagram, Facebook, and LinkedIn. Direct publishing depends on each connected account.',
       ],
       [
         'Can clients approve content without a full account?',
@@ -333,7 +333,7 @@ const AR: LandingCopy = {
       tone: 'pink',
       h: 'مصمّم للفيديو القصير ولكل خلاصة',
       b: [
-        ['تيك توك وإنستغرام وفيسبوك ولينكدإن وإكس', ' في محرر واحد.'],
+        ['تيك توك وإنستغرام وفيسبوك ولينكدإن', ' في محرر واحد.'],
         ['فحص الوسائط', ' وفق حدود كل منصة.'],
         ['نصوص مخصّصة', ' لكل قناة.'],
       ],
@@ -404,7 +404,7 @@ const AR: LandingCopy = {
     level: 'مستوى موافقة',
     cta: 'ابدأ الآن',
     ctaContact: 'تواصل معنا',
-    note: 'الأسعار قبل الضريبة. تُضاف الضريبة عند الدفع (افتراضياً 17٪ وقابلة للتغيير — في إسرائيل 18٪). الوصول إلى واجهة إكس المدفوعة إضافة مستقلة.',
+    note: 'الأسعار قبل الضريبة. تُضاف الضريبة عند الدفع (افتراضياً 17٪ وقابلة للتغيير — في إسرائيل 18٪).',
     popular: 'الأكثر اختياراً',
   },
   faq: {
@@ -412,7 +412,7 @@ const AR: LandingCopy = {
     items: [
       [
         'ما القنوات التي يدعمها OMA؟',
-        'يمكنك تخطيط المنشورات ومعاينتها لتيك توك وإنستغرام وفيسبوك ولينكدإن وإكس. النشر المباشر يعتمد على كل حساب مربوط.',
+        'يمكنك تخطيط المنشورات ومعاينتها لتيك توك وإنستغرام وفيسبوك ولينكدإن. النشر المباشر يعتمد على كل حساب مربوط.',
       ],
       [
         'هل يستطيع العملاء الموافقة دون حساب كامل؟',
