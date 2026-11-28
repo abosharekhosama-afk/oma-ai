@@ -1945,6 +1945,20 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/readiness": {
+      "get": {
+        "operationId": "StrategyController_readiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Strategy"
+        ]
+      }
+    },
     "/api/v1/brands/{brandId}/strategies/{strategyId}/versions/{versionId}/submit": {
       "post": {
         "operationId": "StrategyController_submit",
