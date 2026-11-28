@@ -65,4 +65,4 @@ export const omaAntdTheme = {
 } as const;
 
 export const omaArabicFontFamily =
-  "var(--font-noto-arabic), 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+  "var(--font-tajawal), 'Tajawal', 'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";

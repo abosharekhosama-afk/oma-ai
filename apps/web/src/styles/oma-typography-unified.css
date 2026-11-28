@@ -14,7 +14,17 @@ html body {
 
 html[lang='ar'] body,
 html[lang='ar'] body .oma-shell,
-html[dir='rtl'] body .oma-shell {
+html[dir='rtl'] body .oma-shell,
+html[lang='ar'] body .ant-app,
+html[lang='ar'] .ant-modal,
+html[lang='ar'] .ant-drawer,
+html[lang='ar'] .ant-dropdown,
+html[lang='ar'] .ant-select-dropdown,
+html[lang='ar'] .ant-picker-dropdown,
+html[lang='ar'] .ant-tooltip,
+html[lang='ar'] .ant-message,
+html[lang='ar'] .ant-notification,
+html[lang='ar'] .oma-shell-popover {
   font-family: var(--font-arabic), var(--font-sans) !important;
 }
 

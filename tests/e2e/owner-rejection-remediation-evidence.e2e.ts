@@ -191,7 +191,7 @@ test.describe('Owner rejection remediation evidence', () => {
       failedRequests: failed.length,
       beforeAfter: 'after',
       acceptanceCriterion: 'AR RTL typography',
-      referenceMapping: 'Noto Sans Arabic companion',
+      referenceMapping: 'Tajawal companion',
     });
 
     fs.writeFileSync(path.join(META, 'manifest.json'), JSON.stringify(manifest, null, 2));

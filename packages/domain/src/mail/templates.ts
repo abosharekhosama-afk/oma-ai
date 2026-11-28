@@ -28,7 +28,7 @@ function esc(value: string): string {
 
 const FONT_EN =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
-const FONT_AR = "'Segoe UI', Tahoma, 'Noto Sans Arabic', Arial, sans-serif";
+const FONT_AR = "'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif";
 
 type Layout = {
   locale: MailLocale;

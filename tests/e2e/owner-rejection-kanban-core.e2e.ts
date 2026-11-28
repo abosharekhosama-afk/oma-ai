@@ -130,7 +130,7 @@ test.describe('Owner rejection — Kanban + typography core', () => {
     const dir = await page.evaluate(() => document.documentElement.dir);
     expect(dir).toBe('rtl');
     const fontFamily = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
-    expect(fontFamily.toLowerCase()).toMatch(/noto|arabic/);
+    expect(fontFamily.toLowerCase()).toMatch(/tajawal|arabic/);
     guards.assertClean();
   });
 

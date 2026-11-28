@@ -344,7 +344,7 @@ test.describe('Owner remediation certification', () => {
     await expect(page.getByTestId('demo-tasks-board')).toBeVisible({ timeout: 20_000 });
     const dir = await page.evaluate(() => document.documentElement.dir);
     expect(dir).toBe('rtl');
-    const arFont = await assertFont(page, /noto|arabic/);
+    const arFont = await assertFont(page, /tajawal|arabic/);
     await page.screenshot({ path: path.join(SHOTS, '17-ar-desktop-kanban.png'), fullPage: false });
     fs.writeFileSync(
       path.join(META, '17-ar-desktop-kanban.json'),
