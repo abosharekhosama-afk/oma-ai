@@ -15,7 +15,7 @@
   --pl-blue: #bbcfff;
   --pl-mint: #b6ebd6;
   --pl-radius: 24px;
-  font-family: var(--font-oma-pl), var(--font-noto-arabic), system-ui, sans-serif;
+  font-family: var(--font-oma-pl), var(--font-tajawal), system-ui, sans-serif;
   color: var(--pl-text);
   background: var(--pl-bg);
   font-size: 14px;
@@ -25,7 +25,7 @@
   -webkit-font-smoothing: antialiased;
 }
 .oma-pl-root[dir='rtl'] {
-  font-family: var(--font-noto-arabic), var(--font-oma-pl), system-ui, sans-serif;
+  font-family: var(--font-tajawal), var(--font-oma-pl), system-ui, sans-serif;
 }
 .oma-pl-root *,
 .oma-pl-root *::before,

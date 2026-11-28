@@ -38,13 +38,13 @@ describe('Owner rejection — Tasks IA + Kanban core', () => {
   it('uses Planable system-UI tokens and ships kanban board component', () => {
     const tokens = readFileSync(join(process.cwd(), 'packages/ui/src/tokens.css'), 'utf8');
     expect(tokens).toContain('-apple-system');
-    expect(tokens).toContain("'Noto Sans Arabic'");
+    expect(tokens).toContain("'Tajawal'");
     expect(tokens).not.toContain("'IBM Plex Sans'");
     expect(tokens).not.toContain("'Inter'");
     const layout = readFileSync(join(process.cwd(), 'apps/web/src/app/layout.tsx'), 'utf8');
     const fonts = readFileSync(join(process.cwd(), 'apps/web/src/styles/oma-fonts.css'), 'utf8');
     expect(layout).not.toMatch(/\bInter\b/);
-    expect(fonts).toContain("'Noto Sans Arabic'");
+    expect(fonts).toContain("'Tajawal'");
     expect(layout).not.toContain('IBM_Plex');
     expect(layout).toContain('data-oma-typeface="oma-system-ui"');
     expect(layout).toContain('oma-fonts.css');

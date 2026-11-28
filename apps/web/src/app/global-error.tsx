@@ -11,8 +11,7 @@ export default function GlobalError({ reset }: { error: Error; reset: () => void
           display: 'grid',
           placeItems: 'center',
           padding: 24,
-          fontFamily:
-            'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif',
+          fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, Tajawal, Tahoma, sans-serif',
           color: '#333333',
           background: '#f5f6f7',
         }}

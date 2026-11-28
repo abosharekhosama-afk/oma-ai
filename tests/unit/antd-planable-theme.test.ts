@@ -20,7 +20,7 @@ describe('Planable Ant Design theme contract', () => {
       motionDurationSlow: '0.3s',
     });
     expect(omaAntdTheme.token.fontFamily).toContain('-apple-system');
-    expect(omaArabicFontFamily.startsWith('var(--font-noto-arabic)')).toBe(true);
+    expect(omaArabicFontFamily.startsWith('var(--font-tajawal)')).toBe(true);
   });
 
   it('keeps one provider hierarchy and the App feedback API', () => {

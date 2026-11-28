@@ -31,8 +31,7 @@
   --oma-font-sans:
     'Plus Jakarta Sans', 'Plus Jakarta Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto,
     'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --oma-font-arabic:
-    var(--font-noto-arabic), 'Noto Sans Arabic', system-ui, 'Segoe UI', Tahoma, sans-serif;
+  --oma-font-arabic: var(--font-tajawal), 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
   --font-sans: var(--oma-font-sans);
   --font-arabic: var(--oma-font-arabic);
   --font-mono: var(--font-jetbrains-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;

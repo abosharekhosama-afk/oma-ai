@@ -28,10 +28,10 @@ describe('P1 Planable design tokens', () => {
     expect(css).toContain('--leading-body: 22px');
   });
 
-  it('uses system-UI English stack and Noto Arabic adaptation', () => {
+  it('uses system-UI English stack and Tajawal Arabic adaptation', () => {
     expect(css).toContain('-apple-system');
     expect(css).toContain("'Segoe UI'");
-    expect(css).toContain("'Noto Sans Arabic'");
+    expect(css).toContain("'Tajawal'");
     expect(css).toContain('--shell-header-height');
     expect(css).not.toContain('P1_COMPAT');
   });
@@ -54,7 +54,9 @@ describe('P1 Planable design tokens', () => {
     expect(layout).not.toMatch(/\bInter\b/);
     expect(layout).not.toContain('IBM_Plex');
     expect(layout).toContain('oma-fonts.css');
-    expect(fonts).toContain("'Noto Sans Arabic'");
+    expect(fonts).toContain("'Tajawal'");
+    expect(fonts).toContain('Tajawal-400-arabic.woff2');
+    expect(fonts).toContain('font-weight: 700');
     for (const file of stageFiles) {
       expect(file).not.toMatch(/(^|\n):root\s*\{/);
       expect(file).not.toContain('--oma-primary: #6658');
